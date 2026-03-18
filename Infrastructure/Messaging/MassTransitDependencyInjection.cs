@@ -18,9 +18,19 @@ namespace Musify.Infrastructure.Messaging
                     var section = configuration.GetSection("MassTransit");
 
                     var host = section["Host"]
-                        ?? throw new InvalidOperationException("MassTransit:Host configuration is missing.");
+                        ?? throw new InvalidOperationException("MassTransit:Host configuration value not found.");
 
-                    busFactoryConfigurator.Host(host);
+                    var username = section["Username"]
+                        ?? throw new InvalidOperationException("MassTransit:Username configuration value not found.");
+
+                    var password = section["Password"]
+                        ?? throw new InvalidOperationException("MassTransit:Password configuration value not found.");
+
+                    busFactoryConfigurator.Host(host, options =>
+                    {
+                        options.Username(username);
+                        options.Password(password);
+                    } );
 
                     busFactoryConfigurator.ReceiveEndpoint(PictureResizerConsumer.QueueName, endpointConfigurator =>
                     {
