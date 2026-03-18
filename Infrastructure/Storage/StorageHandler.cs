@@ -78,6 +78,7 @@ namespace Musify.Infrastructure.Storage
                 try
                 {
                     await trasnsferUtility.UploadAsync(filePath, bucketName, fileName, cancellationToken);
+                    logger.LogInformation("Successfully transferred file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
                 }
                 catch
                 {
@@ -102,6 +103,7 @@ namespace Musify.Infrastructure.Storage
             try
             {
                 var response = await amazonS3.PutObjectAsync(request, cancellationToken);
+                logger.LogInformation("Successfully uploaded file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
             }
             catch
             {

@@ -7,7 +7,33 @@ namespace Musify.Infrastructure.Messaging
 {
     public static class MassTransitDependencyInjection
     {
-        public static void AddMassTransitHandler(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static void AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors.AddMassTransit(options =>
+            {
+                options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
+                {
+                    var section = configuration.GetSection("MassTransit");
+
+                    var host = section["Host"]
+                        ?? throw new InvalidOperationException("MassTransit:Host configuration value not found.");
+
+                    var username = section["Username"]
+                        ?? throw new InvalidOperationException("MassTransit:Username configuration value not found.");
+
+                    var password = section["Password"]
+                        ?? throw new InvalidOperationException("MassTransit:Password configuration value not found.");
+
+                    busFactoryConfigurator.Host(host, options =>
+                    {
+                        options.Username(username);
+                        options.Password(password);
+                    } );
+                } );
+            } );
+        }
+
+        public static void AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddMassTransit(options =>
             {
