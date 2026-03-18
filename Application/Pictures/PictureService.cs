@@ -28,6 +28,7 @@ namespace Musify.Application.Pictures
                 BucketName = storageConfiguration.BucketName,
                 EntityType = entityType,
                 EntityId = EntityId,
+                State = UploadState.Completed
             };
 
             await database.Uploads.AddAsync(upload, cancellationToken);
@@ -44,6 +45,11 @@ namespace Musify.Application.Pictures
             if (!uploadResult.IsSuccess)
             {
                 logger.LogError("Failed to upload the picture with ID {PictureId} to bucket {BucketName}.", pictureId, storageConfiguration.BucketName);
+
+                upload.State = UploadState.Failed;
+                database.Uploads.Update(upload);
+                await database.SaveChangesAsync(cancellationToken);
+
                 return Result.Error("Failed to upload the picture.");
             }
 
