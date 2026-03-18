@@ -6,19 +6,9 @@ namespace Musify.Application.Configuration
     {
         public const string SectionName = "PlayListConfiguration";
 
-        public PlayListRoutes Routes { get; set; } = new PlayListRoutes();
+        public Routes Routes { get; set; } = new Routes();
 
-        public int SmallPictureWidth { get; set; } = 128;
-
-        public int SmallPictureHeight { get; set; } = 128;
-
-        public int MediumPictureWidth { get; private set; } = 256;
-
-        public int MediumPictureHeight { get; private set; } = 256;
-
-        public int LargePictureWidth { get; private set; } = 512;
-
-        public int LargePictureHeight { get; private set; } = 512;
+        public PicturesSizes PicturesSizes { get; set; } = new PicturesSizes();
 
         public static PlayListConfiguration Load(IConfiguration configuration)
         {
@@ -31,17 +21,20 @@ namespace Musify.Application.Configuration
 
         static void Validate(PlayListConfiguration configuration)
         {
-            EnsureValue(configuration.Routes.ParentFolder, $"{SectionName}:BucketName");
+            EnsureValue(configuration.Routes.OriginalPictures, $"{SectionName}:BucketName");
             EnsureValue(configuration.Routes.SmallPictures, $"{SectionName}:Routes:SmallPictures");
             EnsureValue(configuration.Routes.MediumPictures, $"{SectionName}:Routes:MediumPictures");
             EnsureValue(configuration.Routes.LargePictures, $"{SectionName}:Routes:LargePictures");
+            EnsureValue(configuration.Routes.PresetSmallPicture, $"{SectionName}:Routes:SmallPictures");
+            EnsureValue(configuration.Routes.PresetMediumPicture, $"{SectionName}:Routes:MediumPictures");
+            EnsureValue(configuration.Routes.PresetLargePicture, $"{SectionName}:Routes:LargePictures");
 
-            EnsurePositiveValue(configuration.SmallPictureWidth, $"{SectionName}:SmallPictureWidth");
-            EnsurePositiveValue(configuration.SmallPictureHeight, $"{SectionName}:SmallPictureHeight");
-            EnsurePositiveValue(configuration.MediumPictureWidth, $"{SectionName}:MediumPictureWidth");
-            EnsurePositiveValue(configuration.MediumPictureHeight, $"{SectionName}:MediumPictureHeight");
-            EnsurePositiveValue(configuration.LargePictureWidth, $"{SectionName}:LargePictureWidth");
-            EnsurePositiveValue(configuration.LargePictureHeight, $"{SectionName}:LargePictureHeight");
+            EnsurePositiveValue(configuration.PicturesSizes.SmallPictureWidth, $"{SectionName}:SmallPictureWidth");
+            EnsurePositiveValue(configuration.PicturesSizes.SmallPictureHeight, $"{SectionName}:SmallPictureHeight");
+            EnsurePositiveValue(configuration.PicturesSizes.MediumPictureWidth, $"{SectionName}:MediumPictureWidth");
+            EnsurePositiveValue(configuration.PicturesSizes.MediumPictureHeight, $"{SectionName}:MediumPictureHeight");
+            EnsurePositiveValue(configuration.PicturesSizes.LargePictureWidth, $"{SectionName}:LargePictureWidth");
+            EnsurePositiveValue(configuration.PicturesSizes.LargePictureHeight, $"{SectionName}:LargePictureHeight");
         }
 
         static void EnsureValue(string value, string name)
@@ -57,9 +50,9 @@ namespace Musify.Application.Configuration
         }
     }
 
-    public class PlayListRoutes
+    public class Routes
     {
-        public string ParentFolder { get; set; } = "PlayLists";
+        public string OriginalPictures { get; set; } = "OriginalPictures";
 
         public string SmallPictures { get; set; } = "SmallPictures";
 
@@ -67,10 +60,25 @@ namespace Musify.Application.Configuration
 
         public string LargePictures { get; set; } = "LargePictures";
 
-        public string DefaultSmallPicture { get; set; } = "DefaultSmallPicture.webp";
+        public string PresetSmallPicture { get; set; } = "PresetSmallPicture.webp";
 
-        public string DefaultMediumPicture { get; set; } = "DefaultMediumPicture.webp";
+        public string PresetMediumPicture { get; set; } = "PresettMediumPicture.webp";
 
-        public string DefaultLargePicture { get; set; } = "DefaultLargePicture.webp";
+        public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
+    }
+
+    public class PicturesSizes
+    {
+        public int SmallPictureWidth { get; set; } = 128;
+
+        public int SmallPictureHeight { get; set; } = 128;
+
+        public int MediumPictureWidth { get; private set; } = 256;
+
+        public int MediumPictureHeight { get; private set; } = 256;
+
+        public int LargePictureWidth { get; private set; } = 512;
+
+        public int LargePictureHeight { get; private set; } = 512;
     }
 }

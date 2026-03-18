@@ -23,7 +23,7 @@ namespace Musify.Application.Pictures
             var upload = new Upload
             {
                 Id = pictureId,
-                KeyName = $"{storageConfiguration.Routes.Uploads}/{pictureId}",
+                KeyName = keyName,
                 ContentType = contentType,
                 BucketName = storageConfiguration.BucketName,
                 EntityType = entityType,
@@ -39,7 +39,7 @@ namespace Musify.Application.Pictures
                 pictureStream,
                 contentType,
                 storageConfiguration.BucketName,
-                $"{storageConfiguration.Routes.Uploads}/{pictureId}",
+                keyName,
                 cancellationToken);
 
             if (!uploadResult.IsSuccess)

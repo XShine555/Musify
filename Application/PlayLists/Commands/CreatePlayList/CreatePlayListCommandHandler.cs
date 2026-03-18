@@ -49,12 +49,18 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 request.PictureContentType,
                 request.PictureStream,
                 [ 
-                    new PictureResize(playListConfiguration.SmallPictureWidth,
-                        playListConfiguration.SmallPictureHeight, playListConfiguration.Routes.SmallPictures),
-                    new PictureResize(playListConfiguration.MediumPictureWidth,
-                        playListConfiguration.MediumPictureHeight, playListConfiguration.Routes.MediumPictures),
-                    new PictureResize(playListConfiguration.LargePictureWidth,
-                        playListConfiguration.LargePictureHeight, playListConfiguration.Routes.LargePictures)
+                    new PictureResize(
+                        playListConfiguration.PicturesSizes.SmallPictureWidth,
+                        playListConfiguration.PicturesSizes.SmallPictureHeight,
+                        playListConfiguration.Routes.SmallPictures),
+                    new PictureResize(
+                        playListConfiguration.PicturesSizes.MediumPictureWidth,
+                        playListConfiguration.PicturesSizes.MediumPictureHeight,
+                        playListConfiguration.Routes.MediumPictures),
+                    new PictureResize(
+                        playListConfiguration.PicturesSizes.LargePictureWidth,
+                        playListConfiguration.PicturesSizes.LargePictureHeight,
+                        playListConfiguration.Routes.LargePictures)
                 ],
                 cancellationToken);
 
