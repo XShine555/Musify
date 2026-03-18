@@ -9,7 +9,8 @@ namespace Musify.Application.Pictures.Commands.ResizePicture
     {
         public async Task<Result<Guid>> Handle(ResizeCommand request, CancellationToken cancellationToken)
         {
-            var result = await pictureService.ResizePictureAsync(request.KeyName, request.ContentType, request.PictureStream, request.PictureResizes, cancellationToken);
+            var result = await pictureService.ResizePictureAsync(request.EntityType, request.EntityId, request.KeyName, request.ContentType,
+                request.PictureStream, request.PictureResizes, cancellationToken);
 
             return result;
         }

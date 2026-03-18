@@ -3,6 +3,7 @@ using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.PlayLists.Contracts;
+using Musify.Domain.Entities;
 using X.PagedList.EF;
 
 namespace Musify.Application.PlayLists.Queries.GetPlayListsByUserId
@@ -27,13 +28,7 @@ namespace Musify.Application.PlayLists.Queries.GetPlayListsByUserId
 
             var pagedPlayLists = await playListsQuery
                 .OrderBy(p => p.CreatedDate)
-                .Select(p => new PlayListResponse(
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.ImageName,
-                    p.CreatedDate,
-                    p.UpdatedDate))
+                .Select(p => PlayListResponse.FromEntity(p))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
             var response = new PaginatedPlayListResponse(

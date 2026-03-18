@@ -16,13 +16,7 @@ namespace Musify.Application.PlayLists.Queries.GetPlayListById
                 .SingleOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
             return playList is not null
-                ? Result.Success(new PlayListResponse(
-                    playList.Id,
-                    playList.Name,
-                    playList.Description,
-                    playList.ImageName,
-                    playList.CreatedDate,
-                    playList.UpdatedDate))
+                ? Result.Success(PlayListResponse.FromEntity(playList))
                 : Result.NotFound("Playlist not found.");
         }
     }

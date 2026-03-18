@@ -2,5 +2,6 @@
 {
     public record PictureResize(
         int Width,
-        int Height);
+        int Height,
+        string SaveOnRoute);
 }

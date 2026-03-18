@@ -43,19 +43,24 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
             logger.LogInformation("PlayList with Id={PlayListId} created successfully for UserId={UserId}.", playList.Id, request.UserId);
 
             await pictureService.ResizePictureAsync(
+                EntityType.PlayList,
+                playList.Id,
                 playList.Id.ToString(),
                 request.PictureContentType,
                 request.PictureStream,
                 [ 
-                    new PictureResize(playListConfiguration.SmallPictureWidth, playListConfiguration.SmallPictureHeight),
-                    new PictureResize(playListConfiguration.MediumPictureWidth, playListConfiguration.MediumPictureHeight),
-                    new PictureResize(playListConfiguration.LargePictureWidth, playListConfiguration.LargePictureHeight)
+                    new PictureResize(playListConfiguration.SmallPictureWidth,
+                        playListConfiguration.SmallPictureHeight, playListConfiguration.Routes.SmallPictures),
+                    new PictureResize(playListConfiguration.MediumPictureWidth,
+                        playListConfiguration.MediumPictureHeight, playListConfiguration.Routes.MediumPictures),
+                    new PictureResize(playListConfiguration.LargePictureWidth,
+                        playListConfiguration.LargePictureHeight, playListConfiguration.Routes.LargePictures)
                 ],
                 cancellationToken);
 
             logger.LogInformation("Picture for PlayList with Id={PlayListId} ", playList.Id);
 
-            return Result.Created(PlayListResponse.Map(playList));
+            return Result.Created(PlayListResponse.FromEntity(playList));
         }
     }
 }

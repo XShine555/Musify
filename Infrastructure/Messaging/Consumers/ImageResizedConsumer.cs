@@ -1,6 +1,5 @@
 ﻿using Ardalis.Result;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Pictures.Events;
@@ -15,7 +14,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
         {
             try
             {
-                var upload = await database.Uploads.SingleOrDefaultAsync(u => u.Id == consumeContext.Message.UploadId);
+                var upload = await database.Uploads.FindAsync(consumeContext.Message.UploadId);
 
                 if (upload is null)
                 {
@@ -31,53 +30,64 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
                 await UpdateState(database, upload, UploadState.Processing, consumeContext.CancellationToken);
 
-                var file = await storageHandler.GetFileAsync(
+                var fileResult = await storageHandler.GetFileAsync(
                     upload.BucketName,
                     upload.KeyName,
                     consumeContext.CancellationToken);
 
-                if (file.IsNotFound())
+                if (fileResult.IsNotFound())
                 {
                     logger.LogWarning("File not found in storage: BucketName={BucketName}, KeyName={KeyName}", upload.BucketName, upload.KeyName);
-
                     await UpdateState(database, upload, UploadState.Failed, consumeContext.CancellationToken);
-
                     return;
                 }
 
-                using var fileStream = file.Value;
+                using var fileStream = fileResult.Value;
 
-                var pictureResult = await pictureHandler.ResizePictureAsync(
-                    fileStream,
-                    consumeContext.Message.Width,
-                    consumeContext.Message.Height,
-                    consumeContext.CancellationToken);
-
-                if (!pictureResult.IsSuccess)
+                foreach (var resize in consumeContext.Message.ImageResizes)
                 {
-                    string errors = string.Join("; ", pictureResult.Errors);
-                    logger.LogError("Failed to resize picture: {ErrorMessage}", errors);
-                    
-                    await UpdateState(database, upload, UploadState.Failed, consumeContext.CancellationToken);
+                    var newUpload = new Upload
+                    {
+                        BucketName = upload.BucketName,
+                        KeyName = $"{resize.SaveOnRoute}/{upload.Id}.webp",
+                        ContentType = "image/webp",
+                        State = UploadState.Processing,
+                        EntityId = upload.EntityId,
+                        EntityType = upload.EntityType
+                    };
 
-                    return;
-                }
+                    await database.Uploads.AddAsync(newUpload, consumeContext.CancellationToken);
 
-                var saveResult = await storageHandler.UploadFileAsync(
-                    pictureResult.Value,
-                    "image/webp",
-                    upload.BucketName,
-                    $"{consumeContext.Message.SaveRoute}/{upload.Id}.webp",
-                    consumeContext.CancellationToken);
+                    await database.SaveChangesAsync(consumeContext.CancellationToken);
 
-                if (!saveResult.IsSuccess)
-                {
-                    string errors = string.Join("; ", saveResult.Errors);
-                    logger.LogError("Failed to upload resized picture: {ErrorMessage}", errors);
+                    var pictureResult = await pictureHandler.ResizePictureAsync(
+                        fileStream,
+                        resize.Width,
+                        resize.Height,
+                        consumeContext.CancellationToken);
 
-                    await UpdateState(database, upload, UploadState.Failed, consumeContext.CancellationToken);
+                    if (!pictureResult.IsSuccess)
+                    {
+                        logger.LogError("Failed to resize picture: {ErrorMessage}", string.Join("; ", pictureResult.Errors));
+                        await UpdateState(database, newUpload, UploadState.Failed, consumeContext.CancellationToken);
+                        continue;
+                    }
 
-                    return;
+                    var saveResult = await storageHandler.UploadFileAsync(
+                        pictureResult.Value,
+                        "image/webp",
+                        upload.BucketName,
+                        $"{resize.SaveOnRoute}/{upload.Id}.webp",
+                        consumeContext.CancellationToken);
+
+                    if (!saveResult.IsSuccess)
+                    {
+                        logger.LogError("Failed to upload resized picture: {ErrorMessage}", string.Join("; ", saveResult.Errors));
+                        await UpdateState(database, newUpload, UploadState.Failed, consumeContext.CancellationToken);
+                        continue;
+                    }
+
+                    await UpdateState(database, newUpload, UploadState.Completed, consumeContext.CancellationToken);
                 }
 
                 await UpdateState(database, upload, UploadState.Completed, consumeContext.CancellationToken);
@@ -88,7 +98,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 throw;
             }
         }
-
+        
         async Task UpdateState(IDatabase database, Upload upload, UploadState uploadState, CancellationToken cancellationToken)
         {
             upload.State = uploadState;

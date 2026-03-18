@@ -12,7 +12,7 @@ namespace Musify.Application.PlayLists.Contracts
         DateTime CreatedAt,
         DateTime UpdatedAt)
     {
-        public static PlayListResponse Map(PlayList playList)
+        public static PlayListResponse FromEntity(PlayList playList)
         {
             return new PlayListResponse(
                 playList.Id,

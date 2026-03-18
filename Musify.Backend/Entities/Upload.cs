@@ -19,6 +19,12 @@ namespace Musify.Domain.Entities
         public required string ContentType { get; set; }
 
         [Required]
+        public required EntityType EntityType { get; set; }
+
+        [Required]
+        public required Guid EntityId { get; set; }
+
+        [Required]
         public UploadState State { get; set; } = UploadState.Pending;
 
         [Required]

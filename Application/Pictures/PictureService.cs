@@ -15,8 +15,8 @@ namespace Musify.Application.Pictures
         ILogger<ResizeCommandHandler> logger, StorageConfiguration storageConfiguration)
         : IPictureService
     {
-        public async Task<Result<Guid>> ResizePictureAsync(string keyName, string contentType, Stream pictureStream, PictureResize[] pictureResizes,
-            CancellationToken cancellationToken)
+        public async Task<Result<Guid>> ResizePictureAsync(EntityType entityType, Guid EntityId, string keyName, string contentType, Stream pictureStream,
+            PictureResize[] pictureResizes, CancellationToken cancellationToken)
         {
             var pictureId = Guid.NewGuid();
 
@@ -26,6 +26,8 @@ namespace Musify.Application.Pictures
                 KeyName = $"{storageConfiguration.Routes.Uploads}/{pictureId}",
                 ContentType = contentType,
                 BucketName = storageConfiguration.BucketName,
+                EntityType = entityType,
+                EntityId = EntityId,
             };
 
             await database.Uploads.AddAsync(upload, cancellationToken);
