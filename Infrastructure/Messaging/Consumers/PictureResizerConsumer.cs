@@ -10,6 +10,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
     public class PictureResizerConsumer(IStorageHandler storageHandler, IDatabase database, IPictureHandler pictureHandler, ILogger<PictureResizerConsumer> logger)
         : IConsumer<PictureResizeEvent>
     {
+        public const string QueueName = "picture-resize-queue";
+
         public async Task Consume(ConsumeContext<PictureResizeEvent> consumeContext)
         {
             try
