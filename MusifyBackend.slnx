@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Application/Application.csproj" />
+  <Project Path="Infrastructure/Infrastructure.csproj" />
+  <Project Path="Musify.Backend/Domain.csproj" />
+</Solution>

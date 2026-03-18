@@ -1,0 +1,61 @@
+﻿using Ardalis.Result;
+using Keycloak.Net;
+using Keycloak.Net.Models.Users;
+using Microsoft.Extensions.Logging;
+using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Users.Contracts;
+
+namespace Musify.Infrastructure.Identity
+{
+    public class KeycloakIdentityService(
+        KeycloakClient keycloakClient,
+        KeycloakConfiguration keycloakConfiguration,
+        ILogger<KeycloakIdentityService> logger) : IKeycloakUserClient
+    {
+        public async Task<Result<KeycloakUserResponse>> GetUserByIdAsync(string keycloakId, CancellationToken cancellationToken)
+        {
+            User keycloakUser;
+
+            try
+            {
+                keycloakUser = await keycloakClient.GetUserAsync(keycloakConfiguration.Realm, keycloakId, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Keycloak user with id {KeycloakId} could not be retrieved.", keycloakId);
+
+                return Result.NotFound();
+            }
+
+            return Result.Success(KeycloakUserMapper.Map(keycloakUser));
+        }
+
+        public async Task<IReadOnlyCollection<KeycloakUserResponse>> GetUsersAsync(CancellationToken cancellationToken, string search = "", int first = 0, int max = 20, string username = "")
+        {
+            var users = await keycloakClient.GetUsersAsync(
+                realm: keycloakConfiguration.Realm,
+                first: first,
+                max: max,
+                search: search,
+                username: username,
+                cancellationToken: cancellationToken);
+
+            return users
+                .Select(KeycloakUserMapper.Map)
+                .ToArray();
+        }
+
+        public Task<int> GetUsersCountAsync(CancellationToken cancellationToken, string search = "", string username = "")
+        {
+            return keycloakClient.GetUsersCountAsync(
+                keycloakConfiguration.Realm,
+                search: search,
+                username: username,
+                cancellationToken: cancellationToken);
+        }
+    }
+}
