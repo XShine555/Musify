@@ -1,0 +1,61 @@
+﻿using Ardalis.Result;
+using DispatchR.Abstractions.Send;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Musify.Application.Configuration;
+using Musify.Application.Contracts.Application;
+using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Pictures.Contracts;
+using Musify.Application.PlayLists.Contracts;
+using Musify.Domain.Entities;
+
+namespace Musify.Application.PlayLists.Commands.CreatePlayList
+{
+    public class CreatePlayListCommandHandler(IPictureService pictureService, IDatabase database, ILogger<CreatePlayListCommandHandler> logger,
+        PlayListConfiguration playListConfiguration)
+        : IRequestHandler<CreatePlayListCommand, Task<Result<PlayListResponse>> >
+    {
+        public async Task<Result<PlayListResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
+        {
+            var userExists = await database.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
+
+            if (!userExists)
+            {
+                logger.LogWarning("User with Id={UserId} does not exist.", request.UserId);
+                return Result.NotFound($"User with Id {request.UserId} does not exist.");
+            }
+
+            var playList = new PlayList
+            {
+                UserId = request.UserId,
+                Name = request.Name,
+                NormalizedName = request.Name.Trim().ToUpperInvariant(),
+                Description = request.Description,
+                SmallPictureKeyName = playListConfiguration.Routes.SmallPictures,
+                MediumPictureKeyName = playListConfiguration.Routes.MediumPictures,
+                LargePictureKeyName = playListConfiguration.Routes.LargePictures,
+            };
+
+            await database.PlayLists.AddAsync(playList, cancellationToken);
+
+            await database.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("PlayList with Id={PlayListId} created successfully for UserId={UserId}.", playList.Id, request.UserId);
+
+            await pictureService.ResizePictureAsync(
+                playList.Id.ToString(),
+                request.PictureContentType,
+                request.PictureStream,
+                [ 
+                    new PictureResize(playListConfiguration.SmallPictureWidth, playListConfiguration.SmallPictureHeight),
+                    new PictureResize(playListConfiguration.MediumPictureWidth, playListConfiguration.MediumPictureHeight),
+                    new PictureResize(playListConfiguration.LargePictureWidth, playListConfiguration.LargePictureHeight)
+                ],
+                cancellationToken);
+
+            logger.LogInformation("Picture for PlayList with Id={PlayListId} ", playList.Id);
+
+            return Result.Created(PlayListResponse.Map(playList));
+        }
+    }
+}

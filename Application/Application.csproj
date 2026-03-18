@@ -21,8 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\Application\" />
-    <Folder Include="PlayLists\Commands\CreatePlayList\" />
     <Folder Include="PlayLists\Commands\DeletePlayList\" />
     <Folder Include="PlayLists\Commands\UpdatePlayList\" />
   </ItemGroup>

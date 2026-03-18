@@ -1,19 +1,22 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
+using Musify.Application.Contracts.Application;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Pictures.Commands.ResizePicture;
+using Musify.Application.Pictures.Contracts;
 using Musify.Application.Pictures.Events;
 using Musify.Domain.Entities;
 
-namespace Musify.Application.Pictures.Commands.ResizeImage
+namespace Musify.Application.Pictures
 {
-    public class ResizeCommandHandler(IStorageHandler storageHandler, IDatabase database, IPublishEndpoint publishEndpoint,
+    public class PictureService(IStorageHandler storageHandler, IDatabase database, IPublishEndpoint publishEndpoint,
         ILogger<ResizeCommandHandler> logger, StorageConfiguration storageConfiguration)
-        : IRequestHandler<ResizeCommand, Task<Result<Guid> >>
+        : IPictureService
     {
-        public async Task<Result<Guid>> Handle(ResizeCommand request, CancellationToken cancellationToken)
+        public async Task<Result<Guid>> ResizePictureAsync(string keyName, string contentType, Stream pictureStream, PictureResize[] pictureResizes,
+            CancellationToken cancellationToken)
         {
             var pictureId = Guid.NewGuid();
 
@@ -21,7 +24,7 @@ namespace Musify.Application.Pictures.Commands.ResizeImage
             {
                 Id = pictureId,
                 KeyName = $"{storageConfiguration.Routes.Uploads}/{pictureId}",
-                ContentType = request.ContentType,
+                ContentType = contentType,
                 BucketName = storageConfiguration.BucketName,
             };
 
@@ -30,10 +33,10 @@ namespace Musify.Application.Pictures.Commands.ResizeImage
             await database.SaveChangesAsync(cancellationToken);
 
             var uploadResult = await storageHandler.UploadFileAsync(
-                request.PictureStream,
-                request.ContentType,
+                pictureStream,
+                contentType,
                 storageConfiguration.BucketName,
-                pictureId.ToString(),
+                $"{storageConfiguration.Routes.Uploads}/{pictureId}",
                 cancellationToken);
 
             if (!uploadResult.IsSuccess)
@@ -42,12 +45,7 @@ namespace Musify.Application.Pictures.Commands.ResizeImage
                 return Result.Error("Failed to upload the picture.");
             }
 
-            await publishEndpoint.Publish(new ImageResizeEvent(
-                pictureId,
-                request.Width,
-                request.Height,
-                request.SaveRoute),
-                cancellationToken);
+            await publishEndpoint.Publish(new PictureResizeEvent(pictureId, pictureResizes));
 
             return Result.Success();
         }

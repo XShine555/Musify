@@ -9,9 +9,9 @@ using Musify.Domain.Entities;
 namespace Musify.Infrastructure.Messaging.Consumers
 {
     public class ImageResizedConsumer(IStorageHandler storageHandler, IDatabase database, IPictureHandler pictureHandler, ILogger<ImageResizedConsumer> logger)
-        : IConsumer<ImageResizeEvent>
+        : IConsumer<PictureResizeEvent>
     {
-        public async Task Consume(ConsumeContext<ImageResizeEvent> consumeContext)
+        public async Task Consume(ConsumeContext<PictureResizeEvent> consumeContext)
         {
             try
             {

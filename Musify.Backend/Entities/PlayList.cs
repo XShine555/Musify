@@ -27,7 +27,15 @@ namespace Musify.Domain.Entities
 
         [Required]
         [MaxLength(64)]
-        public required string ImageName { get; set; }
+        public required string SmallPictureKeyName { get; set; }
+
+        [Required]
+        [MaxLength(64)]
+        public required string MediumPictureKeyName { get; set; }
+
+        [Required]
+        [MaxLength(64)]
+        public required string LargePictureKeyName { get; set; }
 
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
