@@ -1,12 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
+using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Persistence
 {
-    public class Database(DbContextOptions<Database> dbContextOptions)
-        : DbContext(dbContextOptions), IDatabase
+    public class Database(DatabaseConfiguration configuration)
+        : DbContext, IDatabase
     {
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseNpgsql(configuration.ConnectionString);
+        }
+
         public DbSet<User> Users => Set<User>();
 
         public DbSet<Track> Tracks => Set<Track>();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Persistence
 {
@@ -12,12 +13,15 @@ namespace Musify.Infrastructure.Persistence
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("AppSettings.json")
                 .Build();
-            var connectionString = configuration.GetConnectionString("Default");
+
+            var databaseConfiguration = configuration.GetSection(DatabaseConfiguration.SectionName)
+                .Get<DatabaseConfiguration>()
+                ?? throw new InvalidOperationException($"Failed to load {DatabaseConfiguration.SectionName} configuration.");
 
             var optionsBuilder = new DbContextOptionsBuilder<Database>();
-            optionsBuilder.UseNpgsql(connectionString);
+            optionsBuilder.UseNpgsql(databaseConfiguration.ConnectionString);
 
-            return new Database(optionsBuilder.Options);
+            return new Database(databaseConfiguration);
         }
     }
 }

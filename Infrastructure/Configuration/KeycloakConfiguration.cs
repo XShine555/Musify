@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace Musify.Infrastructure.Identity
+namespace Musify.Infrastructure.Configuration
 {
     public class KeycloakConfiguration
     {
@@ -20,7 +20,6 @@ namespace Musify.Infrastructure.Identity
                 ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
 
             Validate(keycloakConfiguration);
-
             return keycloakConfiguration;
         }
 

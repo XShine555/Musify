@@ -26,7 +26,6 @@ namespace Musify.Application.Configuration
                 ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
 
             Validate(section);
-
             return section;
         }
 

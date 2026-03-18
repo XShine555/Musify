@@ -12,14 +12,12 @@ namespace Musify.Infrastructure.Storage
             serviceDescriptors.AddScoped<IAmazonS3>(serviceProvider =>
             {
                 var configuration = serviceProvider.GetRequiredService<StorageConfiguration>();
-
                 var s3Configuration = new AmazonS3Config
                 {
                     ServiceURL = configuration.ServiceUrl,
                     ForcePathStyle = configuration.ForcePathStyle,
                     UseHttp = configuration.UseHttp,
                 };
-
                 return new AmazonS3Client(configuration.AccessKey, configuration.SecretAccessKey, s3Configuration);
             } );
 

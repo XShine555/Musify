@@ -4,6 +4,7 @@ using Keycloak.Net.Models.Users;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Users.Contracts;
+using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Identity
 {
