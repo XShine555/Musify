@@ -44,12 +44,20 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
                 using var fileStream = fileResult.Value;
 
+                using var memoryStream = new MemoryStream();
+                await fileStream.CopyToAsync(memoryStream, consumeContext.CancellationToken);
+
                 foreach (var resize in consumeContext.Message.ImageResizes)
                 {
+                    memoryStream.Position = 0;
+
+                    var newUploadId = Guid.NewGuid();
+
                     var newUpload = new Upload
                     {
+                        Id = newUploadId,
                         BucketName = upload.BucketName,
-                        KeyName = $"{resize.SaveOnRoute}/{upload.Id}.webp",
+                        KeyName = $"{resize.SaveOnRoute}/{newUploadId}.webp",
                         ContentType = "image/webp",
                         State = UploadState.Processing,
                         EntityId = upload.EntityId,
@@ -61,7 +69,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     await database.SaveChangesAsync(consumeContext.CancellationToken);
 
                     var pictureResult = await pictureHandler.ResizePictureAsync(
-                        fileStream,
+                        memoryStream,
                         resize.Width,
                         resize.Height,
                         consumeContext.CancellationToken);
@@ -77,7 +85,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                         pictureResult.Value,
                         "image/webp",
                         upload.BucketName,
-                        $"{resize.SaveOnRoute}/{upload.Id}.webp",
+                        $"{resize.SaveOnRoute}/{newUploadId}.webp",
                         consumeContext.CancellationToken);
 
                     if (!saveResult.IsSuccess)
@@ -97,15 +105,17 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 logger.LogError(exception, "An error occurred while consuming the ImageResizedConsumer message.");
                 throw;
             }
+            finally 
+            {
+                logger.LogInformation("Saving changes to database after processing ImageResizedConsumer message.");
+                await database.SaveChangesAsync(consumeContext.CancellationToken);
+            }
         }
         
         async Task UpdateState(IDatabase database, Upload upload, UploadState uploadState, CancellationToken cancellationToken)
         {
             upload.State = uploadState;
-
             database.Uploads.Update(upload);
-
-            await database.SaveChangesAsync(cancellationToken);
         }
     }
 }
