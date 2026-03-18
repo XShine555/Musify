@@ -15,7 +15,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
         {
             try
             {
-                var upload = await database.Uploads.AsNoTracking().SingleOrDefaultAsync(u => u.Id == consumeContext.Message.UploadId);
+                var upload = await database.Uploads.SingleOrDefaultAsync(u => u.Id == consumeContext.Message.UploadId);
 
                 if (upload is null)
                 {
@@ -25,7 +25,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
                 if (upload.State != UploadState.Pending)
                 {
-                    logger.LogInformation("Upload is not in a failed state, skipping processing: UploadId={UploadId}, State={State}", consumeContext.Message.UploadId, upload.State);
+                    logger.LogInformation("Upload is not in a pending state, skipping processing: UploadId={UploadId}, State={State}", consumeContext.Message.UploadId, upload.State);
                     return;
                 }
 
@@ -45,8 +45,10 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     return;
                 }
 
+                using var fileStream = file.Value;
+
                 var pictureResult = await pictureHandler.ResizePictureAsync(
-                    file.Value,
+                    fileStream,
                     consumeContext.Message.Width,
                     consumeContext.Message.Height,
                     consumeContext.CancellationToken);
