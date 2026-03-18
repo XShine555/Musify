@@ -10,23 +10,23 @@ namespace Musify.Application.Configuration
 
         public StorageRoutes Routes { get; set; } = new StorageRoutes();
 
-        public StorageConfiguration Load(IConfiguration configuration)
+        public static StorageConfiguration Load(IConfiguration configuration)
         {
             var section = configuration.GetSection(SectionName).Get<StorageConfiguration>()
                 ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
             
-            Validate();
+            Validate(section);
 
             return section;
         }
 
-        void Validate()
+        static void Validate(StorageConfiguration configuration)
         {
-            EnsureValue(BucketName, nameof(BucketName));
-            EnsureValue(Routes.Uploads, $"{SectionName}:Route:Upload");
+            EnsureValue(configuration.BucketName, nameof(BucketName));
+            EnsureValue(configuration.Routes.Uploads, $"{SectionName}:Route:Upload");
         }
 
-        void EnsureValue(string value, string name)
+        static void EnsureValue(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
                 throw new InvalidOperationException($"{name} configuration value not found.");

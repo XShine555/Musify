@@ -20,38 +20,38 @@ namespace Musify.Application.Configuration
 
         public int LargePictureHeight { get; private set; } = 512;
 
-        public PlayListConfiguration Load(IConfiguration configuration)
+        public static PlayListConfiguration Load(IConfiguration configuration)
         {
             var section = configuration.GetSection(SectionName).Get<PlayListConfiguration>()
                 ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
 
-            Validate();
+            Validate(section);
 
             return section;
         }
 
-        void Validate()
+        static void Validate(PlayListConfiguration configuration)
         {
-            EnsureValue(Routes.ParentFolder, $"{SectionName}:BucketName");
-            EnsureValue(Routes.SmallPictures, $"{SectionName}:Routes:SmallPictures");
-            EnsureValue(Routes.MediumPictures, $"{SectionName}:Routes:MediumPictures");
-            EnsureValue(Routes.LargePictures, $"{SectionName}:Routes:LargePictures");
+            EnsureValue(configuration.Routes.ParentFolder, $"{SectionName}:BucketName");
+            EnsureValue(configuration.Routes.SmallPictures, $"{SectionName}:Routes:SmallPictures");
+            EnsureValue(configuration.Routes.MediumPictures, $"{SectionName}:Routes:MediumPictures");
+            EnsureValue(configuration.Routes.LargePictures, $"{SectionName}:Routes:LargePictures");
 
-            EnsurePositiveValue(SmallPictureWidth, $"{SectionName}:SmallPictureWidth");
-            EnsurePositiveValue(SmallPictureHeight, $"{SectionName}:SmallPictureHeight");
-            EnsurePositiveValue(MediumPictureWidth, $"{SectionName}:MediumPictureWidth");
-            EnsurePositiveValue(MediumPictureHeight, $"{SectionName}:MediumPictureHeight");
-            EnsurePositiveValue(LargePictureWidth, $"{SectionName}:LargePictureWidth");
-            EnsurePositiveValue(LargePictureHeight, $"{SectionName}:LargePictureHeight");
+            EnsurePositiveValue(configuration.SmallPictureWidth, $"{SectionName}:SmallPictureWidth");
+            EnsurePositiveValue(configuration.SmallPictureHeight, $"{SectionName}:SmallPictureHeight");
+            EnsurePositiveValue(configuration.MediumPictureWidth, $"{SectionName}:MediumPictureWidth");
+            EnsurePositiveValue(configuration.MediumPictureHeight, $"{SectionName}:MediumPictureHeight");
+            EnsurePositiveValue(configuration.LargePictureWidth, $"{SectionName}:LargePictureWidth");
+            EnsurePositiveValue(configuration.LargePictureHeight, $"{SectionName}:LargePictureHeight");
         }
 
-        void EnsureValue(string value, string name)
+        static void EnsureValue(string value, string name)
         {
             if (string.IsNullOrEmpty(value))
                 throw new InvalidOperationException($"{name} configuration value not found.");
         }
 
-        void EnsurePositiveValue(int value, string name)
+        static void EnsurePositiveValue(int value, string name)
         {
             if (value < 1)
                 throw new InvalidOperationException($"{name} configuration value must be a positive integer.");
