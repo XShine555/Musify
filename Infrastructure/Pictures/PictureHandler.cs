@@ -11,7 +11,7 @@ namespace Musify.Infrastructure.Pictures
     {
         public async Task<Result<Stream>> ResizePictureAsync(Stream pictureStream, int width, int height, CancellationToken cancellationToken)
         {
-            try 
+            try
             {
                 if (pictureStream.CanSeek && pictureStream.Position > 0)
                     pictureStream.Position = 0;

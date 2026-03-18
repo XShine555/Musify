@@ -10,7 +10,7 @@ namespace Musify.Infrastructure.Storage
     public class StorageHandler(IAmazonS3 amazonS3, ILogger<StorageHandler> logger)
         : IStorageHandler
     {
-        public async Task<Result<Stream>> GetFile(string bucketName, string keyName, CancellationToken cancellationToken)
+        public async Task<Result<Stream>> GetFileAsync(string bucketName, string keyName, CancellationToken cancellationToken)
         {
             var request = new GetObjectRequest
             {
@@ -34,7 +34,7 @@ namespace Musify.Infrastructure.Storage
             }
         }
 
-        public async Task<string> GetUrl(string bucketName, string keyName, TimeSpan expirationTime, CancellationToken cancellationToken)
+        public async Task<string> GetUrlAsync(string bucketName, string keyName, TimeSpan expirationTime, CancellationToken cancellationToken)
         {
             var request = new GetPreSignedUrlRequest
             {
@@ -50,7 +50,7 @@ namespace Musify.Infrastructure.Storage
             return url;
         }
 
-        public async Task<Result> RemoveFile(string bucketName, string keyName, CancellationToken cancellationToken)
+        public async Task<Result> RemoveFileAsync(string bucketName, string keyName, CancellationToken cancellationToken)
         {
             var request = new DeleteObjectRequest
             {
@@ -64,7 +64,7 @@ namespace Musify.Infrastructure.Storage
             return Result.NoContent();
         }
 
-        public async Task<Result> TransferFiles(string sourceDirectory, string bucketName, string route, CancellationToken cancellationToken)
+        public async Task<Result> TransferFilesAsync(string sourceDirectory, string bucketName, string route, CancellationToken cancellationToken)
         {
             var trasnsferUtility = new TransferUtility(amazonS3);
 
@@ -89,7 +89,7 @@ namespace Musify.Infrastructure.Storage
             return Result.Success();
         }
 
-        public async Task<Result<string>> UploadFile(Stream sourceStream, string contentType, string bucketName, string keyName, CancellationToken cancellationToken)
+        public async Task<Result<string>> UploadFileAsync(Stream sourceStream, string contentType, string bucketName, string keyName, CancellationToken cancellationToken)
         {
             var request = new PutObjectRequest
             {

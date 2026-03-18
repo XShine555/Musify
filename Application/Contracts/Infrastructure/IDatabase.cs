@@ -13,6 +13,8 @@ namespace Musify.Application.Contracts.Infrastructure
 
         DbSet<PlayListHasTrack> PlayListHasTracks { get; }
 
+        DbSet<Upload> Uploads { get; }
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

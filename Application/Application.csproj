@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Ardalis.Result" Version="10.1.0" />
     <PackageReference Include="DispatchR.Mediator" Version="2.1.1" />
+    <PackageReference Include="MassTransit" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="X.PagedList" Version="10.5.9" />
     <PackageReference Include="X.PagedList.EF" Version="10.5.9" />
@@ -20,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configuration\" />
     <Folder Include="Contracts\Application\" />
     <Folder Include="PlayLists\Commands\CreatePlayList\" />
     <Folder Include="PlayLists\Commands\DeletePlayList\" />
