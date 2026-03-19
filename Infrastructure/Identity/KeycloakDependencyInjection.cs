@@ -10,10 +10,14 @@ namespace Musify.Infrastructure.Identity
     {
         public static void AddKeycloakAuthentication(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
-            var keycloakConfiguration = KeycloakConfiguration.Load(configuration);
-            serviceDescriptors.AddSingleton(keycloakConfiguration);
+            var keycloakConfiguration = serviceDescriptors.AddOptionsWithValidateOnStart<KeycloakConfiguration>()
+                .Bind(configuration)
+                .ValidateDataAnnotations();
+
             serviceDescriptors.AddScoped(serviceProvider =>
             {
+                var keycloakConfiguration = serviceProvider.GetRequiredService<KeycloakConfiguration>();
+
                 return new KeycloakClient(
                     keycloakConfiguration.BaseUrl,
                     keycloakConfiguration.Username,

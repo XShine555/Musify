@@ -1,44 +1,28 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration
 {
+#pragma warning disable CS8618
     public class StorageConfiguration
     {
         public const string SectionName = "Storage";
 
-        public string BucketName { get; set; } = string.Empty;
+        [Required]
+        public string BucketName { get; set; }
 
-        public string ServiceUrl { get; set; } = string.Empty;
+        [Required]
+        public string ServiceUrl { get; set; }
 
-        public string AccessKey { get; set; } = string.Empty;
+        [Required]
+        public string AccessKey { get; set; }
 
-        public string SecretAccessKey { get; set; } = string.Empty;
+        [Required]
+        public string SecretAccessKey { get; set; }
 
+        [Required]
         public bool ForcePathStyle { get; set; }
 
+        [Required]
         public bool UseHttp { get; set; }
-
-        public static StorageConfiguration Load(IConfiguration configuration)
-        {
-            var section = configuration.GetSection(SectionName).Get<StorageConfiguration>()
-                ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
-            
-            Validate(section);
-            return section;
-        }
-
-        static void Validate(StorageConfiguration configuration)
-        {
-            EnsureValue(configuration.BucketName, nameof(BucketName));
-            EnsureValue(configuration.ServiceUrl, nameof(ServiceUrl));
-            EnsureValue(configuration.AccessKey, nameof(AccessKey));
-            EnsureValue(configuration.SecretAccessKey, nameof(SecretAccessKey));
-        }
-
-        static void EnsureValue(string value, string name)
-        {
-            if (string.IsNullOrEmpty(value))
-                throw new InvalidOperationException($"{name} configuration value not found.");
-        }
     }
 }

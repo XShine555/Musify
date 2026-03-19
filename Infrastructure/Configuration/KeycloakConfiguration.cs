@@ -1,40 +1,22 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Infrastructure.Configuration
 {
+#pragma warning disable CS8618
     public class KeycloakConfiguration
     {
         public const string SectionName = "Keycloak";
 
-        public string BaseUrl { get; set; } = string.Empty;
+        [Required]
+        public string BaseUrl { get; set; }
 
-        public string Realm { get; set; } = string.Empty;
+        [Required]
+        public string Realm { get; set; }
 
-        public string Username { get; set; } = string.Empty;
+        [Required]
+        public string Username { get; set; }
 
-        public string Password { get; set; } = string.Empty;
-
-        public static KeycloakConfiguration Load(IConfiguration configuration)
-        {
-            var keycloakConfiguration = configuration.GetSection(SectionName).Get<KeycloakConfiguration>()
-                ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
-
-            Validate(keycloakConfiguration);
-            return keycloakConfiguration;
-        }
-
-        static void Validate(KeycloakConfiguration configuration)
-        {
-            EnsureValue(configuration.BaseUrl, nameof(configuration.BaseUrl));
-            EnsureValue(configuration.Realm, nameof(configuration.Realm));
-            EnsureValue(configuration.Username, nameof(configuration.Username));
-            EnsureValue(configuration.Password, nameof(configuration.Password));
-        }
-
-        static void EnsureValue(string value, string name)
-        {
-            if (string.IsNullOrEmpty(value))
-                throw new InvalidOperationException($"{name} configuration value not found.");
-        }
+        [Required]
+        public string Password { get; set; }
     }
 }

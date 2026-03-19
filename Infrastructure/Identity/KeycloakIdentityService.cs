@@ -23,15 +23,14 @@ namespace Musify.Infrastructure.Identity
             }
             catch (OperationCanceledException)
             {
-                throw;
+                logger.LogError("Operation to retrieve Keycloak user with id {KeycloakId} was cancelled.", keycloakId);
+                return Result.Error("Operation was cancelled.");
             }
             catch (Exception exception)
             {
                 logger.LogWarning(exception, "Keycloak user with id {KeycloakId} could not be retrieved.", keycloakId);
-
                 return Result.NotFound();
             }
-
             return Result.Success(KeycloakUserMapper.Map(keycloakUser));
         }
 

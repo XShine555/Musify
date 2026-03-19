@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration
 {
@@ -6,79 +6,55 @@ namespace Musify.Application.Configuration
     {
         public const string SectionName = "PlayListConfiguration";
 
+        [Required]
         public Routes Routes { get; set; } = new Routes();
 
+        [Required]
         public PicturesSizes PicturesSizes { get; set; } = new PicturesSizes();
-
-        public static PlayListConfiguration Load(IConfiguration configuration)
-        {
-            var section = configuration.GetSection(SectionName).Get<PlayListConfiguration>()
-                ?? throw new InvalidOperationException($"{SectionName} configuration section not found.");
-
-            Validate(section);
-            return section;
-        }
-
-        static void Validate(PlayListConfiguration configuration)
-        {
-            EnsureValue(configuration.Routes.OriginalPictures, $"{SectionName}:BucketName");
-            EnsureValue(configuration.Routes.SmallPictures, $"{SectionName}:Routes:SmallPictures");
-            EnsureValue(configuration.Routes.MediumPictures, $"{SectionName}:Routes:MediumPictures");
-            EnsureValue(configuration.Routes.LargePictures, $"{SectionName}:Routes:LargePictures");
-            EnsureValue(configuration.Routes.PresetSmallPicture, $"{SectionName}:Routes:SmallPictures");
-            EnsureValue(configuration.Routes.PresetMediumPicture, $"{SectionName}:Routes:MediumPictures");
-            EnsureValue(configuration.Routes.PresetLargePicture, $"{SectionName}:Routes:LargePictures");
-
-            EnsurePositiveValue(configuration.PicturesSizes.SmallPictureWidth, $"{SectionName}:SmallPictureWidth");
-            EnsurePositiveValue(configuration.PicturesSizes.SmallPictureHeight, $"{SectionName}:SmallPictureHeight");
-            EnsurePositiveValue(configuration.PicturesSizes.MediumPictureWidth, $"{SectionName}:MediumPictureWidth");
-            EnsurePositiveValue(configuration.PicturesSizes.MediumPictureHeight, $"{SectionName}:MediumPictureHeight");
-            EnsurePositiveValue(configuration.PicturesSizes.LargePictureWidth, $"{SectionName}:LargePictureWidth");
-            EnsurePositiveValue(configuration.PicturesSizes.LargePictureHeight, $"{SectionName}:LargePictureHeight");
-        }
-
-        static void EnsureValue(string value, string name)
-        {
-            if (string.IsNullOrEmpty(value))
-                throw new InvalidOperationException($"{name} configuration value not found.");
-        }
-
-        static void EnsurePositiveValue(int value, string name)
-        {
-            if (value < 1)
-                throw new InvalidOperationException($"{name} configuration value must be a positive integer.");
-        }
     }
 
     public class Routes
     {
+        [Required]
         public string OriginalPictures { get; set; } = "OriginalPictures";
 
+        [Required]
         public string SmallPictures { get; set; } = "SmallPictures";
 
+        [Required]
         public string MediumPictures { get; set; } = "MediumPictures";
 
+        [Required]
         public string LargePictures { get; set; } = "LargePictures";
 
+        [Required]
         public string PresetSmallPicture { get; set; } = "PresetSmallPicture.webp";
 
+        [Required]
         public string PresetMediumPicture { get; set; } = "PresetMediumPicture.webp";
 
+        [Required]
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
     }
 
     public class PicturesSizes
     {
+        [Range(1, 1024)]
         public int SmallPictureWidth { get; set; } = 128;
 
+        [Range(1, 1024)]
         public int SmallPictureHeight { get; set; } = 128;
 
+        [Range(1, 1024)]
         public int MediumPictureWidth { get; private set; } = 256;
 
+        [Range(1, 1024)]
         public int MediumPictureHeight { get; private set; } = 256;
 
+        [Range(1, 1024)]
         public int LargePictureWidth { get; private set; } = 512;
 
+        [Range(1, 1024)]
         public int LargePictureHeight { get; private set; } = 512;
     }
 }
