@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
@@ -9,9 +9,9 @@ using X.PagedList.Extensions;
 namespace Musify.Application.Users.Queries.GetUsers
 {
     public class GetUsersQueryHandler(IDatabase database, IKeycloakUserClient keycloakUserClient)
-        : IRequestHandler<GetUsersCommand, Task<Result<PaginatedUserResponse> >>
+        : IRequestHandler<GetUsersQuery, Task<Result<PaginatedUserResponse> >>
     {
-        public async Task<Result<PaginatedUserResponse>> Handle(GetUsersCommand request, CancellationToken cancellationToken)
+        public async Task<Result<PaginatedUserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;

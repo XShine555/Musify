@@ -9,7 +9,7 @@ namespace Musify.Application.Configuration
         public static IServiceCollection AddApplicationConfigurations(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors
-                .AddValidatedConfiguration<StorageConfiguration>(configuration, StorageConfiguration.SectionName)
+                .AddValidatedConfiguration<StorageSettings>(configuration, StorageSettings.SectionName)
                 .AddValidatedConfiguration<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
 
             return serviceDescriptors;

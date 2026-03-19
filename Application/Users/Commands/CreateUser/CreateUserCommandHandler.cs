@@ -15,15 +15,21 @@ namespace Musify.Application.Users.Commands.CreateUser
         {
             logger.LogDebug("Handling {CommandName} with Id: {UserId}", nameof(CreateUserCommand), request.Id);
 
-            var existingUser = database.Users.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
+            var existingUser = await database.Users.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
             if (existingUser is not null)
+            {
+                logger.LogInformation("User with Id={UserId} already exists.", request.Id);
                 return Result<UserResponse>.Conflict($"A user with Id {request.Id} already exists.");
+            }
 
             var keycloakUser = await keycloakUserClient.GetUserByIdAsync(request.Id.ToString(), cancellationToken);
 
             if (!keycloakUser.IsSuccess)
+            {
+                logger.LogWarning("Keycloak user with Id={UserId} was not found.", request.Id);
                 return Result.NotFound("Keycloak user not found.");
+            }
 
             var newUser = new User
             {
@@ -31,9 +37,9 @@ namespace Musify.Application.Users.Commands.CreateUser
             };
 
             await database.Users.AddAsync(newUser, cancellationToken);
-
             await database.SaveChangesAsync(cancellationToken);
 
+            logger.LogInformation("User with Id={UserId} created successfully.", newUser.Id);
             return Result.Created(new UserResponse(
                 newUser.Id.ToString(),
                 keycloakUser.Value.Name,

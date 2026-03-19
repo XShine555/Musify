@@ -11,7 +11,7 @@ using Musify.Application.PlayLists.Contracts;
 namespace Musify.Application.PlayLists.Commands.UpdatePlayList
 {
     public class UpdatePlayListCommandHandler(IPublishEndpoint publishEndpoint, IDatabase database, IStorageHandler storageHandler,
-        ILogger<UpdatePlayListCommandHandler> logger, StorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration)
+        ILogger<UpdatePlayListCommandHandler> logger, StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration)
         : IRequestHandler<UpdatePlayListCommand, Task<Result<PlayListResponse>> >
     {
         public async Task<Result<PlayListResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
@@ -40,7 +40,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
             {
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(cancellationToken);
-                logger.LogInformation("Updated PlayList with id={PlayListId}.", playList.Id);
+                logger.LogInformation("Updated PlayList with id={PlayListId} without picture changes.", playList.Id);
                 return Result.Success(PlayListResponse.FromEntity(playList));
             }
 
@@ -85,7 +85,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
             }
 
-            playList.OriginalPictureKeyName = newImageId.ToString();
+            playList.OriginalPictureKeyName = imageKeyName;
             await publishEndpoint.Publish(new ResizePictureEvent(
                 storageConfiguration.BucketName,
                 imageKeyName,
@@ -108,7 +108,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
             database.PlayLists.Update(playList);
             await database.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Updated PlayList with id={PlayListId}.", playList.Id);
+            logger.LogInformation("Updated PlayList with id={PlayListId} and picture key {PictureKeyName}.", playList.Id, imageKeyName);
             return Result.Success(PlayListResponse.FromEntity(playList));
         }
     }

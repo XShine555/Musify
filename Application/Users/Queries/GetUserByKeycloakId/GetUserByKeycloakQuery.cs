@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Musify.Application.Users.Contracts;
 

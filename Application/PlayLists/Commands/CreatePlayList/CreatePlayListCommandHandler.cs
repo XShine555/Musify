@@ -12,7 +12,7 @@ using Musify.Domain.Entities;
 namespace Musify.Application.PlayLists.Commands.CreatePlayList
 {
     public class CreatePlayListCommandHandler(IPublishEndpoint publishEndpoint, IDatabase database, IStorageHandler storageHandler,
-        ILogger<CreatePlayListCommandHandler> logger, StorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration)
+        ILogger<CreatePlayListCommandHandler> logger, StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration)
         : IRequestHandler<CreatePlayListCommand, Task<Result<PlayListResponse>> >
     {
         public async Task<Result<PlayListResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                     return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
                 }
 
-                logger.LogInformation("PlayList with Id={PlayListId} created successfully for UserId={UserId}.", playList.Id, request.UserId);
+                logger.LogInformation("Playlist image uploaded successfully for PlayList with Id={PlayListId}.", playList.Id);
 
                 await publishEndpoint.Publish(new ResizePictureEvent(
                     storageConfiguration.BucketName,
@@ -85,7 +85,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
             await database.PlayLists.AddAsync(playList, cancellationToken);
             await database.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Picture for PlayList with Id={PlayListId} ", playList.Id);
+            logger.LogInformation("PlayList with id={PlayListId} created successfully for user with id={UserId}.", playList.Id, request.UserId);
             return Result.Created(PlayListResponse.FromEntity(playList));
         }
     }

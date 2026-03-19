@@ -1,7 +1,7 @@
 ﻿using Amazon.S3;
 using Microsoft.Extensions.DependencyInjection;
-using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Storage
 {
@@ -11,7 +11,7 @@ namespace Musify.Infrastructure.Storage
         {
             serviceDescriptors.AddScoped<IAmazonS3>(serviceProvider =>
             {
-                var configuration = serviceProvider.GetRequiredService<StorageConfiguration>();
+                var configuration = serviceProvider.GetRequiredService<StorageClientConfiguration>();
                 var s3Configuration = new AmazonS3Config
                 {
                     ServiceURL = configuration.ServiceUrl,
