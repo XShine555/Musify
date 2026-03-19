@@ -62,7 +62,7 @@ namespace Musify.Application.Configuration
 
         public string PresetSmallPicture { get; set; } = "PresetSmallPicture.webp";
 
-        public string PresetMediumPicture { get; set; } = "PresettMediumPicture.webp";
+        public string PresetMediumPicture { get; set; } = "PresetMediumPicture.webp";
 
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
     }

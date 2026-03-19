@@ -28,12 +28,14 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     Payload = payload
                 };
                 await database.Jobs.AddAsync(job, consumeContext.CancellationToken);
+                logger.LogInformation("Created new job with id {JobId} for removing file {BucketName}/{KeyName}", job.Id, consumeContext.Message.BucketName, consumeContext.Message.KeyName);
             }
             else
             {
                 job.RetryCount++;
                 job.JobState = JobState.Pending;
                 database.Jobs.Update(job);
+                logger.LogInformation("Retrying job with id {JobId} for removing file {BucketName}/{KeyName}. Retry count: {RetryCount}", job.Id, consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.RetryCount);
             }
 
             var removeFile = await storageHandler.RemoveFileAsync(
@@ -42,7 +44,15 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 consumeContext.CancellationToken);
 
             if (!removeFile.IsSuccess)
+            {
                 job.JobState = JobState.Failed;
+                logger.LogInformation("Failed to remove file {BucketName}/{KeyName} for job with id {JobId}. Error: {ErrorMessage}", consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.Id, string.Join("; ", removeFile.Errors));
+            }
+            else
+            {
+                job.CompletedAt = DateTime.UtcNow;
+                logger.LogInformation("Successfully removed file {BucketName}/{KeyName} for job with id {JobId}.", consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.Id);
+            }
 
             await database.SaveChangesAsync(consumeContext.CancellationToken);
         }

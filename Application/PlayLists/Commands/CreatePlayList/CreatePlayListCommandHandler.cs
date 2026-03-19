@@ -33,14 +33,14 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
-                OriginalPictureKeyName = $"{imageId}.{request.PictureFileType}",
+                OriginalPictureKeyName = $"{imageId}{request.PictureFileType}",
                 SmallPictureKeyName = playListConfiguration.Routes.PresetSmallPicture,
                 MediumPictureKeyName = playListConfiguration.Routes.PresetMediumPicture,
                 LargePictureKeyName = playListConfiguration.Routes.PresetLargePicture,
             };
             await database.PlayLists.AddAsync(playList, cancellationToken);
 
-            var imageKeyName = $"{playListConfiguration.Routes.OriginalPictures}/{imageId}.{request.PictureFileType}";
+            var imageKeyName = $"{playListConfiguration.Routes.OriginalPictures}/{imageId}{request.PictureFileType}";
 
             var uploadResult = await storageHandler.UploadFileAsync(
                 request.PictureStream,

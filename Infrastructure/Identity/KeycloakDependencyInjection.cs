@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Keycloak.Net;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.Configuration;
@@ -11,6 +12,13 @@ namespace Musify.Infrastructure.Identity
         {
             var keycloakConfiguration = KeycloakConfiguration.Load(configuration);
             serviceDescriptors.AddSingleton(keycloakConfiguration);
+            serviceDescriptors.AddScoped(serviceProvider =>
+            {
+                return new KeycloakClient(
+                    keycloakConfiguration.BaseUrl,
+                    keycloakConfiguration.Username,
+                    keycloakConfiguration.Password);
+            } );
             serviceDescriptors.AddScoped<IKeycloakUserClient, KeycloakIdentityService>();
         }
     }
