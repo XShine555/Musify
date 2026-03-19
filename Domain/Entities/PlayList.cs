@@ -25,9 +25,8 @@ namespace Musify.Domain.Entities
         [MaxLength(254)]
         public required string Description { get; set; } = "No description was provided.";
 
-        [Required]
         [MaxLength(64)]
-        public required string OriginalPictureKeyName { get; set; }
+        public string? OriginalPictureKeyName { get; set; }
 
         [Required]
         [MaxLength(64)]

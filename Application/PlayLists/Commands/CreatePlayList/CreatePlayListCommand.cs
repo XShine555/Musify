@@ -1,5 +1,6 @@
 ﻿using Ardalis.Result;
 using DispatchR.Abstractions.Send;
+using Musify.Application.Contracts.Application;
 using Musify.Application.PlayLists.Contracts;
 
 namespace Musify.Application.PlayLists.Commands.CreatePlayList
@@ -8,8 +9,6 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
         Guid UserId,
         string Name,
         string Description,
-        Stream PictureStream,
-        string PictureFileType,
-        string PictureContentType)
+        IFileData? Picture)
         : IRequest<CreatePlayListCommand, Task<Result<PlayListResponse>> >;
 }

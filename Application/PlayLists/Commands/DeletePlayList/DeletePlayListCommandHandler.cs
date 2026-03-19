@@ -28,24 +28,27 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 return Result.Unauthorized();
             }
 
-            await publishEndpoint.Publish(new RemoveFileEvent(
-                storageConfiguration.BucketName,
-                playList.OriginalPictureKeyName), cancellationToken);
-
-            if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
+            if (!string.IsNullOrWhiteSpace(playList.OriginalPictureKeyName)) 
+            {
                 await publishEndpoint.Publish(new RemoveFileEvent(
-                    storageConfiguration.BucketName,
-                    playList.SmallPictureKeyName), cancellationToken);
+                   storageConfiguration.BucketName,
+                   playList.OriginalPictureKeyName), cancellationToken);
 
-            if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
-                await publishEndpoint.Publish(new RemoveFileEvent(
-                    storageConfiguration.BucketName,
-                    playList.MediumPictureKeyName), cancellationToken);
+                if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
+                    await publishEndpoint.Publish(new RemoveFileEvent(
+                        storageConfiguration.BucketName,
+                        playList.SmallPictureKeyName), cancellationToken);
 
-            if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
-                await publishEndpoint.Publish(new RemoveFileEvent(
-                    storageConfiguration.BucketName,
-                    playList.LargePictureKeyName), cancellationToken);
+                if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+                    await publishEndpoint.Publish(new RemoveFileEvent(
+                        storageConfiguration.BucketName,
+                        playList.MediumPictureKeyName), cancellationToken);
+
+                if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+                    await publishEndpoint.Publish(new RemoveFileEvent(
+                        storageConfiguration.BucketName,
+                        playList.LargePictureKeyName), cancellationToken);
+            }
 
             database.PlayLists.Remove(playList);
             await database.SaveChangesAsync(cancellationToken);

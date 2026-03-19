@@ -33,36 +33,37 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
-                OriginalPictureKeyName = $"{imageId}{request.PictureFileType}",
                 SmallPictureKeyName = playListConfiguration.Routes.PresetSmallPicture,
                 MediumPictureKeyName = playListConfiguration.Routes.PresetMediumPicture,
                 LargePictureKeyName = playListConfiguration.Routes.PresetLargePicture,
             };
-            await database.PlayLists.AddAsync(playList, cancellationToken);
 
-            var imageKeyName = $"{playListConfiguration.Routes.OriginalPictures}/{imageId}{request.PictureFileType}";
-
-            var uploadResult = await storageHandler.UploadFileAsync(
-                request.PictureStream,
-                request.PictureContentType,
-                storageConfiguration.BucketName,
-                imageKeyName,
-                cancellationToken);
-
-            if (!uploadResult.IsSuccess)
+            if (request.Picture is not null)
             {
-                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error: {ErrorMessage}",
-                    playList.Id, string.Join("; ", uploadResult.Errors));
-                return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
-            }
+                playList.OriginalPictureKeyName = $"{imageId}{request.Picture.FileType}";
+                var imageKeyName = $"{playListConfiguration.Routes.OriginalPictures}/{imageId}{request.Picture.FileType}";
 
-            logger.LogInformation("PlayList with Id={PlayListId} created successfully for UserId={UserId}.", playList.Id, request.UserId);
+                var uploadResult = await storageHandler.UploadFileAsync(
+                    request.Picture.FileStream,
+                    request.Picture.ContentType,
+                    storageConfiguration.BucketName,
+                    imageKeyName,
+                    cancellationToken);
 
-            await publishEndpoint.Publish(new ResizePictureEvent(
-                storageConfiguration.BucketName,
-                imageKeyName,
-                [
-                    new ResizePictureItems(
+                if (!uploadResult.IsSuccess)
+                {
+                    logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error: {ErrorMessage}",
+                        playList.Id, string.Join("; ", uploadResult.Errors));
+                    return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
+                }
+
+                logger.LogInformation("PlayList with Id={PlayListId} created successfully for UserId={UserId}.", playList.Id, request.UserId);
+
+                await publishEndpoint.Publish(new ResizePictureEvent(
+                    storageConfiguration.BucketName,
+                    imageKeyName,
+                    [
+                        new ResizePictureItems(
                         playListConfiguration.PicturesSizes.SmallPictureWidth,
                         playListConfiguration.PicturesSizes.SmallPictureHeight,
                         playListConfiguration.Routes.SmallPictures),
@@ -74,10 +75,17 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                         playListConfiguration.PicturesSizes.LargePictureWidth,
                         playListConfiguration.PicturesSizes.LargePictureHeight,
                         playListConfiguration.Routes.LargePictures)
-                ] ), cancellationToken);
+                    ] ), cancellationToken);
+            }
+            else
+            {
+                logger.LogInformation("No picture provided for PlayList with Id={PlayListId}. Using Preset pictures.", playList.Id);
+            }
+
+            await database.PlayLists.AddAsync(playList, cancellationToken);
+            await database.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Picture for PlayList with Id={PlayListId} ", playList.Id);
-
             return Result.Created(PlayListResponse.FromEntity(playList));
         }
     }
