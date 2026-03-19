@@ -4,10 +4,11 @@ using Amazon.S3.Transfer;
 using Ardalis.Result;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Domain.Entities;
 
 namespace Musify.Infrastructure.Storage
 {
-    public class StorageHandler(IAmazonS3 amazonS3, ILogger<StorageHandler> logger)
+    public class StorageHandler(IDatabase database, IAmazonS3 amazonS3, ILogger<StorageHandler> logger)
         : IStorageHandler
     {
         public async Task<Result<Stream>> GetFileAsync(string bucketName, string keyName, CancellationToken cancellationToken)
@@ -75,17 +76,30 @@ namespace Musify.Infrastructure.Storage
                 string fileName = Path.GetFileName(file);
                 string filePath = Path.Combine(sourceDirectory, file);
 
+                var upload = new Upload
+                {
+                    Id = Guid.NewGuid(),
+                    BucketName = bucketName,
+                    KeyName = $"{route}/{fileName}",
+                    ContentType = "Application/Octet-Stream"
+                };
+                await database.Uploads.AddAsync(upload, cancellationToken);
+
                 try
                 {
                     await trasnsferUtility.UploadAsync(filePath, bucketName, fileName, cancellationToken);
+                    upload.State = UploadState.Successful;
                     logger.LogInformation("Successfully transferred file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
                 }
                 catch
                 {
                     logger.LogError("Failed to transfer file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
-                    return Result.Error($"Failed to transfer file {fileName} to S3 with bucket name {bucketName} and route {route}");
+                    upload.State = UploadState.Failed;
                 }
             }
+
+            await database.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Successfully saved upload records to database for all files transferred to S3 with bucket name {BucketName} and route {Route}", bucketName, route);
 
             return Result.Success();
         }
@@ -100,6 +114,15 @@ namespace Musify.Infrastructure.Storage
                 Key = keyName
             };
 
+            var upload = new Upload
+            {
+                Id = Guid.NewGuid(),
+                BucketName = bucketName,
+                KeyName = keyName,
+                ContentType = contentType
+            };
+            await database.Uploads.AddAsync(upload, cancellationToken);
+
             try
             {
                 var response = await amazonS3.PutObjectAsync(request, cancellationToken);
@@ -108,8 +131,13 @@ namespace Musify.Infrastructure.Storage
             catch
             {
                 logger.LogError("Failed to upload file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+                upload.State = UploadState.Failed;
                 return Result.Error($"Failed to upload file to S3 with bucket name {bucketName} and key name {keyName}");
             }
+
+            upload.State = UploadState.Successful;
+            await database.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Successfully saved upload record to database with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
 
             return Result.Success(keyName);
         }

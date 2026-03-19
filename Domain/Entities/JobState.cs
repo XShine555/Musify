@@ -1,9 +1,10 @@
 ﻿namespace Musify.Domain.Entities
 {
-    public enum UploadState
+    public enum JobState
     {
         Pending,
         Failed,
-        Successful,
+        InProgress,
+        Completed
     }
 }

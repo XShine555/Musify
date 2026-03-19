@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="PlayLists\Commands\DeletePlayList\" />
+    <Folder Include="Contracts\Application\" />
     <Folder Include="PlayLists\Commands\UpdatePlayList\" />
   </ItemGroup>
 

@@ -19,15 +19,9 @@ namespace Musify.Domain.Entities
         public required string ContentType { get; set; }
 
         [Required]
-        public required EntityType EntityType { get; set; }
-
-        [Required]
-        public required Guid EntityId { get; set; }
+        public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
         [Required]
         public UploadState State { get; set; } = UploadState.Pending;
-
-        [Required]
-        public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
     }
 }

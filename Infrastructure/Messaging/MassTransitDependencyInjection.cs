@@ -37,7 +37,7 @@ namespace Musify.Infrastructure.Messaging
         {
             serviceDescriptors.AddMassTransit(options =>
             {
-                options.AddConsumer<PictureResizerConsumer>();
+                options.AddConsumer<ResizePictureConsumer>();
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -58,9 +58,9 @@ namespace Musify.Infrastructure.Messaging
                         options.Password(password);
                     } );
 
-                    busFactoryConfigurator.ReceiveEndpoint(PictureResizerConsumer.QueueName, endpointConfigurator =>
+                    busFactoryConfigurator.ReceiveEndpoint(ResizePictureConsumer.QueueName, endpointConfigurator =>
                     {
-                        endpointConfigurator.ConfigureConsumer<PictureResizerConsumer>(busRegistrationContext);
+                        endpointConfigurator.ConfigureConsumer<ResizePictureConsumer>(busRegistrationContext);
                     } );
                 } );
             } );

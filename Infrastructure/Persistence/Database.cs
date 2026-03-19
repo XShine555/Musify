@@ -22,5 +22,7 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<PlayListHasTrack> PlayListHasTracks => Set<PlayListHasTrack>();
 
         public DbSet<Upload> Uploads => Set<Upload>();
+
+        public DbSet<Job> Jobs => Set<Job>();
     }
 }

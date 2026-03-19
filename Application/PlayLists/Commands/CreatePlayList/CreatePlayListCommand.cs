@@ -9,6 +9,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
         string Name,
         string Description,
         Stream PictureStream,
+        string PictureFileType,
         string PictureContentType)
         : IRequest<CreatePlayListCommand, Result<PlayListResponse>>;
 }
