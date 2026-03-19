@@ -7,7 +7,7 @@ namespace Musify.Infrastructure.Messaging
 {
     public static class MassTransitDependencyInjection
     {
-        public static void AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddMassTransit(options =>
             {
@@ -31,9 +31,10 @@ namespace Musify.Infrastructure.Messaging
                     } );
                 } );
             } );
+            return serviceDescriptors;
         }
 
-        public static void AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddMassTransit(options =>
             {
@@ -69,6 +70,8 @@ namespace Musify.Infrastructure.Messaging
                     } );
                 } );
             } );
+
+            return serviceDescriptors;
         }
     }
 }

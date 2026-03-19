@@ -7,7 +7,7 @@ namespace Musify.Infrastructure.Storage
 {
     public static class StorageDependencyInjection
     {
-        public static void AddStorageHandler(this IServiceCollection serviceDescriptors)
+        public static IServiceCollection AddStorageHandler(this IServiceCollection serviceDescriptors)
         {
             serviceDescriptors.AddScoped<IAmazonS3>(serviceProvider =>
             {
@@ -22,6 +22,8 @@ namespace Musify.Infrastructure.Storage
             } );
 
             serviceDescriptors.AddScoped<IStorageHandler, StorageHandler>();
+
+            return serviceDescriptors;
         }
     }
 }

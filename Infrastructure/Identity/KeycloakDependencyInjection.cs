@@ -8,10 +8,10 @@ namespace Musify.Infrastructure.Identity
 {
     public static class KeycloakDependencyInjection
     {
-        public static void AddKeycloakAuthentication(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddKeycloakAuthentication(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
-            var keycloakConfiguration = serviceDescriptors.AddOptionsWithValidateOnStart<KeycloakConfiguration>()
-                .Bind(configuration)
+            serviceDescriptors.AddOptionsWithValidateOnStart<KeycloakConfiguration>()
+                .Bind(configuration.GetRequiredSection(KeycloakConfiguration.SectionName))
                 .ValidateDataAnnotations();
 
             serviceDescriptors.AddScoped(serviceProvider =>
@@ -24,6 +24,7 @@ namespace Musify.Infrastructure.Identity
                     keycloakConfiguration.Password);
             } );
             serviceDescriptors.AddScoped<IKeycloakUserClient, KeycloakIdentityService>();
+            return serviceDescriptors;
         }
     }
 }

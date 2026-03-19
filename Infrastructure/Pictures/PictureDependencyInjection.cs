@@ -5,9 +5,10 @@ namespace Musify.Infrastructure.Pictures
 {
     public static class PictureDependencyInjection
     {
-        public static void AddPictureHandler(this IServiceCollection serviceDescriptors)
+        public static IServiceCollection AddPictureHandler(this IServiceCollection serviceDescriptors)
         {
             serviceDescriptors.AddScoped<IPictureHandler, PictureHandler>();
+            return serviceDescriptors;
         }
     }
 }

@@ -6,10 +6,12 @@ namespace Musify.Infrastructure.Persistence
 {
     public static class DatabaseDependencyInjection
     {
-        public static void AddDatabase(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddDatabase(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddDbContext<Database>();
             serviceDescriptors.AddScoped<IDatabase>(serviceProvider => serviceProvider.GetRequiredService<Database>());
+
+            return serviceDescriptors;
         }
     }
 }

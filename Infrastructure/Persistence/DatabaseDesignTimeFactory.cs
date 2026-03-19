@@ -14,7 +14,11 @@ namespace Musify.Infrastructure.Persistence
                 .AddJsonFile("DesignSettings.json")
                 .AddUserSecrets<DatabaseDesignTimeFactory>()
                 .Build();
-            var databaseConfiguration = DatabaseConfiguration.Load(configuration);
+
+            var databaseConfiguration = configuration
+                .GetRequiredSection(DatabaseConfiguration.SectionName)
+                .Get<DatabaseConfiguration>()
+                ?? throw new InvalidOperationException($"{DatabaseConfiguration.SectionName} configuration section not found.");
 
             var optionsBuilder = new DbContextOptionsBuilder<Database>();
             optionsBuilder.UseNpgsql(databaseConfiguration.ConnectionString);
