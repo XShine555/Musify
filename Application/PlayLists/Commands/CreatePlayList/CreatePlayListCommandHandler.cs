@@ -25,19 +25,20 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 return Result.NotFound($"User with Id {request.UserId} does not exist.");
             }
 
+            var imageId = Guid.NewGuid();
+
             var playList = new PlayList
             {
                 UserId = request.UserId,
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
-                SmallPictureKeyName = playListConfiguration.Routes.SmallPictures,
-                MediumPictureKeyName = playListConfiguration.Routes.MediumPictures,
-                LargePictureKeyName = playListConfiguration.Routes.LargePictures,
+                OriginalPictureKeyName = $"{imageId}/{request.PictureFileType}",
+                SmallPictureKeyName = playListConfiguration.Routes.PresetSmallPicture,
+                MediumPictureKeyName = playListConfiguration.Routes.PresetMediumPicture,
+                LargePictureKeyName = playListConfiguration.Routes.PresetLargePicture,
             };
             await database.PlayLists.AddAsync(playList, cancellationToken);
-
-            var imageId = Guid.NewGuid();
 
             var imageKeyName = $"{playListConfiguration.Routes.OriginalPictures}/{imageId}.{request.PictureFileType}";
 

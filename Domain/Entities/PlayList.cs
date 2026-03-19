@@ -27,6 +27,10 @@ namespace Musify.Domain.Entities
 
         [Required]
         [MaxLength(64)]
+        public required string OriginalPictureKeyName { get; set; }
+
+        [Required]
+        [MaxLength(64)]
         public required string SmallPictureKeyName { get; set; }
 
         [Required]

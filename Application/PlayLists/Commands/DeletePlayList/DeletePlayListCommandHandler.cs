@@ -1,13 +1,15 @@
 ﻿using Ardalis.Result;
 using DispatchR.Abstractions.Send;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Events;
 
 namespace Musify.Application.PlayLists.Commands.DeletePlayList
 {
-    public class DeletePlayListCommandHandler(IDatabase database, IStorageHandler storageHandler,
-        StorageConfiguration storageConfiguration, ILogger<DeletePlayListCommandHandler> logger)
+    public class DeletePlayListCommandHandler(IDatabase database, IPublishEndpoint publishEndpoint,
+        StorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration, ILogger<DeletePlayListCommandHandler> logger)
         : IRequestHandler<DeletePlayListCommand, Task<Result>>
     {
         public async Task<Result> Handle(DeletePlayListCommand request, CancellationToken cancellationToken)
@@ -26,10 +28,27 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 return Result.Unauthorized();
             }
 
+            await publishEndpoint.Publish(new RemoveFileEvent(
+                storageConfiguration.BucketName,
+                playList.OriginalPictureKeyName), cancellationToken);
+
+            if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
+                await publishEndpoint.Publish(new RemoveFileEvent(
+                    storageConfiguration.BucketName,
+                    playList.SmallPictureKeyName), cancellationToken);
+
+            if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+                await publishEndpoint.Publish(new RemoveFileEvent(
+                    storageConfiguration.BucketName,
+                    playList.MediumPictureKeyName), cancellationToken);
+
+            if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+                await publishEndpoint.Publish(new RemoveFileEvent(
+                    storageConfiguration.BucketName,
+                    playList.LargePictureKeyName), cancellationToken);
+
             database.PlayLists.Remove(playList);
-
             await database.SaveChangesAsync(cancellationToken);
-
             return Result.NoContent();
         }
     }
