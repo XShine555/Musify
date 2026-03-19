@@ -11,12 +11,9 @@ namespace Musify.Infrastructure.Persistence
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("AppSettings.json")
+                .AddJsonFile("DesignSettings.json")
                 .Build();
-
-            var databaseConfiguration = configuration.GetSection(DatabaseConfiguration.SectionName)
-                .Get<DatabaseConfiguration>()
-                ?? throw new InvalidOperationException($"Failed to load {DatabaseConfiguration.SectionName} configuration.");
+            var databaseConfiguration = DatabaseConfiguration.Load(configuration);
 
             var optionsBuilder = new DbContextOptionsBuilder<Database>();
             optionsBuilder.UseNpgsql(databaseConfiguration.ConnectionString);
