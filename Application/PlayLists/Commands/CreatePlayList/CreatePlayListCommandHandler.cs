@@ -1,6 +1,5 @@
 ﻿using Ardalis.Result;
 using DispatchR.Abstractions.Send;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;

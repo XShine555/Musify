@@ -19,30 +19,29 @@ namespace Musify.Infrastructure.Messaging.Consumers
             try
             {
                 Dictionary<ResizePictureItems, JobExecution> jobsExecutions = new Dictionary<ResizePictureItems, JobExecution>();
+                var job = await database.Jobs
+                    .SingleOrDefaultAsync(job => job.Id == consumeContext.Message.JobId);
+
+                if (job is null)
+                {
+                    var payloadJson = JsonSerializer.Serialize(consumeContext.Message.Items);
+                    job = new Job
+                    {
+                        Id = consumeContext.Message.JobId,
+                        JobType = JobType.ResizePicture,
+                        Payload = payloadJson,
+                    };
+                    await database.Jobs.AddAsync(job, consumeContext.CancellationToken);
+                    await database.SaveChangesAsync(consumeContext.CancellationToken);
+                }
 
                 foreach (var item in consumeContext.Message.Items)
                 {
-                    var payloadJson = JsonSerializer.Serialize(item);
-
-                    var job = await database.Jobs
-                        .SingleOrDefaultAsync(job => job.Id == consumeContext.Message.JobId);
-
-                    if (job is null)
-                    {
-                        job = new Job
-                        {
-                            JobType = JobType.ResizePicture,
-                            Payload = payloadJson,
-                        };
-                        await database.Jobs.AddAsync(job, consumeContext.CancellationToken);
-                    }
-
                     var jobExecution = new JobExecution
                     {
                         JobId = consumeContext.Message.JobId
                     };
                     await database.JobExecutions.AddAsync(jobExecution, consumeContext.CancellationToken);
-
                     jobsExecutions.Add(item, jobExecution);
                 }
 
@@ -56,9 +55,9 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     logger.LogWarning("File not found in storage: BucketName={BucketName}, KeyName={KeyName}",
                         consumeContext.Message.BucketName, consumeContext.Message.KeyName);
 
-                    foreach (var job in jobsExecutions)
+                    foreach (var jobExecution in jobsExecutions.Values)
                     {
-                        job.Value.JobState = JobState.Failed;
+                        jobExecution.JobState = JobState.Failed;
                     }
                     await database.SaveChangesAsync(consumeContext.CancellationToken);
                     return;
