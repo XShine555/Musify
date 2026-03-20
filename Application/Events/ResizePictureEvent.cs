@@ -3,5 +3,6 @@
     public record ResizePictureEvent(
         string BucketName,
         string KeyName,
-        ResizePictureItems[] Items);
+        ResizePictureItems[] Items,
+        Guid JobId);
 }

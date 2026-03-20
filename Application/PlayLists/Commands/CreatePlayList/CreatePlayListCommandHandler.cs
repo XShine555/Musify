@@ -77,7 +77,8 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                             playListConfiguration.PicturesSizes.LargePictureWidth,
                             playListConfiguration.PicturesSizes.LargePictureHeight,
                             playListConfiguration.Routes.LargePictures)
-                        ] ), cancellationToken);
+                        ],
+                        Guid.NewGuid()), cancellationToken);
                 }
                 catch (Exception exception)
                 {

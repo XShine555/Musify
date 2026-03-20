@@ -18,14 +18,14 @@ namespace Musify.Infrastructure.Messaging.Consumers
         {
             try
             {
-                Dictionary<ResizePictureItems, Job> jobs = new Dictionary<ResizePictureItems, Job>();
+                Dictionary<ResizePictureItems, JobExecution> jobsExecutions = new Dictionary<ResizePictureItems, JobExecution>();
 
                 foreach (var item in consumeContext.Message.Items)
                 {
                     var payloadJson = JsonSerializer.Serialize(item);
 
                     var job = await database.Jobs
-                        .SingleOrDefaultAsync(job => job.JobType == JobType.ResizePicture && job.Payload == payloadJson, consumeContext.CancellationToken);
+                        .SingleOrDefaultAsync(job => job.Id == consumeContext.Message.JobId);
 
                     if (job is null)
                     {
@@ -36,14 +36,14 @@ namespace Musify.Infrastructure.Messaging.Consumers
                         };
                         await database.Jobs.AddAsync(job, consumeContext.CancellationToken);
                     }
-                    else
-                    {
-                        job.RetryCount++;
-                        job.JobState = JobState.InProgress;
-                        database.Jobs.Update(job);
-                    }
 
-                    jobs.Add(item, job);
+                    var jobExecution = new JobExecution
+                    {
+                        JobId = consumeContext.Message.JobId
+                    };
+                    await database.JobExecutions.AddAsync(jobExecution, consumeContext.CancellationToken);
+
+                    jobsExecutions.Add(item, jobExecution);
                 }
 
                 var fileResult = await storageHandler.GetFileAsync(
@@ -56,7 +56,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     logger.LogWarning("File not found in storage: BucketName={BucketName}, KeyName={KeyName}",
                         consumeContext.Message.BucketName, consumeContext.Message.KeyName);
 
-                    foreach (var job in jobs)
+                    foreach (var job in jobsExecutions)
                     {
                         job.Value.JobState = JobState.Failed;
                     }
@@ -70,12 +70,12 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
                 foreach (var item in consumeContext.Message.Items)
                 {
-                    var job = jobs[item];
+                    var jobExecution = jobsExecutions[item];
 
                     try
                     {
                         await ResizePicture(
-                            job,
+                            jobExecution,
                             consumeContext.Message.BucketName,
                             memoryStream,
                             item,
@@ -83,7 +83,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     }
                     catch (Exception exception)
                     {
-                        logger.LogError(exception, "An error occurred while resizing picture for UploadId={UploadId} and Resize={Resize}", job.Id, item);
+                        logger.LogError(exception, "An error occurred while resizing picture for UploadId={UploadId} and Resize={Resize}", jobExecution.Id, item);
                         continue;
                     }
                 }
@@ -100,10 +100,10 @@ namespace Musify.Infrastructure.Messaging.Consumers
             }
         }
 
-        async Task ResizePicture(Job job, string bucketName, MemoryStream memoryStream, ResizePictureItems items, CancellationToken cancellationToken)
+        async Task ResizePicture(JobExecution jobExecution, string bucketName, MemoryStream memoryStream, ResizePictureItems items, CancellationToken cancellationToken)
         {
             memoryStream.Position = 0;
-            job.JobState = JobState.InProgress;
+            jobExecution.JobState = JobState.InProgress;
 
             var pictureResult = await pictureHandler.ResizePictureAsync(
                 memoryStream,
@@ -114,7 +114,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             if (!pictureResult.IsSuccess)
             {
                 logger.LogError("Failed to resize picture: {ErrorMessage}", string.Join("; ", pictureResult.Errors));
-                job.JobState = JobState.Failed;
+                jobExecution.JobState = JobState.Failed;
                 return;
             }
 
@@ -128,11 +128,12 @@ namespace Musify.Infrastructure.Messaging.Consumers
             if (!saveResult.IsSuccess)
             {
                 logger.LogError("Failed to upload resized picture: {ErrorMessage}", string.Join("; ", saveResult.Errors));
-                job.JobState = JobState.Failed;
+                jobExecution.JobState = JobState.Failed;
                 return;
             }
 
-            job.JobState = JobState.Completed;
+            jobExecution.JobState = JobState.Completed;
+            jobExecution.FinishedAt = DateTime.UtcNow;
         }
     }
 }

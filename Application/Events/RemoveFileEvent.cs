@@ -2,5 +2,6 @@
 {
     public record RemoveFileEvent(
         string BucketName,
-        string KeyName);
+        string KeyName,
+        Guid JobId);
 }

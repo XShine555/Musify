@@ -18,7 +18,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var payload = JsonSerializer.Serialize(consumeContext.Message);
 
             var job = await database.Jobs
-                .SingleOrDefaultAsync(j => j.JobState == JobState.Failed && j.Payload == payload);
+                .SingleOrDefaultAsync(j => j.Id == consumeContext.Message.JobId);
 
             if (job is null) 
             { 
@@ -30,13 +30,12 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 await database.Jobs.AddAsync(job, consumeContext.CancellationToken);
                 logger.LogInformation("Created new job with id {JobId} for removing file {BucketName}/{KeyName}", job.Id, consumeContext.Message.BucketName, consumeContext.Message.KeyName);
             }
-            else
+
+            var jobExecution = new JobExecution
             {
-                job.RetryCount++;
-                job.JobState = JobState.Pending;
-                database.Jobs.Update(job);
-                logger.LogInformation("Retrying job with id {JobId} for removing file {BucketName}/{KeyName}. Retry count: {RetryCount}", job.Id, consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.RetryCount);
-            }
+                JobId = job.Id
+            };
+            await database.JobExecutions.AddAsync(jobExecution, consumeContext.CancellationToken);
 
             var removeFile = await storageHandler.RemoveFileAsync(
                 consumeContext.Message.BucketName,
@@ -45,15 +44,17 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
             if (!removeFile.IsSuccess)
             {
-                job.JobState = JobState.Failed;
-                logger.LogInformation("Failed to remove file {BucketName}/{KeyName} for job with id {JobId}. Error: {ErrorMessage}", consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.Id, string.Join("; ", removeFile.Errors));
+                jobExecution.JobState = JobState.Failed;
+                logger.LogInformation("Failed to remove file {BucketName}/{KeyName} for jobId={JobId}, JobExecutionId={jobExecutionId}. Error: {ErrorMessage}",
+                    consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.Id, jobExecution.Id, string.Join("; ", removeFile.Errors));
             }
             else
             {
-                job.CompletedAt = DateTime.UtcNow;
-                logger.LogInformation("Successfully removed file {BucketName}/{KeyName} for job with id {JobId}.", consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.Id);
+                logger.LogInformation("Successfully removed file {BucketName}/{KeyName} for jobId={JobId}, JobExecutionId={jobExecutionId}.",
+                   consumeContext.Message.BucketName, consumeContext.Message.KeyName, job.Id, jobExecution.Id);
             }
 
+            jobExecution.FinishedAt = DateTime.UtcNow;
             await database.SaveChangesAsync(consumeContext.CancellationToken);
         }
     }

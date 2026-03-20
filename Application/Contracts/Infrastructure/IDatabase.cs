@@ -17,6 +17,8 @@ namespace Musify.Application.Contracts.Infrastructure
 
         DbSet<Job> Jobs { get; }
 
+        DbSet<JobExecution> JobExecutions { get; }
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

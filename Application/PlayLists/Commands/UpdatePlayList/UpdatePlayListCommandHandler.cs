@@ -55,7 +55,8 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 {
                     await publishEndpoint.Publish(new RemoveFileEvent(
                        storageConfiguration.BucketName,
-                       originalImageStorageKey), cancellationToken);
+                       originalImageStorageKey,
+                       Guid.NewGuid()), cancellationToken);
                 }
                 catch (Exception exception)
                 {
@@ -72,7 +73,8 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     {
                         await publishEndpoint.Publish(new RemoveFileEvent(
                             storageConfiguration.BucketName,
-                            playList.SmallPictureKeyName), cancellationToken);
+                            playList.SmallPictureKeyName,
+                            Guid.NewGuid()), cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -87,7 +89,8 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     {
                         await publishEndpoint.Publish(new RemoveFileEvent(
                             storageConfiguration.BucketName,
-                            playList.MediumPictureKeyName), cancellationToken);
+                            playList.MediumPictureKeyName,
+                            Guid.NewGuid()), cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -102,7 +105,8 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     {
                         await publishEndpoint.Publish(new RemoveFileEvent(
                             storageConfiguration.BucketName,
-                            playList.LargePictureKeyName), cancellationToken);
+                            playList.LargePictureKeyName,
+                            Guid.NewGuid()), cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -150,7 +154,8 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                             playListConfiguration.PicturesSizes.LargePictureWidth,
                             playListConfiguration.PicturesSizes.LargePictureHeight,
                             playListConfiguration.Routes.LargePictures)
-                        ]
+                        ],
+                    Guid.NewGuid()
                     ), cancellationToken);
             }
             catch (Exception exception)
