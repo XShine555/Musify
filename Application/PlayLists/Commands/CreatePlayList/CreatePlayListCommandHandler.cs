@@ -25,8 +25,6 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 return Result.NotFound($"User with Id {request.UserId} does not exist.");
             }
 
-            var imageId = Guid.NewGuid();
-
             var playList = new PlayList
             {
                 UserId = request.UserId,
@@ -40,14 +38,15 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
 
             if (request.Picture is not null)
             {
-                playList.OriginalPictureKeyName = $"{imageId}{request.Picture.FileType}";
-                var imageKeyName = $"{playListConfiguration.Routes.OriginalPictures}/{imageId}{request.Picture.FileType}";
+                var imageId = Guid.NewGuid();
+                var pictureName = $"{imageId}{request.Picture.FileType}";
+                var originalImageStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, pictureName);
 
                 var uploadResult = await storageHandler.UploadFileAsync(
                     request.Picture.FileStream,
                     request.Picture.ContentType,
                     storageConfiguration.BucketName,
-                    imageKeyName,
+                    originalImageStorageKey,
                     cancellationToken);
 
                 if (!uploadResult.IsSuccess)
@@ -57,25 +56,34 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                     return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
                 }
 
+                playList.OriginalPictureKeyName = pictureName;
                 logger.LogInformation("Playlist image uploaded successfully for PlayList with Id={PlayListId}.", playList.Id);
 
-                await publishEndpoint.Publish(new ResizePictureEvent(
-                    storageConfiguration.BucketName,
-                    imageKeyName,
-                    [
+                try
+                {
+                    await publishEndpoint.Publish(new ResizePictureEvent(
+                        storageConfiguration.BucketName,
+                        originalImageStorageKey,
+                        [
                         new ResizePictureItems(
-                        playListConfiguration.PicturesSizes.SmallPictureWidth,
-                        playListConfiguration.PicturesSizes.SmallPictureHeight,
-                        playListConfiguration.Routes.SmallPictures),
-                    new ResizePictureItems(
-                        playListConfiguration.PicturesSizes.MediumPictureWidth,
-                        playListConfiguration.PicturesSizes.MediumPictureHeight,
-                        playListConfiguration.Routes.MediumPictures),
-                    new ResizePictureItems(
-                        playListConfiguration.PicturesSizes.LargePictureWidth,
-                        playListConfiguration.PicturesSizes.LargePictureHeight,
-                        playListConfiguration.Routes.LargePictures)
-                    ] ), cancellationToken);
+                            playListConfiguration.PicturesSizes.SmallPictureWidth,
+                            playListConfiguration.PicturesSizes.SmallPictureHeight,
+                            playListConfiguration.Routes.SmallPictures),
+                        new ResizePictureItems(
+                            playListConfiguration.PicturesSizes.MediumPictureWidth,
+                            playListConfiguration.PicturesSizes.MediumPictureHeight,
+                            playListConfiguration.Routes.MediumPictures),
+                        new ResizePictureItems(
+                            playListConfiguration.PicturesSizes.LargePictureWidth,
+                            playListConfiguration.PicturesSizes.LargePictureHeight,
+                            playListConfiguration.Routes.LargePictures)
+                        ] ), cancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    logger.LogError(exception, "Failed to publish resize picture event for PlayList with id={PlayListId}.", playList.Id);
+                    return Result.Error($"Failed to publish resize picture event for PlayList with id {playList.Id}.");
+                }
             }
             else
             {

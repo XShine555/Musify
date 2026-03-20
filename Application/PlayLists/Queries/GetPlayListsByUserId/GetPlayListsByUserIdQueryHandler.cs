@@ -3,7 +3,6 @@ using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.PlayLists.Contracts;
-using Musify.Domain.Entities;
 using X.PagedList.EF;
 
 namespace Musify.Application.PlayLists.Queries.GetPlayListsByUserId
@@ -15,7 +14,7 @@ namespace Musify.Application.PlayLists.Queries.GetPlayListsByUserId
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-            var normalizedName = request.Name.Trim().ToUpperInvariant();
+            var normalizedName = request.Name?.Trim().ToUpperInvariant() ?? string.Empty;
 
             var playListsQuery = database.PlayLists
                 .AsNoTracking()

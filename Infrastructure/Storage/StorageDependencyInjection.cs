@@ -22,7 +22,6 @@ namespace Musify.Infrastructure.Storage
             } );
 
             serviceDescriptors.AddScoped<IStorageHandler, StorageHandler>();
-
             return serviceDescriptors;
         }
     }

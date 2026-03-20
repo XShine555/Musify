@@ -5,5 +5,5 @@ using Musify.Application.Users.Contracts;
 namespace Musify.Application.Users.Commands.CreateUser
 {
     public record CreateUserCommand(Guid Id)
-        : IRequest<CreateUserCommand, Result<UserResponse>>;
+        : IRequest<CreateUserCommand, Task<Result<UserResponse>>>;
 }
