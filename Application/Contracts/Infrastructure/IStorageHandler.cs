@@ -13,5 +13,8 @@ namespace Musify.Application.Contracts.Infrastructure
         Task<Result> TransferFilesAsync(string sourceDirectory, string bucketName, string route, CancellationToken cancellationToken);
 
         Task<Result> RemoveFileAsync(string bucketName, string keyName, CancellationToken cancellationToken);
+
+        Task<Result> CopyFileAsync(string sourceBucketName, string sourceKeyName, string destinationBucketName, string destinationKeyName,
+            CancellationToken cancellationToken);
     }
 }

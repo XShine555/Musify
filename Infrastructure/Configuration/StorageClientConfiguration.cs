@@ -18,8 +18,10 @@ namespace Musify.Infrastructure.Configuration
         [MinLength(8)]
         public required string SecretAccessKey { get; set; }
 
+        [Required]
         public bool ForcePathStyle { get; set; }
 
+        [Required]
         public bool UseHttp { get; set; }
     }
 }

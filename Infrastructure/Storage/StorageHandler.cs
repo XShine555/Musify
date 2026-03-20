@@ -142,5 +142,31 @@ namespace Musify.Infrastructure.Storage
 
             return Result.Success(keyName);
         }
+
+        public async Task<Result> CopyFileAsync(string sourceBucketName, string sourceKeyName, string destinationBucketName, string destinationKeyName,
+            CancellationToken cancellationToken)
+        {
+            var request = new CopyObjectRequest
+            {
+                SourceBucket = sourceBucketName,
+                SourceKey = sourceKeyName,
+                DestinationBucket = destinationBucketName,
+                DestinationKey = destinationKeyName
+            };
+
+            try
+            {
+                var response = await amazonS3.CopyObjectAsync(request, cancellationToken);
+                logger.LogInformation("Successfully copied file from S3 with bucket name {SourceBucketName} and key name {SourceKeyName} to bucket name {DestinationBucketName} and key name {DestinationKeyName}",
+                    sourceBucketName, sourceKeyName, destinationBucketName, destinationKeyName);
+                return Result.Success();
+            }
+            catch
+            {
+                logger.LogError("Failed to copy file from S3 with bucket name {SourceBucketName} and key name {SourceKeyName} to bucket name {DestinationBucketName} and key name {DestinationKeyName}", 
+                    sourceBucketName, sourceKeyName, destinationBucketName, destinationKeyName);
+                return Result.Error($"Failed to copy file from S3 with bucket name {sourceBucketName} and key name {sourceKeyName} to bucket name {destinationBucketName} and key name {destinationKeyName}");
+            }
+        }
     }
 }

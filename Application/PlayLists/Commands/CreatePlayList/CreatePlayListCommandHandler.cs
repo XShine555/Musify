@@ -60,24 +60,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
 
                 try
                 {
-                    await eventBus.PublishAsync(new ResizePictureEvent(
-                        Guid.NewGuid(),
-                        storageConfiguration.BucketName,
-                        originalImageStorageKey,
-                        [
-                        new ResizePictureArguments(
-                            playListConfiguration.PicturesSizes.SmallPictureWidth,
-                            playListConfiguration.PicturesSizes.SmallPictureHeight,
-                            playListConfiguration.Routes.SmallPictures),
-                        new ResizePictureArguments(
-                            playListConfiguration.PicturesSizes.MediumPictureWidth,
-                            playListConfiguration.PicturesSizes.MediumPictureHeight,
-                            playListConfiguration.Routes.MediumPictures),
-                        new ResizePictureArguments(
-                            playListConfiguration.PicturesSizes.LargePictureWidth,
-                            playListConfiguration.PicturesSizes.LargePictureHeight,
-                            playListConfiguration.Routes.LargePictures)
-                        ] ), cancellationToken);
+                    await eventBus.PublishAsync(new UpdatePlayListPictureEvent(playList.Id, playList.OriginalPictureKeyName), cancellationToken);
                 }
                 catch (Exception exception)
                 {
