@@ -12,7 +12,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
     public class ResizePictureConsumer(IStorageHandler storageHandler, IPictureHandler pictureHandler, IDatabase database, ILogger<ResizePictureConsumer> logger)
         : IConsumer<ResizePictureEvent>
     {
-        private record JobOperationItem(ResizePictureItems Item, JobOperation JobOperation);
+        private record JobOperationItem(ResizePictureArguments Item, JobOperation JobOperation);
 
         public const string QueueName = "picture-resize-queue";
 
@@ -24,7 +24,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 var cancellationToken = consumeContext.CancellationToken;
 
                 var job = await GetOrCreateJobAsync(message, cancellationToken);
-                var jobOperations = await CreateJobOperationAsync(message.Items, job.Id, cancellationToken);
+                var jobOperations = await CreateJobOperationAsync(message.Arguments, job.Id, cancellationToken);
 
                 await database.SaveChangesAsync(cancellationToken);
 
@@ -66,7 +66,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 return job;
             }
 
-            var payloadJson = JsonSerializer.Serialize(message.Items);
+            var payloadJson = JsonSerializer.Serialize(message.Arguments);
             job = new Job
             {
                 Id = message.JobId,
@@ -78,7 +78,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             return job;
         }
 
-        async Task<List<JobOperationItem>> CreateJobOperationAsync(IReadOnlyCollection<ResizePictureItems> resizeItems, Guid jobId,
+        async Task<List<JobOperationItem>> CreateJobOperationAsync(IReadOnlyCollection<ResizePictureArguments> resizeItems, Guid jobId,
             CancellationToken cancellationToken)
         {
             var jobOperations = new List<JobOperationItem>(resizeItems.Count);

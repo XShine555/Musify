@@ -6,5 +6,5 @@ namespace Musify.Application.Events
         Guid JobId,
         string BucketName,
         string KeyName,
-        ResizePictureItems[] Items) : IEvent;
+        ResizePictureArguments[] Arguments) : IEvent;
 }

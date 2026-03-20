@@ -1,6 +1,6 @@
 ﻿namespace Musify.Application.Events
 {
-    public record ResizePictureItems(
+    public record ResizePictureArguments(
         int Width,
         int Height,
         string SaveOnRoute);

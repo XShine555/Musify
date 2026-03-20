@@ -143,15 +143,15 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     storageConfiguration.BucketName,
                     newImageStorageKey,
                     [
-                        new ResizePictureItems(
+                        new ResizePictureArguments(
                             playListConfiguration.PicturesSizes.SmallPictureWidth,
                             playListConfiguration.PicturesSizes.SmallPictureHeight,
                             playListConfiguration.Routes.SmallPictures),
-                        new ResizePictureItems(
+                        new ResizePictureArguments(
                             playListConfiguration.PicturesSizes.MediumPictureWidth,
                             playListConfiguration.PicturesSizes.MediumPictureHeight,
                             playListConfiguration.Routes.MediumPictures),
-                        new ResizePictureItems(
+                        new ResizePictureArguments(
                             playListConfiguration.PicturesSizes.LargePictureWidth,
                             playListConfiguration.PicturesSizes.LargePictureHeight,
                             playListConfiguration.Routes.LargePictures)
