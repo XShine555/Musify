@@ -15,10 +15,13 @@ namespace Musify.Domain.Entities
         [Required]
         public JobState JobState { get; set; } = JobState.Pending;
 
+        [NotMapped]
         public bool IsCompleted => JobState == JobState.Completed;
 
+        [NotMapped]
         public bool IsFailed => JobState == JobState.Failed;
 
+        [NotMapped]
         public bool IsPending => JobState == JobState.Pending;
 
         [Required]
