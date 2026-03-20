@@ -29,9 +29,9 @@ namespace Musify.Infrastructure.Storage
                 logger.LogDebug("Successfully got file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
                 return Result.Success(response.ResponseStream);
             }
-            catch
+            catch (Exception exception)
             {
-                logger.LogDebug("Failed to get file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+                logger.LogDebug(exception, "Failed to get file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
                 return Result.NotFound();
             }
         }
@@ -92,9 +92,9 @@ namespace Musify.Infrastructure.Storage
                     upload.State = UploadState.Successful;
                     logger.LogInformation("Successfully transferred file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
                 }
-                catch
+                catch (Exception exception)
                 {
-                    logger.LogError("Failed to transfer file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
+                    logger.LogError(exception, "Failed to transfer file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
                     upload.State = UploadState.Failed;
                 }
             }
@@ -129,9 +129,9 @@ namespace Musify.Infrastructure.Storage
                 var response = await amazonS3.PutObjectAsync(request, cancellationToken);
                 logger.LogInformation("Successfully uploaded file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
             }
-            catch
+            catch (Exception exception)
             {
-                logger.LogError("Failed to upload file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+                logger.LogError(exception, "Failed to upload file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
                 upload.State = UploadState.Failed;
                 return Result.Error($"Failed to upload file to S3 with bucket name {bucketName} and key name {keyName}");
             }
@@ -161,9 +161,9 @@ namespace Musify.Infrastructure.Storage
                     sourceBucketName, sourceKeyName, destinationBucketName, destinationKeyName);
                 return Result.Success();
             }
-            catch
+            catch (Exception exception)
             {
-                logger.LogError("Failed to copy file from S3 with bucket name {SourceBucketName} and key name {SourceKeyName} to bucket name {DestinationBucketName} and key name {DestinationKeyName}", 
+                logger.LogError(exception, "Failed to copy file from S3 with bucket name {SourceBucketName} and key name {SourceKeyName} to bucket name {DestinationBucketName} and key name {DestinationKeyName}", 
                     sourceBucketName, sourceKeyName, destinationBucketName, destinationKeyName);
                 return Result.Error($"Failed to copy file from S3 with bucket name {sourceBucketName} and key name {sourceKeyName} to bucket name {destinationBucketName} and key name {destinationKeyName}");
             }

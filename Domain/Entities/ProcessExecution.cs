@@ -26,10 +26,10 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime StartedDateTime { get; set; } = DateTime.UtcNow;
 
-        public DateTime FinishedDateTime { get; set; }
+        public DateTime? FinishedDateTime { get; set; }
 
         [MaxLength(2048)]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         public ICollection<ProcessStepExecution> Steps { get; set; } = new List<ProcessStepExecution>();
     }
