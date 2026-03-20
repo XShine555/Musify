@@ -13,6 +13,7 @@ namespace Musify.Domain.Entities
         public required JobType JobType { get; set; }
 
         [Required]
+        [MaxLength(512)]
         public required string Payload { get; set; }
 
         [Required]
