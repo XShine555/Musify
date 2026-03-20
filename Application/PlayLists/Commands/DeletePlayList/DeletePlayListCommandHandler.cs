@@ -9,7 +9,7 @@ using Musify.Application.PlayLists;
 
 namespace Musify.Application.PlayLists.Commands.DeletePlayList
 {
-    public class DeletePlayListCommandHandler(IDatabase database, IPublishEndpoint publishEndpoint,
+    public class DeletePlayListCommandHandler(IDatabase database, IEventBus eventBus,
         StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration, ILogger<DeletePlayListCommandHandler> logger)
         : IRequestHandler<DeletePlayListCommand, Task<Result>>
     {
@@ -35,7 +35,7 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
 
                 try
                 {
-                    await publishEndpoint.Publish(new RemoveFileEvent(
+                    await eventBus.PublishAsync(new RemoveFileEvent(
                        storageConfiguration.BucketName,
                        originalImageStorageKey,
                        Guid.NewGuid()), cancellationToken);
@@ -50,7 +50,7 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 {
                     try
                     {
-                        await publishEndpoint.Publish(new RemoveFileEvent(
+                        await eventBus.PublishAsync(new RemoveFileEvent(
                             storageConfiguration.BucketName,
                             playList.SmallPictureKeyName,
                             Guid.NewGuid()), cancellationToken);
@@ -66,7 +66,7 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 {
                     try
                     {
-                        await publishEndpoint.Publish(new RemoveFileEvent(
+                        await eventBus.PublishAsync(new RemoveFileEvent(
                             storageConfiguration.BucketName,
                             playList.MediumPictureKeyName,
                             Guid.NewGuid()), cancellationToken);
@@ -82,7 +82,7 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 {
                     try
                     {
-                        await publishEndpoint.Publish(new RemoveFileEvent(
+                        await eventBus.PublishAsync(new RemoveFileEvent(
                             storageConfiguration.BucketName,
                             playList.LargePictureKeyName,
                             Guid.NewGuid()), cancellationToken);

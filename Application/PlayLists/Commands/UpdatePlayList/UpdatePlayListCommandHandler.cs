@@ -10,7 +10,7 @@ using Musify.Application.PlayLists.Contracts;
 
 namespace Musify.Application.PlayLists.Commands.UpdatePlayList
 {
-    public class UpdatePlayListCommandHandler(IPublishEndpoint publishEndpoint, IDatabase database, IStorageHandler storageHandler,
+    public class UpdatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageHandler storageHandler,
         ILogger<UpdatePlayListCommandHandler> logger, StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration)
         : IRequestHandler<UpdatePlayListCommand, Task<Result<PlayListResponse>> >
     {
@@ -53,7 +53,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
 
                 try
                 {
-                    await publishEndpoint.Publish(new RemoveFileEvent(
+                    await eventBus.PublishAsync(new RemoveFileEvent(
                        storageConfiguration.BucketName,
                        originalImageStorageKey,
                        Guid.NewGuid()), cancellationToken);
@@ -71,7 +71,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 {
                     try
                     {
-                        await publishEndpoint.Publish(new RemoveFileEvent(
+                        await eventBus.PublishAsync(new RemoveFileEvent(
                             storageConfiguration.BucketName,
                             playList.SmallPictureKeyName,
                             Guid.NewGuid()), cancellationToken);
@@ -87,7 +87,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 {
                     try
                     {
-                        await publishEndpoint.Publish(new RemoveFileEvent(
+                        await eventBus.PublishAsync(new RemoveFileEvent(
                             storageConfiguration.BucketName,
                             playList.MediumPictureKeyName,
                             Guid.NewGuid()), cancellationToken);
@@ -103,7 +103,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 {
                     try
                     {
-                        await publishEndpoint.Publish(new RemoveFileEvent(
+                        await eventBus.PublishAsync(new RemoveFileEvent(
                             storageConfiguration.BucketName,
                             playList.LargePictureKeyName,
                             Guid.NewGuid()), cancellationToken);
@@ -138,7 +138,7 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
 
             try
             {
-                await publishEndpoint.Publish(new ResizePictureEvent(
+                await eventBus.PublishAsync(new ResizePictureEvent(
                     storageConfiguration.BucketName,
                     newImageStorageKey,
                     [

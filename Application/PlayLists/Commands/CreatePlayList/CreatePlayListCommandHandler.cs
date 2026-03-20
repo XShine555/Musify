@@ -11,7 +11,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Commands.CreatePlayList
 {
-    public class CreatePlayListCommandHandler(IPublishEndpoint publishEndpoint, IDatabase database, IStorageHandler storageHandler,
+    public class CreatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageHandler storageHandler,
         ILogger<CreatePlayListCommandHandler> logger, StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration)
         : IRequestHandler<CreatePlayListCommand, Task<Result<PlayListResponse>> >
     {
@@ -61,7 +61,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
 
                 try
                 {
-                    await publishEndpoint.Publish(new ResizePictureEvent(
+                    await eventBus.PublishAsync(new ResizePictureEvent(
                         storageConfiguration.BucketName,
                         originalImageStorageKey,
                         [
