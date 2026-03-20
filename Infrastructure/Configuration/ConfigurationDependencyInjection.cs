@@ -12,7 +12,8 @@ namespace Musify.Infrastructure.Configuration
                 .AddValidatedConfiguration<DatabaseConfiguration>(configuration, DatabaseConfiguration.SectionName)
                 .AddValidatedConfiguration<KeycloakConfiguration>(configuration, KeycloakConfiguration.SectionName)
                 .AddValidatedConfiguration<InfrastructureStorageConfiguration>(configuration, InfrastructureStorageConfiguration.SectionName)
-                .AddValidatedConfiguration<MessagingConfiguration>(configuration, MessagingConfiguration.SectionName);
+                .AddValidatedConfiguration<MessagingConfiguration>(configuration, MessagingConfiguration.SectionName)
+                .AddValidatedConfiguration<OpenTelemetryConfiguration>(configuration, OpenTelemetryConfiguration.SectionName);
 
             return serviceDescriptors;
         }
