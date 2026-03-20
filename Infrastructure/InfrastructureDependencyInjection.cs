@@ -21,7 +21,8 @@ namespace Musify.Infrastructure
                 .AddStorageHandler()
                 .AddPictureHandler()
                 .AddMassTransitClient(configuration)
-                .AddScoped<IEventBus, MassTransitEventBus>();
+                .AddScoped<IEventBus, MassTransitEventBus>()
+                .AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
 
             return serviceDescriptors;
         }
@@ -34,7 +35,8 @@ namespace Musify.Infrastructure
                 .AddStorageHandler()
                 .AddPictureHandler()
                 .AddMassTransitConsumers(configuration)
-                .AddScoped<IEventBus, MassTransitEventBus>();
+                .AddScoped<IEventBus, MassTransitEventBus>()
+                .AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
 
             return serviceDescriptors;
         }

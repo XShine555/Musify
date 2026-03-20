@@ -70,7 +70,6 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
             try
             {
                 await eventBus.PublishAsync(new RemoveFileEvent(
-                    Guid.NewGuid(),
                     storageConfiguration.BucketName,
                     keyName), cancellationToken);
 

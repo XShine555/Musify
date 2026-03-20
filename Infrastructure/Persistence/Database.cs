@@ -23,8 +23,25 @@ namespace Musify.Infrastructure.Persistence
 
         public DbSet<Upload> Uploads => Set<Upload>();
 
-        public DbSet<Job> Jobs => Set<Job>();
+        public DbSet<ProcessExecution> ProcessExecutions => Set<ProcessExecution>();
 
-        public DbSet<JobOperation> JobOperations => Set<JobOperation>();
+        public DbSet<ProcessStepExecution> ProcessStepExecutions => Set<ProcessStepExecution>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ProcessExecution>()
+                .HasIndex(process => new { process.CorrelationId, process.ProcessName });
+
+            modelBuilder.Entity<ProcessStepExecution>()
+                .HasIndex(step => new { step.ProcessExecutionId, step.StepName });
+
+            modelBuilder.Entity<ProcessExecution>()
+                .HasMany(process => process.Steps)
+                .WithOne(step => step.ProcessExecution)
+                .HasForeignKey(step => step.ProcessExecutionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

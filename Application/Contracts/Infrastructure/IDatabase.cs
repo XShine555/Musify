@@ -15,9 +15,9 @@ namespace Musify.Application.Contracts.Infrastructure
 
         DbSet<Upload> Uploads { get; }
 
-        DbSet<Job> Jobs { get; }
+        DbSet<ProcessExecution> ProcessExecutions { get; }
 
-        DbSet<JobOperation> JobOperations { get; }
+        DbSet<ProcessStepExecution> ProcessStepExecutions { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }

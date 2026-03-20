@@ -1,33 +1,60 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Domain.Entities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Activities
 {
-    public class RemoveFilesActivity(IStorageHandler storageHandler, ILogger<RemoveFilesActivity> logger)
+    public class RemoveFilesActivity(
+        IStorageHandler storageHandler,
+        ILogger<RemoveFilesActivity> logger,
+        IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<RemoveFileArguments>
     {
         public const string ExecuteEndpointName = "Remove-File";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<RemoveFileArguments> executeContext)
         {
-            var removeFile = await storageHandler.RemoveFileAsync(
-                executeContext.Arguments.BucketName,
-                executeContext.Arguments.KeyName,
+            var processId = await processTrackingStore.GetOrCreateProcessAsync(
+                "RoutingSlip",
+                executeContext.CorrelationId ?? executeContext.TrackingNumber,
+                executeContext.ConversationId,
+                executeContext.MessageId,
                 executeContext.CancellationToken);
 
-            if (!removeFile.IsSuccess)
-            {
-                string errorMessage = string.Join(";", removeFile.Errors);
-                logger.LogWarning(
-                    "Failed to remove file {KeyName} from bucket {BucketName}: {ErrorMessage}",
-                    executeContext.Arguments.KeyName,
-                    executeContext.Arguments.BucketName,
-                    errorMessage);
-            }
+            var stepId = await processTrackingStore.StartStepAsync(
+                processId,
+                nameof(RemoveFilesActivity),
+                ProcessStepComponentType.Activity,
+                0,
+                executeContext.CancellationToken);
 
-            return executeContext.Completed();
+            try
+            {
+                var removeFile = await storageHandler.RemoveFileAsync(
+                    executeContext.Arguments.BucketName,
+                    executeContext.Arguments.KeyName,
+                    executeContext.CancellationToken);
+
+                if (!removeFile.IsSuccess)
+                {
+                    string errorMessage = string.Join(";", removeFile.Errors);
+                    logger.LogWarning(
+                        "Failed to remove file {KeyName} from bucket {BucketName}: {ErrorMessage}",
+                        executeContext.Arguments.KeyName,
+                        executeContext.Arguments.BucketName,
+                        errorMessage);
+                }
+
+                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
+                return executeContext.Completed();
+            }
+            catch (Exception exception)
+            {
+                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
+                throw;
+            }
         }
     }
 }

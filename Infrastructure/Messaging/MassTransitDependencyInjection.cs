@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 using Musify.Infrastructure.Messaging.Consumers;
+using Musify.Infrastructure.Messaging.Filters;
 
 namespace Musify.Infrastructure.Messaging
 {
@@ -33,6 +34,8 @@ namespace Musify.Infrastructure.Messaging
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
                     ConfigureRabbitMqHost(busFactoryConfigurator, configuration);
+
+                    busFactoryConfigurator.UseConsumeFilter(typeof(ProcessTrackingConsumeFilter<>), busRegistrationContext);
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdatePlayListPictureConsumer.QueueName, endpointConfigurator =>
                     {

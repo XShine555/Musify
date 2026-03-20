@@ -1,6 +1,5 @@
 ﻿using Ardalis.Result;
 using DispatchR.Abstractions.Send;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
@@ -54,7 +53,6 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 try
                 {
                     await eventBus.PublishAsync(new RemoveFileEvent(
-                       Guid.NewGuid(),
                        storageConfiguration.BucketName,
                        originalImageStorageKey), cancellationToken);
                 }
@@ -72,7 +70,6 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     try
                     {
                         await eventBus.PublishAsync(new RemoveFileEvent(
-                            Guid.NewGuid(),
                             storageConfiguration.BucketName,
                             playList.SmallPictureKeyName), cancellationToken);
                     }
@@ -88,7 +85,6 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     try
                     {
                         await eventBus.PublishAsync(new RemoveFileEvent(
-                            Guid.NewGuid(),
                             storageConfiguration.BucketName,
                             playList.MediumPictureKeyName), cancellationToken);
                     }
@@ -104,7 +100,6 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     try
                     {
                         await eventBus.PublishAsync(new RemoveFileEvent(
-                            Guid.NewGuid(),
                             storageConfiguration.BucketName,
                             playList.LargePictureKeyName), cancellationToken);
                     }
