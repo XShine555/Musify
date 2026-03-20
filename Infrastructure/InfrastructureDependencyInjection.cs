@@ -4,6 +4,7 @@ using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Identity;
 using Musify.Infrastructure.Messaging;
+using Musify.Infrastructure.Observability;
 using Musify.Infrastructure.Persistence;
 using Musify.Infrastructure.Pictures;
 using Musify.Infrastructure.Storage;
@@ -20,6 +21,7 @@ namespace Musify.Infrastructure
                 .AddKeycloakService(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
+                .AddInfrastructureOpenTelemetry()
                 .AddMassTransitClient()
                 .AddScoped<IEventBus, MassTransitEventBus>()
                 .AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
@@ -34,6 +36,7 @@ namespace Musify.Infrastructure
                 .AddDatabase(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
+                .AddInfrastructureOpenTelemetry()
                 .AddMassTransitConsumers()
                 .AddScoped<IEventBus, MassTransitEventBus>()
                 .AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
