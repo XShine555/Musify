@@ -8,7 +8,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.Users.Commands.CreateUser
 {
-    public class CreateUserCommandHandler(IDatabase database, IKeycloakUserClient keycloakUserClient, ILogger<CreateUserCommandHandler> logger)
+    public class CreateUserCommandHandler(IDatabase database, IKeycloakUserService keycloakUserClient, ILogger<CreateUserCommandHandler> logger)
         : IRequestHandler<CreateUserCommand, Task<Result<UserResponse> >>
     {
         public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)

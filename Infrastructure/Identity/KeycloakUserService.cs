@@ -8,10 +8,10 @@ using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Identity
 {
-    public class KeycloakIdentityService(
+    public class KeycloakUserService(
         KeycloakClient keycloakClient,
         KeycloakConfiguration keycloakConfiguration,
-        ILogger<KeycloakIdentityService> logger) : IKeycloakUserClient
+        ILogger<KeycloakUserService> logger) : IKeycloakUserService
     {
         public async Task<Result<KeycloakUserResponse>> GetUserByIdAsync(string keycloakId, CancellationToken cancellationToken)
         {

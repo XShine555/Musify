@@ -8,7 +8,7 @@ namespace Musify.Infrastructure.Identity
 {
     public static class KeycloakDependencyInjection
     {
-        public static IServiceCollection AddKeycloakAuthentication(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddKeycloakService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddOptionsWithValidateOnStart<KeycloakConfiguration>()
                 .Bind(configuration.GetRequiredSection(KeycloakConfiguration.SectionName))
@@ -23,7 +23,7 @@ namespace Musify.Infrastructure.Identity
                     keycloakConfiguration.Username,
                     keycloakConfiguration.Password);
             } );
-            serviceDescriptors.AddScoped<IKeycloakUserClient, KeycloakIdentityService>();
+            serviceDescriptors.AddScoped<IKeycloakUserService, KeycloakUserService>();
             return serviceDescriptors;
         }
     }

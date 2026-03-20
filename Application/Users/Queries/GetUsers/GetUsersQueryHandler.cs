@@ -8,7 +8,7 @@ using X.PagedList.Extensions;
 
 namespace Musify.Application.Users.Queries.GetUsers
 {
-    public class GetUsersQueryHandler(IDatabase database, IKeycloakUserClient keycloakUserClient)
+    public class GetUsersQueryHandler(IDatabase database, IKeycloakUserService keycloakUserClient)
         : IRequestHandler<GetUsersQuery, Task<Result<PaginatedUserResponse> >>
     {
         public async Task<Result<PaginatedUserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)

@@ -3,7 +3,7 @@ using Musify.Application.Users.Contracts;
 
 namespace Musify.Application.Contracts.Infrastructure
 {
-    public interface IKeycloakUserClient
+    public interface IKeycloakUserService
     {
         Task<Result<KeycloakUserResponse>> GetUserByIdAsync(string keycloakId, CancellationToken cancellationToken);
 

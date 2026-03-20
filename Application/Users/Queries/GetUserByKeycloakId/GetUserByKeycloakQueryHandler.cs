@@ -6,7 +6,7 @@ using Musify.Application.Users.Contracts;
 
 namespace Musify.Application.Users.Queries.GetUserByKeycloakId
 {
-    public class GetUserByKeycloakQueryHandler(IDatabase database, IKeycloakUserClient keycloakUserClient)
+    public class GetUserByKeycloakQueryHandler(IDatabase database, IKeycloakUserService keycloakUserClient)
         : IRequestHandler<GetUserByKeycloakQuery, Task<Result<UserResponse>>>
     {
         public async Task<Result<UserResponse>> Handle(GetUserByKeycloakQuery request, CancellationToken cancellationToken)

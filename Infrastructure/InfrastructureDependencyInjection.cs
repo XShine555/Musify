@@ -17,7 +17,7 @@ namespace Musify.Infrastructure
             serviceDescriptors
                 .AddInfrastructureConfigurations(configuration)
                 .AddDatabase(configuration)
-                .AddKeycloakAuthentication(configuration)
+                .AddKeycloakClient(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
                 .AddMassTransitClient(configuration)
