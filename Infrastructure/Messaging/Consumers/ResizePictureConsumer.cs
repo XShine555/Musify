@@ -12,126 +12,193 @@ namespace Musify.Infrastructure.Messaging.Consumers
     public class ResizePictureConsumer(IStorageHandler storageHandler, IPictureHandler pictureHandler, IDatabase database, ILogger<ResizePictureConsumer> logger)
         : IConsumer<ResizePictureEvent>
     {
+        private record JobExecutionItem(ResizePictureItems Item, JobExecution JobExecution);
+
         public const string QueueName = "picture-resize-queue";
 
         public async Task Consume(ConsumeContext<ResizePictureEvent> consumeContext)
         {
             try
             {
-                Dictionary<ResizePictureItems, JobExecution> jobsExecutions = new Dictionary<ResizePictureItems, JobExecution>();
-                var job = await database.Jobs
-                    .SingleOrDefaultAsync(job => job.Id == consumeContext.Message.JobId);
+                var message = consumeContext.Message;
+                var cancellationToken = consumeContext.CancellationToken;
 
-                if (job is null)
+                var job = await GetOrCreateJobAsync(message, cancellationToken);
+                var jobExecutions = await CreateJobExecutionsAsync(message.Items, job.Id, cancellationToken);
+
+                await database.SaveChangesAsync(cancellationToken);
+
+                var sourceImageResult = await GetSourceImageAsync(message.BucketName, message.KeyName, cancellationToken);
+                if (!sourceImageResult.IsSuccess)
                 {
-                    var payloadJson = JsonSerializer.Serialize(consumeContext.Message.Items);
-                    job = new Job
-                    {
-                        Id = consumeContext.Message.JobId,
-                        JobType = JobType.ResizePicture,
-                        Payload = payloadJson,
-                    };
-                    await database.Jobs.AddAsync(job, consumeContext.CancellationToken);
-                    await database.SaveChangesAsync(consumeContext.CancellationToken);
-                }
-
-                foreach (var item in consumeContext.Message.Items)
-                {
-                    var jobExecution = new JobExecution
-                    {
-                        JobId = consumeContext.Message.JobId
-                    };
-                    await database.JobExecutions.AddAsync(jobExecution, consumeContext.CancellationToken);
-                    jobsExecutions.Add(item, jobExecution);
-                }
-
-                var fileResult = await storageHandler.GetFileAsync(
-                    consumeContext.Message.BucketName,
-                    consumeContext.Message.KeyName,
-                    consumeContext.CancellationToken);
-
-                if (fileResult.IsNotFound())
-                {
-                    logger.LogWarning("File not found in storage: BucketName={BucketName}, KeyName={KeyName}",
-                        consumeContext.Message.BucketName, consumeContext.Message.KeyName);
-
-                    foreach (var jobExecution in jobsExecutions.Values)
-                    {
-                        jobExecution.JobState = JobState.Failed;
-                    }
-                    await database.SaveChangesAsync(consumeContext.CancellationToken);
+                    MarkAllAsFailed(jobExecutions);
+                    await database.SaveChangesAsync(cancellationToken);
                     return;
                 }
 
-                using var fileStream = fileResult.Value;
-                using var memoryStream = new MemoryStream();
-                await fileStream.CopyToAsync(memoryStream, consumeContext.CancellationToken);
+                using var sourceImage = sourceImageResult.Value;
 
-                foreach (var item in consumeContext.Message.Items)
+                foreach (var executionItem in jobExecutions)
                 {
-                    var jobExecution = jobsExecutions[item];
+                    await ProcessExecutionAsync(
+                        executionItem,
+                        message.BucketName,
+                        sourceImage,
+                        cancellationToken);
 
-                    try
-                    {
-                        await ResizePicture(
-                            jobExecution,
-                            consumeContext.Message.BucketName,
-                            memoryStream,
-                            item,
-                            consumeContext.CancellationToken);
-                    }
-                    catch (Exception exception)
-                    {
-                        logger.LogError(exception, "An error occurred while resizing picture for UploadId={UploadId} and Resize={Resize}", jobExecution.Id, item);
-                        continue;
-                    }
+                    await database.SaveChangesAsync(cancellationToken);
                 }
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "An error occurred while consuming the ImageResizedConsumer message.");
+                logger.LogError(exception, "An error occurred while consuming the ResizePictureConsumer message.");
                 throw;
-            }
-            finally 
-            {
-                logger.LogInformation("Saving changes to database after processing ImageResizedConsumer message.");
-                await database.SaveChangesAsync(consumeContext.CancellationToken);
             }
         }
 
-        async Task ResizePicture(JobExecution jobExecution, string bucketName, MemoryStream memoryStream, ResizePictureItems items, CancellationToken cancellationToken)
+        private async Task<Job> GetOrCreateJobAsync(ResizePictureEvent message, CancellationToken cancellationToken)
         {
+            var job = await database.Jobs
+                .SingleOrDefaultAsync(j => j.Id == message.JobId, cancellationToken);
+
+            if (job is not null)
+            {
+                return job;
+            }
+
+            var payloadJson = JsonSerializer.Serialize(message.Items);
+            job = new Job
+            {
+                Id = message.JobId,
+                JobType = JobType.ResizePicture,
+                Payload = payloadJson
+            };
+
+            await database.Jobs.AddAsync(job, cancellationToken);
+            return job;
+        }
+
+        private async Task<List<JobExecutionItem>> CreateJobExecutionsAsync(
+            IReadOnlyCollection<ResizePictureItems> items,
+            Guid jobId,
+            CancellationToken cancellationToken)
+        {
+            var jobExecutions = new List<JobExecutionItem>(items.Count);
+
+            foreach (var item in items)
+            {
+                var jobExecution = new JobExecution
+                {
+                    JobId = jobId
+                };
+
+                await database.JobExecutions.AddAsync(jobExecution, cancellationToken);
+                jobExecutions.Add(new JobExecutionItem(item, jobExecution));
+            }
+
+            return jobExecutions;
+        }
+
+        private async Task<Result<MemoryStream>> GetSourceImageAsync(string bucketName, string keyName, CancellationToken cancellationToken)
+        {
+            var fileResult = await storageHandler.GetFileAsync(bucketName, keyName, cancellationToken);
+
+            if (fileResult.IsNotFound())
+            {
+                logger.LogWarning("File not found in storage: BucketName={BucketName}, KeyName={KeyName}", bucketName, keyName);
+                return Result.NotFound();
+            }
+
+            if (!fileResult.IsSuccess)
+            {
+                logger.LogError("Failed to read source image from storage: BucketName={BucketName}, KeyName={KeyName}. Errors: {Errors}",
+                    bucketName,
+                    keyName,
+                    string.Join("; ", fileResult.Errors));
+                return Result.Error(string.Join("; ", fileResult.Errors));
+            }
+
+            using var fileStream = fileResult.Value;
+            var memoryStream = new MemoryStream();
+            await fileStream.CopyToAsync(memoryStream, cancellationToken);
             memoryStream.Position = 0;
-            jobExecution.JobState = JobState.InProgress;
 
-            var pictureResult = await pictureHandler.ResizePictureAsync(
-                memoryStream,
-                items.Width,
-                items.Height,
-                cancellationToken);
+            return Result.Success(memoryStream);
+        }
 
-            if (!pictureResult.IsSuccess)
+        private async Task ProcessExecutionAsync(
+            JobExecutionItem executionItem,
+            string bucketName,
+            MemoryStream sourceImage,
+            CancellationToken cancellationToken)
+        {
+            var jobExecution = executionItem.JobExecution;
+
+            try
             {
-                logger.LogError("Failed to resize picture: {ErrorMessage}", string.Join("; ", pictureResult.Errors));
-                jobExecution.JobState = JobState.Failed;
-                return;
+                jobExecution.JobState = JobState.InProgress;
+                sourceImage.Position = 0;
+
+                var resizedPictureResult = await pictureHandler.ResizePictureAsync(
+                    sourceImage,
+                    executionItem.Item.Width,
+                    executionItem.Item.Height,
+                    cancellationToken);
+
+                if (!resizedPictureResult.IsSuccess)
+                {
+                    logger.LogError("Failed to resize picture for JobExecutionId={JobExecutionId}. Error: {ErrorMessage}",
+                        jobExecution.Id,
+                        string.Join("; ", resizedPictureResult.Errors));
+
+                    MarkAsFailed(jobExecution);
+                    return;
+                }
+
+                var saveResult = await storageHandler.UploadFileAsync(
+                    resizedPictureResult.Value,
+                    "image/webp",
+                    bucketName,
+                    $"{executionItem.Item.SaveOnRoute}/{Guid.NewGuid()}.webp",
+                    cancellationToken);
+
+                if (!saveResult.IsSuccess)
+                {
+                    logger.LogError("Failed to upload resized picture for JobExecutionId={JobExecutionId}. Error: {ErrorMessage}",
+                        jobExecution.Id,
+                        string.Join("; ", saveResult.Errors));
+
+                    MarkAsFailed(jobExecution);
+                    return;
+                }
+
+                jobExecution.JobState = JobState.Completed;
+                jobExecution.FinishedAt = DateTime.UtcNow;
             }
-
-            var saveResult = await storageHandler.UploadFileAsync(
-                pictureResult.Value,
-                "image/webp",
-                bucketName,
-                $"{items.SaveOnRoute}/{Guid.NewGuid() }.webp",
-                cancellationToken);
-
-            if (!saveResult.IsSuccess)
+            catch (Exception exception)
             {
-                logger.LogError("Failed to upload resized picture: {ErrorMessage}", string.Join("; ", saveResult.Errors));
-                jobExecution.JobState = JobState.Failed;
-                return;
-            }
+                logger.LogError(exception,
+                    "An error occurred while processing resize for JobExecutionId={JobExecutionId}, Width={Width}, Height={Height}, SaveOnRoute={SaveOnRoute}",
+                    jobExecution.Id,
+                    executionItem.Item.Width,
+                    executionItem.Item.Height,
+                    executionItem.Item.SaveOnRoute);
 
-            jobExecution.JobState = JobState.Completed;
+                MarkAsFailed(jobExecution);
+            }
+        }
+
+        private static void MarkAllAsFailed(IEnumerable<JobExecutionItem> jobExecutions)
+        {
+            foreach (var executionItem in jobExecutions)
+            {
+                MarkAsFailed(executionItem.JobExecution);
+            }
+        }
+
+        private static void MarkAsFailed(JobExecution jobExecution)
+        {
+            jobExecution.JobState = JobState.Failed;
             jobExecution.FinishedAt = DateTime.UtcNow;
         }
     }
