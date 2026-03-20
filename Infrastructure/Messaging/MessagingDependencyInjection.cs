@@ -1,6 +1,6 @@
 ﻿using MassTransit;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 using Musify.Infrastructure.Messaging.Consumers;
@@ -8,20 +8,22 @@ using Musify.Infrastructure.Messaging.Filters;
 
 namespace Musify.Infrastructure.Messaging
 {
-    public static class MassTransitDependencyInjection
+    public static class MessagingDependencyInjection
     {
-        public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors)
         {
             serviceDescriptors.AddMassTransit(options =>
             {
-                options.UsingRabbitMq((_, busFactoryConfigurator) =>
-                    ConfigureRabbitMqHost(busFactoryConfigurator, configuration));
+                options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
+                    ConfigureRabbitMqHost(
+                        busFactoryConfigurator,
+                        busRegistrationContext.GetRequiredService<MessagingConfiguration>()));
             } );
 
             return serviceDescriptors;
         }
 
-        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors)
         {
             serviceDescriptors.AddMassTransit(options =>
             {
@@ -33,7 +35,9 @@ namespace Musify.Infrastructure.Messaging
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
-                    ConfigureRabbitMqHost(busFactoryConfigurator, configuration);
+                    ConfigureRabbitMqHost(
+                        busFactoryConfigurator,
+                        busRegistrationContext.GetRequiredService<MessagingConfiguration>());
 
                     busFactoryConfigurator.UseConsumeFilter(typeof(ProcessTrackingConsumeFilter<>), busRegistrationContext);
 
@@ -67,23 +71,14 @@ namespace Musify.Infrastructure.Messaging
             return serviceDescriptors;
         }
 
-        static void ConfigureRabbitMqHost(IRabbitMqBusFactoryConfigurator busFactoryConfigurator, IConfiguration configuration)
+        static void ConfigureRabbitMqHost(
+            IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
+            MessagingConfiguration massTransitConfiguration)
         {
-            var section = configuration.GetSection("MassTransit");
-
-            var host = section["Host"]
-                ?? throw new InvalidOperationException("MassTransit:Host configuration value not found.");
-
-            var username = section["Username"]
-                ?? throw new InvalidOperationException("MassTransit:Username configuration value not found.");
-
-            var password = section["Password"]
-                ?? throw new InvalidOperationException("MassTransit:Password configuration value not found.");
-
-            busFactoryConfigurator.Host(host, options =>
+            busFactoryConfigurator.Host(massTransitConfiguration.Host, options =>
             {
-                options.Username(username);
-                options.Password(password);
+                options.Username(massTransitConfiguration.Username);
+                options.Password(massTransitConfiguration.Password);
             } );
         }
 

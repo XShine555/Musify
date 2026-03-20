@@ -20,7 +20,7 @@ namespace Musify.Infrastructure
                 .AddKeycloakService(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
-                .AddMassTransitClient(configuration)
+                .AddMassTransitClient()
                 .AddScoped<IEventBus, MassTransitEventBus>()
                 .AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
 
@@ -34,7 +34,7 @@ namespace Musify.Infrastructure
                 .AddDatabase(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
-                .AddMassTransitConsumers(configuration)
+                .AddMassTransitConsumers()
                 .AddScoped<IEventBus, MassTransitEventBus>()
                 .AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
 
