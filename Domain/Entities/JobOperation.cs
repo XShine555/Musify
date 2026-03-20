@@ -5,7 +5,7 @@ namespace Musify.Domain.Entities
 {
 #pragma warning disable CS8618
     [Table("JobExecution")]
-    public class JobExecution
+    public class JobOperation
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();

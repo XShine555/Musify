@@ -25,6 +25,6 @@ namespace Musify.Infrastructure.Persistence
 
         public DbSet<Job> Jobs => Set<Job>();
 
-        public DbSet<JobExecution> JobExecutions => Set<JobExecution>();
+        public DbSet<JobOperation> JobOperations => Set<JobOperation>();
     }
 }

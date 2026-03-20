@@ -12,7 +12,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
     public class ResizePictureConsumer(IStorageHandler storageHandler, IPictureHandler pictureHandler, IDatabase database, ILogger<ResizePictureConsumer> logger)
         : IConsumer<ResizePictureEvent>
     {
-        private record JobExecutionItem(ResizePictureItems Item, JobExecution JobExecution);
+        private record JobOperationItem(ResizePictureItems Item, JobOperation JobOperation);
 
         public const string QueueName = "picture-resize-queue";
 
@@ -24,24 +24,24 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 var cancellationToken = consumeContext.CancellationToken;
 
                 var job = await GetOrCreateJobAsync(message, cancellationToken);
-                var jobExecutions = await CreateJobExecutionsAsync(message.Items, job.Id, cancellationToken);
+                var jobOperations = await CreateJobOperationAsync(message.Items, job.Id, cancellationToken);
 
                 await database.SaveChangesAsync(cancellationToken);
 
                 var sourceImageResult = await GetSourceImageAsync(message.BucketName, message.KeyName, cancellationToken);
                 if (!sourceImageResult.IsSuccess)
                 {
-                    MarkAllAsFailed(jobExecutions);
+                    MarkAllAsFailed(jobOperations);
                     await database.SaveChangesAsync(cancellationToken);
                     return;
                 }
 
                 using var sourceImage = sourceImageResult.Value;
 
-                foreach (var executionItem in jobExecutions)
+                foreach (var operationItem in jobOperations)
                 {
-                    await ProcessExecutionAsync(
-                        executionItem,
+                    await ProcessOperationAsync(
+                        operationItem,
                         message.BucketName,
                         sourceImage,
                         cancellationToken);
@@ -78,25 +78,25 @@ namespace Musify.Infrastructure.Messaging.Consumers
             return job;
         }
 
-        private async Task<List<JobExecutionItem>> CreateJobExecutionsAsync(
-            IReadOnlyCollection<ResizePictureItems> items,
+        private async Task<List<JobOperationItem>> CreateJobOperationAsync(
+            IReadOnlyCollection<ResizePictureItems> resizeItems,
             Guid jobId,
             CancellationToken cancellationToken)
         {
-            var jobExecutions = new List<JobExecutionItem>(items.Count);
+            var jobOperations = new List<JobOperationItem>(resizeItems.Count);
 
-            foreach (var item in items)
+            foreach (var resizeItem in resizeItems)
             {
-                var jobExecution = new JobExecution
+                var jobOperation = new JobOperation
                 {
                     JobId = jobId
                 };
 
-                await database.JobExecutions.AddAsync(jobExecution, cancellationToken);
-                jobExecutions.Add(new JobExecutionItem(item, jobExecution));
+                await database.JobOperations.AddAsync(jobOperation, cancellationToken);
+                jobOperations.Add(new JobOperationItem(resizeItem, jobOperation));
             }
 
-            return jobExecutions;
+            return jobOperations;
         }
 
         private async Task<Result<MemoryStream>> GetSourceImageAsync(string bucketName, string keyName, CancellationToken cancellationToken)
@@ -126,32 +126,32 @@ namespace Musify.Infrastructure.Messaging.Consumers
             return Result.Success(memoryStream);
         }
 
-        private async Task ProcessExecutionAsync(
-            JobExecutionItem executionItem,
+        private async Task ProcessOperationAsync(
+            JobOperationItem operationItem,
             string bucketName,
             MemoryStream sourceImage,
             CancellationToken cancellationToken)
         {
-            var jobExecution = executionItem.JobExecution;
+            var jobOperation = operationItem.JobOperation;
 
             try
             {
-                jobExecution.JobState = JobState.InProgress;
+                jobOperation.JobState = JobState.InProgress;
                 sourceImage.Position = 0;
 
                 var resizedPictureResult = await pictureHandler.ResizePictureAsync(
                     sourceImage,
-                    executionItem.Item.Width,
-                    executionItem.Item.Height,
+                    operationItem.Item.Width,
+                    operationItem.Item.Height,
                     cancellationToken);
 
                 if (!resizedPictureResult.IsSuccess)
                 {
-                    logger.LogError("Failed to resize picture for JobExecutionId={JobExecutionId}. Error: {ErrorMessage}",
-                        jobExecution.Id,
+                    logger.LogError("Failed to resize picture for JobOperationId={JobOperationId}. Error: {ErrorMessage}",
+                        jobOperation.Id,
                         string.Join("; ", resizedPictureResult.Errors));
 
-                    MarkAsFailed(jobExecution);
+                    MarkAsFailed(jobOperation);
                     return;
                 }
 
@@ -159,47 +159,47 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     resizedPictureResult.Value,
                     "image/webp",
                     bucketName,
-                    $"{executionItem.Item.SaveOnRoute}/{Guid.NewGuid()}.webp",
+                    $"{operationItem.Item.SaveOnRoute}/{Guid.NewGuid()}.webp",
                     cancellationToken);
 
                 if (!saveResult.IsSuccess)
                 {
-                    logger.LogError("Failed to upload resized picture for JobExecutionId={JobExecutionId}. Error: {ErrorMessage}",
-                        jobExecution.Id,
+                    logger.LogError("Failed to upload resized picture for JobOperationId={JobOperationId}. Error: {ErrorMessage}",
+                        jobOperation.Id,
                         string.Join("; ", saveResult.Errors));
 
-                    MarkAsFailed(jobExecution);
+                    MarkAsFailed(jobOperation);
                     return;
                 }
 
-                jobExecution.JobState = JobState.Completed;
-                jobExecution.FinishedAt = DateTime.UtcNow;
+                jobOperation.JobState = JobState.Completed;
+                jobOperation.FinishedAt = DateTime.UtcNow;
             }
             catch (Exception exception)
             {
                 logger.LogError(exception,
-                    "An error occurred while processing resize for JobExecutionId={JobExecutionId}, Width={Width}, Height={Height}, SaveOnRoute={SaveOnRoute}",
-                    jobExecution.Id,
-                    executionItem.Item.Width,
-                    executionItem.Item.Height,
-                    executionItem.Item.SaveOnRoute);
+                    "An error occurred while processing resize for JobOperationId={JobOperationId}, Width={Width}, Height={Height}, SaveOnRoute={SaveOnRoute}",
+                    jobOperation.Id,
+                    operationItem.Item.Width,
+                    operationItem.Item.Height,
+                    operationItem.Item.SaveOnRoute);
 
-                MarkAsFailed(jobExecution);
+                MarkAsFailed(jobOperation);
             }
         }
 
-        private static void MarkAllAsFailed(IEnumerable<JobExecutionItem> jobExecutions)
+        private static void MarkAllAsFailed(IEnumerable<JobOperationItem> jobOperations)
         {
-            foreach (var executionItem in jobExecutions)
+            foreach (var operationItem in jobOperations)
             {
-                MarkAsFailed(executionItem.JobExecution);
+                MarkAsFailed(operationItem.JobOperation);
             }
         }
 
-        private static void MarkAsFailed(JobExecution jobExecution)
+        private static void MarkAsFailed(JobOperation jobOperation)
         {
-            jobExecution.JobState = JobState.Failed;
-            jobExecution.FinishedAt = DateTime.UtcNow;
+            jobOperation.JobState = JobState.Failed;
+            jobOperation.FinishedAt = DateTime.UtcNow;
         }
     }
 }

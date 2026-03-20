@@ -31,11 +31,11 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 logger.LogInformation("Created new job with id {JobId} for removing file {BucketName}/{KeyName}", job.Id, consumeContext.Message.BucketName, consumeContext.Message.KeyName);
             }
 
-            var jobExecution = new JobExecution
+            var jobExecution = new JobOperation
             {
                 JobId = job.Id
             };
-            await database.JobExecutions.AddAsync(jobExecution, consumeContext.CancellationToken);
+            await database.JobOperations.AddAsync(jobExecution, consumeContext.CancellationToken);
 
             var removeFile = await storageHandler.RemoveFileAsync(
                 consumeContext.Message.BucketName,
