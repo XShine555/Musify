@@ -11,7 +11,8 @@ using Musify.Domain.Entities;
 namespace Musify.Application.PlayLists.Commands.CreatePlayList
 {
     public class CreatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageHandler storageHandler,
-        ILogger<CreatePlayListCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration)
+        ILogger<CreatePlayListCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration,
+        PlayListConfiguration playListConfiguration, IPictureHandler pictureHandler)
         : IRequestHandler<CreatePlayListCommand, Task<Result<PlayListResponse>> >
     {
         public async Task<Result<PlayListResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
@@ -58,9 +59,31 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 playList.OriginalPictureKeyName = pictureName;
                 logger.LogInformation("Playlist image uploaded successfully for PlayList with Id={PlayListId}.", playList.Id);
 
+                var smallPictureKeyName = Path.Combine(
+                    playListConfiguration.Routes.SmallPictures,
+                    $"{playList.Id}.{pictureHandler.FileExtension}");
+                var mediumPictureKeyName = Path.Combine(
+                    playListConfiguration.Routes.MediumPictures,
+                    $"{playList.Id}.{pictureHandler.FileExtension}");
+                var largePictureKeyName = Path.Combine(
+                    playListConfiguration.Routes.LargePictures,
+                    $"{playList.Id}.{pictureHandler.FileExtension}");
+
                 try
                 {
-                    await eventBus.PublishAsync(new UpdatePlayListPictureEvent(playList.Id, playList.OriginalPictureKeyName), cancellationToken);
+                    await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
+                        playList.Id,
+                        storageConfiguration.BucketName,
+                        originalImageStorageKey,
+                        smallPictureKeyName,
+                        playListConfiguration.PicturesSizes.SmallPictureWidth,
+                        playListConfiguration.PicturesSizes.SmallPictureHeight,
+                        mediumPictureKeyName,
+                        playListConfiguration.PicturesSizes.MediumPictureWidth,
+                        playListConfiguration.PicturesSizes.MediumPictureHeight,
+                        largePictureKeyName,
+                        playListConfiguration.PicturesSizes.LargePictureWidth,
+                        playListConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
                 }
                 catch (Exception exception)
                 {
