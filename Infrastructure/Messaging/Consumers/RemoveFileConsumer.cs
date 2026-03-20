@@ -20,8 +20,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var job = await database.Jobs
                 .SingleOrDefaultAsync(j => j.Id == consumeContext.Message.JobId);
 
-            if (job is null) 
-            { 
+            if (job is null)
+            {
                 job = new Job
                 {
                     JobType = JobType.RemoveFile,
