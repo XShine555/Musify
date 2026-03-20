@@ -25,6 +25,7 @@ namespace Musify.Infrastructure.Messaging
             serviceDescriptors.AddMassTransit(options =>
             {
                 options.AddConsumer<UpdatePlayListPictureConsumer>();
+                options.AddConsumer<RemoveFileConsumer>();
                 options.AddExecuteActivity<ResizePictureActivity, ResizePictureArgument>();
                 options.AddExecuteActivity<RemoveFilesActivity, RemoveFileArguments>();
                 options.AddExecuteActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments>();
@@ -36,6 +37,11 @@ namespace Musify.Infrastructure.Messaging
                     busFactoryConfigurator.ReceiveEndpoint(UpdatePlayListPictureConsumer.QueueName, endpointConfigurator =>
                     {
                         endpointConfigurator.ConfigureConsumer<UpdatePlayListPictureConsumer>(busRegistrationContext);
+                    } );
+
+                    busFactoryConfigurator.ReceiveEndpoint(RemoveFileConsumer.QueueName, endpointConfigurator =>
+                    {
+                        endpointConfigurator.ConfigureConsumer<RemoveFileConsumer>(busRegistrationContext);
                     } );
 
                     ConfigureExecuteActivityEndpoint<ResizePictureActivity, ResizePictureArgument>(
