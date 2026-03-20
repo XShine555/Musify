@@ -31,7 +31,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 var sourceImageResult = await GetSourceImageAsync(message.BucketName, message.KeyName, cancellationToken);
                 if (!sourceImageResult.IsSuccess)
                 {
-                    MarkAllAsFailed(jobOperations);
+                    MarkAllAsFailed(jobOperations, $"Failed to retrieve source image from storage, ResultState: {sourceImageResult.Status}");
                     await database.SaveChangesAsync(cancellationToken);
                     return;
                 }
@@ -147,11 +147,12 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
                 if (!resizedPictureResult.IsSuccess)
                 {
+                    var errorMessage = string.Join("; ", resizedPictureResult.Errors);
                     logger.LogError("Failed to resize picture for JobOperationId={JobOperationId}. Error: {ErrorMessage}",
                         jobOperation.Id,
-                        string.Join("; ", resizedPictureResult.Errors));
+                        errorMessage);
 
-                    MarkAsFailed(jobOperation);
+                    MarkAsFailed(jobOperation, errorMessage);
                     return;
                 }
 
@@ -164,11 +165,12 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
                 if (!saveResult.IsSuccess)
                 {
+                    var errorMessage = string.Join("; ", saveResult.Errors);
                     logger.LogError("Failed to upload resized picture for JobOperationId={JobOperationId}. Error: {ErrorMessage}",
                         jobOperation.Id,
-                        string.Join("; ", saveResult.Errors));
+                        errorMessage);
 
-                    MarkAsFailed(jobOperation);
+                    MarkAsFailed(jobOperation, errorMessage);
                     return;
                 }
 
@@ -184,22 +186,23 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     operationItem.Item.Height,
                     operationItem.Item.SaveOnRoute);
 
-                MarkAsFailed(jobOperation);
+                MarkAsFailed(jobOperation, exception.Message);
             }
         }
 
-        private static void MarkAllAsFailed(IEnumerable<JobOperationItem> jobOperations)
+        private static void MarkAllAsFailed(IEnumerable<JobOperationItem> jobOperations, string errorMessage)
         {
             foreach (var operationItem in jobOperations)
             {
-                MarkAsFailed(operationItem.JobOperation);
+                MarkAsFailed(operationItem.JobOperation, errorMessage);
             }
         }
 
-        private static void MarkAsFailed(JobOperation jobOperation)
+        private static void MarkAsFailed(JobOperation jobOperation, string errorMessage)
         {
             jobOperation.JobState = JobState.Failed;
             jobOperation.FinishedAt = DateTime.UtcNow;
+            jobOperation.ErrorMessage = errorMessage;
         }
     }
 }

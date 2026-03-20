@@ -26,6 +26,10 @@ namespace Musify.Domain.Entities
         public bool IsPending => JobState == JobState.Pending;
 
         [Required]
+        [MaxLength(512)]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
