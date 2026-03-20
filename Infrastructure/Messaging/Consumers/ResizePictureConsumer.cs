@@ -56,7 +56,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             }
         }
 
-        private async Task<Job> GetOrCreateJobAsync(ResizePictureEvent message, CancellationToken cancellationToken)
+        async Task<Job> GetOrCreateJobAsync(ResizePictureEvent message, CancellationToken cancellationToken)
         {
             var job = await database.Jobs
                 .SingleOrDefaultAsync(j => j.Id == message.JobId, cancellationToken);
@@ -78,9 +78,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             return job;
         }
 
-        private async Task<List<JobOperationItem>> CreateJobOperationAsync(
-            IReadOnlyCollection<ResizePictureItems> resizeItems,
-            Guid jobId,
+        async Task<List<JobOperationItem>> CreateJobOperationAsync(IReadOnlyCollection<ResizePictureItems> resizeItems, Guid jobId,
             CancellationToken cancellationToken)
         {
             var jobOperations = new List<JobOperationItem>(resizeItems.Count);
@@ -99,7 +97,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             return jobOperations;
         }
 
-        private async Task<Result<MemoryStream>> GetSourceImageAsync(string bucketName, string keyName, CancellationToken cancellationToken)
+        async Task<Result<MemoryStream>> GetSourceImageAsync(string bucketName, string keyName, CancellationToken cancellationToken)
         {
             var fileResult = await storageHandler.GetFileAsync(bucketName, keyName, cancellationToken);
 
@@ -126,7 +124,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             return Result.Success(memoryStream);
         }
 
-        private async Task ProcessOperationAsync(
+        async Task ProcessOperationAsync(
             JobOperationItem operationItem,
             string bucketName,
             MemoryStream sourceImage,
@@ -160,7 +158,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     resizedPictureResult.Value,
                     "image/webp",
                     bucketName,
-                    $"{operationItem.Item.SaveOnRoute}/{Guid.NewGuid()}.webp",
+                    $"{operationItem.Item.SaveOnRoute}/{Guid.NewGuid() }.webp",
                     cancellationToken);
 
                 if (!saveResult.IsSuccess)
@@ -190,7 +188,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             }
         }
 
-        private static void MarkAllAsFailed(IEnumerable<JobOperationItem> jobOperations, string errorMessage)
+        static void MarkAllAsFailed(IEnumerable<JobOperationItem> jobOperations, string errorMessage)
         {
             foreach (var operationItem in jobOperations)
             {
@@ -198,7 +196,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             }
         }
 
-        private static void MarkAsFailed(JobOperation jobOperation, string errorMessage)
+        static void MarkAsFailed(JobOperation jobOperation, string errorMessage)
         {
             jobOperation.JobState = JobState.Failed;
             jobOperation.FinishedAt = DateTime.UtcNow;
