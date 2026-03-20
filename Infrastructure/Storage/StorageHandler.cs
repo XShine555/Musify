@@ -5,10 +5,11 @@ using Ardalis.Result;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
+using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Storage
 {
-    public class StorageHandler(IDatabase database, IAmazonS3 amazonS3, ILogger<StorageHandler> logger)
+    public class StorageHandler(IDatabase database, IAmazonS3 amazonS3, StorageClientConfiguration storageClientConfiguration, ILogger<StorageHandler> logger)
         : IStorageHandler
     {
         public async Task<Result<Stream>> GetFileAsync(string bucketName, string keyName, CancellationToken cancellationToken)
@@ -42,7 +43,7 @@ namespace Musify.Infrastructure.Storage
                 BucketName = bucketName,
                 Key = keyName,
                 Expires = DateTime.UtcNow + expirationTime,
-                Protocol = Protocol.HTTP
+                Protocol = storageClientConfiguration.UseHttp ? Protocol.HTTP : Protocol.HTTPS
             };
 
             logger.LogDebug("Getting pre-signed URL from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
