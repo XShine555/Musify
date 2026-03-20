@@ -61,6 +61,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                 try
                 {
                     await eventBus.PublishAsync(new ResizePictureEvent(
+                        Guid.NewGuid(),
                         storageConfiguration.BucketName,
                         originalImageStorageKey,
                         [
@@ -76,8 +77,7 @@ namespace Musify.Application.PlayLists.Commands.CreatePlayList
                             playListConfiguration.PicturesSizes.LargePictureWidth,
                             playListConfiguration.PicturesSizes.LargePictureHeight,
                             playListConfiguration.Routes.LargePictures)
-                        ],
-                        Guid.NewGuid()), cancellationToken);
+                        ] ), cancellationToken);
                 }
                 catch (Exception exception)
                 {

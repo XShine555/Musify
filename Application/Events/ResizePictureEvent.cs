@@ -1,8 +1,10 @@
-﻿namespace Musify.Application.Events
+﻿using Musify.Application.Contracts.Application;
+
+namespace Musify.Application.Events
 {
     public record ResizePictureEvent(
+        Guid JobId,
         string BucketName,
         string KeyName,
-        ResizePictureItems[] Items,
-        Guid JobId);
+        ResizePictureItems[] Items) : IEvent;
 }

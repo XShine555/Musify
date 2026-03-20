@@ -36,9 +36,9 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 try
                 {
                     await eventBus.PublishAsync(new RemoveFileEvent(
+                       Guid.NewGuid(),
                        storageConfiguration.BucketName,
-                       originalImageStorageKey,
-                       Guid.NewGuid()), cancellationToken);
+                       originalImageStorageKey), cancellationToken);
                 }
                 catch (Exception exception)
                 {
@@ -51,9 +51,9 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                     try
                     {
                         await eventBus.PublishAsync(new RemoveFileEvent(
+                            Guid.NewGuid(),
                             storageConfiguration.BucketName,
-                            playList.SmallPictureKeyName,
-                            Guid.NewGuid()), cancellationToken);
+                            playList.SmallPictureKeyName), cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -67,9 +67,9 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                     try
                     {
                         await eventBus.PublishAsync(new RemoveFileEvent(
+                            Guid.NewGuid(),
                             storageConfiguration.BucketName,
-                            playList.MediumPictureKeyName,
-                            Guid.NewGuid()), cancellationToken);
+                            playList.MediumPictureKeyName), cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -83,9 +83,9 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                     try
                     {
                         await eventBus.PublishAsync(new RemoveFileEvent(
+                            Guid.NewGuid(),
                             storageConfiguration.BucketName,
-                            playList.LargePictureKeyName,
-                            Guid.NewGuid()), cancellationToken);
+                            playList.LargePictureKeyName), cancellationToken);
                     }
                     catch (Exception exception)
                     {
