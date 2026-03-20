@@ -7,6 +7,8 @@ namespace Musify.Infrastructure.Messaging.Activities
     public class ResizePictureActivity(IStorageHandler storageHandler, IPictureHandler pictureHandler)
         : IExecuteActivity<ResizePictureArgument>
     {
+        public const string ExecuteEndpointName = "Resize-Picture";
+
         public async Task<ExecutionResult> Execute(ExecuteContext<ResizePictureArgument> executeContext)
         {
             var file = await storageHandler.GetFileAsync(

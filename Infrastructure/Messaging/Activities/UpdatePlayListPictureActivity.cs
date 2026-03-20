@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
@@ -7,20 +8,21 @@ namespace Musify.Infrastructure.Messaging.Activities
     public class UpdatePlayListPictureActivity(IDatabase database)
         : IExecuteActivity<UpdatePlayListPictureArguments>
     {
+        public const string ExecuteEndpointName = "Update-PlayList-Picture";
+
         public async Task<ExecutionResult> Execute(ExecuteContext<UpdatePlayListPictureArguments> executeContext)
         {
-            var PlayList = await database.PlayLists.FindAsync(executeContext.Arguments.PlayListId);
+            var playList = await database.PlayLists.SingleOrDefaultAsync(p => p.Id == executeContext.Arguments.PlayListId,
+                executeContext.CancellationToken);
 
-            if (PlayList is null)
-            {
+            if (playList is null)
                 throw new Exception($"PlayList with id {executeContext.Arguments.PlayListId} not found.");
-            }
 
-            PlayList.SmallPictureKeyName = executeContext.Arguments.SmallPictureKeyName;
-            PlayList.MediumPictureKeyName = executeContext.Arguments.MediumPictureKeyName;
-            PlayList.LargePictureKeyName = executeContext.Arguments.LargePictureKeyName;
+            playList.SmallPictureKeyName = executeContext.Arguments.SmallPictureKeyName;
+            playList.MediumPictureKeyName = executeContext.Arguments.MediumPictureKeyName;
+            playList.LargePictureKeyName = executeContext.Arguments.LargePictureKeyName;
 
-            database.PlayLists.Update(PlayList);
+            database.PlayLists.Update(playList);
             await database.SaveChangesAsync(executeContext.CancellationToken);
 
             return executeContext.Completed();

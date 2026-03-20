@@ -2,6 +2,7 @@
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
+using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Consumers
@@ -26,49 +27,38 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 playListConfiguration.Routes.LargePictures,
                 $"{consumeContext.Message.PlayListId}_large.{pictureHandler.FileExtension}");
 
-            routingSlipBuilder.AddActivity(
+            AddResizeActivity(
+                routingSlipBuilder,
                 "ResizeSmall",
-                new Uri("Queue:Resize-Picture_Execute"),
-                new ResizePictureArgument(
-                    storageSettings.BucketName,
-                    consumeContext.Message.OriginalPictureKeyName,
-                    storageSettings.BucketName,
-                    playListConfiguration.Routes.SmallPictures,
-                    playListConfiguration.PicturesSizes.SmallPictureWidth,
-                    playListConfiguration.PicturesSizes.SmallPictureHeight));
-            
-            routingSlipBuilder.AddActivity(
-                "ResizeMedium",
-                new Uri("Queue:Resize-Picture_Execute"),
-                new ResizePictureArgument(
-                    storageSettings.BucketName,
-                    consumeContext.Message.OriginalPictureKeyName,
-                    storageSettings.BucketName,
-                    playListConfiguration.Routes.MediumPictures,
-                    playListConfiguration.PicturesSizes.MediumPictureWidth,
-                    playListConfiguration.PicturesSizes.MediumPictureHeight));
+                smallPictureKeyName,
+                playListConfiguration.PicturesSizes.SmallPictureWidth,
+                playListConfiguration.PicturesSizes.SmallPictureHeight,
+                consumeContext.Message.OriginalPictureKeyName);
 
-            routingSlipBuilder.AddActivity(
+            AddResizeActivity(
+                routingSlipBuilder,
+                "ResizeMedium",
+                mediumPictureKeyName,
+                playListConfiguration.PicturesSizes.MediumPictureWidth,
+                playListConfiguration.PicturesSizes.MediumPictureHeight,
+                consumeContext.Message.OriginalPictureKeyName);
+
+            AddResizeActivity(
+                routingSlipBuilder,
                 "ResizeLarge",
-                new Uri("Queue:Resize-Picture_Execute"),
-                new ResizePictureArgument(
-                    storageSettings.BucketName,
-                    consumeContext.Message.OriginalPictureKeyName,
-                    storageSettings.BucketName,
-                    playListConfiguration.Routes.LargePictures,
-                    playListConfiguration.PicturesSizes.LargePictureWidth,
-                    playListConfiguration.PicturesSizes.LargePictureHeight));
+                largePictureKeyName,
+                playListConfiguration.PicturesSizes.LargePictureWidth,
+                playListConfiguration.PicturesSizes.LargePictureHeight,
+                consumeContext.Message.OriginalPictureKeyName);
 
             routingSlipBuilder.AddActivity(
                 "DeleteOriginal",
-                new Uri("Queue:Delete-Picture_Execute"),
-                new RemoveFileArguments(
-                    storageSettings.BucketName,
-                    consumeContext.Message.OriginalPictureKeyName));
+                BuildExecuteUri(RemoveFilesActivity.ExecuteEndpointName),
+                new RemoveFileArguments(storageSettings.BucketName, consumeContext.Message.OriginalPictureKeyName));
 
             routingSlipBuilder.AddActivity(
                 "UpdatePlayListPicture",
-                new Uri("Queue:Update-PlayList-Picture_Execute"),
+                BuildExecuteUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
                 new UpdatePlayListPictureArguments(
                     consumeContext.Message.PlayListId,
                     smallPictureKeyName,
@@ -78,5 +68,27 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var routingSlip = routingSlipBuilder.Build();
             await bus.Execute(routingSlip);
         }
+
+        void AddResizeActivity(
+            RoutingSlipBuilder routingSlipBuilder,
+            string activityName,
+            string destinationKeyName,
+            int width,
+            int height,
+            string originalPictureKeyName)
+        {
+            routingSlipBuilder.AddActivity(
+                activityName,
+                BuildExecuteUri(ResizePictureActivity.ExecuteEndpointName),
+                new ResizePictureArgument(
+                    storageSettings.BucketName,
+                    originalPictureKeyName,
+                    storageSettings.BucketName,
+                    destinationKeyName,
+                    width,
+                    height));
+        }
+
+        static Uri BuildExecuteUri(string endpointName) => new($"queue:{endpointName}_execute");
     }
 }

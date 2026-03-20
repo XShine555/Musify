@@ -6,24 +6,27 @@ using Musify.Infrastructure.Messaging.Activities.Arguments;
 namespace Musify.Infrastructure.Messaging.Activities
 {
     public class RemoveFilesActivity(IStorageHandler storageHandler, ILogger<RemoveFilesActivity> logger)
-        : IExecuteActivity<RemoveFileArguments[]>
+        : IExecuteActivity<RemoveFileArguments>
     {
-        public async Task<ExecutionResult> Execute(ExecuteContext<RemoveFileArguments[]> executeContext)
-        {
-            foreach (var file in executeContext.Arguments)
-            {
-                var removeFile = await storageHandler.RemoveFileAsync(
-                    file.BucketName,
-                    file.KeyName,
-                    executeContext.CancellationToken);
+        public const string ExecuteEndpointName = "Remove-File";
 
-                if (!removeFile.IsSuccess)
-                {
-                    string errorMessage = string.Join(";", removeFile.Errors);
-                    logger.LogWarning("Failed to remove file {File} from bucket {BucketName}: {ErrorMessage}",
-                        file, file.BucketName, errorMessage);
-                }
+        public async Task<ExecutionResult> Execute(ExecuteContext<RemoveFileArguments> executeContext)
+        {
+            var removeFile = await storageHandler.RemoveFileAsync(
+                executeContext.Arguments.BucketName,
+                executeContext.Arguments.KeyName,
+                executeContext.CancellationToken);
+
+            if (!removeFile.IsSuccess)
+            {
+                string errorMessage = string.Join(";", removeFile.Errors);
+                logger.LogWarning(
+                    "Failed to remove file {KeyName} from bucket {BucketName}: {ErrorMessage}",
+                    executeContext.Arguments.KeyName,
+                    executeContext.Arguments.BucketName,
+                    errorMessage);
             }
+
             return executeContext.Completed();
         }
     }
