@@ -8,7 +8,7 @@ using Musify.Infrastructure.Messaging.Activities.Arguments;
 namespace Musify.Infrastructure.Messaging.Consumers
 {
     public class UpdatePlayListPictureConsumer(IBus bus, IPictureHandler pictureHandler,
-        StorageSettings storageSettings, PlayListConfiguration playListConfiguration)
+        ApplicationStorageConfiguration storageSettings, PlayListConfiguration playListConfiguration)
         : IConsumer<UpdatePlayListPictureEvent>
     {
         public const string QueueName = "Update-PlayList-Picture";

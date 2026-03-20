@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration
 {
-    public class StorageSettings
+    public class ApplicationStorageConfiguration
     {
-        public const string SectionName = "Storage";
+        public const string SectionName = "ApplicationStorage";
 
         [Required]
         [MinLength(3)]

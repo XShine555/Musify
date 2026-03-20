@@ -11,7 +11,7 @@ using Musify.Application.PlayLists.Contracts;
 namespace Musify.Application.PlayLists.Commands.UpdatePlayList
 {
     public class UpdatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageHandler storageHandler,
-        ILogger<UpdatePlayListCommandHandler> logger, StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration)
+        ILogger<UpdatePlayListCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration)
         : IRequestHandler<UpdatePlayListCommand, Task<Result<PlayListResponse>> >
     {
         public async Task<Result<PlayListResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)

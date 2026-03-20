@@ -10,7 +10,7 @@ using Musify.Application.PlayLists;
 namespace Musify.Application.PlayLists.Commands.DeletePlayList
 {
     public class DeletePlayListCommandHandler(IDatabase database, IEventBus eventBus,
-        StorageSettings storageConfiguration, PlayListConfiguration playListConfiguration, ILogger<DeletePlayListCommandHandler> logger)
+        ApplicationStorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration, ILogger<DeletePlayListCommandHandler> logger)
         : IRequestHandler<DeletePlayListCommand, Task<Result>>
     {
         public async Task<Result> Handle(DeletePlayListCommand request, CancellationToken cancellationToken)

@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Infrastructure.Configuration
 {
-    public class StorageClientConfiguration
+    public class InfrastructureStorageConfiguration
     {
-        public const string SectionName = "Storage";
+        public const string SectionName = "InfrastructureStorage";
 
         [Required]
         [Url]

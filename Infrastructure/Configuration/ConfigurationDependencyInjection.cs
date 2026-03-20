@@ -11,7 +11,7 @@ namespace Musify.Infrastructure.Configuration
             serviceDescriptors
                 .AddValidatedConfiguration<DatabaseConfiguration>(configuration, DatabaseConfiguration.SectionName)
                 .AddValidatedConfiguration<KeycloakConfiguration>(configuration, KeycloakConfiguration.SectionName)
-                .AddValidatedConfiguration<StorageClientConfiguration>(configuration, StorageClientConfiguration.SectionName);
+                .AddValidatedConfiguration<InfrastructureStorageConfiguration>(configuration, InfrastructureStorageConfiguration.SectionName);
 
             return serviceDescriptors;
         }
