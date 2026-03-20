@@ -32,7 +32,7 @@ namespace Musify.Infrastructure.Storage
             catch (Exception exception)
             {
                 logger.LogDebug(exception, "Failed to get file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
-                return Result.NotFound();
+                return Result.NotFound($"File not found in S3 with bucket name {bucketName} and key name {keyName}");
             }
         }
 
