@@ -1,5 +1,5 @@
 ﻿using Keycloak.Net.Models.Users;
-using Musify.Application.Users.Contracts;
+using Musify.Application.Users.Responses;
 
 namespace Musify.Infrastructure.Identity
 {

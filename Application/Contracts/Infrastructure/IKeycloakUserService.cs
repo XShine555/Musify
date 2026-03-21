@@ -1,5 +1,5 @@
 ﻿using Ardalis.Result;
-using Musify.Application.Users.Contracts;
+using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Contracts.Infrastructure
 {
