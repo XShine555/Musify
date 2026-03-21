@@ -1,6 +1,7 @@
 ﻿using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
+using Musify.Application.Contracts.Application;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.PlayLists.Contracts;
 using X.PagedList.EF;
@@ -8,9 +9,9 @@ using X.PagedList.EF;
 namespace Musify.Application.PlayLists.Queries.GetPlayListsByUserId
 {
     public class GetPlayListsByUserIdQueryHandler(IDatabase database)
-        : IRequestHandler<GetPlayListsByUserIdQuery, Task<Result<PaginatedPlayListResponse>> >
+        : IRequestHandler<GetPlayListsByUserIdQuery, Task<Result<PaginatedResponse<PlayListResponse> > >>
     {
-        public async Task<Result<PaginatedPlayListResponse>> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PaginatedResponse<PlayListResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
@@ -30,7 +31,7 @@ namespace Musify.Application.PlayLists.Queries.GetPlayListsByUserId
                 .Select(p => PlayListResponse.FromEntity(p))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
-            var response = new PaginatedPlayListResponse(
+            var response = new PaginatedResponse<PlayListResponse>(
                 pagedPlayLists.ToArray(),
                 pagedPlayLists.PageNumber,
                 pagedPlayLists.PageSize,
