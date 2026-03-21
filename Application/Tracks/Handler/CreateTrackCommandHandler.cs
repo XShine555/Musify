@@ -2,6 +2,7 @@
 using DispatchR.Abstractions.Send;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
+using Musify.Application.Contracts.Application;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
@@ -34,44 +35,16 @@ namespace Musify.Application.Tracks.Handler
                 LargePictureKeyName = trackConfiguration.Routes.PresetLargePicture,
             };
 
-            var pictureUploadResult = await storageHandler.UploadFileAsync(
-                request.Picture.FileStream,
-                request.Picture.ContentType,
-                storageConfiguration.BucketName,
-                originalPictureKeyName,
-                cancellationToken);
-
+            var pictureUploadResult = await UploadFile(request.Picture, originalPictureKeyName, cancellationToken);
             if (!pictureUploadResult.IsSuccess)
             {
                 logger.LogError("Failed to upload picture for track {TrackTitle}", request.Title);
                 return Result.Error($"Failed to upload picture for track {request.Title}");
             }
 
-            var smallPictureKeyName = Path.Combine(
-                trackConfiguration.Routes.SmallPictures,
-                $"{track.Id}.{pictureHandler.FileExtension}");
-            var mediumPictureKeyName = Path.Combine(
-                trackConfiguration.Routes.MediumPictures,
-                $"{track.Id}.{pictureHandler.FileExtension}");
-            var largePictureKeyName = Path.Combine(
-                trackConfiguration.Routes.LargePictures,
-                $"{track.Id}.{pictureHandler.FileExtension}");
-
             try
             {
-                await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
-                    track.Id,
-                    storageConfiguration.BucketName,
-                    originalPictureKeyName,
-                    smallPictureKeyName,
-                    trackConfiguration.PicturesSizes.SmallPictureWidth,
-                    trackConfiguration.PicturesSizes.SmallPictureHeight,
-                    mediumPictureKeyName,
-                    trackConfiguration.PicturesSizes.MediumPictureWidth,
-                    trackConfiguration.PicturesSizes.MediumPictureHeight,
-                    largePictureKeyName,
-                    trackConfiguration.PicturesSizes.LargePictureWidth,
-                    trackConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
+                await PublishUpdateEvent(originalPictureKeyName, track, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -83,6 +56,45 @@ namespace Musify.Application.Tracks.Handler
             await database.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
+        }
+
+        async Task<Result<string>> UploadFile(IFileData fileData, string originalPictureKeyName, CancellationToken cancellationToken)
+        {
+            var uploadFile = await storageHandler.UploadFileAsync(
+                fileData.FileStream,
+                fileData.ContentType,
+                storageConfiguration.BucketName,
+                originalPictureKeyName,
+                cancellationToken);
+
+            return uploadFile;
+        }
+
+        async Task PublishUpdateEvent(string originalPictureKeyName, Track track, CancellationToken cancellationToken)
+        {
+            var smallPictureKeyName = Path.Combine(
+                trackConfiguration.Routes.SmallPictures,
+                $"{track.Id}.{pictureHandler.FileExtension}");
+            var mediumPictureKeyName = Path.Combine(
+                trackConfiguration.Routes.MediumPictures,
+                $"{track.Id}.{pictureHandler.FileExtension}");
+            var largePictureKeyName = Path.Combine(
+                trackConfiguration.Routes.LargePictures,
+                $"{track.Id}.{pictureHandler.FileExtension}");
+
+            await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
+                track.Id,
+                storageConfiguration.BucketName,
+                originalPictureKeyName,
+                smallPictureKeyName,
+                trackConfiguration.PicturesSizes.SmallPictureWidth,
+                trackConfiguration.PicturesSizes.SmallPictureHeight,
+                mediumPictureKeyName,
+                trackConfiguration.PicturesSizes.MediumPictureWidth,
+                trackConfiguration.PicturesSizes.MediumPictureHeight,
+                largePictureKeyName,
+                trackConfiguration.PicturesSizes.LargePictureWidth,
+                trackConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
         }
     }
 }
