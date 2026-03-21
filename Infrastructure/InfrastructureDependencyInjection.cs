@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Infrastructure.Audio;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Identity;
 using Musify.Infrastructure.Messaging;
@@ -21,6 +22,7 @@ namespace Musify.Infrastructure
                 .AddKeycloakService(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
+                .AddAudioTranscoder()
                 .AddInfrastructureOpenTelemetry()
                 .AddMassTransitClient()
                 .AddScoped<IEventBus, MassTransitEventBus>()
@@ -36,6 +38,7 @@ namespace Musify.Infrastructure
                 .AddDatabase(configuration)
                 .AddStorageHandler()
                 .AddPictureHandler()
+                .AddAudioTranscoder()
                 .AddInfrastructureOpenTelemetry()
                 .AddMassTransitConsumers()
                 .AddScoped<IEventBus, MassTransitEventBus>()
