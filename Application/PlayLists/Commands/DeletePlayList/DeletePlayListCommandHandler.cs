@@ -27,36 +27,28 @@ namespace Musify.Application.PlayLists.Commands.DeletePlayList
                 return Result.Unauthorized();
             }
 
-            if (!string.IsNullOrWhiteSpace(playList.OriginalPictureKeyName))
+            var keysToRemove = new List<string>();
+
+            if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
             {
-                var keysToRemove = new List<string>
-                {
-                    Path.Join(playListConfiguration.Routes.OriginalPictures, playList.OriginalPictureKeyName)
-                };
+                keysToRemove.Add(playList.SmallPictureKeyName);
+            }
+            if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+            {
+                keysToRemove.Add(playList.MediumPictureKeyName);
+            }
+            if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+            {
+                keysToRemove.Add(playList.LargePictureKeyName);
+            }
 
-                if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
-                {
-                    keysToRemove.Add(playList.SmallPictureKeyName);
-                }
+            foreach (var key in keysToRemove)
+            {
+                var publishResult = await TryPublishRemoveFileEventAsync(playList.Id, key, cancellationToken);
 
-                if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+                if (!publishResult.IsSuccess)
                 {
-                    keysToRemove.Add(playList.MediumPictureKeyName);
-                }
-
-                if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
-                {
-                    keysToRemove.Add(playList.LargePictureKeyName);
-                }
-
-                foreach (var key in keysToRemove)
-                {
-                    var publishResult = await TryPublishRemoveFileEventAsync(playList.Id, key, cancellationToken);
-
-                    if (!publishResult.IsSuccess)
-                    {
-                        return publishResult;
-                    }
+                    return publishResult;
                 }
             }
 

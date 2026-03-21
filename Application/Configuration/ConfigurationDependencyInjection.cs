@@ -10,7 +10,8 @@ namespace Musify.Application.Configuration
         {
             serviceDescriptors
                 .AddValidatedConfiguration<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName)
-                .AddValidatedConfiguration<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
+                .AddValidatedConfiguration<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName)
+                .AddValidatedConfiguration<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
 
             return serviceDescriptors;
         }

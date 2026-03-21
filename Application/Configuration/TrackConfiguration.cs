@@ -2,33 +2,33 @@
 
 namespace Musify.Application.Configuration
 {
-    public class PlayListConfiguration
+    public class TrackConfiguration
     {
-        public const string SectionName = "PlayListConfiguration";
+        public const string SectionName = "TrackConfiguration";
 
         [Required]
-        public PlayListRoutes Routes { get; set; } = new PlayListRoutes();
+        public TrackRoutes Routes { get; set; } = new TrackRoutes();
 
         [Required]
-        public PlayListPicturesSizes PicturesSizes { get; set; } = new PlayListPicturesSizes();
+        public TrackPicturesSizes PicturesSizes { get; set; } = new TrackPicturesSizes();
     }
 
-    public class PlayListRoutes
+    public class TrackRoutes
     {
         [Required]
-        public string ParentFolders { get; set; } = "PlayLists";
+        public string ParentFolder { get; set; } = "Tracks";
 
         [Required]
-        public string OriginalPictures { get; set; } = "OriginalPictures";
+        public string OriginalPictures { get; set; } = "OriginalTracks";
 
         [Required]
-        public string SmallPictures { get; set; } = "SmallPictures";
+        public string SmallPictures { get; set; } = "SmallTracks";
 
         [Required]
-        public string MediumPictures { get; set; } = "MediumPictures";
+        public string MediumPictures { get; set; } = "MediumTracks";
 
         [Required]
-        public string LargePictures { get; set; } = "LargePictures";
+        public string LargePictures { get; set; } = "LargeTracks";
 
         [Required]
         public string PresetSmallPicture { get; set; } = "PresetSmallPicture.webp";
@@ -40,7 +40,7 @@ namespace Musify.Application.Configuration
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
     }
 
-    public class PlayListPicturesSizes
+    public class TrackPicturesSizes
     {
         [Range(1, 1024)]
         public int SmallPictureWidth { get; set; } = 128;

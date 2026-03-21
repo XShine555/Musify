@@ -11,6 +11,8 @@ namespace Musify.Application.Contracts.Infrastructure
 
         DbSet<Track> Tracks { get; }
 
+        DbSet<UserHasTrack> UserHasTracks { get; }
+
         DbSet<PlayListHasTrack> PlayListHasTracks { get; }
 
         DbSet<Upload> Uploads { get; }

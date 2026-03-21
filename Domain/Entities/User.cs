@@ -15,7 +15,7 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        public ICollection<Track> Tracks { get; set; } = new List<Track>();
+        public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
         public ICollection<PlayList> PlayLists { get; set; } = new List<PlayList>();
     }

@@ -5,12 +5,12 @@ using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Consumers
 {
-    public class UpdatePlayListPictureConsumer(IBus bus)
-        : IConsumer<UpdatePlayListPictureEvent>
+    public class UpdateTrackPictureConsumer(IBus bus)
+        : IConsumer<UpdateTrackPictureEvent>
     {
-        public const string QueueName = "Update-PlayList-Picture";
+        public const string QueueName = "update-track-picture";
 
-        public async Task Consume(ConsumeContext<UpdatePlayListPictureEvent> consumeContext)
+        public async Task Consume(ConsumeContext<UpdateTrackPictureEvent> consumeContext)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
 
@@ -26,7 +26,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
             AddResizeActivity(
                 routingSlipBuilder,
                 "ResizeMedium",
-                consumeContext.Message.MediumPictureKeyName,
+                consumeContext.Message.SmallPictureKeyName,
                 consumeContext.Message.MediumPictureWidth,
                 consumeContext.Message.MediumPictureHeight,
                 consumeContext.Message.OriginalPictureKeyName,
@@ -34,8 +34,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
             AddResizeActivity(
                 routingSlipBuilder,
-                "ResizeLarge",
-                consumeContext.Message.LargePictureKeyName,
+                "ResizeMedium",
+                consumeContext.Message.SmallPictureKeyName,
                 consumeContext.Message.LargePictureWidth,
                 consumeContext.Message.LargePictureHeight,
                 consumeContext.Message.OriginalPictureKeyName,
@@ -50,10 +50,10 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 );
 
             routingSlipBuilder.AddActivity(
-                "UpdatePlayListPicture",
-                BuildExecuteUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
-                new UpdatePlayListPictureArguments(
-                    consumeContext.Message.PlayListId,
+                "UpdateTrackPictureActivity",
+                BuildExecuteUri(UpdateTrackPictureActivity.ExecuteEndpointName),
+                new UpdateTrackPictureArguments(
+                    consumeContext.Message.TrackId,
                     consumeContext.Message.SmallPictureKeyName,
                     consumeContext.Message.MediumPictureKeyName,
                     consumeContext.Message.LargePictureKeyName));

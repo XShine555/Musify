@@ -47,68 +47,46 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                 return Result.Success(PlayListResponse.FromEntity(playList));
             }
 
-            if (!string.IsNullOrWhiteSpace(playList.OriginalPictureKeyName))
+            if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
             {
-                var originalImageStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, playList.OriginalPictureKeyName);
-
                 try
                 {
                     await eventBus.PublishAsync(new RemoveFileEvent(
-                       storageConfiguration.BucketName,
-                       originalImageStorageKey), cancellationToken);
+                        storageConfiguration.BucketName,
+                        playList.SmallPictureKeyName), cancellationToken);
                 }
                 catch (Exception exception)
                 {
-                    logger.LogError(exception, "Failed to publish remove file event for original picture of PlayList id={PlayListId}.", playList.Id);
+                    logger.LogError(exception, "Failed to publish remove file event for small picture of PlayList id={PlayListId}.", playList.Id);
                     return Result.Error($"Failed to publish remove file event for PlayList with id {playList.Id}.");
                 }
-
-                logger.LogInformation("Published event to remove old picture with key name {KeyName} from bucket {BucketName}",
-                    originalImageStorageKey, storageConfiguration.BucketName);
-
-                if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
+            }
+            if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+            {
+                try
                 {
-                    try
-                    {
-                        await eventBus.PublishAsync(new RemoveFileEvent(
-                            storageConfiguration.BucketName,
-                            playList.SmallPictureKeyName), cancellationToken);
-                    }
-                    catch (Exception exception)
-                    {
-                        logger.LogError(exception, "Failed to publish remove file event for small picture of PlayList id={PlayListId}.", playList.Id);
-                        return Result.Error($"Failed to publish remove file event for PlayList with id {playList.Id}.");
-                    }
+                    await eventBus.PublishAsync(new RemoveFileEvent(
+                        storageConfiguration.BucketName,
+                        playList.MediumPictureKeyName), cancellationToken);
                 }
-
-                if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+                catch (Exception exception)
                 {
-                    try
-                    {
-                        await eventBus.PublishAsync(new RemoveFileEvent(
-                            storageConfiguration.BucketName,
-                            playList.MediumPictureKeyName), cancellationToken);
-                    }
-                    catch (Exception exception)
-                    {
-                        logger.LogError(exception, "Failed to publish remove file event for medium picture of PlayList id={PlayListId}.", playList.Id);
-                        return Result.Error($"Failed to publish remove file event for PlayList with id {playList.Id}.");
-                    }
+                    logger.LogError(exception, "Failed to publish remove file event for medium picture of PlayList id={PlayListId}.", playList.Id);
+                    return Result.Error($"Failed to publish remove file event for PlayList with id {playList.Id}.");
                 }
-
-                if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+            }
+            if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+            {
+                try
                 {
-                    try
-                    {
-                        await eventBus.PublishAsync(new RemoveFileEvent(
-                            storageConfiguration.BucketName,
-                            playList.LargePictureKeyName), cancellationToken);
-                    }
-                    catch (Exception exception)
-                    {
-                        logger.LogError(exception, "Failed to publish remove file event for large picture of PlayList id={PlayListId}.", playList.Id);
-                        return Result.Error($"Failed to publish remove file event for PlayList with id {playList.Id}.");
-                    }
+                    await eventBus.PublishAsync(new RemoveFileEvent(
+                        storageConfiguration.BucketName,
+                        playList.LargePictureKeyName), cancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    logger.LogError(exception, "Failed to publish remove file event for large picture of PlayList id={PlayListId}.", playList.Id);
+                    return Result.Error($"Failed to publish remove file event for PlayList with id {playList.Id}.");
                 }
             }
 
@@ -129,8 +107,6 @@ namespace Musify.Application.PlayLists.Commands.UpdatePlayList
                     playList.Id, string.Join("; ", uploadResult.Errors));
                 return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
             }
-
-            playList.OriginalPictureKeyName = pictureName;
 
             var smallPictureKeyName = Path.Combine(
                 playListConfiguration.Routes.SmallPictures,
