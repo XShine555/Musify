@@ -82,7 +82,7 @@ namespace Musify.Application.Tracks.Handler
                 trackConfiguration.Routes.LargePictures,
                 $"{track.Id}.{pictureHandler.FileExtension}");
 
-            await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
+            await eventBus.PublishAsync(new UpdateTrackPictureEvent(
                 track.Id,
                 storageConfiguration.BucketName,
                 originalPictureKeyName,

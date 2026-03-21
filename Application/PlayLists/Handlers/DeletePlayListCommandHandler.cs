@@ -47,14 +47,13 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 var publishResult = await TryPublishRemoveFileEventAsync(playList.Id, key, cancellationToken);
 
-                if (!publishResult.IsSuccess)
-                {
+                if (!publishResult.IsSuccess && !publishResult.IsNotFound())
                     return publishResult;
-                }
             }
 
             database.PlayLists.Remove(playList);
             await database.SaveChangesAsync(cancellationToken);
+
             return Result.NoContent();
         }
 
