@@ -1,6 +1,6 @@
 ﻿namespace Musify.Infrastructure.Messaging.Activities.Arguments
 {
-    public record RemoveFileArguments(
+    public record RemoveFileFromBucketArguments(
         string BucketName,
         string KeyName);
 }

@@ -1,31 +1,28 @@
 ﻿using Ardalis.Result;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
-using Musify.Infrastructure.Configuration;
 using System.Diagnostics;
 
 namespace Musify.Infrastructure.Audio
 {
-    public class AudioTranscoder(ILogger<AudioTranscoder> logger, AudioTranscoderConfiguration transcoderConfiguration)
+    public class AudioTranscoder(ILogger<AudioTranscoder> logger)
         : IAudioTranscoder
     {
         const string FfmpegProcessName = "ffmpeg";
 
-        public async Task<Result> TranscodeToDash(Stream audioStream, string folderName, CancellationToken cancellationToken)
+        public async Task<Result> TranscodeToDashAsync(Stream audioStream, string destinationPath, TimeSpan timeOut, CancellationToken cancellationToken)
         {
-            var workingDirectory = Path.Combine(transcoderConfiguration.Routes.WorkingDirectory, folderName);
-
             try
             {
-                Directory.CreateDirectory(workingDirectory);
+                Directory.CreateDirectory(destinationPath);
 
                 using var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = FfmpegProcessName,
-                        WorkingDirectory = workingDirectory,
-                        Arguments = BuildDashArguments(workingDirectory),
+                        WorkingDirectory = destinationPath,
+                        Arguments = BuildDashArguments(destinationPath),
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -44,7 +41,7 @@ namespace Musify.Infrastructure.Audio
                 var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
 
                 using var linkedCancellationTokens = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                linkedCancellationTokens.CancelAfter(transcoderConfiguration.TranscodingTimeout);
+                linkedCancellationTokens.CancelAfter(timeOut);
                 await process.WaitForExitAsync(linkedCancellationTokens.Token);
 
                 var standardError = await errorTask;

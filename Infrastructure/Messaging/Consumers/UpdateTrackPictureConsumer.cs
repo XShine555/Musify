@@ -43,8 +43,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
             routingSlipBuilder.AddActivity(
                 "DeleteOriginal",
-                BuildExecuteUri(RemoveFilesActivity.ExecuteEndpointName),
-                new RemoveFileArguments(
+                BuildExecuteUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                new RemoveFileFromBucketArguments(
                     consumeContext.Message.BucketName,
                     consumeContext.Message.OriginalPictureKeyName)
                 );

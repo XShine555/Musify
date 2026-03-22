@@ -52,19 +52,37 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Error($"Failed to publish resize picture event for Track with id {track.Id}.");
             }
 
+            var audioKeyName = Path.Combine(trackConfiguration.Routes.Audios, $"{Guid.NewGuid() }.{request.Audio.FileType}");
+            var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
+            if (!audioUploadResult.IsSuccess)
+            {
+                logger.LogError("Failed to upload audio for track {TrackTitle}", request.Title);
+                return Result.Error($"Failed to upload audio for track {request.Title}");
+            }
+
+            try
+            {
+                await PublishTranscodeEvent(track.Id, audioUploadResult, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to publish transcode audio event for Track with id={TrackId}.", track.Id);
+                return Result.Error($"An error occurred while processing the audio for Track with id {track.Id}.");
+            }
+
             await database.Tracks.AddAsync(track, cancellationToken);
             await database.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }
 
-        async Task<Result<string>> UploadFile(IFileData fileData, string originalPictureKeyName, CancellationToken cancellationToken)
+        async Task<Result<string>> UploadFile(IFileData fileData, string keyName, CancellationToken cancellationToken)
         {
             var uploadFile = await storageHandler.UploadFileAsync(
                 fileData.FileStream,
                 fileData.ContentType,
                 storageConfiguration.BucketName,
-                originalPictureKeyName,
+                keyName,
                 cancellationToken);
 
             return uploadFile;
@@ -95,6 +113,19 @@ namespace Musify.Application.Tracks.Handler
                 largePictureKeyName,
                 trackConfiguration.PicturesSizes.LargePictureWidth,
                 trackConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
+        }
+
+        async Task PublishTranscodeEvent(Guid trackId, string audioKeyName, CancellationToken cancellationToken)
+        {
+            var destinationAudioKeyName = Path.Combine(
+                trackConfiguration.Routes.Audios,
+                trackId.ToString());
+
+            await eventBus.PublishAsync(new TranscodeAudioFromTrackEvent(
+                storageConfiguration.BucketName,
+                audioKeyName,
+                storageConfiguration.BucketName,
+                destinationAudioKeyName), cancellationToken);
         }
     }
 }

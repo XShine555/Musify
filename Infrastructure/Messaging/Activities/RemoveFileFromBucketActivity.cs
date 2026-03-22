@@ -6,15 +6,15 @@ using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Activities
 {
-    public class RemoveFilesActivity(
+    public class RemoveFileFromBucketActivity(
         IStorageHandler storageHandler,
-        ILogger<RemoveFilesActivity> logger,
+        ILogger<RemoveFileFromBucketActivity> logger,
         IProcessTrackingStore processTrackingStore)
-        : IExecuteActivity<RemoveFileArguments>
+        : IExecuteActivity<RemoveFileFromBucketArguments>
     {
         public const string ExecuteEndpointName = "Remove-File";
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<RemoveFileArguments> executeContext)
+        public async Task<ExecutionResult> Execute(ExecuteContext<RemoveFileFromBucketArguments> executeContext)
         {
             var processId = await processTrackingStore.GetOrCreateProcessAsync(
                 "RoutingSlip",
@@ -25,7 +25,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             var stepId = await processTrackingStore.StartStepAsync(
                 processId,
-                nameof(RemoveFilesActivity),
+                nameof(RemoveFileFromBucketActivity),
                 ProcessStepComponentType.Activity,
                 0,
                 executeContext.CancellationToken);

@@ -16,8 +16,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
             routingSlipBuilder.AddActivity(
                 "RemoveFile",
-                BuildExecuteUri(RemoveFilesActivity.ExecuteEndpointName),
-                new RemoveFileArguments(
+                BuildExecuteUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                new RemoveFileFromBucketArguments(
                     consumeContext.Message.BucketName,
                     consumeContext.Message.KeyName));
 
