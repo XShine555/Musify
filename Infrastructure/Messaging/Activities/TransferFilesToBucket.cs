@@ -1,31 +1,65 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Domain.Entities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Activities
 {
-    public class TransferFilesToBucket(IStorageHandler storageHandler, ILogger<TransferFilesToBucket> logger)
+    public class TransferFilesToBucket(
+        IStorageHandler storageHandler,
+        ILogger<TransferFilesToBucket> logger,
+        IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<TransferFilesToBucketArguments>
     {
         public const string ExecuteEndpointName = "Transfer-Files-To-Bucket";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
         {
-            var transferFilesResult = await storageHandler.TransferFilesAsync(
-                executeContext.Arguments.FolderPath,
-                executeContext.Arguments.DestinationBucketName,
-                executeContext.Arguments.DestinationKeyName,
+            var processId = await processTrackingStore.GetOrCreateProcessAsync(
+                "RoutingSlip",
+                executeContext.CorrelationId ?? executeContext.TrackingNumber,
+                executeContext.ConversationId,
+                executeContext.MessageId,
                 executeContext.CancellationToken);
 
-            if (!transferFilesResult.IsSuccess)
-            {
-                var errors = string.Join("; ", transferFilesResult.Errors);
-                logger.LogError($"An error occurred while transferring files to bucket: {errors}");
-                throw new Exception(errors);
-            }
+            var stepId = await processTrackingStore.StartStepAsync(
+                processId,
+                nameof(TransferFilesToBucket),
+                ProcessStepComponentType.Activity,
+                0,
+                executeContext.CancellationToken);
 
-            return executeContext.Completed();
+            try
+            {
+                var transferFilesResult = await storageHandler.TransferFilesAsync(
+                    executeContext.Arguments.FolderPath,
+                    executeContext.Arguments.DestinationBucketName,
+                    executeContext.Arguments.DestinationKeyName,
+                    executeContext.CancellationToken);
+
+                if (!transferFilesResult.IsSuccess)
+                {
+                    var errorMessage = string.Join("; ", transferFilesResult.Errors);
+                    logger.LogError("Failed to transfer files from {FolderPath} to bucket {DestinationBucketName}, key {DestinationKeyName}. Errors: {Errors}",
+                        executeContext.Arguments.FolderPath,
+                        executeContext.Arguments.DestinationBucketName,
+                        executeContext.Arguments.DestinationKeyName,
+                        errorMessage);
+                    throw new Exception(errorMessage);
+                }
+
+                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
+                return executeContext.Completed();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Error transferring files from {FolderPath} to bucket {DestinationBucketName}",
+                    executeContext.Arguments.FolderPath,
+                    executeContext.Arguments.DestinationBucketName);
+                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
+                throw;
+            }
         }
     }
 }

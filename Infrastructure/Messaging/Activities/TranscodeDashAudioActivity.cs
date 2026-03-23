@@ -1,13 +1,16 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
+using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
-using Musify.Infrastructure.Messaging.Activities.Logs;
 
 namespace Musify.Infrastructure.Messaging.Activities
 {
-    public class TranscodeDashAudioActivity(IAudioTranscoder audioTranscoder, ILogger<TranscodeDashAudioActivity> logger,
+    public class TranscodeDashAudioActivity(
+        IAudioTranscoder audioTranscoder,
+        ILogger<TranscodeDashAudioActivity> logger,
+        IProcessTrackingStore processTrackingStore,
         AudioTranscoderConfiguration audioTranscoderConfiguration)
         : IExecuteActivity<TranscodeDashAudioArguments>
     {
@@ -15,12 +18,26 @@ namespace Musify.Infrastructure.Messaging.Activities
 
         public async Task<ExecutionResult> Execute(ExecuteContext<TranscodeDashAudioArguments> executeContext)
         {
-            var workingDirectory = Path.Combine(
-                audioTranscoderConfiguration.Routes.WorkingDirectory,
-                executeContext.Arguments.DestinationFolderName);
+            var processId = await processTrackingStore.GetOrCreateProcessAsync(
+                "RoutingSlip",
+                executeContext.CorrelationId ?? executeContext.TrackingNumber,
+                executeContext.ConversationId,
+                executeContext.MessageId,
+                executeContext.CancellationToken);
+
+            var stepId = await processTrackingStore.StartStepAsync(
+                processId,
+                nameof(TranscodeDashAudioActivity),
+                ProcessStepComponentType.Activity,
+                0,
+                executeContext.CancellationToken);
 
             try
             {
+                var workingDirectory = Path.Combine(
+                    audioTranscoderConfiguration.Routes.WorkingDirectory,
+                    executeContext.Arguments.DestinationFolderName);
+
                 await using var fileStream = File.OpenRead(executeContext.Arguments.SourceFilePath);
 
                 var result = await audioTranscoder.TranscodeToDashAsync(
@@ -31,17 +48,20 @@ namespace Musify.Infrastructure.Messaging.Activities
 
                 if (!result.IsSuccess)
                 {
-                    var errors = string.Join(";  ", result.Errors); 
-                    logger.LogError("transcoding failed for file {SourceFilePath}. Error: {ErrorMessage}",
-                        executeContext.Arguments.SourceFilePath, errors);
-                    throw new Exception(errors);
+                    var errorMessage = string.Join("; ", result.Errors);
+                    logger.LogError("Transcoding failed for file {SourceFilePath}. Errors: {ErrorMessage}",
+                        executeContext.Arguments.SourceFilePath, errorMessage);
+                    throw new Exception(errorMessage);
                 }
 
+                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error during transcoding activity.");
+                logger.LogError(exception, "Error during transcoding activity for file {SourceFilePath}",
+                    executeContext.Arguments.SourceFilePath);
+                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }

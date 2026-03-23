@@ -16,7 +16,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
 
             routingSlipBuilder.AddActivity(
                 "RemoveFile",
-                BuildExecuteUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new RemoveFileFromBucketArguments(
                     consumeContext.Message.BucketName,
                     consumeContext.Message.KeyName));
@@ -24,7 +24,5 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var routingSlip = routingSlipBuilder.Build();
             await bus.Execute(routingSlip);
         }
-
-        static Uri BuildExecuteUri(string endpointName) => new($"queue:{endpointName}_execute");
     }
 }

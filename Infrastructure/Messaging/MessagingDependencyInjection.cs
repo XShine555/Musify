@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
-using Musify.Infrastructure.Messaging.Activities.Logs;
 using Musify.Infrastructure.Messaging.Consumers;
 using Musify.Infrastructure.Messaging.Filters;
 
@@ -19,7 +18,7 @@ namespace Musify.Infrastructure.Messaging
                     ConfigureRabbitMqHost(
                         busFactoryConfigurator,
                         busRegistrationContext.GetRequiredService<MessagingConfiguration>()));
-            } );
+            });
 
             return serviceDescriptors;
         }
@@ -28,17 +27,20 @@ namespace Musify.Infrastructure.Messaging
         {
             serviceDescriptors.AddMassTransit(options =>
             {
+                // Register consumers
                 options.AddConsumer<UpdatePlayListPictureConsumer>();
                 options.AddConsumer<RemoveFileConsumer>();
                 options.AddConsumer<TranscodeAudioFromTrackConsumer>();
                 options.AddConsumer<UpdateTrackPictureConsumer>();
 
-                options.AddExecuteActivity<ResizePictureActivity, ResizePictureArgument>();
+                // Register execute activities
+                options.AddExecuteActivity<ResizePictureActivity, ResizePictureLocalArguments>();
                 options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
                 options.AddExecuteActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments>();
                 options.AddExecuteActivity<UpdateTrackPictureActivity, UpdateTrackPictureArguments>();
                 options.AddExecuteActivity<DownloadFileFromBucketActivity, DownloadFileFromBucketArguments>();
                 options.AddExecuteActivity<TranscodeDashAudioActivity, TranscodeDashAudioArguments>();
+                options.AddExecuteActivity<TransferFilesToBucket, TransferFilesToBucketArguments>();
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -48,27 +50,29 @@ namespace Musify.Infrastructure.Messaging
 
                     busFactoryConfigurator.UseConsumeFilter(typeof(ProcessTrackingConsumeFilter<>), busRegistrationContext);
 
+                    // Consumer endpoints
                     busFactoryConfigurator.ReceiveEndpoint(UpdatePlayListPictureConsumer.QueueName, endpointConfigurator =>
                     {
                         endpointConfigurator.ConfigureConsumer<UpdatePlayListPictureConsumer>(busRegistrationContext);
-                    } );
+                    });
 
                     busFactoryConfigurator.ReceiveEndpoint(RemoveFileConsumer.QueueName, endpointConfigurator =>
                     {
                         endpointConfigurator.ConfigureConsumer<RemoveFileConsumer>(busRegistrationContext);
-                    } );
+                    });
 
                     busFactoryConfigurator.ReceiveEndpoint(TranscodeAudioFromTrackConsumer.QueueName, endpointConfigurator =>
                     {
                         endpointConfigurator.ConfigureConsumer<TranscodeAudioFromTrackConsumer>(busRegistrationContext);
-                    } );
+                    });
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackPictureConsumer.QueueName, endpointConfigurator =>
                     {
                         endpointConfigurator.ConfigureConsumer<UpdateTrackPictureConsumer>(busRegistrationContext);
-                    } );
+                    });
 
-                    ConfigureExecuteActivityEndpoint<ResizePictureActivity, ResizePictureArgument>(
+                    // Activity endpoints
+                    ConfigureExecuteActivityEndpoint<ResizePictureActivity, ResizePictureLocalArguments>(
                         busFactoryConfigurator,
                         busRegistrationContext,
                         ResizePictureActivity.ExecuteEndpointName);
@@ -97,8 +101,13 @@ namespace Musify.Infrastructure.Messaging
                         busFactoryConfigurator,
                         busRegistrationContext,
                         TranscodeDashAudioActivity.ExecuteEndpointName);
-                } );
-            } );
+
+                    ConfigureExecuteActivityEndpoint<TransferFilesToBucket, TransferFilesToBucketArguments>(
+                        busFactoryConfigurator,
+                        busRegistrationContext,
+                        TransferFilesToBucket.ExecuteEndpointName);
+                });
+            });
 
             return serviceDescriptors;
         }
@@ -111,7 +120,7 @@ namespace Musify.Infrastructure.Messaging
             {
                 options.Username(massTransitConfiguration.Username);
                 options.Password(massTransitConfiguration.Password);
-            } );
+            });
         }
 
         static void ConfigureExecuteActivityEndpoint<TActivity, TArguments>(
@@ -124,7 +133,7 @@ namespace Musify.Infrastructure.Messaging
             busFactoryConfigurator.ReceiveEndpoint($"{endpointName}_execute", endpointConfigurator =>
             {
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(busRegistrationContext);
-            } );
+            });
         }
 
         static void ConfigureActivityEndpoints<TActivity, TArguments, TLog>(
@@ -138,12 +147,12 @@ namespace Musify.Infrastructure.Messaging
             busFactoryConfigurator.ReceiveEndpoint($"{endpointName}_execute", endpointConfigurator =>
             {
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(busRegistrationContext);
-            } );
+            });
 
             busFactoryConfigurator.ReceiveEndpoint($"{endpointName}_compensate", endpointConfigurator =>
             {
                 endpointConfigurator.CompensateActivityHost<TActivity, TLog>(busRegistrationContext);
-            } );
+            });
         }
     }
 }

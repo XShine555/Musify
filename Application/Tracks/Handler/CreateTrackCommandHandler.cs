@@ -42,6 +42,14 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Error($"Failed to upload picture for track {request.Title}");
             }
 
+            var audioKeyName = Path.Combine(trackConfiguration.Routes.Audios, $"{Guid.NewGuid() }.{request.Audio.FileType}");
+            var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
+            if (!audioUploadResult.IsSuccess)
+            {
+                logger.LogError("Failed to upload audio for track {TrackTitle}", request.Title);
+                return Result.Error($"Failed to upload audio for track {request.Title}");
+            }
+
             try
             {
                 await PublishUpdateEvent(originalPictureKeyName, track, cancellationToken);
@@ -50,14 +58,6 @@ namespace Musify.Application.Tracks.Handler
             {
                 logger.LogError(exception, "Failed to publish resize picture event for Track with id={TrackId}.", track.Id);
                 return Result.Error($"Failed to publish resize picture event for Track with id {track.Id}.");
-            }
-
-            var audioKeyName = Path.Combine(trackConfiguration.Routes.Audios, $"{Guid.NewGuid() }.{request.Audio.FileType}");
-            var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
-            if (!audioUploadResult.IsSuccess)
-            {
-                logger.LogError("Failed to upload audio for track {TrackTitle}", request.Title);
-                return Result.Error($"Failed to upload audio for track {request.Title}");
             }
 
             try

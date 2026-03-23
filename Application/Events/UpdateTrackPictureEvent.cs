@@ -2,8 +2,8 @@
 {
     public record UpdateTrackPictureEvent(
         Guid TrackId,
-        string BucketName,
-        string OriginalPictureKeyName,
+        string SourceBucketName,
+        string SourceKeyName,
         string SmallPictureKeyName,
         int SmallPictureWidth,
         int SmallPictureHeight,

@@ -1,11 +1,15 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Activities
 {
-    public class UpdateTrackPictureActivity(IDatabase database, IProcessTrackingStore processTrackingStore)
+    public class UpdateTrackPictureActivity(
+        IDatabase database,
+        ILogger<UpdateTrackPictureActivity> logger,
+        IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<UpdateTrackPictureArguments>
     {
         public const string ExecuteEndpointName = "Update-Track-Picture";
@@ -28,10 +32,16 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             try
             {
-                var track = await database.Tracks.FindAsync(executeContext.Arguments.TrackId, executeContext.CancellationToken);
+                var track = await database.Tracks.FindAsync(
+                    new object[] { executeContext.Arguments.TrackId },
+                    cancellationToken: executeContext.CancellationToken);
 
                 if (track is null)
-                    throw new Exception($"Track with id {executeContext.Arguments.TrackId} not found.");
+                {
+                    logger.LogError("Track with id {TrackId} not found",
+                        executeContext.Arguments.TrackId);
+                    throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
+                }
 
                 track.SmallPictureKeyName = executeContext.Arguments.SmallPictureKeyName;
                 track.MediumPictureKeyName = executeContext.Arguments.MediumPictureKeyName;
@@ -40,11 +50,16 @@ namespace Musify.Infrastructure.Messaging.Activities
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
+                logger.LogInformation("Updated Track {TrackId} pictures",
+                    executeContext.Arguments.TrackId);
+
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }
             catch (Exception exception)
             {
+                logger.LogError(exception, "Error updating Track {TrackId} pictures",
+                    executeContext.Arguments.TrackId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }

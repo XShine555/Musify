@@ -1,11 +1,14 @@
 ﻿using MassTransit;
 using Musify.Application.Events;
+using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Consumers
 {
-    public class UpdatePlayListPictureConsumer(IBus bus)
+    public class UpdatePlayListPictureConsumer(
+        IBus bus,
+        AudioTranscoderConfiguration audioTranscoderConfiguration)
         : IConsumer<UpdatePlayListPictureEvent>
     {
         public const string QueueName = "Update-PlayList-Picture";
@@ -13,6 +16,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
         public async Task Consume(ConsumeContext<UpdatePlayListPictureEvent> consumeContext)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
+            var folderName = Guid.NewGuid().ToString();
+            var workingDirectory = Path.Combine(audioTranscoderConfiguration.Routes.WorkingDirectory, folderName);
 
             AddResizeActivity(
                 routingSlipBuilder,
@@ -21,7 +26,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 consumeContext.Message.SmallPictureWidth,
                 consumeContext.Message.SmallPictureHeight,
                 consumeContext.Message.OriginalPictureKeyName,
-                consumeContext.Message.BucketName);
+                consumeContext.Message.BucketName,
+                workingDirectory);
 
             AddResizeActivity(
                 routingSlipBuilder,
@@ -30,7 +36,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 consumeContext.Message.MediumPictureWidth,
                 consumeContext.Message.MediumPictureHeight,
                 consumeContext.Message.OriginalPictureKeyName,
-                consumeContext.Message.BucketName);
+                consumeContext.Message.BucketName,
+                workingDirectory);
 
             AddResizeActivity(
                 routingSlipBuilder,
@@ -39,19 +46,27 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 consumeContext.Message.LargePictureWidth,
                 consumeContext.Message.LargePictureHeight,
                 consumeContext.Message.OriginalPictureKeyName,
-                consumeContext.Message.BucketName);
+                consumeContext.Message.BucketName,
+                workingDirectory);
 
             routingSlipBuilder.AddActivity(
                 "DeleteOriginal",
-                BuildExecuteUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new RemoveFileFromBucketArguments(
                     consumeContext.Message.BucketName,
-                    consumeContext.Message.OriginalPictureKeyName)
-                );
+                    consumeContext.Message.OriginalPictureKeyName));
+
+            routingSlipBuilder.AddActivity(
+                "UploadFiles",
+                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
+                new TransferFilesToBucketArguments(
+                    workingDirectory,
+                    consumeContext.Message.BucketName,
+                    folderName));
 
             routingSlipBuilder.AddActivity(
                 "UpdatePlayListPicture",
-                BuildExecuteUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
                 new UpdatePlayListPictureArguments(
                     consumeContext.Message.PlayListId,
                     consumeContext.Message.SmallPictureKeyName,
@@ -69,20 +84,32 @@ namespace Musify.Infrastructure.Messaging.Consumers
             int width,
             int height,
             string originalPictureKeyName,
-            string bucketName)
+            string bucketName,
+            string workingDirectory)
         {
+            var fileName = Path.GetFileName(originalPictureKeyName);
+            var sourceFilePath = Path.Combine(workingDirectory, fileName);
+            var destinationFileName = Path.GetFileNameWithoutExtension(destinationKeyName) + Path.GetExtension(fileName);
+            var destinationFilePath = Path.Combine(workingDirectory, destinationFileName);
+
+            // First: Download original file
             routingSlipBuilder.AddActivity(
-                activityName,
-                BuildExecuteUri(ResizePictureActivity.ExecuteEndpointName),
-                new ResizePictureArgument(
+                $"{activityName}_Download",
+                MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
+                new DownloadFileFromBucketArguments(
                     bucketName,
                     originalPictureKeyName,
-                    bucketName,
-                    destinationKeyName,
+                    workingDirectory));
+
+            // Second: Resize picture
+            routingSlipBuilder.AddActivity(
+                activityName,
+                MessagingHelper.BuildExecuteActivityUri(ResizePictureActivity.ExecuteEndpointName),
+                new ResizePictureLocalArguments(
+                    sourceFilePath,
+                    destinationFilePath,
                     width,
                     height));
         }
-
-        static Uri BuildExecuteUri(string endpointName) => new($"queue:{endpointName}_execute");
     }
 }
