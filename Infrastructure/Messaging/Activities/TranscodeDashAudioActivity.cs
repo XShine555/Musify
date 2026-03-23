@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
-using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Activities
@@ -10,8 +9,7 @@ namespace Musify.Infrastructure.Messaging.Activities
     public class TranscodeDashAudioActivity(
         IAudioTranscoder audioTranscoder,
         ILogger<TranscodeDashAudioActivity> logger,
-        IProcessTrackingStore processTrackingStore,
-        AudioTranscoderConfiguration audioTranscoderConfiguration)
+        IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<TranscodeDashAudioArguments>
     {
         public const string ExecuteEndpointName = "Transcode-Dash-Audio";
@@ -33,11 +31,11 @@ namespace Musify.Infrastructure.Messaging.Activities
                 executeContext.CancellationToken);
 
             var sourceFilePath = executeContext.GetVariable<string>("SourceFilePath");
-            var destinationFolderName = executeContext.GetVariable<string>("DestinationFolderName");
+            var workingDirectory = executeContext.GetVariable<string>("WorkingDirectory");
 
-            if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(destinationFolderName))
+            if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(workingDirectory))
             {
-                throw new InvalidOperationException("Transcode activity requires SourceFilePath and DestinationFolderName variables.");
+                throw new InvalidOperationException("Transcode activity requires SourceFilePath and WorkingDirectory variables.");
             }
 
             try
@@ -46,8 +44,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
                 var result = await audioTranscoder.TranscodeToDashAsync(
                     fileStream,
-                    destinationFolderName,
-                    audioTranscoderConfiguration.TranscodingTimeout,
+                    workingDirectory,
                     executeContext.CancellationToken);
 
                 if (!result.IsSuccess)
