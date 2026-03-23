@@ -38,7 +38,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
                 if (track is null)
                 {
-                    logger.LogError("Track with id {TrackId} not found",
+                    logger.LogWarning("Track with id {TrackId} not found",
                         executeContext.Arguments.TrackId);
                     throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
                 }

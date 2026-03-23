@@ -47,7 +47,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                 if (!transferFilesResult.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", transferFilesResult.Errors);
-                    logger.LogError("Failed to transfer files from {FolderPath} to bucket {DestinationBucketName}, key {DestinationKeyName}. Errors: {Errors}",
+                    logger.LogWarning("Failed to transfer files from {FolderPath} to bucket {DestinationBucketName}, key {DestinationKeyName}. Errors: {Errors}",
                         folderPath,
                         executeContext.Arguments.DestinationBucketName,
                         executeContext.Arguments.DestinationKeyName,

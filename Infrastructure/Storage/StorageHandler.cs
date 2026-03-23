@@ -20,7 +20,7 @@ namespace Musify.Infrastructure.Storage
                 Key = keyName,
             };
 
-            logger.LogDebug("Getting file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+            logger.LogDebug("Getting file from S3. Bucket: {BucketName}, Key: {KeyName}", bucketName, keyName);
 
             try
             {
@@ -31,7 +31,7 @@ namespace Musify.Infrastructure.Storage
             }
             catch (Exception exception)
             {
-                logger.LogDebug(exception, "Failed to get file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+                logger.LogWarning(exception, "Failed to get file from S3. Bucket: {BucketName}, Key: {KeyName}", bucketName, keyName);
                 return Result.NotFound($"File not found in S3 with bucket name {bucketName} and key name {keyName}");
             }
         }
@@ -46,7 +46,7 @@ namespace Musify.Infrastructure.Storage
                 Protocol = storageClientConfiguration.UseHttp ? Protocol.HTTP : Protocol.HTTPS
             };
 
-            logger.LogDebug("Getting pre-signed URL from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+            logger.LogDebug("Getting pre-signed URL from S3. Bucket: {BucketName}, Key: {KeyName}, Expires: {Expires}", bucketName, keyName, request.Expires);
             var url = await amazonS3.GetPreSignedURLAsync(request);
 
             return url;
@@ -60,7 +60,7 @@ namespace Musify.Infrastructure.Storage
                 Key = keyName,
             };
 
-            logger.LogDebug("Removing file from S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+            logger.LogDebug("Removing file from S3. Bucket: {BucketName}, Key: {KeyName}", bucketName, keyName);
             var response = await amazonS3.DeleteObjectAsync(request, cancellationToken);
 
             return Result.NoContent();
@@ -71,6 +71,9 @@ namespace Musify.Infrastructure.Storage
             var trasnsferUtility = new TransferUtility(amazonS3);
 
             var files = Directory.GetFiles(sourceDirectory, "*");
+
+            var successCount = 0;
+            var failedCount = 0;
 
             foreach (var file in files)
             {
@@ -90,17 +93,19 @@ namespace Musify.Infrastructure.Storage
                 {
                     await trasnsferUtility.UploadAsync(filePath, bucketName, fileName, cancellationToken);
                     upload.State = UploadState.Successful;
-                    logger.LogInformation("Successfully transferred file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
+                    successCount++;
+                    logger.LogDebug("Transferred file to S3. Bucket: {BucketName}, Route: {Route}, File: {FileName}", bucketName, route, fileName);
                 }
                 catch (Exception exception)
                 {
-                    logger.LogError(exception, "Failed to transfer file {FileName} to S3 with bucket name {BucketName} and route {Route}", fileName, bucketName, route);
+                    failedCount++;
                     upload.State = UploadState.Failed;
+                    logger.LogError(exception, "Failed to transfer file to S3. Bucket: {BucketName}, Route: {Route}, File: {FileName}", bucketName, route, fileName);
                 }
             }
 
             await database.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Successfully saved upload records to database for all files transferred to S3 with bucket name {BucketName} and route {Route}", bucketName, route);
+            logger.LogInformation("TransferFiles completed. Bucket: {BucketName}, Route: {Route}, Success: {SuccessCount}, Failed: {FailedCount}", bucketName, route, successCount, failedCount);
 
             return Result.Success();
         }
@@ -127,7 +132,7 @@ namespace Musify.Infrastructure.Storage
             try
             {
                 var response = await amazonS3.PutObjectAsync(request, cancellationToken);
-                logger.LogInformation("Successfully uploaded file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+                logger.LogDebug("Uploaded file to S3. Bucket: {BucketName}, Key: {KeyName}", bucketName, keyName);
             }
             catch (Exception exception)
             {
@@ -138,7 +143,7 @@ namespace Musify.Infrastructure.Storage
 
             upload.State = UploadState.Successful;
             await database.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Successfully saved upload record to database with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+            logger.LogDebug("Saved upload record to database. Bucket: {BucketName}, Key: {KeyName}", bucketName, keyName);
 
             return Result.Success(keyName);
         }

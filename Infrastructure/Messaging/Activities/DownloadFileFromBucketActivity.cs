@@ -40,7 +40,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                 if (!getFile.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", getFile.Errors);
-                    logger.LogError("Failed to download file from bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
+                    logger.LogWarning("Failed to download file from bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
                         executeContext.Arguments.BucketName,
                         executeContext.Arguments.KeyName,
                         errorMessage);

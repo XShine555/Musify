@@ -34,8 +34,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             {
                 if (!File.Exists(executeContext.Arguments.SourceFilePath))
                 {
-                    logger.LogError("Source file not found at {SourceFilePath}",
-                        executeContext.Arguments.SourceFilePath);
+                    logger.LogWarning("Source file not found at {SourceFilePath}", executeContext.Arguments.SourceFilePath);
                     throw new FileNotFoundException($"Source file not found: {executeContext.Arguments.SourceFilePath}");
                 }
 
@@ -67,7 +66,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                 await using var destinationStream = File.Create(executeContext.Arguments.DestinationFilePath);
                 await resizedPicture.Value.CopyToAsync(destinationStream, executeContext.CancellationToken);
 
-                logger.LogInformation("Picture resized successfully from {SourceFilePath} to {DestinationFilePath} ( {Width}x{Height} )",
+                logger.LogDebug("Picture resized from {SourceFilePath} to {DestinationFilePath} ({Width}x{Height})",
                     executeContext.Arguments.SourceFilePath,
                     executeContext.Arguments.DestinationFilePath,
                     executeContext.Arguments.Width,

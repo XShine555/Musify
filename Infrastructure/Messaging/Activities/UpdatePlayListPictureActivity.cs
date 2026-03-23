@@ -38,7 +38,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
                 if (playList is null)
                 {
-                    logger.LogError("PlayList with id {PlayListId} not found",
+                    logger.LogWarning("PlayList with id {PlayListId} not found",
                         executeContext.Arguments.PlayListId);
                     throw new InvalidOperationException($"PlayList with id {executeContext.Arguments.PlayListId} not found");
                 }
