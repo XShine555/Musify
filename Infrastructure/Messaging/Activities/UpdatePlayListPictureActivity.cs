@@ -33,7 +33,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             try
             {
                 var playList = await database.PlayLists.FindAsync(
-                    new object[] { executeContext.Arguments.PlayListId },
+                    [executeContext.Arguments.PlayListId],
                     cancellationToken: executeContext.CancellationToken);
 
                 if (playList is null)

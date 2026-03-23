@@ -33,7 +33,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             try
             {
                 var track = await database.Tracks.FindAsync(
-                    new object[] { executeContext.Arguments.TrackId },
+                    [executeContext.Arguments.TrackId],
                     cancellationToken: executeContext.CancellationToken);
 
                 if (track is null)
