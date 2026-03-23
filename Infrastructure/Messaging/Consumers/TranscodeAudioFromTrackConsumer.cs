@@ -8,7 +8,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
 {
     public class TranscodeAudioFromTrackConsumer(
         IBus bus,
-        AudioTranscoderConfiguration audioTranscoderConfiguration)
+        WorkerConfiguration workerConfiguration)
         : IConsumer<TranscodeAudioFromTrackEvent>
     {
         public const string QueueName = "Transcode-Audio-From-Track";
@@ -23,7 +23,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 new DownloadFileFromBucketArguments(
                     consumeContext.Message.SourceBucketName,
                     consumeContext.Message.SourceKeyName,
-                    audioTranscoderConfiguration.Routes.WorkingDirectory));
+                    workerConfiguration.Routes.TemporaryFilesDirectory));
 
             routingSlipBuilder.AddActivity(
                 "TranscodeAudio",

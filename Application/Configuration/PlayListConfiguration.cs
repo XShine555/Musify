@@ -49,15 +49,15 @@ namespace Musify.Application.Configuration
         public int SmallPictureHeight { get; set; } = 128;
 
         [Range(1, 1024)]
-        public int MediumPictureWidth { get; private set; } = 256;
+        public int MediumPictureWidth { get; set; } = 256;
 
         [Range(1, 1024)]
-        public int MediumPictureHeight { get; private set; } = 256;
+        public int MediumPictureHeight { get; set; } = 256;
 
         [Range(1, 1024)]
-        public int LargePictureWidth { get; private set; } = 512;
+        public int LargePictureWidth { get; set; } = 512;
 
         [Range(1, 1024)]
-        public int LargePictureHeight { get; private set; } = 512;
+        public int LargePictureHeight { get; set; } = 512;
     }
 }

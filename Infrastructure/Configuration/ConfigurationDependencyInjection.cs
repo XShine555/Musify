@@ -14,7 +14,8 @@ namespace Musify.Infrastructure.Configuration
                 .AddValidatedConfiguration<InfrastructureStorageConfiguration>(configuration, InfrastructureStorageConfiguration.SectionName)
                 .AddValidatedConfiguration<MessagingConfiguration>(configuration, MessagingConfiguration.SectionName)
                 .AddValidatedConfiguration<OpenTelemetryConfiguration>(configuration, OpenTelemetryConfiguration.SectionName)
-                .AddValidatedConfiguration<AudioTranscoderConfiguration>(configuration, AudioTranscoderConfiguration.SectionName);
+                .AddValidatedConfiguration<AudioTranscoderConfiguration>(configuration, AudioTranscoderConfiguration.SectionName)
+                .AddValidatedConfiguration<WorkerConfiguration>(configuration, WorkerConfiguration.SectionName);
 
             return serviceDescriptors;
         }

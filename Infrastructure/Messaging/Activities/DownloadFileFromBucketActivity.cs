@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
-using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 
 namespace Musify.Infrastructure.Messaging.Activities
@@ -10,8 +9,7 @@ namespace Musify.Infrastructure.Messaging.Activities
     public class DownloadFileFromBucketActivity(
         IStorageHandler storageHandler,
         ILogger<DownloadFileFromBucketActivity> logger,
-        IProcessTrackingStore processTrackingStore,
-        AudioTranscoderConfiguration audioTranscoderConfiguration)
+        IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<DownloadFileFromBucketArguments>
     {
         public const string ExecuteEndpointName = "Download-File-From-Bucket";

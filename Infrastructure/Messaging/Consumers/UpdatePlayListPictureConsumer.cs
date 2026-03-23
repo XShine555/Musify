@@ -8,7 +8,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
 {
     public class UpdatePlayListPictureConsumer(
         IBus bus,
-        AudioTranscoderConfiguration audioTranscoderConfiguration)
+        WorkerConfiguration workerConfiguration)
         : IConsumer<UpdatePlayListPictureEvent>
     {
         public const string QueueName = "Update-PlayList-Picture";
@@ -17,7 +17,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
             var folderName = Guid.NewGuid().ToString();
-            var workingDirectory = Path.Combine(audioTranscoderConfiguration.Routes.WorkingDirectory, folderName);
+            var workingDirectory = Path.Combine(workerConfiguration.Routes.TemporaryFilesDirectory, folderName);
 
             routingSlipBuilder.AddActivity(
                 "DownloadFile",
