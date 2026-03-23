@@ -39,7 +39,7 @@ namespace Musify.Application.PlayLists.Handlers
 
             var setPictureResult = request.Picture is null
                 ? Result.Success()
-                : await SetPicture(playList, request.Picture, cancellationToken);
+                : await UploadPicture(playList, request.Picture, cancellationToken);
 
             if (!setPictureResult.IsSuccess)
                 return setPictureResult;
@@ -51,13 +51,13 @@ namespace Musify.Application.PlayLists.Handlers
             return Result.Created(PlayListResponse.FromEntity(playList));
         }
 
-        async Task<Result> SetPicture(PlayList playList, IFileData picture, CancellationToken cancellationToken)
+        async Task<Result> UploadPicture(PlayList playList, IFileData picture, CancellationToken cancellationToken)
         {
             var imageId = Guid.NewGuid();
-            var pictureName = $"{imageId}{picture.FileType}";
-            var originalImageStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, pictureName);
+            var pictureName = imageId + picture.FileType;
+            var pictureStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, pictureName);
 
-            var uploadResult = await UploadFile(picture, originalImageStorageKey, cancellationToken);
+            var uploadResult = await UploadFile(picture, pictureStorageKey, cancellationToken);
 
             if (!uploadResult.IsSuccess)
             {
@@ -69,7 +69,7 @@ namespace Musify.Application.PlayLists.Handlers
 
             try
             {
-                await PublishUpdateEvent(originalImageStorageKey, playList, cancellationToken);
+                await PublishUpdateEvent(pictureStorageKey, playList, cancellationToken);
             }
             catch (Exception exception)
             {

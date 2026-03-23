@@ -65,7 +65,7 @@ namespace Musify.Application.PlayLists.Handlers
             }
 
             var newImageId = Guid.NewGuid();
-            var pictureName = $"{newImageId}{request.NewPicture.FileType}";
+            var pictureName = newImageId + request.NewPicture.FileType;
             var newImageStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, pictureName);
 
             var uploadResult = await UploadFile(request.NewPicture, newImageStorageKey, cancellationToken);

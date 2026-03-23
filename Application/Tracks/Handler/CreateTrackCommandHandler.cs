@@ -25,7 +25,7 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User with id {request.UserId} not found");
             }
 
-            var originalPictureKeyName = $"{Guid.NewGuid() }.{request.Picture.FileType}";
+            var originalPictureKeyName = Path.Combine(trackConfiguration.Routes.OriginalPictures, Guid.NewGuid() + request.Picture.FileType);
             var track = new Track
             {
                 Title = request.Title,
@@ -42,7 +42,8 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Error($"Failed to upload picture for track {request.Title}");
             }
 
-            var audioKeyName = Path.Combine(trackConfiguration.Routes.Audios, $"{Guid.NewGuid() }.{request.Audio.FileType}");
+
+            var audioKeyName = Path.Combine(trackConfiguration.Routes.Audios, Guid.NewGuid() + request.Audio.FileType);
             var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
             if (!audioUploadResult.IsSuccess)
             {
