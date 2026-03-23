@@ -53,17 +53,23 @@ namespace Musify.Infrastructure.Messaging.Activities
                 if (fileStream.CanSeek)
                     fileStream.Position = 0;
 
-                var destinationPath = Path.Combine(
-                    audioTranscoderConfiguration.Routes.WorkingDirectory,
-                    Path.GetFileName(executeContext.Arguments.KeyName));
+                var fileName = Path.GetFileName(executeContext.Arguments.KeyName);
+                var folderName = Guid.NewGuid().ToString();
+                var workingDirectory = Path.Combine(executeContext.Arguments.DestinationPath, folderName);
+                var destinationPath = Path.Combine(workingDirectory, fileName);
 
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                Directory.CreateDirectory(workingDirectory);
 
                 using var destinationStream = File.Create(destinationPath);
                 await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
-                return executeContext.Completed();
+                return executeContext.CompletedWithVariables(new
+                {
+                    SourceFilePath = destinationPath,
+                    WorkingDirectory = workingDirectory,
+                    DestinationFolderName = folderName
+                } );
             }
             catch (Exception exception)
             {

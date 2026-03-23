@@ -32,17 +32,21 @@ namespace Musify.Infrastructure.Messaging.Activities
                 0,
                 executeContext.CancellationToken);
 
+            var sourceFilePath = executeContext.GetVariable<string>("SourceFilePath");
+            var destinationFolderName = executeContext.GetVariable<string>("DestinationFolderName");
+
+            if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(destinationFolderName))
+            {
+                throw new InvalidOperationException("Transcode activity requires SourceFilePath and DestinationFolderName variables.");
+            }
+
             try
             {
-                var workingDirectory = Path.Combine(
-                    audioTranscoderConfiguration.Routes.WorkingDirectory,
-                    executeContext.Arguments.DestinationFolderName);
-
-                await using var fileStream = File.OpenRead(executeContext.Arguments.SourceFilePath);
+                await using var fileStream = File.OpenRead(sourceFilePath);
 
                 var result = await audioTranscoder.TranscodeToDashAsync(
                     fileStream,
-                    executeContext.Arguments.DestinationFolderName,
+                    destinationFolderName,
                     audioTranscoderConfiguration.TranscodingTimeout,
                     executeContext.CancellationToken);
 
@@ -50,7 +54,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                 {
                     var errorMessage = string.Join("; ", result.Errors);
                     logger.LogError("Transcoding failed for file {SourceFilePath}. Errors: {ErrorMessage}",
-                        executeContext.Arguments.SourceFilePath, errorMessage);
+                        sourceFilePath, errorMessage);
                     throw new Exception(errorMessage);
                 }
 
@@ -60,7 +64,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             catch (Exception exception)
             {
                 logger.LogError(exception, "Error during transcoding activity for file {SourceFilePath}",
-                    executeContext.Arguments.SourceFilePath);
+                    sourceFilePath);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }

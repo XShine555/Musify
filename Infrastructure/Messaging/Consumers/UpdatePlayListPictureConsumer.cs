@@ -68,7 +68,6 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 "UploadFiles",
                 MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
-                    workingDirectory,
                     consumeContext.Message.SourceBucketName,
                     folderName));
 

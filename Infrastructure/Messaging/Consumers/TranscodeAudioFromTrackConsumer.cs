@@ -16,9 +16,6 @@ namespace Musify.Infrastructure.Messaging.Consumers
         public async Task Consume(ConsumeContext<TranscodeAudioFromTrackEvent> consumeContext)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
-            var fileName = Path.GetFileName(consumeContext.Message.SourceKeyName);
-            var folderName = Guid.NewGuid().ToString();
-            var workingDirectory = Path.Combine(audioTranscoderConfiguration.Routes.WorkingDirectory, folderName);
 
             routingSlipBuilder.AddActivity(
                 "DownloadFile",
@@ -26,20 +23,17 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 new DownloadFileFromBucketArguments(
                     consumeContext.Message.SourceBucketName,
                     consumeContext.Message.SourceKeyName,
-                    workingDirectory));
+                    audioTranscoderConfiguration.Routes.WorkingDirectory));
 
             routingSlipBuilder.AddActivity(
                 "TranscodeAudio",
                 MessagingHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
-                new TranscodeDashAudioArguments(
-                    Path.Combine(workingDirectory, fileName),
-                    folderName));
+                new TranscodeDashAudioArguments());
 
             routingSlipBuilder.AddActivity(
                 "UploadFile",
                 MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
-                    workingDirectory,
                     consumeContext.Message.DestinationBucketName,
                     consumeContext.Message.DestinationKeyName));
 

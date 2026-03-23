@@ -30,10 +30,16 @@ namespace Musify.Infrastructure.Messaging.Activities
                 0,
                 executeContext.CancellationToken);
 
+            var folderPath = executeContext.GetVariable<string>("WorkingDirectory");
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                throw new InvalidOperationException("Transfer activity requires WorkingDirectory variable.");
+            }
+
             try
             {
                 var transferFilesResult = await storageHandler.TransferFilesAsync(
-                    executeContext.Arguments.FolderPath,
+                    folderPath,
                     executeContext.Arguments.DestinationBucketName,
                     executeContext.Arguments.DestinationKeyName,
                     executeContext.CancellationToken);
@@ -42,7 +48,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                 {
                     var errorMessage = string.Join("; ", transferFilesResult.Errors);
                     logger.LogError("Failed to transfer files from {FolderPath} to bucket {DestinationBucketName}, key {DestinationKeyName}. Errors: {Errors}",
-                        executeContext.Arguments.FolderPath,
+                        folderPath,
                         executeContext.Arguments.DestinationBucketName,
                         executeContext.Arguments.DestinationKeyName,
                         errorMessage);
@@ -55,7 +61,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             catch (Exception exception)
             {
                 logger.LogError(exception, "Error transferring files from {FolderPath} to bucket {DestinationBucketName}",
-                    executeContext.Arguments.FolderPath,
+                    folderPath,
                     executeContext.Arguments.DestinationBucketName);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
