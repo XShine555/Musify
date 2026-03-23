@@ -19,14 +19,22 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var folderName = Guid.NewGuid().ToString();
             var workingDirectory = Path.Combine(audioTranscoderConfiguration.Routes.WorkingDirectory, folderName);
 
+            routingSlipBuilder.AddActivity(
+                "DownloadFile",
+                MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
+                new DownloadFileFromBucketArguments(
+                    consumeContext.Message.SourceBucketName,
+                    consumeContext.Message.SourceKeyName,
+                    workingDirectory));
+
             AddResizeActivity(
                 routingSlipBuilder,
                 "ResizeSmall",
                 consumeContext.Message.SmallPictureKeyName,
                 consumeContext.Message.SmallPictureWidth,
                 consumeContext.Message.SmallPictureHeight,
-                consumeContext.Message.OriginalPictureKeyName,
-                consumeContext.Message.BucketName,
+                consumeContext.Message.SourceKeyName,
+                consumeContext.Message.SourceBucketName,
                 workingDirectory);
 
             AddResizeActivity(
@@ -35,8 +43,8 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 consumeContext.Message.MediumPictureKeyName,
                 consumeContext.Message.MediumPictureWidth,
                 consumeContext.Message.MediumPictureHeight,
-                consumeContext.Message.OriginalPictureKeyName,
-                consumeContext.Message.BucketName,
+                consumeContext.Message.SourceKeyName,
+                consumeContext.Message.SourceBucketName,
                 workingDirectory);
 
             AddResizeActivity(
@@ -45,23 +53,23 @@ namespace Musify.Infrastructure.Messaging.Consumers
                 consumeContext.Message.LargePictureKeyName,
                 consumeContext.Message.LargePictureWidth,
                 consumeContext.Message.LargePictureHeight,
-                consumeContext.Message.OriginalPictureKeyName,
-                consumeContext.Message.BucketName,
+                consumeContext.Message.SourceKeyName,
+                consumeContext.Message.SourceBucketName,
                 workingDirectory);
 
             routingSlipBuilder.AddActivity(
                 "DeleteOriginal",
                 MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new RemoveFileFromBucketArguments(
-                    consumeContext.Message.BucketName,
-                    consumeContext.Message.OriginalPictureKeyName));
+                    consumeContext.Message.SourceBucketName,
+                    consumeContext.Message.SourceKeyName));
 
             routingSlipBuilder.AddActivity(
                 "UploadFiles",
                 MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     workingDirectory,
-                    consumeContext.Message.BucketName,
+                    consumeContext.Message.SourceBucketName,
                     folderName));
 
             routingSlipBuilder.AddActivity(
@@ -91,14 +99,6 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var sourceFilePath = Path.Combine(workingDirectory, fileName);
             var destinationFileName = Path.GetFileNameWithoutExtension(destinationKeyName) + Path.GetExtension(fileName);
             var destinationFilePath = Path.Combine(workingDirectory, destinationFileName);
-
-            routingSlipBuilder.AddActivity(
-                $"{activityName}_Download",
-                MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
-                new DownloadFileFromBucketArguments(
-                    bucketName,
-                    originalPictureKeyName,
-                    workingDirectory));
 
             routingSlipBuilder.AddActivity(
                 activityName,
