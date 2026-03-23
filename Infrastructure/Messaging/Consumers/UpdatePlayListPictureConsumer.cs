@@ -92,7 +92,6 @@ namespace Musify.Infrastructure.Messaging.Consumers
             var destinationFileName = Path.GetFileNameWithoutExtension(destinationKeyName) + Path.GetExtension(fileName);
             var destinationFilePath = Path.Combine(workingDirectory, destinationFileName);
 
-            // First: Download original file
             routingSlipBuilder.AddActivity(
                 $"{activityName}_Download",
                 MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
@@ -101,7 +100,6 @@ namespace Musify.Infrastructure.Messaging.Consumers
                     originalPictureKeyName,
                     workingDirectory));
 
-            // Second: Resize picture
             routingSlipBuilder.AddActivity(
                 activityName,
                 MessagingHelper.BuildExecuteActivityUri(ResizePictureActivity.ExecuteEndpointName),
