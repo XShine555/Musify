@@ -13,6 +13,6 @@ namespace Musify.Infrastructure.Configuration
     public class WorkerRoutes
     {
         [Required]
-        public string TemporaryFilesDirectory { get; set; } = string.Empty;
+        public string TemporaryFilesDirectory { get; set; } = Path.GetTempPath();
     }
 }
