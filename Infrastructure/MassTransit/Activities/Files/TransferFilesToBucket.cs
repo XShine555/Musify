@@ -33,21 +33,15 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariableName);
             if (string.IsNullOrWhiteSpace(folderPath))
-            {
                 throw new InvalidOperationException(
                     $"Transfer activity requires variable '{executeContext.Arguments.SourceDirectoryVariableName}' with source directory path.");
-            }
 
             var destinationKeyName = executeContext.Arguments.DestinationKeyName;
             if (string.IsNullOrWhiteSpace(destinationKeyName) && !string.IsNullOrWhiteSpace(executeContext.Arguments.DestinationKeyNameVariableName))
-            {
                 destinationKeyName = executeContext.GetVariable<string>(executeContext.Arguments.DestinationKeyNameVariableName);
-            }
 
             if (string.IsNullOrWhiteSpace(destinationKeyName))
-            {
                 throw new InvalidOperationException("Transfer activity requires a destination key name from arguments or variables.");
-            }
 
             try
             {

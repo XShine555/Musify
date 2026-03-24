@@ -35,9 +35,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             var workingDirectory = executeContext.GetVariable<string>(executeContext.Arguments.WorkingDirectoryVariableName);
 
             if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(workingDirectory))
-            {
                 throw new InvalidOperationException("Transcode activity requires source file path and working directory variables.");
-            }
 
             try
             {
@@ -72,11 +70,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         {
             try
             {
-                if (Directory.Exists(compensateContext.Log.WorkingDirectory))
-                {
-                    Directory.Delete(compensateContext.Log.WorkingDirectory, true);
-                }
-
+                Directory.Delete(compensateContext.Log.WorkingDirectory, recursive: true);
                 return Task.FromResult(compensateContext.Compensated());
             }
             catch (Exception exception)

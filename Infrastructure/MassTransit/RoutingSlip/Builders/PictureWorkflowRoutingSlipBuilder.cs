@@ -3,6 +3,7 @@ using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
+using Musify.Infrastructure.Messaging.Consumers;
 
 namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 {
@@ -26,7 +27,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UpdateTrackPicture,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(UpdateTrackPictureActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(UpdateTrackPictureActivity.ExecuteEndpointName),
                 new UpdateTrackPictureArguments(
                     message.TrackId,
                     message.SourceKeyName,
@@ -55,7 +56,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UpdatePlayListPicture,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
                 new UpdatePlayListPictureArguments(
                     message.PlayListId,
                     message.SourceKeyName,
@@ -86,7 +87,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.GeneratePictureWorkflowPaths,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(GeneratePictureWorkflowPathsActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(GeneratePictureWorkflowPathsActivity.ExecuteEndpointName),
                 new GeneratePictureWorkflowPathsArguments(
                     workerConfiguration.Routes.TemporaryFilesDirectory,
                     sourceKeyName,
@@ -96,7 +97,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DownloadFile,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
                 new DownloadFileFromBucketArguments(
                     sourceBucketName,
                     sourceKeyName,
@@ -125,12 +126,12 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DeleteOriginal,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new RemoveFileFromBucketArguments(sourceBucketName, sourceKeyName));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UploadFiles,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     sourceBucketName,
                     RoutingSlipVariableNames.Workflow.TempDirectory,
@@ -148,7 +149,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
         {
             routingSlipBuilder.AddActivity(
                 activityName,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(ResizePictureActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(ResizePictureActivity.ExecuteEndpointName),
                 new ResizePictureLocalArguments(
                     RoutingSlipVariableNames.Picture.OriginalFilePath,
                     destinationFilePathVariableName,

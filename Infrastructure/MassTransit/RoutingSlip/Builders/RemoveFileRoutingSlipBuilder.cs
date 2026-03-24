@@ -1,6 +1,7 @@
 using MassTransit;
 using Musify.Application.Events;
 using Musify.Infrastructure.Messaging.Activities;
+using Musify.Infrastructure.Messaging.Consumers;
 
 namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 {
@@ -14,7 +15,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.RemoveFile,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new Activities.Arguments.RemoveFileFromBucketArguments(
                     message.BucketName,
                     message.KeyName));

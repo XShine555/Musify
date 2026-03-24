@@ -35,9 +35,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             var destinationFilePath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariableName);
 
             if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(destinationFilePath))
-            {
                 throw new InvalidOperationException("Resize activity requires source and destination file path variables.");
-            }
 
             try
             {
@@ -96,11 +94,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         {
             try
             {
-                if (File.Exists(compensateContext.Log.DestinationFilePath))
-                {
-                    File.Delete(compensateContext.Log.DestinationFilePath);
-                }
-
+                File.Delete(compensateContext.Log.DestinationFilePath);
                 return Task.FromResult(compensateContext.Compensated());
             }
             catch (Exception exception)

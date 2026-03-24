@@ -49,7 +49,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                     [RoutingSlipVariableNames.Audio.WorkingDirectory] = workingDirectory,
                     [RoutingSlipVariableNames.Audio.SourceFilePath] = sourceFilePath,
                     [RoutingSlipVariableNames.Audio.TranscodedDirectory] = workingDirectory
-                });
+                } );
             }
             catch (Exception exception)
             {

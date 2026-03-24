@@ -57,9 +57,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
                 var destinationDirectory = Path.GetDirectoryName(destinationPath);
                 if (!string.IsNullOrWhiteSpace(destinationDirectory))
-                {
                     Directory.CreateDirectory(destinationDirectory);
-                }
 
                 using var fileStream = getFile.Value;
                 if (fileStream.CanSeek)
@@ -83,11 +81,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         {
             try
             {
-                if (File.Exists(compensateContext.Log.DestinationFilePath))
-                {
-                    File.Delete(compensateContext.Log.DestinationFilePath);
-                }
-
+                File.Delete(compensateContext.Log.DestinationFilePath);
                 return Task.FromResult(compensateContext.Compensated());
             }
             catch (Exception exception)

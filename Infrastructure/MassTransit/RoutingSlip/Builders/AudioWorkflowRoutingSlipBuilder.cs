@@ -3,6 +3,7 @@ using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
+using Musify.Infrastructure.Messaging.Consumers;
 
 namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 {
@@ -16,14 +17,14 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.GenerateAudioWorkflowPaths,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
                 new GenerateAudioWorkflowPathsArguments(
                     workerConfiguration.Routes.TemporaryFilesDirectory,
                     message.SourceKeyName));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DownloadFile,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
                 new DownloadFileFromBucketArguments(
                     message.SourceBucketName,
                     message.SourceKeyName,
@@ -31,14 +32,14 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.TranscodeAudio,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
                 new TranscodeDashAudioArguments(
                     RoutingSlipVariableNames.Audio.SourceFilePath,
                     RoutingSlipVariableNames.Workflow.TempDirectory));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UploadFiles,
-                Consumers.MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     message.DestinationBucketName,
                     RoutingSlipVariableNames.Audio.TranscodedDirectory,
