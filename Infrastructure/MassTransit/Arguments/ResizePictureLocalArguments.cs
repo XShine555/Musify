@@ -1,8 +1,8 @@
 namespace Musify.Infrastructure.Messaging.Activities.Arguments
 {
     public record ResizePictureLocalArguments(
-        string SourceFilePath,
-        string DestinationFilePath,
+        string SourceFilePathVariableName,
+        string DestinationFilePathVariableName,
         int Width,
         int Height);
 }

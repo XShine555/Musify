@@ -30,6 +30,7 @@ namespace Musify.Application.Tracks.Handler
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.Trim().ToUpperInvariant(),
+                OriginalPictureKeyName = originalPictureKeyName,
                 SmallPictureKeyName = trackConfiguration.Routes.PresetSmallPicture,
                 MediumPictureKeyName = trackConfiguration.Routes.PresetMediumPicture,
                 LargePictureKeyName = trackConfiguration.Routes.PresetLargePicture,

@@ -2,5 +2,7 @@
 {
     public record TransferFilesToBucketArguments(
         string DestinationBucketName,
-        string DestinationKeyName);
+        string SourceDirectoryVariableName,
+        string? DestinationKeyName = null,
+        string? DestinationKeyNameVariableName = null);
 }

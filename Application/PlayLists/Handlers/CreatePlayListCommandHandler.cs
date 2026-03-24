@@ -32,6 +32,7 @@ namespace Musify.Application.PlayLists.Handlers
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
+                OriginalPictureKeyName = playListConfiguration.Routes.PresetOriginalPicture,
                 SmallPictureKeyName = playListConfiguration.Routes.PresetSmallPicture,
                 MediumPictureKeyName = playListConfiguration.Routes.PresetMediumPicture,
                 LargePictureKeyName = playListConfiguration.Routes.PresetLargePicture,
@@ -65,6 +66,8 @@ namespace Musify.Application.PlayLists.Handlers
                     playList.Id, string.Join("; ", uploadResult.Errors));
                 return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
             }
+
+            playList.OriginalPictureKeyName = pictureStorageKey;
             logger.LogInformation("Playlist image uploaded successfully for PlayList with Id={PlayListId}.", playList.Id);
 
             try

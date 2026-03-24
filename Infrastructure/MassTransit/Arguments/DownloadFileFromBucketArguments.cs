@@ -3,5 +3,5 @@
     public record DownloadFileFromBucketArguments(
         string BucketName,
         string KeyName,
-        string DestinationPath);
+        string DestinationFilePathVariableName);
 }

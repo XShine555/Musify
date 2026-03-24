@@ -31,6 +31,9 @@ namespace Musify.Application.Configuration
         public string LargePictures { get; set; } = "LargeTracks";
 
         [Required]
+        public string PresetOriginalPicture { get; set; } = "PresetOriginalPicture.webp";
+
+        [Required]
         public string PresetSmallPicture { get; set; } = "PresetSmallPicture.webp";
 
         [Required]
