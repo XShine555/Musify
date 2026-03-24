@@ -39,7 +39,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UploadFiles,
-                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucket.ExecuteEndpointName),
+                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     message.DestinationBucketName,
                     RoutingSlipVariableNames.Audio.TranscodedDirectory,

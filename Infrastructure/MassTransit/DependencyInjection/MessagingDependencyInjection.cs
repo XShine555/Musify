@@ -47,7 +47,7 @@ namespace Musify.Infrastructure.Messaging
                 options.AddActivity<UpdateTrackPictureActivity, UpdateTrackPictureArguments, UpdateTrackPictureLog>();
                 options.AddActivity<DownloadFileFromBucketActivity, DownloadFileFromBucketArguments, DownloadFileFromBucketLog>();
                 options.AddActivity<TranscodeDashAudioActivity, TranscodeDashAudioArguments, TranscodeDashAudioLog>();
-                options.AddActivity<TransferFilesToBucket, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
+                options.AddActivity<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -117,10 +117,10 @@ namespace Musify.Infrastructure.Messaging
                         busRegistrationContext,
                         TranscodeDashAudioActivity.ExecuteEndpointName);
 
-                    ConfigureActivityEndpoint<TransferFilesToBucket, TransferFilesToBucketArguments, TransferFilesToBucketLog>(
+                    ConfigureActivityEndpoint<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>(
                         busFactoryConfigurator,
                         busRegistrationContext,
-                        TransferFilesToBucket.ExecuteEndpointName);
+                        TransferFilesToBucketActivity.ExecuteEndpointName);
                 } );
             } );
 

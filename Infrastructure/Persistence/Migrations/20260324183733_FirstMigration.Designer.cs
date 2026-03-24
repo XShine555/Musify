@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Musify.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260323233603_AddOriginalPictureKeyNameToTrackAndPlayList")]
-    partial class AddOriginalPictureKeyNameToTrackAndPlayList
+    [Migration("20260324183733_FirstMigration")]
+    partial class FirstMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

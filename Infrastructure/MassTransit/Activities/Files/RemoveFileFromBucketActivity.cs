@@ -12,7 +12,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<RemoveFileFromBucketArguments>
     {
-        public const string ExecuteEndpointName = "Remove-File";
+        public const string ExecuteEndpointName = "Remove-File-From-Bucket";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<RemoveFileFromBucketArguments> executeContext)
         {

@@ -7,9 +7,9 @@ using Musify.Infrastructure.Messaging.Activities.Logs;
 
 namespace Musify.Infrastructure.Messaging.Activities
 {
-    public class TransferFilesToBucket(
+    public class TransferFilesToBucketActivity(
         IStorageHandler storageHandler,
-        ILogger<TransferFilesToBucket> logger,
+        ILogger<TransferFilesToBucketActivity> logger,
         IProcessTrackingStore processTrackingStore)
         : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
     {
@@ -26,7 +26,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             var stepId = await processTrackingStore.StartStepAsync(
                 processId,
-                nameof(TransferFilesToBucket),
+                nameof(TransferFilesToBucketActivity),
                 ProcessStepComponentType.Activity,
                 0,
                 executeContext.CancellationToken);
