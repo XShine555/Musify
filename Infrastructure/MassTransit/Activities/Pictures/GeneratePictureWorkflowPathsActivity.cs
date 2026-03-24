@@ -56,7 +56,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.CompletedWithVariables(new Dictionary<string, object>
                 {
-                    [RoutingSlipVariableNames.Workflow.TempDirectory] = workingDirectory,
+                    [RoutingSlipVariableNames.Workflow.TemporalDirectory] = workingDirectory,
                     [RoutingSlipVariableNames.Picture.OriginalFilePath] = sourceFilePath,
                     [RoutingSlipVariableNames.Picture.SmallResizedFilePath] = smallPictureFilePath,
                     [RoutingSlipVariableNames.Picture.MediumResizedFilePath] = mediumPictureFilePath,

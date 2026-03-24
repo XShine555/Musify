@@ -1,6 +1,8 @@
 using MassTransit;
+using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 using Musify.Infrastructure.Messaging.Consumers;
@@ -24,6 +26,10 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
                 message.LargePictureWidth,
                 message.LargePictureHeight,
                 correlationId);
+
+            routingSlipBuilder.AddSubscription(
+                MessagingHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
+                RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UpdateTrackPicture,
@@ -134,7 +140,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
                 MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     sourceBucketName,
-                    RoutingSlipVariableNames.Workflow.TempDirectory,
+                    RoutingSlipVariableNames.Workflow.TemporalDirectory,
                     DestinationKeyNameVariableName: RoutingSlipVariableNames.Picture.DestinationFolderName));
 
             return routingSlipBuilder;

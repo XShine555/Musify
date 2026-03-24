@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 using Musify.Infrastructure.Messaging.Activities.Logs;
@@ -29,7 +30,7 @@ namespace Musify.Infrastructure.Messaging
         {
             serviceDescriptors.AddScoped<AudioWorkflowRoutingSlipBuilder>();
             serviceDescriptors.AddScoped<PictureWorkflowRoutingSlipBuilder>();
-            serviceDescriptors.AddScoped<RemoveFileRoutingSlipBuilder>();
+            serviceDescriptors.AddScoped<RemoveFileFromBucketRoutingSlipBuilder>();
 
             serviceDescriptors.AddMassTransit(options =>
             {
@@ -37,6 +38,7 @@ namespace Musify.Infrastructure.Messaging
                 options.AddConsumer<RemoveFileConsumer>();
                 options.AddConsumer<TranscodeAudioFromTrackConsumer>();
                 options.AddConsumer<UpdateTrackPictureConsumer>();
+                options.AddConsumer<RoutingSlipCleanUpConsumer>();
 
                 options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
                 options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
@@ -75,6 +77,11 @@ namespace Musify.Infrastructure.Messaging
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackPictureConsumer.QueueName, endpointConfigurator =>
                     {
                         endpointConfigurator.ConfigureConsumer<UpdateTrackPictureConsumer>(busRegistrationContext);
+                    } );
+
+                    busFactoryConfigurator.ReceiveEndpoint(RoutingSlipCleanUpConsumer.QueueName, endpointConfigurator =>
+                    {
+                        endpointConfigurator.ConfigureConsumer<RoutingSlipCleanUpConsumer>(busRegistrationContext);
                     } );
 
                     ConfigureExecuteActivityEndpoint<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>(

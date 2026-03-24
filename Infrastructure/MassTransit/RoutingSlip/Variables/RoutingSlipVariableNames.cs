@@ -4,7 +4,7 @@ namespace Musify.Infrastructure.Messaging
     {
         internal static class Workflow
         {
-            internal const string TempDirectory = "Workflow.TempDirectory";
+            internal const string TemporalDirectory = "Workflow.TemporalDirectory";
             internal const string CorrelationId = "Workflow.CorrelationId";
         }
 

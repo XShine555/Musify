@@ -1,6 +1,8 @@
 using MassTransit;
+using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 using Musify.Infrastructure.Messaging.Consumers;
@@ -14,6 +16,10 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
 
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
+
+            routingSlipBuilder.AddSubscription(
+                MessagingHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
+                RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.GenerateAudioWorkflowPaths,
@@ -35,7 +41,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
                 MessagingHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
                 new TranscodeDashAudioArguments(
                     RoutingSlipVariableNames.Audio.SourceFilePath,
-                    RoutingSlipVariableNames.Workflow.TempDirectory));
+                    RoutingSlipVariableNames.Workflow.TemporalDirectory));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UploadFiles,

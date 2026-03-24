@@ -40,12 +40,8 @@
   <ItemGroup>
     <Folder Include="MassTransit\Activities\Audio\" />
     <Folder Include="MassTransit\Activities\Pictures\" />
-    <Folder Include="MassTransit\Arguments\" />
     <Folder Include="MassTransit\Logs\" />
-    <Folder Include="MassTransit\RoutingSlip\" />
-    <Folder Include="MassTransit\RoutingSlip\Builders\" />
     <Folder Include="MassTransit\RoutingSlip\Variables\" />
-    <Folder Include="MassTransit\Consumers\" />
     <Folder Include="MassTransit\Filters\" />
     <Folder Include="MassTransit\EventBus\" />
     <Folder Include="MassTransit\DependencyInjection\" />

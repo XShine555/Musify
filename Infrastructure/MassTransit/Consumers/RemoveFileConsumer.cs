@@ -6,7 +6,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
 {
     public class RemoveFileConsumer(
         IBus bus,
-        RemoveFileRoutingSlipBuilder routingSlipBuilder)
+        RemoveFileFromBucketRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<RemoveFileEvent>
     {
         public const string QueueName = "Remove-File";
