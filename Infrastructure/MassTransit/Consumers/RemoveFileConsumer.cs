@@ -9,7 +9,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
         RemoveFileFromBucketRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<RemoveFileEvent>
     {
-        public const string QueueName = "Remove-File";
+        public const string QueueName = "remove-file";
 
         public async Task Consume(ConsumeContext<RemoveFileEvent> consumeContext)
         {

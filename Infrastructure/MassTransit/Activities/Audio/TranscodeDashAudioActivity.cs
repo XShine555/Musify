@@ -13,7 +13,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IActivity<TranscodeDashAudioArguments, TranscodeDashAudioLog>
     {
-        public const string ExecuteEndpointName = "Transcode-Dash-Audio";
+        public const string ExecuteEndpointName = "transcode-dash-audio";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<TranscodeDashAudioArguments> executeContext)
         {

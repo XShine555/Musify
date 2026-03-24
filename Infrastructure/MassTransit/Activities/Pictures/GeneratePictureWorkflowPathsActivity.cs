@@ -11,7 +11,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<GeneratePictureWorkflowPathsArguments>
     {
-        public const string ExecuteEndpointName = "Generate-Picture-Workflow-Paths";
+        public const string ExecuteEndpointName = "generate-picture-workflow-paths";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<GeneratePictureWorkflowPathsArguments> executeContext)
         {

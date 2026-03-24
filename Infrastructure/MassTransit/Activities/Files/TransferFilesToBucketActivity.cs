@@ -13,7 +13,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
     {
-        public const string ExecuteEndpointName = "Transfer-Files-To-Bucket";
+        public const string ExecuteEndpointName = "transfer-files-to-bucket";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
         {

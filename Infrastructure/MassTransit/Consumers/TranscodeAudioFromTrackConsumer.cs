@@ -9,7 +9,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
         AudioWorkflowRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<TranscodeAudioFromTrackEvent>
     {
-        public const string QueueName = "Transcode-Audio-From-Track";
+        public const string QueueName = "transcode-audio-from-track";
 
         public async Task Consume(ConsumeContext<TranscodeAudioFromTrackEvent> consumeContext)
         {

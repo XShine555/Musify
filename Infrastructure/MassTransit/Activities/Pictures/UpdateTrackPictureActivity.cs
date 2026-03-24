@@ -13,7 +13,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>
     {
-        public const string ExecuteEndpointName = "Update-Track-Picture";
+        public const string ExecuteEndpointName = "update-track-picture";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackPictureArguments> executeContext)
         {

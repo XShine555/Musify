@@ -13,7 +13,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IActivity<ResizePictureLocalArguments, ResizePictureLog>
     {
-        public const string ExecuteEndpointName = "Resize-Picture";
+        public const string ExecuteEndpointName = "resize-picture";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<ResizePictureLocalArguments> executeContext)
         {

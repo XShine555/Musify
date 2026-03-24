@@ -13,7 +13,7 @@ namespace Musify.Infrastructure.Messaging.Activities
         IProcessTrackingStore processTrackingStore)
         : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
     {
-        public const string ExecuteEndpointName = "Download-File-From-Bucket";
+        public const string ExecuteEndpointName = "download-file-from-bucket";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<DownloadFileFromBucketArguments> executeContext)
         {

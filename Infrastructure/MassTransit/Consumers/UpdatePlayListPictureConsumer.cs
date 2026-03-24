@@ -9,7 +9,7 @@ namespace Musify.Infrastructure.Messaging.Consumers
         PictureWorkflowRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<UpdatePlayListPictureEvent>
     {
-        public const string QueueName = "Update-PlayList-Picture";
+        public const string QueueName = "update-playList-picture";
 
         public async Task Consume(ConsumeContext<UpdatePlayListPictureEvent> consumeContext)
         {
