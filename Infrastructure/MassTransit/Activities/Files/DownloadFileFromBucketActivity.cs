@@ -33,10 +33,8 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariableName);
             if (string.IsNullOrWhiteSpace(destinationPath))
-            {
                 throw new InvalidOperationException(
                     $"Download activity requires variable '{executeContext.Arguments.DestinationFilePathVariableName}' with destination file path.");
-            }
 
             try
             {
