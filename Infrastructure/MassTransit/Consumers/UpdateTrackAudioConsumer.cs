@@ -2,16 +2,16 @@
 using Musify.Application.Events;
 using Musify.Infrastructure.Messaging.RoutingSlip.Builders;
 
-namespace Musify.Infrastructure.Messaging.Consumers
+namespace Musify.Infrastructure.MassTransit.Consumers
 {
-    public class TranscodeAudioFromTrackConsumer(
+    public class UpdateTrackAudioConsumer(
         IBus bus,
         AudioWorkflowRoutingSlipBuilder routingSlipBuilder)
-        : IConsumer<TranscodeAudioFromTrackEvent>
+        : IConsumer<UpdateTrackAudioEvent>
     {
-        public const string QueueName = "transcode-audio-from-track";
+        public const string QueueName = "update-track-audio";
 
-        public async Task Consume(ConsumeContext<TranscodeAudioFromTrackEvent> consumeContext)
+        public async Task Consume(ConsumeContext<UpdateTrackAudioEvent> consumeContext)
         {
             var routingSlip = routingSlipBuilder
                 .Build(consumeContext.Message, consumeContext.CorrelationId)

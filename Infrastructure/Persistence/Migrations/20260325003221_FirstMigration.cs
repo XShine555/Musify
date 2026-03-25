@@ -41,6 +41,8 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     SmallPictureKeyName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     MediumPictureKeyName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     LargePictureKeyName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    OriginalAudioKeyName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    AudioFolderKeyName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },

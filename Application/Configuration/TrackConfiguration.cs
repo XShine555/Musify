@@ -19,16 +19,16 @@ namespace Musify.Application.Configuration
         public string ParentFolder { get; set; } = "Tracks";
 
         [Required]
-        public string OriginalPictures { get; set; } = "OriginalTracks";
+        public string OriginalPictures { get; set; } = "OriginalPictures";
 
         [Required]
-        public string SmallPictures { get; set; } = "SmallTracks";
+        public string SmallPictures { get; set; } = "SmallPictures";
 
         [Required]
-        public string MediumPictures { get; set; } = "MediumTracks";
+        public string MediumPictures { get; set; } = "MediumPictures";
 
         [Required]
-        public string LargePictures { get; set; } = "LargeTracks";
+        public string LargePictures { get; set; } = "LargePictures";
 
         [Required]
         public string PresetOriginalPicture { get; set; } = "PresetOriginalPicture.webp";
@@ -43,7 +43,10 @@ namespace Musify.Application.Configuration
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
 
         [Required]
-        public string Audios { get; set; } = "Audios";
+        public string OriginalAudios { get; set; } = "OriginalAudios";
+
+        [Required]
+        public string ProcessedAudio { get; set; } = "ProcessedAudios";
     }
 
     public class TrackPicturesSizes

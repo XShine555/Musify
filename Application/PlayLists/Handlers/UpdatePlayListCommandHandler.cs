@@ -52,17 +52,17 @@ namespace Musify.Application.PlayLists.Handlers
             }
 
             if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
-            {
-                await PublishRemoveFileEvent(playList.SmallPictureKeyName, cancellationToken);
-            }
+                await PublishRemoveFileEvent(Path.Combine(
+                    playListConfiguration.Routes.SmallPictures,
+                    playList.SmallPictureKeyName), cancellationToken);
             if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
-            {
-                await PublishRemoveFileEvent(playList.MediumPictureKeyName, cancellationToken);
-            }
+                await PublishRemoveFileEvent(Path.Combine(
+                    playListConfiguration.Routes.MediumPictures,
+                    playList.MediumPictureKeyName), cancellationToken);
             if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
-            {
-                await PublishRemoveFileEvent(playList.LargePictureKeyName, cancellationToken);
-            }
+                await PublishRemoveFileEvent(Path.Combine(
+                    playListConfiguration.Routes.LargePictures,
+                    playList.LargePictureKeyName), cancellationToken);
 
             var newImageId = Guid.NewGuid();
             var pictureName = newImageId + request.NewPicture.FileType;
@@ -99,7 +99,9 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 await eventBus.PublishAsync(new RemoveFileEvent(
                     storageConfiguration.BucketName,
-                    keyName), cancellationToken);
+                    Path.Combine(
+                        playListConfiguration.Routes.ParentFolders,
+                        keyName)), cancellationToken);
 
                 return Result.NoContent();
             }

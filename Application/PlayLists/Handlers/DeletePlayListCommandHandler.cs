@@ -31,24 +31,35 @@ namespace Musify.Application.PlayLists.Handlers
             var keysToRemove = new List<string>();
 
             if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
-            {
-                keysToRemove.Add(playList.SmallPictureKeyName);
-            }
+                keysToRemove.Add(Path.Combine(
+                    playListConfiguration.Routes.ParentFolders,
+                    playListConfiguration.Routes.SmallPictures,
+                    playList.SmallPictureKeyName));
             if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
-            {
-                keysToRemove.Add(playList.MediumPictureKeyName);
-            }
+                keysToRemove.Add(Path.Combine(
+                    playListConfiguration.Routes.ParentFolders,
+                    playListConfiguration.Routes.MediumPictures,
+                    playList.MediumPictureKeyName));
             if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
-            {
-                keysToRemove.Add(playList.LargePictureKeyName);
-            }
+                keysToRemove.Add(Path.Combine(
+                    playListConfiguration.Routes.ParentFolders,
+                    playListConfiguration.Routes.LargePictures,
+                    playList.LargePictureKeyName));
 
             foreach (var key in keysToRemove)
             {
                 var publishResult = await TryPublishRemoveFileEventAsync(playList.Id, key, cancellationToken);
 
-                if (!publishResult.IsSuccess && !publishResult.IsNotFound())
+                if (!publishResult.IsSuccess)
+                {
+                    if (publishResult.IsNotFound())
+                    {
+                        logger.LogWarning("File with key={KeyName} not found in storage while trying to publish remove file event for PlayList with id={PlayListId}.", key, playList.Id);
+                        continue;
+                    }
+
                     return publishResult;
+                }
             }
 
             database.PlayLists.Remove(playList);

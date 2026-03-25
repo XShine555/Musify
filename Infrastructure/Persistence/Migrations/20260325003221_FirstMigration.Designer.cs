@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Musify.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260324183733_FirstMigration")]
+    [Migration("20260325003221_FirstMigration")]
     partial class FirstMigration
     {
         /// <inheritdoc />
@@ -195,6 +195,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AudioFolderKeyName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -212,6 +217,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("OriginalAudioKeyName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("OriginalPictureKeyName")
                         .IsRequired()

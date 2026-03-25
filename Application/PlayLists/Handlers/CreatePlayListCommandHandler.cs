@@ -56,7 +56,10 @@ namespace Musify.Application.PlayLists.Handlers
         {
             var imageId = Guid.NewGuid();
             var pictureName = imageId + picture.FileType;
-            var pictureStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, pictureName);
+            var pictureStorageKey = Path.Join(
+                playListConfiguration.Routes.ParentFolders,
+                playListConfiguration.Routes.OriginalPictures,
+                pictureName);
 
             var uploadResult = await UploadFile(picture, pictureStorageKey, cancellationToken);
 
@@ -97,12 +100,15 @@ namespace Musify.Application.PlayLists.Handlers
         async Task PublishUpdateEvent(string originalPictureKeyName, PlayList playList, CancellationToken cancellationToken)
         {
             var smallPictureKeyName = Path.Combine(
+                playListConfiguration.Routes.ParentFolders,
                 playListConfiguration.Routes.SmallPictures,
                 $"{playList.Id}.{pictureHandler.FileExtension}");
             var mediumPictureKeyName = Path.Combine(
+                playListConfiguration.Routes.ParentFolders,
                 playListConfiguration.Routes.MediumPictures,
                 $"{playList.Id}.{pictureHandler.FileExtension}");
             var largePictureKeyName = Path.Combine(
+                playListConfiguration.Routes.ParentFolders,
                 playListConfiguration.Routes.LargePictures,
                 $"{playList.Id}.{pictureHandler.FileExtension}");
 

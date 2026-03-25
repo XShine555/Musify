@@ -33,6 +33,13 @@ namespace Musify.Domain.Entities
         public required string LargePictureKeyName { get; set; }
 
         [Required]
+        [MaxLength(64)]
+        public required string OriginalAudioKeyName { get; set; }
+
+        [MaxLength(64)]
+        public string AudioFolderKeyName { get; set; } = string.Empty;
+
+        [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [Required]

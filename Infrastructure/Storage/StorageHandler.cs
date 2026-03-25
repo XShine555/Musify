@@ -80,27 +80,28 @@ namespace Musify.Infrastructure.Storage
                 string fileName = Path.GetFileName(file);
                 string filePath = Path.Combine(sourceDirectory, file);
 
+                var keyName = Path.Combine(route, fileName);
                 var upload = new Upload
                 {
                     Id = Guid.NewGuid(),
                     BucketName = bucketName,
-                    KeyName = $"{route}/{fileName}",
+                    KeyName = keyName,
                     ContentType = "Application/Octet-Stream"
                 };
                 await database.Uploads.AddAsync(upload, cancellationToken);
 
                 try
                 {
-                    await trasnsferUtility.UploadAsync(filePath, bucketName, fileName, cancellationToken);
+                    await trasnsferUtility.UploadAsync(filePath, bucketName, keyName, cancellationToken);
                     upload.State = UploadState.Successful;
                     successCount++;
-                    logger.LogDebug("Transferred file to S3. Bucket: {BucketName}, Route: {Route}, File: {FileName}", bucketName, route, fileName);
+                    logger.LogDebug("Transferred file to S3. Bucket: {BucketName}, KeyName: {KeyName}", bucketName, keyName);
                 }
                 catch (Exception exception)
                 {
                     failedCount++;
                     upload.State = UploadState.Failed;
-                    logger.LogError(exception, "Failed to transfer file to S3. Bucket: {BucketName}, Route: {Route}, File: {FileName}", bucketName, route, fileName);
+                    logger.LogError(exception, "Failed to transfer file to S3. Bucket: {BucketName}, keyName: {keyName}", bucketName, keyName);
                 }
             }
 

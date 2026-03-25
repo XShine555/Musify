@@ -2,6 +2,8 @@ using MassTransit;
 using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.MassTransit.Activities.Audio;
+using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
@@ -11,7 +13,7 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
 {
     public class AudioWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfiguration)
     {
-        public RoutingSlipBuilder Build(TranscodeAudioFromTrackEvent message, Guid? correlationId)
+        public RoutingSlipBuilder Build(UpdateTrackAudioEvent message, Guid? correlationId) 
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
 
@@ -49,7 +51,14 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
                 new TransferFilesToBucketArguments(
                     message.DestinationBucketName,
                     RoutingSlipVariableNames.Audio.TranscodedDirectory,
-                    message.DestinationKeyName));
+                    message.DestinationFolderKeyName));
+
+            routingSlipBuilder.AddActivity(
+                ActivityNames.UpdateTrackAudio,
+                MessagingHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
+                new UpdateTrackAudioArguments(
+                    message.TrackId,
+                    message.DestinationFolderKeyName));
 
             return routingSlipBuilder;
         }

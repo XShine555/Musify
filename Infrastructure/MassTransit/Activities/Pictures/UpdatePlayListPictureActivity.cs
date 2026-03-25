@@ -51,10 +51,10 @@ namespace Musify.Infrastructure.Messaging.Activities
                     playList.MediumPictureKeyName,
                     playList.LargePictureKeyName);
 
-                playList.OriginalPictureKeyName = executeContext.Arguments.OriginalPictureKeyName;
-                playList.SmallPictureKeyName = executeContext.Arguments.SmallPictureKeyName;
-                playList.MediumPictureKeyName = executeContext.Arguments.MediumPictureKeyName;
-                playList.LargePictureKeyName = executeContext.Arguments.LargePictureKeyName;
+                playList.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKeyName);
+                playList.SmallPictureKeyName = Path.GetFileName(executeContext.Arguments.SmallPictureKeyName);
+                playList.MediumPictureKeyName = Path.GetFileName(executeContext.Arguments.MediumPictureKeyName);
+                playList.LargePictureKeyName = Path.GetFileName(executeContext.Arguments.LargePictureKeyName);
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(executeContext.CancellationToken);

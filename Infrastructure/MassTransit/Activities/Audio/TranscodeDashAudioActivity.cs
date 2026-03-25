@@ -39,21 +39,23 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             try
             {
-                await using var fileStream = File.OpenRead(sourceFilePath);
-
-                var result = await audioTranscoder.TranscodeToDashAsync(
-                    fileStream,
-                    workingDirectory,
-                    executeContext.CancellationToken);
-
-                if (!result.IsSuccess)
+                await using (var fileStream = File.OpenRead(sourceFilePath))
                 {
-                    var errorMessage = string.Join("; ", result.Errors);
-                    logger.LogError("Transcoding failed for file {SourceFilePath}. Errors: {ErrorMessage}",
-                        sourceFilePath, errorMessage);
-                    throw new Exception(errorMessage);
+                    var result = await audioTranscoder.TranscodeToDashAsync(
+                        fileStream,
+                        workingDirectory,
+                        executeContext.CancellationToken);
+
+                    if (!result.IsSuccess)
+                    {
+                        var errorMessage = string.Join("; ", result.Errors);
+                        logger.LogError("Transcoding failed for file {SourceFilePath}. Errors: {ErrorMessage}",
+                            sourceFilePath, errorMessage);
+                        throw new Exception(errorMessage);
+                    }
                 }
 
+                File.Delete(sourceFilePath);
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }

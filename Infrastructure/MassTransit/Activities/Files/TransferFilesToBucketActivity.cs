@@ -46,7 +46,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             try
             {
                 var uploadedKeys = Directory.GetFiles(folderPath)
-                    .Select(file => $"{destinationKeyName}/{Path.GetFileName(file) }")
+                    .Select(file => Path.Combine(destinationKeyName, Path.GetFileName(file)))
                     .ToArray();
 
                 var transferFilesResult = await storageHandler.TransferFilesAsync(

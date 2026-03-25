@@ -2,20 +2,21 @@
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
-using Musify.Infrastructure.Messaging.Activities.Arguments;
-using Musify.Infrastructure.Messaging.Activities.Logs;
+using Musify.Infrastructure.MassTransit.Arguments;
+using Musify.Infrastructure.MassTransit.Logs;
+using Musify.Infrastructure.Messaging.Activities;
 
-namespace Musify.Infrastructure.Messaging.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
-    public class UpdateTrackPictureActivity(
+    public class UpdateTrackAudioActivity(
         IDatabase database,
-        ILogger<UpdateTrackPictureActivity> logger,
+        ILogger<TranscodeDashAudioActivity> logger,
         IProcessTrackingStore processTrackingStore)
-        : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>
+        : IActivity<UpdateTrackAudioArguments, UpdateTrackAudioLog>
     {
-        public const string ExecuteEndpointName = "update-track-picture";
+        public const string ExecuteEndpointName = "update-track-audio";
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackPictureArguments> executeContext)
+        public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackAudioArguments> executeContext)
         {
             var processId = await processTrackingStore.GetOrCreateProcessAsync(
                 "RoutingSlip",
@@ -26,7 +27,7 @@ namespace Musify.Infrastructure.Messaging.Activities
 
             var stepId = await processTrackingStore.StartStepAsync(
                 processId,
-                nameof(UpdateTrackPictureActivity),
+                nameof(UpdateTrackAudioActivity),
                 ProcessStepComponentType.Activity,
                 0,
                 executeContext.CancellationToken);
@@ -44,22 +45,16 @@ namespace Musify.Infrastructure.Messaging.Activities
                     throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
                 }
 
-                var log = new UpdateTrackPictureLog(
+                var log = new UpdateTrackAudioLog(
                     track.Id,
-                    track.OriginalPictureKeyName,
-                    track.SmallPictureKeyName,
-                    track.MediumPictureKeyName,
-                    track.LargePictureKeyName);
+                    track.AudioFolderKeyName);
 
-                track.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKeyName);
-                track.SmallPictureKeyName = Path.GetFileName(executeContext.Arguments.SmallPictureKeyName);
-                track.MediumPictureKeyName = Path.GetFileName(executeContext.Arguments.MediumPictureKeyName);
-                track.LargePictureKeyName = Path.GetFileName(executeContext.Arguments.LargePictureKeyName);
+                track.AudioFolderKeyName = Path.GetFileName(executeContext.Arguments.AudioFolderKeyName);
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated Track {TrackId} pictures",
+                logger.LogInformation("Updated Track {TrackId} audio",
                     executeContext.Arguments.TrackId);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
@@ -67,14 +62,14 @@ namespace Musify.Infrastructure.Messaging.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error updating Track {TrackId} pictures",
+                logger.LogError(exception, "Error updating Track {TrackId} audio",
                     executeContext.Arguments.TrackId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }
 
-        public async Task<CompensationResult> Compensate(CompensateContext<UpdateTrackPictureLog> compensateContext)
+        public async Task<CompensationResult> Compensate(CompensateContext<UpdateTrackAudioLog> compensateContext)
         {
             try
             {
@@ -87,10 +82,7 @@ namespace Musify.Infrastructure.Messaging.Activities
                     return compensateContext.Compensated();
                 }
 
-                track.OriginalPictureKeyName = compensateContext.Log.PreviousOriginalPictureKeyName;
-                track.SmallPictureKeyName = compensateContext.Log.PreviousSmallPictureKeyName;
-                track.MediumPictureKeyName = compensateContext.Log.PreviousMediumPictureKeyName;
-                track.LargePictureKeyName = compensateContext.Log.PreviousLargePictureKeyName;
+                track.AudioFolderKeyName = compensateContext.Log.PreviousFolderAudioKeyName;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
@@ -99,7 +91,7 @@ namespace Musify.Infrastructure.Messaging.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating Track {TrackId} pictures", compensateContext.Log.TrackId);
+                logger.LogError(exception, "Error compensating Track {TrackId} audio", compensateContext.Log.TrackId);
                 return compensateContext.Failed(exception);
             }
         }

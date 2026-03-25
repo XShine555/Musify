@@ -38,9 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="MassTransit\Activities\Audio\" />
     <Folder Include="MassTransit\Activities\Pictures\" />
-    <Folder Include="MassTransit\Logs\" />
     <Folder Include="MassTransit\RoutingSlip\Variables\" />
     <Folder Include="MassTransit\Filters\" />
     <Folder Include="MassTransit\EventBus\" />

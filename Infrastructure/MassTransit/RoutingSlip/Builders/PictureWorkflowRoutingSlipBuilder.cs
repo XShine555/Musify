@@ -131,11 +131,6 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
                 largePictureHeight);
 
             routingSlipBuilder.AddActivity(
-                ActivityNames.DeleteOriginal,
-                MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                new RemoveFileFromBucketArguments(sourceBucketName, sourceKeyName));
-
-            routingSlipBuilder.AddActivity(
                 ActivityNames.UploadFiles,
                 MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(

@@ -25,17 +25,23 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User with id {request.UserId} not found");
             }
 
-            var originalPictureKeyName = Path.Combine(trackConfiguration.Routes.OriginalPictures, Guid.NewGuid() + request.Picture.FileType);
+            var originalPictureFileName = Guid.NewGuid() + request.Picture.FileType;
+            var originalAudioFileName = Guid.NewGuid() + request.Audio.FileType;
             var track = new Track
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.Trim().ToUpperInvariant(),
-                OriginalPictureKeyName = originalPictureKeyName,
+                OriginalPictureKeyName = originalPictureFileName,
+                OriginalAudioKeyName = originalAudioFileName,
                 SmallPictureKeyName = trackConfiguration.Routes.PresetSmallPicture,
                 MediumPictureKeyName = trackConfiguration.Routes.PresetMediumPicture,
                 LargePictureKeyName = trackConfiguration.Routes.PresetLargePicture,
             };
 
+            var originalPictureKeyName = Path.Combine(
+                trackConfiguration.Routes.ParentFolder,
+                trackConfiguration.Routes.OriginalPictures,
+                originalPictureFileName);
             var pictureUploadResult = await UploadFile(request.Picture, originalPictureKeyName, cancellationToken);
             if (!pictureUploadResult.IsSuccess)
             {
@@ -44,7 +50,10 @@ namespace Musify.Application.Tracks.Handler
             }
 
 
-            var audioKeyName = Path.Combine(trackConfiguration.Routes.Audios, Guid.NewGuid() + request.Audio.FileType);
+            var audioKeyName = Path.Combine(
+                trackConfiguration.Routes.ParentFolder,
+                trackConfiguration.Routes.OriginalAudios,
+                Guid.NewGuid() + request.Audio.FileType);
             var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
             if (!audioUploadResult.IsSuccess)
             {
@@ -93,12 +102,15 @@ namespace Musify.Application.Tracks.Handler
         async Task PublishUpdateEvent(string originalPictureKeyName, Track track, CancellationToken cancellationToken)
         {
             var smallPictureKeyName = Path.Combine(
+                trackConfiguration.Routes.ParentFolder,
                 trackConfiguration.Routes.SmallPictures,
                 $"{track.Id}.{pictureHandler.FileExtension}");
             var mediumPictureKeyName = Path.Combine(
+                trackConfiguration.Routes.ParentFolder,
                 trackConfiguration.Routes.MediumPictures,
                 $"{track.Id}.{pictureHandler.FileExtension}");
             var largePictureKeyName = Path.Combine(
+                trackConfiguration.Routes.ParentFolder,
                 trackConfiguration.Routes.LargePictures,
                 $"{track.Id}.{pictureHandler.FileExtension}");
 
@@ -119,15 +131,17 @@ namespace Musify.Application.Tracks.Handler
 
         async Task PublishTranscodeEvent(Guid trackId, string audioKeyName, CancellationToken cancellationToken)
         {
-            var destinationAudioKeyName = Path.Combine(
-                trackConfiguration.Routes.Audios,
-                trackId.ToString());
+            var destinationFolderAudio = Path.Combine(
+                trackConfiguration.Routes.ParentFolder,
+                trackConfiguration.Routes.ProcessedAudio,
+                Guid.NewGuid().ToString());
 
-            await eventBus.PublishAsync(new TranscodeAudioFromTrackEvent(
+            await eventBus.PublishAsync(new UpdateTrackAudioEvent(
+                trackId,
                 storageConfiguration.BucketName,
                 audioKeyName,
                 storageConfiguration.BucketName,
-                destinationAudioKeyName), cancellationToken);
+                destinationFolderAudio), cancellationToken);
         }
     }
 }

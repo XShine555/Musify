@@ -1,7 +1,10 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.MassTransit.Activities.Audio;
+using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
+using Musify.Infrastructure.MassTransit.Logs;
 using Musify.Infrastructure.Messaging.Activities;
 using Musify.Infrastructure.Messaging.Activities.Arguments;
 using Musify.Infrastructure.Messaging.Activities.Logs;
@@ -36,9 +39,9 @@ namespace Musify.Infrastructure.Messaging
             {
                 options.AddConsumer<UpdatePlayListPictureConsumer>();
                 options.AddConsumer<RemoveFileConsumer>();
-                options.AddConsumer<TranscodeAudioFromTrackConsumer>();
                 options.AddConsumer<UpdateTrackPictureConsumer>();
                 options.AddConsumer<RoutingSlipCleanUpConsumer>();
+                options.AddConsumer<UpdateTrackAudioConsumer>();
 
                 options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
                 options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
@@ -50,6 +53,7 @@ namespace Musify.Infrastructure.Messaging
                 options.AddActivity<DownloadFileFromBucketActivity, DownloadFileFromBucketArguments, DownloadFileFromBucketLog>();
                 options.AddActivity<TranscodeDashAudioActivity, TranscodeDashAudioArguments, TranscodeDashAudioLog>();
                 options.AddActivity<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
+                options.AddActivity<UpdateTrackAudioActivity, UpdateTrackAudioArguments, UpdateTrackAudioLog>();
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -69,9 +73,9 @@ namespace Musify.Infrastructure.Messaging
                         endpointConfigurator.ConfigureConsumer<RemoveFileConsumer>(busRegistrationContext);
                     } );
 
-                    busFactoryConfigurator.ReceiveEndpoint(TranscodeAudioFromTrackConsumer.QueueName, endpointConfigurator =>
+                    busFactoryConfigurator.ReceiveEndpoint(UpdateTrackAudioConsumer.QueueName, endpointConfigurator =>
                     {
-                        endpointConfigurator.ConfigureConsumer<TranscodeAudioFromTrackConsumer>(busRegistrationContext);
+                        endpointConfigurator.ConfigureConsumer<UpdateTrackAudioConsumer>(busRegistrationContext);
                     } );
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackPictureConsumer.QueueName, endpointConfigurator =>

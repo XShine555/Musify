@@ -14,5 +14,6 @@ namespace Musify.Infrastructure.Messaging.RoutingSlip
         internal const string DeleteOriginal = "DeleteOriginal";
         internal const string UpdateTrackPicture = "UpdateTrackPicture";
         internal const string UpdatePlayListPicture = "UpdatePlayListPicture";
+        internal const string UpdateTrackAudio = "UpdateTrackAudio";
     }
 }
