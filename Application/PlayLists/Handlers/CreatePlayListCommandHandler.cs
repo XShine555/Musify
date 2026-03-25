@@ -56,9 +56,7 @@ namespace Musify.Application.PlayLists.Handlers
         {
             var imageId = Guid.NewGuid();
             var pictureName = imageId + picture.FileType;
-            var pictureStorageKey = Path.Join(
-                playListConfiguration.Routes.ParentFolders,
-                playListConfiguration.Routes.OriginalPictures,
+            var pictureStorageKey = Path.Join(playListConfiguration.Routes.OriginalPicturesPath,
                 pictureName);
 
             var uploadResult = await UploadFile(picture, pictureStorageKey, cancellationToken);
@@ -99,18 +97,12 @@ namespace Musify.Application.PlayLists.Handlers
 
         async Task PublishUpdateEvent(string originalPictureKeyName, PlayList playList, CancellationToken cancellationToken)
         {
-            var smallPictureKeyName = Path.Combine(
-                playListConfiguration.Routes.ParentFolders,
-                playListConfiguration.Routes.SmallPictures,
-                $"{playList.Id}.{pictureHandler.FileExtension}");
-            var mediumPictureKeyName = Path.Combine(
-                playListConfiguration.Routes.ParentFolders,
-                playListConfiguration.Routes.MediumPictures,
-                $"{playList.Id}.{pictureHandler.FileExtension}");
-            var largePictureKeyName = Path.Combine(
-                playListConfiguration.Routes.ParentFolders,
-                playListConfiguration.Routes.LargePictures,
-                $"{playList.Id}.{pictureHandler.FileExtension}");
+            var smallPictureKeyName = Path.Combine(playListConfiguration.Routes.SmallPicturesPath,
+                Guid.NewGuid() + pictureHandler.FileExtension);
+            var mediumPictureKeyName = Path.Combine(playListConfiguration.Routes.MediumPicturesPath,
+                Guid.NewGuid() + pictureHandler.FileExtension);
+            var largePictureKeyName = Path.Combine(playListConfiguration.Routes.LargePicturesPath,
+                Guid.NewGuid() + pictureHandler.FileExtension);
 
             await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                 playList.Id,

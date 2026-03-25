@@ -36,7 +36,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 var sourceFileExtension = Path.GetExtension(originalFileName);
                 var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, destinationFolderName);
 
-
                 var sourceFileName = Guid.NewGuid().ToString() + sourceFileExtension;
                 var smallPictureFileName = Guid.NewGuid().ToString() + sourceFileExtension;
                 var mediumPictureFileName = Guid.NewGuid().ToString() + sourceFileExtension;

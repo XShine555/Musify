@@ -31,19 +31,13 @@ namespace Musify.Application.PlayLists.Handlers
             var keysToRemove = new List<string>();
 
             if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
-                keysToRemove.Add(Path.Combine(
-                    playListConfiguration.Routes.ParentFolders,
-                    playListConfiguration.Routes.SmallPictures,
+                keysToRemove.Add(Path.Combine(playListConfiguration.Routes.SmallPicturesPath,
                     playList.SmallPictureKeyName));
             if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
-                keysToRemove.Add(Path.Combine(
-                    playListConfiguration.Routes.ParentFolders,
-                    playListConfiguration.Routes.MediumPictures,
+                keysToRemove.Add(Path.Combine(playListConfiguration.Routes.MediumPicturesPath,
                     playList.MediumPictureKeyName));
             if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
-                keysToRemove.Add(Path.Combine(
-                    playListConfiguration.Routes.ParentFolders,
-                    playListConfiguration.Routes.LargePictures,
+                keysToRemove.Add(Path.Combine(playListConfiguration.Routes.LargePicturesPath,
                     playList.LargePictureKeyName));
 
             foreach (var key in keysToRemove)

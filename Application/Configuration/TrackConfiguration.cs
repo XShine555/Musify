@@ -19,16 +19,16 @@ namespace Musify.Application.Configuration
         public string ParentFolder { get; set; } = "Tracks";
 
         [Required]
-        public string OriginalPictures { get; set; } = "OriginalPictures";
+        public string OriginalPicturesFolder { get; set; } = "OriginalPictures";
 
         [Required]
-        public string SmallPictures { get; set; } = "SmallPictures";
+        public string SmallPicturesFolder { get; set; } = "SmallPictures";
 
         [Required]
-        public string MediumPictures { get; set; } = "MediumPictures";
+        public string MediumPicturesFolder { get; set; } = "MediumPictures";
 
         [Required]
-        public string LargePictures { get; set; } = "LargePictures";
+        public string LargePicturesFolder { get; set; } = "LargePictures";
 
         [Required]
         public string PresetOriginalPicture { get; set; } = "PresetOriginalPicture.webp";
@@ -43,10 +43,28 @@ namespace Musify.Application.Configuration
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
 
         [Required]
-        public string OriginalAudios { get; set; } = "OriginalAudios";
+        public string OriginalAudiosFolder { get; set; } = "OriginalAudios";
 
         [Required]
-        public string ProcessedAudio { get; set; } = "ProcessedAudios";
+        public string ProcessedAudioFolder { get; set; } = "ProcessedAudios";
+
+        public string SmallPicturesPath => Path.Combine(ParentFolder, SmallPicturesFolder);
+
+        public string MediumPicturesPath => Path.Combine(ParentFolder, MediumPicturesFolder);
+
+        public string LargePicturesPath => Path.Combine(ParentFolder, LargePicturesFolder);
+
+        public string PresetSmallPicturePath => Path.Combine(ParentFolder, PresetSmallPicture);
+
+        public string PresetMediumPicturePath => Path.Combine(ParentFolder, PresetMediumPicture);
+
+        public string PresetLargePicturePath => Path.Combine(ParentFolder, PresetLargePicture);
+
+        public string OriginalPicturesPath => Path.Combine(ParentFolder, OriginalPicturesFolder);
+
+        public string OriginalAudiosPath => Path.Combine(ParentFolder, OriginalAudiosFolder);
+
+        public string ProcessedAudiosPath => Path.Combine(ParentFolder, ProcessedAudioFolder);
     }
 
     public class TrackPicturesSizes

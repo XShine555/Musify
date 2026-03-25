@@ -53,20 +53,23 @@ namespace Musify.Application.PlayLists.Handlers
 
             if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
                 await PublishRemoveFileEvent(Path.Combine(
-                    playListConfiguration.Routes.SmallPictures,
-                    playList.SmallPictureKeyName), cancellationToken);
+                    playListConfiguration.Routes.SmallPicturesPath,
+                    playList.SmallPictureKeyName),
+                    cancellationToken);
             if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
                 await PublishRemoveFileEvent(Path.Combine(
-                    playListConfiguration.Routes.MediumPictures,
-                    playList.MediumPictureKeyName), cancellationToken);
+                    playListConfiguration.Routes.MediumPicturesPath,
+                    playList.MediumPictureKeyName),
+                    cancellationToken);
             if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
                 await PublishRemoveFileEvent(Path.Combine(
-                    playListConfiguration.Routes.LargePictures,
-                    playList.LargePictureKeyName), cancellationToken);
+                    playListConfiguration.Routes.LargePicturesPath,
+                    playList.LargePictureKeyName),
+                    cancellationToken);
 
             var newImageId = Guid.NewGuid();
             var pictureName = newImageId + request.NewPicture.FileType;
-            var newImageStorageKey = Path.Join(playListConfiguration.Routes.OriginalPictures, pictureName);
+            var newImageStorageKey = Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, pictureName);
 
             var uploadResult = await UploadFile(request.NewPicture, newImageStorageKey, cancellationToken);
             if (!uploadResult.IsSuccess)
@@ -127,14 +130,14 @@ namespace Musify.Application.PlayLists.Handlers
         async Task PublishUpdateEvent(string originalPictureKeyName, PlayList playList, CancellationToken cancellationToken)
         {
             var smallPictureKeyName = Path.Combine(
-                playListConfiguration.Routes.SmallPictures,
-                $"{playList.Id}.{pictureHandler.FileExtension}");
+                playListConfiguration.Routes.SmallPicturesPath,
+                Guid.NewGuid() + pictureHandler.FileExtension);
             var mediumPictureKeyName = Path.Combine(
-                playListConfiguration.Routes.MediumPictures,
-                $"{playList.Id}.{pictureHandler.FileExtension}");
+                playListConfiguration.Routes.MediumPicturesPath,
+                Guid.NewGuid() + pictureHandler.FileExtension);
             var largePictureKeyName = Path.Combine(
-                playListConfiguration.Routes.LargePictures,
-                $"{playList.Id}.{pictureHandler.FileExtension}");
+                playListConfiguration.Routes.LargePicturesPath,
+                Guid.NewGuid() + pictureHandler.FileExtension);
 
             await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                 playList.Id,

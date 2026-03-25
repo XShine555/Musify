@@ -19,16 +19,16 @@ namespace Musify.Application.Configuration
         public string ParentFolders { get; set; } = "PlayLists";
 
         [Required]
-        public string OriginalPictures { get; set; } = "OriginalPictures";
+        public string OriginalPicturesFolder { get; set; } = "OriginalPictures";
 
         [Required]
-        public string SmallPictures { get; set; } = "SmallPictures";
+        public string SmallPicturesFolder { get; set; } = "SmallPictures";
 
         [Required]
-        public string MediumPictures { get; set; } = "MediumPictures";
+        public string MediumPicturesFolder { get; set; } = "MediumPictures";
 
         [Required]
-        public string LargePictures { get; set; } = "LargePictures";
+        public string LargePicturesFolder { get; set; } = "LargePictures";
 
         [Required]
         public string PresetOriginalPicture { get; set; } = "PresetOriginalPicture.webp";
@@ -41,6 +41,20 @@ namespace Musify.Application.Configuration
 
         [Required]
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
+
+        public string SmallPicturesPath => Path.Combine(ParentFolders, SmallPicturesFolder);
+
+        public string MediumPicturesPath => Path.Combine(ParentFolders, MediumPicturesFolder);
+
+        public string LargePicturesPath => Path.Combine(ParentFolders, LargePicturesFolder);
+
+        public string PresetSmallPicturePath => Path.Combine(ParentFolders, PresetSmallPicture);
+
+        public string PresetMediumPicturePath => Path.Combine(ParentFolders, PresetMediumPicture);
+
+        public string PresetLargePicturePath => Path.Combine(ParentFolders, PresetLargePicture);
+
+        public string OriginalPicturesPath => Path.Combine(ParentFolders, OriginalPicturesFolder);
     }
 
     public class PlayListPicturesSizes
