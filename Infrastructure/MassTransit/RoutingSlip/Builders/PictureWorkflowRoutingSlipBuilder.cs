@@ -3,11 +3,10 @@ using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Consumers;
-using Musify.Infrastructure.Messaging.Activities;
-using Musify.Infrastructure.Messaging.Activities.Arguments;
-using Musify.Infrastructure.Messaging.Consumers;
+using Musify.Infrastructure.MassTransit.Activities;
+using Musify.Infrastructure.MassTransit.Activities.Arguments;
 
-namespace Musify.Infrastructure.Messaging.RoutingSlip.Builders
+namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
     public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfiguration)
     {

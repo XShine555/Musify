@@ -1,6 +1,6 @@
 ﻿using MassTransit;
 using Musify.Application.Events;
-using Musify.Infrastructure.Messaging.RoutingSlip.Builders;
+using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
 namespace Musify.Infrastructure.MassTransit.Consumers
 {

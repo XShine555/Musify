@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using Musify.Application.Contracts.Infrastructure;
 
-namespace Musify.Infrastructure.Messaging
+namespace Musify.Infrastructure.MassTransit
 {
     public class MassTransitEventBus(IPublishEndpoint publishEndpoint)
         : IEventBus

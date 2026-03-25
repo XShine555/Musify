@@ -4,7 +4,7 @@ using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.Audio;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Identity;
-using Musify.Infrastructure.Messaging;
+using Musify.Infrastructure.MassTransit;
 using Musify.Infrastructure.Observability;
 using Musify.Infrastructure.Persistence;
 using Musify.Infrastructure.Pictures;

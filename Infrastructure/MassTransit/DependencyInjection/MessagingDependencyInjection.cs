@@ -5,14 +5,13 @@ using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.MassTransit.Logs;
-using Musify.Infrastructure.Messaging.Activities;
-using Musify.Infrastructure.Messaging.Activities.Arguments;
-using Musify.Infrastructure.Messaging.Activities.Logs;
-using Musify.Infrastructure.Messaging.Consumers;
-using Musify.Infrastructure.Messaging.Filters;
-using Musify.Infrastructure.Messaging.RoutingSlip.Builders;
+using Musify.Infrastructure.MassTransit.Activities;
+using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using Musify.Infrastructure.MassTransit.Activities.Logs;
+using Musify.Infrastructure.MassTransit.Filters;
+using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
-namespace Musify.Infrastructure.Messaging
+namespace Musify.Infrastructure.MassTransit
 {
     public static class MessagingDependencyInjection
     {

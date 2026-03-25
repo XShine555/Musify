@@ -2,7 +2,7 @@ using MassTransit;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 
-namespace Musify.Infrastructure.Messaging.Filters
+namespace Musify.Infrastructure.MassTransit.Filters
 {
     public class ProcessTrackingConsumeFilter<TMessage>(IProcessTrackingStore processTrackingStore)
         : IFilter<ConsumeContext<TMessage>>

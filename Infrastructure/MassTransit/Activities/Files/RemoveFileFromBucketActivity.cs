@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
-using Musify.Infrastructure.Messaging.Activities.Arguments;
+using Musify.Infrastructure.MassTransit.Activities.Arguments;
 
-namespace Musify.Infrastructure.Messaging.Activities
+namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class RemoveFileFromBucketActivity(
         IStorageHandler storageHandler,

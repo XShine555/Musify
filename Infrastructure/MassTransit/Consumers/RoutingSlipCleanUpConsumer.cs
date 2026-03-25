@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using MassTransit.Courier.Contracts;
 using Microsoft.Extensions.Logging;
-using Musify.Infrastructure.Messaging;
+using Musify.Infrastructure.MassTransit;
 
 namespace Musify.Infrastructure.MassTransit.Consumers
 {

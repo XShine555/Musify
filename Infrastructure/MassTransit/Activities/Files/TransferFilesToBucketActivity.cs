@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
-using Musify.Infrastructure.Messaging.Activities.Arguments;
-using Musify.Infrastructure.Messaging.Activities.Logs;
+using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using Musify.Infrastructure.MassTransit.Activities.Logs;
 
-namespace Musify.Infrastructure.Messaging.Activities
+namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class TransferFilesToBucketActivity(
         IStorageHandler storageHandler,

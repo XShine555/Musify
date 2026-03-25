@@ -1,4 +1,4 @@
-namespace Musify.Infrastructure.Messaging.Consumers
+namespace Musify.Infrastructure.MassTransit.Consumers
 {
     internal static class MessagingHelper
     {

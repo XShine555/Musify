@@ -1,4 +1,4 @@
-namespace Musify.Infrastructure.Messaging.RoutingSlip
+namespace Musify.Infrastructure.MassTransit.RoutingSlip
 {
     internal static class ActivityNames
     {
