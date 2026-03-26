@@ -30,9 +30,13 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                 0,
                 executeContext.CancellationToken);
 
+            var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariableName);
+            if (string.IsNullOrEmpty(sourceFilePath))
+                throw new InvalidOperationException($"Upload activity requires variable '{executeContext.Arguments.FilePathVariableName}' with source file path.");
+
             try
             {
-                using var fileStream = File.OpenRead(executeContext.Arguments.SourceFilePath);
+                using var fileStream = File.OpenRead(sourceFilePath);
 
                 var uploadResult = await storageHandler.UploadFileAsync(
                     fileStream,

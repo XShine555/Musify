@@ -1,7 +1,7 @@
 ﻿namespace Musify.Infrastructure.MassTransit.Arguments
 {
     public record UploadFileToBucketArguments(
-        string SourceFilePath,
+        string FilePathVariableName,
         string ContentType,
         string DestinationBucketName,
         string DestinationKeyName);
