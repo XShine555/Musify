@@ -10,6 +10,7 @@ using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 using Musify.Infrastructure.MassTransit.Filters;
 using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
+using Musify.Infrastructure.MassTransit.Activities.Files;
 
 namespace Musify.Infrastructure.MassTransit
 {
@@ -53,6 +54,7 @@ namespace Musify.Infrastructure.MassTransit
                 options.AddActivity<TranscodeDashAudioActivity, TranscodeDashAudioArguments, TranscodeDashAudioLog>();
                 options.AddActivity<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
                 options.AddActivity<UpdateTrackAudioActivity, UpdateTrackAudioArguments, UpdateTrackAudioLog>();
+                options.AddActivity<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>();
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -131,6 +133,16 @@ namespace Musify.Infrastructure.MassTransit
                         busFactoryConfigurator,
                         busRegistrationContext,
                         TransferFilesToBucketActivity.ExecuteEndpointName);
+
+                    ConfigureActivityEndpoint<UpdateTrackAudioActivity, UpdateTrackAudioArguments, UpdateTrackAudioLog>(
+                        busFactoryConfigurator,
+                        busRegistrationContext,
+                        UpdateTrackAudioActivity.ExecuteEndpointName);
+
+                    ConfigureActivityEndpoint<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>(
+                        busFactoryConfigurator,
+                        busRegistrationContext,
+                        UploadFileToBucketActivity.ExecuteEndpointName);
                 } );
             } );
 

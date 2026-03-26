@@ -65,7 +65,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
-                return executeContext.Completed();
+                return executeContext.Completed(new DownloadFileFromBucketLog(
+                    executeContext.Arguments.BucketName,
+                    executeContext.Arguments.KeyName,
+                    destinationPath));
             }
             catch (Exception exception)
             {
