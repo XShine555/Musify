@@ -19,19 +19,19 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
             routingSlipBuilder.AddSubscription(
-                MessagingHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
+                EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
                 RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.GenerateAudioWorkflowPaths,
-                MessagingHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
+                EndpointHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
                 new GenerateAudioWorkflowPathsArguments(
                     workerConfiguration.Routes.TemporaryFilesDirectory,
                     message.SourceKeyName));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DownloadFile,
-                MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
+                EndpointHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
                 new DownloadFileFromBucketArguments(
                     message.SourceBucketName,
                     message.SourceKeyName,
@@ -39,14 +39,14 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.TranscodeAudio,
-                MessagingHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
+                EndpointHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
                 new TranscodeDashAudioArguments(
                     RoutingSlipVariableNames.Audio.SourceFilePath,
                     RoutingSlipVariableNames.Workflow.TemporalDirectory));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.TransferFiles,
-                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
+                EndpointHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     message.DestinationBucketName,
                     RoutingSlipVariableNames.Audio.TranscodedDirectory,
@@ -54,7 +54,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UpdateTrackAudio,
-                MessagingHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
+                EndpointHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
                 new UpdateTrackAudioArguments(
                     message.TrackId,
                     message.DestinationFolderKeyName));

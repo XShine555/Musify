@@ -43,7 +43,6 @@
     <Folder Include="MassTransit\RoutingSlip\Variables\" />
     <Folder Include="MassTransit\Filters\" />
     <Folder Include="MassTransit\EventBus\" />
-    <Folder Include="MassTransit\DependencyInjection\" />
   </ItemGroup>
 
 </Project>

@@ -16,12 +16,12 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
             routingSlipBuilder.AddSubscription(
-                MessagingHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
+                EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
                 RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.RemoveFile,
-                MessagingHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new RemoveFileFromBucketArguments(
                     message.BucketName,
                     message.KeyName));

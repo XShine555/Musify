@@ -14,7 +14,7 @@ using Musify.Infrastructure.MassTransit.Activities.Files;
 
 namespace Musify.Infrastructure.MassTransit
 {
-    public static class MessagingDependencyInjection
+    public static class MassTransitDependencyInjection
     {
         public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors)
         {
@@ -183,7 +183,7 @@ namespace Musify.Infrastructure.MassTransit
         {
             busFactoryConfigurator.ReceiveEndpoint($"{endpointName}_execute", endpointConfigurator =>
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(
-                    MessagingHelper.BuildCompensateActivityUri(endpointName),
+                    EndpointHelper.BuildCompensateActivityUri(endpointName),
                     busRegistrationContext)
             );
 

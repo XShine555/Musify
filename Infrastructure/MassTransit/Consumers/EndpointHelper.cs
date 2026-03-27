@@ -1,6 +1,6 @@
 namespace Musify.Infrastructure.MassTransit.Consumers
 {
-    internal static class MessagingHelper
+    internal static class EndpointHelper
     {
         internal static Uri BuildExecuteActivityUri(string endpointName) => new($"queue:{endpointName}_execute");
 
