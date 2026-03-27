@@ -9,6 +9,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
         internal const string ResizeSmall = "ResizeSmall";
         internal const string ResizeMedium = "ResizeMedium";
         internal const string ResizeLarge = "ResizeLarge";
+        internal const string TransferFiles = "TransferFiles";
         internal const string UploadFiles = "UploadFiles";
         internal const string RemoveFile = "RemoveFile";
         internal const string DeleteOriginal = "DeleteOriginal";

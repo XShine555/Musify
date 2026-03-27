@@ -45,7 +45,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                     RoutingSlipVariableNames.Workflow.TemporalDirectory));
 
             routingSlipBuilder.AddActivity(
-                ActivityNames.UploadFiles,
+                ActivityNames.TransferFiles,
                 MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
                     message.DestinationBucketName,

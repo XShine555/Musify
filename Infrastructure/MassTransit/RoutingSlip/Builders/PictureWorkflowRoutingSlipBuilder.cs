@@ -129,14 +129,6 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 largePictureWidth,
                 largePictureHeight);
 
-            routingSlipBuilder.AddActivity(
-                ActivityNames.UploadFiles,
-                MessagingHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
-                new TransferFilesToBucketArguments(
-                    sourceBucketName,
-                    RoutingSlipVariableNames.Workflow.TemporalDirectory,
-                    DestinationKeyNameVariableName: RoutingSlipVariableNames.Picture.DestinationFolderName));
-
             return routingSlipBuilder;
         }
 
