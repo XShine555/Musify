@@ -4,7 +4,6 @@ using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
-using Musify.Infrastructure.MassTransit.Activities;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {

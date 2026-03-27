@@ -32,10 +32,9 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 executeContext.CancellationToken);
 
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariableName);
+            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var workingDirectory = executeContext.GetVariable<string>(executeContext.Arguments.WorkingDirectoryVariableName);
-
-            if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(workingDirectory))
-                throw new InvalidOperationException("Transcode activity requires source file path and working directory variables.");
+            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
 
             try
             {

@@ -31,6 +31,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 0,
                 executeContext.CancellationToken);
 
+            var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariableName);
+            ArgumentNullException.ThrowIfNull(smallResizedVariable, nameof(smallResizedVariable));
+            var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariableName);
+            ArgumentNullException.ThrowIfNull(mediumResizedVariable, nameof(mediumResizedVariable));
+            var largeResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.LargePictureVariableName);
+            ArgumentNullException.ThrowIfNull(largeResizedVariable, nameof(largeResizedVariable));
+
             try
             {
                 var playList = await database.PlayLists.FindAsync(
@@ -52,9 +59,9 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     playList.LargePictureKeyName);
 
                 playList.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKeyName);
-                playList.SmallPictureKeyName = Path.GetFileName(executeContext.Arguments.SmallPictureKeyName);
-                playList.MediumPictureKeyName = Path.GetFileName(executeContext.Arguments.MediumPictureKeyName);
-                playList.LargePictureKeyName = Path.GetFileName(executeContext.Arguments.LargePictureKeyName);
+                playList.SmallPictureKeyName = Path.GetFileName(smallResizedVariable);
+                playList.MediumPictureKeyName = Path.GetFileName(mediumResizedVariable);
+                playList.LargePictureKeyName = Path.GetFileName(largeResizedVariable);
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(executeContext.CancellationToken);

@@ -32,9 +32,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 executeContext.CancellationToken);
 
             var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariableName);
-            if (string.IsNullOrWhiteSpace(destinationPath))
-                throw new InvalidOperationException(
-                    $"Download activity requires variable '{executeContext.Arguments.DestinationFilePathVariableName}' with destination file path.");
+            ArgumentNullException.ThrowIfNull(destinationPath, nameof(destinationPath));
 
             try
             {

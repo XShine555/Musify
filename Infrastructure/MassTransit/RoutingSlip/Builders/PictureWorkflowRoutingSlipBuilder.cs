@@ -1,6 +1,5 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
-using MimeMapping;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Activities;
@@ -29,19 +28,15 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 message.LargePictureHeight,
                 correlationId);
 
-            routingSlipBuilder.AddSubscription(
-                MessagingHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
-                RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
-
             routingSlipBuilder.AddActivity(
                 ActivityNames.UpdateTrackPicture,
                 MessagingHelper.BuildExecuteActivityUri(UpdateTrackPictureActivity.ExecuteEndpointName),
                 new UpdateTrackPictureArguments(
                     message.TrackId,
                     message.SourceKeyName,
-                    message.SmallPictureRoute,
-                    message.MediumPictureRoute,
-                    message.LargePictureRoute));
+                    RoutingSlipVariableNames.Picture.SmallResizedFilePath,
+                    RoutingSlipVariableNames.Picture.MediumResizedFilePath,
+                    RoutingSlipVariableNames.Picture.LargeResizedFilePath));
 
             return routingSlipBuilder;
         }
@@ -51,13 +46,13 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             var routingSlipBuilder = BuildPictureWorkflow(
                 message.SourceBucketName,
                 message.SourceKeyName,
-                message.SmallPictureKeyName,
+                message.SmallPictureRoute,
                 message.SmallPictureWidth,
                 message.SmallPictureHeight,
-                message.MediumPictureKeyName,
+                message.MediumPictureRoute,
                 message.MediumPictureWidth,
                 message.MediumPictureHeight,
-                message.LargePictureKeyName,
+                message.LargePictureRoute,
                 message.LargePictureWidth,
                 message.LargePictureHeight,
                 correlationId);
@@ -68,9 +63,9 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 new UpdatePlayListPictureArguments(
                     message.PlayListId,
                     message.SourceKeyName,
-                    message.SmallPictureKeyName,
-                    message.MediumPictureKeyName,
-                    message.LargePictureKeyName));
+                    RoutingSlipVariableNames.Picture.SmallResizedFilePath,
+                    RoutingSlipVariableNames.Picture.MediumResizedFilePath,
+                    RoutingSlipVariableNames.Picture.LargeResizedFilePath));
 
             return routingSlipBuilder;
         }
@@ -90,6 +85,10 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             Guid? correlationId)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
+
+            routingSlipBuilder.AddSubscription(
+                MessagingHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
+                RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 

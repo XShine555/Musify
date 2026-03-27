@@ -22,10 +22,6 @@ namespace Musify.Infrastructure.MassTransit
             internal const string MediumResizedFilePath = "Picture.MediumResizedFilePath";
             internal const string LargeResizedFilePath = "Picture.LargeResizedFilePath";
             internal const string DestinationFolderName = "Picture.DestinationFolderName";
-
-            internal const string SmallPictureKeyName = "Picture.SmallPictureKeyName";
-            internal const string MediumPictureKeyName = "Picture.MediumPictureKeyName";
-            internal const string LargePictureKeyName = "Picture.LargePictureKeyName";
         }
     }
 }

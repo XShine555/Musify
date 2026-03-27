@@ -9,11 +9,7 @@ namespace Musify.Infrastructure.Pictures
     public class PictureHandler(ILogger<PictureHandler> logger)
         : IPictureHandler
     {
-        public string FileExtension => "webp";
-
-        public string ContentType => "image/webp";
-
-        public async Task<Result<Stream>> ResizePictureAsync(Stream pictureStream, int width, int height, CancellationToken cancellationToken)
+        public async Task<Result<Stream>> ResizePictureAsWebpAsync(Stream pictureStream, int width, int height, CancellationToken cancellationToken)
         {
             try
             {

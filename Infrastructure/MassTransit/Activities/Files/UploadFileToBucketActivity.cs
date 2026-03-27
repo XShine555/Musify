@@ -32,8 +32,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                 executeContext.CancellationToken);
 
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariableName);
-            if (string.IsNullOrEmpty(sourceFilePath))
-                throw new InvalidOperationException($"Upload activity requires variable '{executeContext.Arguments.FilePathVariableName}' with source file path.");
+            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var fileName = Path.GetFileName(sourceFilePath);
 
             try

@@ -4,13 +4,13 @@
         Guid PlayListId,
         string SourceBucketName,
         string SourceKeyName,
-        string SmallPictureKeyName,
+        string SmallPictureRoute,
         int SmallPictureWidth,
         int SmallPictureHeight,
-        string MediumPictureKeyName,
+        string MediumPictureRoute,
         int MediumPictureWidth,
         int MediumPictureHeight,
-        string LargePictureKeyName,
+        string LargePictureRoute,
         int LargePictureWidth,
         int LargePictureHeight);
 }

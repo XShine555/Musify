@@ -33,10 +33,9 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 executeContext.CancellationToken);
 
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariableName);
+            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var destinationFilePath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariableName);
-
-            if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(destinationFilePath))
-                throw new InvalidOperationException("Resize activity requires source and destination file path variables.");
+            ArgumentNullException.ThrowIfNull(destinationFilePath, nameof(destinationFilePath));
 
             try
             {
@@ -48,7 +47,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 await using var fileStream = File.OpenRead(sourceFilePath);
 
-                var resizedPicture = await pictureHandler.ResizePictureAsync(
+                var resizedPicture = await pictureHandler.ResizePictureAsWebpAsync(
                     fileStream,
                     executeContext.Arguments.Width,
                     executeContext.Arguments.Height,

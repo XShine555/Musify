@@ -3,7 +3,7 @@
     public record UpdatePlayListPictureArguments(
         Guid PlayListId,
         string OriginalPictureKeyName,
-        string SmallPictureKeyName,
-        string MediumPictureKeyName,
-        string LargePictureKeyName);
+        string SmallPictureVariableName,
+        string MediumPictureVariableName,
+        string LargePictureVariableName);
 }

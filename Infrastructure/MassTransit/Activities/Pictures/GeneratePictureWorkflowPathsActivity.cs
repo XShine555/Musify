@@ -13,6 +13,8 @@ namespace Musify.Infrastructure.MassTransit.Activities
     {
         public const string ExecuteEndpointName = "generate-picture-workflow-paths";
 
+        internal const string ResizedPictureFileExtension = ".webp";
+
         public async Task<ExecutionResult> Execute(ExecuteContext<GeneratePictureWorkflowPathsArguments> executeContext)
         {
             var processId = await processTrackingStore.GetOrCreateProcessAsync(
@@ -32,19 +34,16 @@ namespace Musify.Infrastructure.MassTransit.Activities
             try
             {
                 var destinationFolderName = Guid.NewGuid().ToString();
-                var originalFileName = Path.GetFileName(executeContext.Arguments.SourceKeyName);
-                var sourceFileExtension = Path.GetExtension(originalFileName);
                 var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, destinationFolderName);
 
-                var sourceFileName = Guid.NewGuid().ToString() + sourceFileExtension;
-                var smallPictureFileName = Guid.NewGuid().ToString() + sourceFileExtension;
-                var mediumPictureFileName = Guid.NewGuid().ToString() + sourceFileExtension;
-                var largePictureFileName = Guid.NewGuid().ToString() + sourceFileExtension;
-
-                var sourceFilePath = Path.Combine(workingDirectory, sourceFileName);
-                var smallPictureFilePath = Path.Combine(workingDirectory, smallPictureFileName);
-                var mediumPictureFilePath = Path.Combine(workingDirectory, mediumPictureFileName);
-                var largePictureFilePath = Path.Combine(workingDirectory, largePictureFileName);
+                var sourceFilePath = Path.Combine(
+                    workingDirectory, Guid.NewGuid().ToString() + Path.GetExtension(executeContext.Arguments.SourceKeyName));
+                var smallPictureFilePath = Path.Combine(
+                    workingDirectory, Guid.NewGuid().ToString() + ResizedPictureFileExtension);
+                var mediumPictureFilePath = Path.Combine(
+                    workingDirectory, Guid.NewGuid().ToString() + ResizedPictureFileExtension);
+                var largePictureFilePath = Path.Combine(
+                    workingDirectory, Guid.NewGuid().ToString() + ResizedPictureFileExtension);
 
                 Directory.CreateDirectory(workingDirectory);
 

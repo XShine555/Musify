@@ -3,7 +3,7 @@
     public record UpdateTrackPictureArguments(
         Guid TrackId,
         string OriginalPictureKeyName,
-        string SmallPictureKeyName,
-        string MediumPictureKeyName,
-        string LargePictureKeyName);
+        string SmallPictureVariableName,
+        string MediumPictureVariableName,
+        string LargePictureVariableName);
 }

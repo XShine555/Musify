@@ -32,16 +32,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 executeContext.CancellationToken);
 
             var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariableName);
-            if (string.IsNullOrWhiteSpace(folderPath))
-                throw new InvalidOperationException(
-                    $"Transfer activity requires variable '{executeContext.Arguments.SourceDirectoryVariableName}' with source directory path.");
+            ArgumentNullException.ThrowIfNull(folderPath, nameof(folderPath));
 
             var destinationKeyName = executeContext.Arguments.DestinationKeyName;
-            if (string.IsNullOrWhiteSpace(destinationKeyName) && !string.IsNullOrWhiteSpace(executeContext.Arguments.DestinationKeyNameVariableName))
-                destinationKeyName = executeContext.GetVariable<string>(executeContext.Arguments.DestinationKeyNameVariableName);
-
-            if (string.IsNullOrWhiteSpace(destinationKeyName))
-                throw new InvalidOperationException("Transfer activity requires a destination key name from arguments or variables.");
+            ArgumentNullException.ThrowIfNull(destinationKeyName, nameof(destinationKeyName));
 
             try
             {
