@@ -1,10 +1,13 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
+using MimeMapping;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
-using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.MassTransit.Activities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using Musify.Infrastructure.MassTransit.Activities.Files;
+using Musify.Infrastructure.MassTransit.Arguments;
+using Musify.Infrastructure.MassTransit.Consumers;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
@@ -15,13 +18,13 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             var routingSlipBuilder = BuildPictureWorkflow(
                 message.SourceBucketName,
                 message.SourceKeyName,
-                message.SmallPictureKeyName,
+                message.SmallPictureRoute,
                 message.SmallPictureWidth,
                 message.SmallPictureHeight,
-                message.MediumPictureKeyName,
+                message.MediumPictureRoute,
                 message.MediumPictureWidth,
                 message.MediumPictureHeight,
-                message.LargePictureKeyName,
+                message.LargePictureRoute,
                 message.LargePictureWidth,
                 message.LargePictureHeight,
                 correlationId);
@@ -36,9 +39,9 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 new UpdateTrackPictureArguments(
                     message.TrackId,
                     message.SourceKeyName,
-                    message.SmallPictureKeyName,
-                    message.MediumPictureKeyName,
-                    message.LargePictureKeyName));
+                    message.SmallPictureRoute,
+                    message.MediumPictureRoute,
+                    message.LargePictureRoute));
 
             return routingSlipBuilder;
         }
@@ -73,15 +76,15 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
         }
 
         RoutingSlipBuilder BuildPictureWorkflow(
-            string sourceBucketName,
+            string bucketName,
             string sourceKeyName,
-            string smallPictureKeyName,
+            string destinationSmallPictureRoute,
             int smallPictureWidth,
             int smallPictureHeight,
-            string mediumPictureKeyName,
+            string destinationMediumPictureRoute,
             int mediumPictureWidth,
             int mediumPictureHeight,
-            string largePictureKeyName,
+            string destinationLargePictureRoute,
             int largePictureWidth,
             int largePictureHeight,
             Guid? correlationId)
@@ -95,37 +98,43 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 MessagingHelper.BuildExecuteActivityUri(GeneratePictureWorkflowPathsActivity.ExecuteEndpointName),
                 new GeneratePictureWorkflowPathsArguments(
                     workerConfiguration.Routes.TemporaryFilesDirectory,
-                    sourceKeyName,
-                    smallPictureKeyName,
-                    mediumPictureKeyName,
-                    largePictureKeyName));
+                    sourceKeyName));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DownloadFile,
                 MessagingHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
                 new DownloadFileFromBucketArguments(
-                    sourceBucketName,
+                    bucketName,
                     sourceKeyName,
                     RoutingSlipVariableNames.Picture.OriginalFilePath));
 
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeSmall,
+                ActivityNames.UploadSmall,
+                bucketName,
                 RoutingSlipVariableNames.Picture.SmallResizedFilePath,
+                destinationSmallPictureRoute,
                 smallPictureWidth,
                 smallPictureHeight);
 
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeMedium,
+                ActivityNames.ResizeMedium,
+                bucketName,
                 RoutingSlipVariableNames.Picture.MediumResizedFilePath,
+                destinationMediumPictureRoute,
                 mediumPictureWidth,
                 mediumPictureHeight);
 
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeLarge,
+                ActivityNames.UploadLarge,
+                bucketName,
                 RoutingSlipVariableNames.Picture.LargeResizedFilePath,
+                destinationLargePictureRoute,
                 largePictureWidth,
                 largePictureHeight);
 
@@ -134,19 +143,30 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 
         static void AddResizeActivity(
             RoutingSlipBuilder routingSlipBuilder,
-            string activityName,
+            string resizeActivityName,
+            string uploadActivityName,
+            string bucketName,
             string destinationFilePathVariableName,
+            string destinationBucketRoute,
             int width,
             int height)
         {
             routingSlipBuilder.AddActivity(
-                activityName,
+                resizeActivityName,
                 MessagingHelper.BuildExecuteActivityUri(ResizePictureActivity.ExecuteEndpointName),
                 new ResizePictureLocalArguments(
                     RoutingSlipVariableNames.Picture.OriginalFilePath,
                     destinationFilePathVariableName,
                     width,
                     height));
+
+            routingSlipBuilder.AddActivity(
+                uploadActivityName,
+                MessagingHelper.BuildExecuteActivityUri(UploadFileToBucketActivity.ExecuteEndpointName),
+                new UploadFileToBucketArguments(
+                    destinationFilePathVariableName,
+                    bucketName,
+                    destinationBucketRoute));
         }
     }
 }

@@ -182,14 +182,14 @@ namespace Musify.Infrastructure.MassTransit
             where TLog : class
         {
             busFactoryConfigurator.ReceiveEndpoint($"{endpointName}_execute", endpointConfigurator =>
-            {
-                endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(busRegistrationContext);
-            } );
+                endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(
+                    MessagingHelper.BuildCompensateActivityUri(endpointName),
+                    busRegistrationContext)
+            );
 
             busFactoryConfigurator.ReceiveEndpoint($"{endpointName}_compensate", endpointConfigurator =>
-            {
-                endpointConfigurator.CompensateActivityHost<TActivity, TLog>(busRegistrationContext);
-            } );
+                endpointConfigurator.CompensateActivityHost<TActivity, TLog>(busRegistrationContext)
+            );
         }
     }
 }

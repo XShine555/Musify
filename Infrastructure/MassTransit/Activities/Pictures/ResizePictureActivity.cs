@@ -4,6 +4,7 @@ using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
+using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {
@@ -66,9 +67,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
                 if (!string.IsNullOrEmpty(destinationDirectory))
-                {
                     Directory.CreateDirectory(destinationDirectory);
-                }
 
                 await using var destinationStream = File.Create(destinationFilePath);
                 await resizedPicture.Value.CopyToAsync(destinationStream, executeContext.CancellationToken);
@@ -80,7 +79,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     executeContext.Arguments.Height);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
-                return executeContext.Completed();
+                return executeContext.Completed(new ResizePictureLog(destinationFilePath));
             }
             catch (Exception exception)
             {

@@ -11,7 +11,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
 {
-    public class CreateTrackCommandHandler(IDatabase database, IPictureHandler pictureHandler, IEventBus eventBus, IStorageHandler storageHandler,
+    public class CreateTrackCommandHandler(IDatabase database, IEventBus eventBus, IStorageHandler storageHandler,
         ILogger<CreateTrackCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, TrackConfiguration trackConfiguration)
         : IRequestHandler<CreateTrackCommand, Task<Result<TrackResponse> >>
     {
@@ -38,7 +38,7 @@ namespace Musify.Application.Tracks.Handler
                 LargePictureKeyName = trackConfiguration.Routes.PresetLargePicture,
             };
 
-            var originalPictureKeyName = Path.Combine(trackConfiguration.Routes.PresetMediumPicture,
+            var originalPictureKeyName = Path.Combine(trackConfiguration.Routes.OriginalPicturesPath,
                 originalPictureFileName);
             var pictureUploadResult = await UploadFile(request.Picture, originalPictureKeyName, cancellationToken);
             if (!pictureUploadResult.IsSuccess)
@@ -48,7 +48,7 @@ namespace Musify.Application.Tracks.Handler
             }
 
 
-            var audioKeyName = Path.Combine(trackConfiguration.Routes.OriginalAudiosFolder,
+            var audioKeyName = Path.Combine(trackConfiguration.Routes.OriginalAudiosPath,
                 Guid.NewGuid() + request.Audio.FileType);
             var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
             if (!audioUploadResult.IsSuccess)
@@ -97,31 +97,24 @@ namespace Musify.Application.Tracks.Handler
 
         async Task PublishUpdateEvent(string originalPictureKeyName, Track track, CancellationToken cancellationToken)
         {
-            var smallPictureKeyName = Path.Combine(trackConfiguration.Routes.MediumPicturesPath,
-                track.Id + pictureHandler.FileExtension);
-            var mediumPictureKeyName = Path.Combine(trackConfiguration.Routes.MediumPicturesPath,
-                track.Id + pictureHandler.FileExtension);
-            var largePictureKeyName = Path.Combine(trackConfiguration.Routes.LargePicturesPath,
-                track.Id + pictureHandler.FileExtension);
-
             await eventBus.PublishAsync(new UpdateTrackPictureEvent(
                 track.Id,
                 storageConfiguration.BucketName,
                 originalPictureKeyName,
-                smallPictureKeyName,
+                trackConfiguration.Routes.SmallPicturesPath,
                 trackConfiguration.PicturesSizes.SmallPictureWidth,
                 trackConfiguration.PicturesSizes.SmallPictureHeight,
-                mediumPictureKeyName,
+                trackConfiguration.Routes.MediumPicturesPath,
                 trackConfiguration.PicturesSizes.MediumPictureWidth,
                 trackConfiguration.PicturesSizes.MediumPictureHeight,
-                largePictureKeyName,
+                trackConfiguration.Routes.LargePicturesPath,
                 trackConfiguration.PicturesSizes.LargePictureWidth,
                 trackConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
         }
 
         async Task PublishTranscodeEvent(Guid trackId, string audioKeyName, CancellationToken cancellationToken)
         {
-            var destinationFolderAudio = Path.Combine(trackConfiguration.Routes.ProcessedAudioFolder,
+            var destinationFolderAudio = Path.Combine(trackConfiguration.Routes.ProcessedAudiosPath,
                 Guid.NewGuid().ToString());
 
             await eventBus.PublishAsync(new UpdateTrackAudioEvent(

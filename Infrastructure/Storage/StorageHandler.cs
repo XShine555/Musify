@@ -3,6 +3,7 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Ardalis.Result;
 using Microsoft.Extensions.Logging;
+using MimeMapping;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
@@ -109,6 +110,21 @@ namespace Musify.Infrastructure.Storage
             logger.LogInformation("TransferFiles completed. Bucket: {BucketName}, Route: {Route}, Success: {SuccessCount}, Failed: {FailedCount}", bucketName, route, successCount, failedCount);
 
             return Result.Success();
+        }
+
+        public async Task<Result<string>> UploadFileAsync(string filePath, string bucketName, string keyName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var fileStream = File.OpenRead(filePath);
+                var contentType = MimeUtility.GetMimeMapping(filePath);
+                return await UploadFileAsync(fileStream, contentType, bucketName, keyName, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to upload file to S3 with bucket name {BucketName} and key name {KeyName}", bucketName, keyName);
+                return Result.Error($"Failed to upload file to S3 with bucket name {bucketName} and key name {keyName}");
+            }
         }
 
         public async Task<Result<string>> UploadFileAsync(Stream sourceStream, string contentType, string bucketName, string keyName, CancellationToken cancellationToken)

@@ -8,6 +8,8 @@ namespace Musify.Application.Contracts.Infrastructure
 
         Task<string> GetUrlAsync(string bucketName, string keyName, TimeSpan ExpirationTime, CancellationToken cancellationToken);
 
+        Task<Result<string>> UploadFileAsync(string filePath, string bucketName, string keyName, CancellationToken cancellationToken);
+
         Task<Result<string>> UploadFileAsync(Stream sourceStream, string contentType, string bucketName, string keyName, CancellationToken cancellationToken);
 
         Task<Result> TransferFilesAsync(string sourceDirectory, string bucketName, string route, CancellationToken cancellationToken);

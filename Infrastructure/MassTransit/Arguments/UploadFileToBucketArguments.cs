@@ -2,7 +2,6 @@
 {
     public record UploadFileToBucketArguments(
         string FilePathVariableName,
-        string ContentType,
         string DestinationBucketName,
-        string DestinationKeyName);
+        string DestinationRoute);
 }

@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
+using MimeMapping;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Arguments;
@@ -33,16 +34,14 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariableName);
             if (string.IsNullOrEmpty(sourceFilePath))
                 throw new InvalidOperationException($"Upload activity requires variable '{executeContext.Arguments.FilePathVariableName}' with source file path.");
+            var fileName = Path.GetFileName(sourceFilePath);
 
             try
             {
-                using var fileStream = File.OpenRead(sourceFilePath);
-
                 var uploadResult = await storageHandler.UploadFileAsync(
-                    fileStream,
-                    executeContext.Arguments.ContentType,
+                    sourceFilePath,
                     executeContext.Arguments.DestinationBucketName,
-                    executeContext.Arguments.DestinationKeyName,
+                    Path.Combine(executeContext.Arguments.DestinationRoute, fileName),
                     executeContext.CancellationToken);
 
                 if (!uploadResult.IsSuccess)
@@ -50,15 +49,15 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                     var errors = string.Join("; ", uploadResult.Errors);
                     logger.LogWarning("Failed to upload file to bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
                         executeContext.Arguments.DestinationBucketName,
-                        executeContext.Arguments.DestinationKeyName,
+                        executeContext.Arguments.DestinationRoute,
                         errors);
                     throw new Exception(errors);
                 }
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
-                return executeContext.Completed(new UploadFileToBucketLog(
+                return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
                     executeContext.Arguments.DestinationBucketName,
-                    executeContext.Arguments.DestinationKeyName));
+                    executeContext.Arguments.DestinationRoute));
             }
             catch (Exception exception)
             {
