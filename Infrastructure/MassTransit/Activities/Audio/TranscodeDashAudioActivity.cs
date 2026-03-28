@@ -34,7 +34,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariableName);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var workingDirectory = executeContext.GetVariable<string>(executeContext.Arguments.WorkingDirectoryVariableName);
-            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
+            ArgumentNullException.ThrowIfNull(workingDirectory, nameof(sourceFilePath));
 
             try
             {
