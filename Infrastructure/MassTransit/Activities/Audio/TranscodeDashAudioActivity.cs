@@ -71,7 +71,11 @@ namespace Musify.Infrastructure.MassTransit.Activities
         {
             try
             {
-                Directory.Delete(compensateContext.Log.WorkingDirectory, recursive: true);
+                if (Directory.Exists(compensateContext.Log.WorkingDirectory))
+                    Directory.Delete(compensateContext.Log.WorkingDirectory, recursive: true);
+                else
+                    logger.LogWarning("Working directory {WorkingDirectory} does not exist during compensation",
+                        compensateContext.Log.WorkingDirectory);
                 return Task.FromResult(compensateContext.Compensated());
             }
             catch (Exception exception)
