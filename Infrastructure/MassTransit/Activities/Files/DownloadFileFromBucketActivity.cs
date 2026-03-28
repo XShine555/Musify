@@ -31,22 +31,22 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 0,
                 executeContext.CancellationToken);
 
-            var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariableName);
+            var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
             ArgumentNullException.ThrowIfNull(destinationPath, nameof(destinationPath));
 
             try
             {
                 var getFile = await storageHandler.GetFileAsync(
-                    executeContext.Arguments.BucketName,
-                    executeContext.Arguments.KeyName,
+                    executeContext.Arguments.Bucket,
+                    executeContext.Arguments.Key,
                     executeContext.CancellationToken);
 
                 if (!getFile.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", getFile.Errors);
                     logger.LogWarning("Failed to download file from bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
-                        executeContext.Arguments.BucketName,
-                        executeContext.Arguments.KeyName,
+                        executeContext.Arguments.Bucket,
+                        executeContext.Arguments.Key,
                         errorMessage);
                     throw new Exception(errorMessage);
                 }
@@ -64,8 +64,8 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed(new DownloadFileFromBucketLog(
-                    executeContext.Arguments.BucketName,
-                    executeContext.Arguments.KeyName,
+                    executeContext.Arguments.Bucket,
+                    executeContext.Arguments.Key,
                     destinationPath));
             }
             catch (Exception exception)

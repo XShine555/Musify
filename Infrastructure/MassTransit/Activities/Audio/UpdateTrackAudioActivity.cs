@@ -48,7 +48,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                     track.Id,
                     track.AudioFolderKeyName);
 
-                track.AudioFolderKeyName = Path.GetFileName(executeContext.Arguments.AudioFolderKeyName);
+                track.AudioFolderKeyName = Path.GetFileName(executeContext.Arguments.AudioFolderKey);
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
@@ -81,7 +81,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                     return compensateContext.Compensated();
                 }
 
-                track.AudioFolderKeyName = compensateContext.Log.PreviousFolderAudioKeyName;
+                track.AudioFolderKeyName = compensateContext.Log.PreviousFolderAudioKey;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);

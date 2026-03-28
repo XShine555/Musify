@@ -32,7 +32,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             try
             {
                 var folderName = Guid.NewGuid().ToString();
-                var sourceFileName = Path.GetFileName(executeContext.Arguments.SourceKeyName);
+                var sourceFileName = Path.GetFileName(executeContext.Arguments.SourceKey);
                 var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, folderName);
                 var sourceFilePath = Path.Combine(workingDirectory, sourceFileName);
 
@@ -54,7 +54,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             catch (Exception exception)
             {
                 logger.LogError(exception, "Error generating audio workflow paths for key {SourceKeyName}",
-                    executeContext.Arguments.SourceKeyName);
+                    executeContext.Arguments.SourceKey);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }

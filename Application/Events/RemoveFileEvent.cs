@@ -1,6 +1,6 @@
 ﻿namespace Musify.Application.Events
 {
     public record RemoveFileEvent(
-        string BucketName,
-        string KeyName);
+        string Bucket,
+        string Key);
 }

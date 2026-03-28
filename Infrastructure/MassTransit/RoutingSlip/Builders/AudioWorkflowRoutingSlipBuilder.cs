@@ -15,7 +15,6 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
         public RoutingSlipBuilder Build(UpdateTrackAudioEvent message, Guid? correlationId) 
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
-
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
             routingSlipBuilder.AddSubscription(
@@ -27,14 +26,14 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
                 new GenerateAudioWorkflowPathsArguments(
                     workerConfiguration.Routes.TemporaryFilesDirectory,
-                    message.SourceKeyName));
+                    message.SourceKey));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DownloadFile,
                 EndpointHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
                 new DownloadFileFromBucketArguments(
-                    message.SourceBucketName,
-                    message.SourceKeyName,
+                    message.SourceBucket,
+                    message.SourceKey,
                     RoutingSlipVariableNames.Audio.SourceFilePath));
 
             routingSlipBuilder.AddActivity(
@@ -48,16 +47,16 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 ActivityNames.TransferFiles,
                 EndpointHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
                 new TransferFilesToBucketArguments(
-                    message.DestinationBucketName,
+                    message.DestinationBucket,
                     RoutingSlipVariableNames.Audio.TranscodedDirectory,
-                    message.DestinationFolderKeyName));
+                    message.DestinationFolderKey));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.UpdateTrackAudio,
                 EndpointHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
                 new UpdateTrackAudioArguments(
                     message.TrackId,
-                    message.DestinationFolderKeyName));
+                    message.DestinationFolderKey));
 
             return routingSlipBuilder;
         }

@@ -1,4 +1,4 @@
 namespace Musify.Infrastructure.MassTransit.Activities.Logs
 {
-    public record TransferFilesToBucketLog(string DestinationBucketName, string[] UploadedKeys);
+    public record TransferFilesToBucketLog(string DestinationBucket, string[] UploadedKeys);
 }

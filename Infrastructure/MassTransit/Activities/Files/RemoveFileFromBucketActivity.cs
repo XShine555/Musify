@@ -33,16 +33,16 @@ namespace Musify.Infrastructure.MassTransit.Activities
             try
             {
                 var removeFile = await storageHandler.RemoveFileAsync(
-                    executeContext.Arguments.BucketName,
-                    executeContext.Arguments.KeyName,
+                    executeContext.Arguments.Bucket,
+                    executeContext.Arguments.Key,
                     executeContext.CancellationToken);
 
                 if (!removeFile.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", removeFile.Errors);
                     logger.LogWarning("Failed to remove file {KeyName} from bucket {BucketName}. Errors: {Errors}",
-                        executeContext.Arguments.KeyName,
-                        executeContext.Arguments.BucketName,
+                        executeContext.Arguments.Key,
+                        executeContext.Arguments.Bucket,
                         errorMessage);
                 }
 
@@ -52,8 +52,8 @@ namespace Musify.Infrastructure.MassTransit.Activities
             catch (Exception exception)
             {
                 logger.LogError(exception, "Error removing file {KeyName} from bucket {BucketName}",
-                    executeContext.Arguments.KeyName,
-                    executeContext.Arguments.BucketName);
+                    executeContext.Arguments.Key,
+                    executeContext.Arguments.Bucket);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }

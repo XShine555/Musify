@@ -42,7 +42,7 @@ namespace Musify.Infrastructure.MassTransit.Filters
 
         public void Probe(ProbeContext context)
         {
-            context.CreateFilterScope(nameof(ProcessTrackingConsumeFilter<TMessage>));
+            context.CreateFilterScope(nameof(ProcessTrackingConsumeFilter<>));
         }
     }
 }

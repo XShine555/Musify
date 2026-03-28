@@ -1,5 +1,6 @@
 ﻿namespace Musify.Infrastructure.MassTransit.Logs
 {
-    public record UpdateTrackAudioLog(Guid TrackId,
-        string PreviousFolderAudioKeyName);
+    public record UpdateTrackAudioLog(
+        Guid TrackId,
+        string PreviousFolderAudioKey);
 }

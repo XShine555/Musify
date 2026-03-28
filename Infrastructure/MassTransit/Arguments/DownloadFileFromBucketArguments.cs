@@ -1,7 +1,7 @@
 ﻿namespace Musify.Infrastructure.MassTransit.Activities.Arguments
 {
     public record DownloadFileFromBucketArguments(
-        string BucketName,
-        string KeyName,
-        string DestinationFilePathVariableName);
+        string Bucket,
+        string Key,
+        string DestinationFilePathVariable);
 }

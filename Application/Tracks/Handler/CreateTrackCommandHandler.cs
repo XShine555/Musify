@@ -38,9 +38,9 @@ namespace Musify.Application.Tracks.Handler
                 LargePictureKeyName = trackConfiguration.Routes.PresetLargePicture,
             };
 
-            var originalPictureKeyName = Path.Combine(trackConfiguration.Routes.OriginalPicturesPath,
+            var originalPictureKey = Path.Combine(trackConfiguration.Routes.OriginalPicturesPath,
                 originalPictureFileName);
-            var pictureUploadResult = await UploadFile(request.Picture, originalPictureKeyName, cancellationToken);
+            var pictureUploadResult = await UploadFile(request.Picture, originalPictureKey, cancellationToken);
             if (!pictureUploadResult.IsSuccess)
             {
                 logger.LogError("Failed to upload picture for track {TrackTitle}", request.Title);
@@ -48,9 +48,9 @@ namespace Musify.Application.Tracks.Handler
             }
 
 
-            var audioKeyName = Path.Combine(trackConfiguration.Routes.OriginalAudiosPath,
+            var audioKey = Path.Combine(trackConfiguration.Routes.OriginalAudiosPath,
                 Guid.NewGuid() + request.Audio.FileType);
-            var audioUploadResult = await UploadFile(request.Audio, audioKeyName, cancellationToken);
+            var audioUploadResult = await UploadFile(request.Audio, audioKey, cancellationToken);
             if (!audioUploadResult.IsSuccess)
             {
                 logger.LogError("Failed to upload audio for track {TrackTitle}", request.Title);
@@ -59,7 +59,7 @@ namespace Musify.Application.Tracks.Handler
 
             try
             {
-                await PublishUpdateEvent(originalPictureKeyName, track, cancellationToken);
+                await PublishUpdateEvent(originalPictureKey, track, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -83,36 +83,39 @@ namespace Musify.Application.Tracks.Handler
             return Result.Success();
         }
 
-        async Task<Result<string>> UploadFile(IFileData fileData, string keyName, CancellationToken cancellationToken)
+        async Task<Result<string>> UploadFile(IFileData fileData, string key, CancellationToken cancellationToken)
         {
             var uploadFile = await storageHandler.UploadFileAsync(
                 fileData.FileStream,
                 fileData.ContentType,
                 storageConfiguration.BucketName,
-                keyName,
+                key,
                 cancellationToken);
 
             return uploadFile;
         }
 
-        async Task PublishUpdateEvent(string originalPictureKeyName, Track track, CancellationToken cancellationToken)
+        async Task PublishUpdateEvent(string originalPictureKey, Track track, CancellationToken cancellationToken)
         {
             await eventBus.PublishAsync(new UpdateTrackPictureEvent(
                 track.Id,
                 storageConfiguration.BucketName,
-                originalPictureKeyName,
-                trackConfiguration.Routes.SmallPicturesPath,
-                trackConfiguration.PicturesSizes.SmallPictureWidth,
-                trackConfiguration.PicturesSizes.SmallPictureHeight,
-                trackConfiguration.Routes.MediumPicturesPath,
-                trackConfiguration.PicturesSizes.MediumPictureWidth,
-                trackConfiguration.PicturesSizes.MediumPictureHeight,
-                trackConfiguration.Routes.LargePicturesPath,
-                trackConfiguration.PicturesSizes.LargePictureWidth,
-                trackConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
+                originalPictureKey,
+                new ImageSize(
+                    trackConfiguration.Routes.PresetSmallPicture,
+                    trackConfiguration.PicturesSizes.SmallPictureWidth,
+                    trackConfiguration.PicturesSizes.SmallPictureHeight),
+                new ImageSize(
+                    trackConfiguration.Routes.PresetMediumPicture,
+                    trackConfiguration.PicturesSizes.MediumPictureWidth,
+                    trackConfiguration.PicturesSizes.MediumPictureHeight),
+                new ImageSize(
+                    trackConfiguration.Routes.PresetLargePicture,
+                    trackConfiguration.PicturesSizes.LargePictureWidth,
+                    trackConfiguration.PicturesSizes.LargePictureHeight)), cancellationToken);
         }
 
-        async Task PublishTranscodeEvent(Guid trackId, string audioKeyName, CancellationToken cancellationToken)
+        async Task PublishTranscodeEvent(Guid trackId, string audioKey, CancellationToken cancellationToken)
         {
             var destinationFolderAudio = Path.Combine(trackConfiguration.Routes.ProcessedAudiosPath,
                 Guid.NewGuid().ToString());
@@ -120,7 +123,7 @@ namespace Musify.Application.Tracks.Handler
             await eventBus.PublishAsync(new UpdateTrackAudioEvent(
                 trackId,
                 storageConfiguration.BucketName,
-                audioKeyName,
+                audioKey,
                 storageConfiguration.BucketName,
                 destinationFolderAudio), cancellationToken);
         }

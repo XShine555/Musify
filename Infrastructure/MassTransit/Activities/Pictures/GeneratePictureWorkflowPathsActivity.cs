@@ -37,7 +37,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, destinationFolderName);
 
                 var sourceFilePath = Path.Combine(
-                    workingDirectory, Guid.NewGuid().ToString() + Path.GetExtension(executeContext.Arguments.SourceKeyName));
+                    workingDirectory, Guid.NewGuid().ToString() + Path.GetExtension(executeContext.Arguments.SourceKey));
                 var smallPictureFilePath = Path.Combine(
                     workingDirectory, Guid.NewGuid().ToString() + ResizedPictureFileExtension);
                 var mediumPictureFilePath = Path.Combine(
@@ -65,7 +65,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             catch (Exception exception)
             {
                 logger.LogError(exception, "Error generating picture workflow paths for key {SourceKeyName}",
-                    executeContext.Arguments.SourceKeyName);
+                    executeContext.Arguments.SourceKey);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }

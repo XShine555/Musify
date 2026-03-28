@@ -92,11 +92,11 @@ namespace Musify.Application.PlayLists.Handlers
             database.PlayLists.Update(playList);
             await database.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Updated PlayList with id={PlayListId} and picture key {PictureKeyName}.", playList.Id, newImageStorageKey);
+            logger.LogInformation("Updated PlayList with id={PlayListId} and picture key {PictureKey}.", playList.Id, newImageStorageKey);
             return Result.Success(PlayListResponse.FromEntity(playList));
         }
 
-        async Task<Result> PublishRemoveFileEvent(string keyName, CancellationToken cancellationToken)
+        async Task<Result> PublishRemoveFileEvent(string key, CancellationToken cancellationToken)
         {
             try
             {
@@ -104,14 +104,14 @@ namespace Musify.Application.PlayLists.Handlers
                     storageConfiguration.BucketName,
                     Path.Combine(
                         playListConfiguration.Routes.ParentFolders,
-                        keyName)), cancellationToken);
+                        key)), cancellationToken);
 
                 return Result.NoContent();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish remove file event for key {KeyName}.", keyName);
-                return Result.Error($"Failed to publish remove file event for key {keyName}.");
+                logger.LogError(exception, "Failed to publish remove file event for key {Key}.", key);
+                return Result.Error($"Failed to publish remove file event for key {key}.");
             }
         }
 
@@ -127,21 +127,25 @@ namespace Musify.Application.PlayLists.Handlers
             return uploadFileResult;
         }
 
-        async Task PublishUpdateEvent(string originalPictureKeyName, PlayList playList, CancellationToken cancellationToken)
+        async Task PublishUpdateEvent(string originalPictureKey, PlayList playList, CancellationToken cancellationToken)
         {
             await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                 playList.Id,
                 storageConfiguration.BucketName,
-                originalPictureKeyName,
-                playListConfiguration.Routes.SmallPicturesPath,
-                playListConfiguration.PicturesSizes.SmallPictureWidth,
-                playListConfiguration.PicturesSizes.SmallPictureHeight,
-                playListConfiguration.Routes.MediumPicturesPath,
-                playListConfiguration.PicturesSizes.MediumPictureWidth,
-                playListConfiguration.PicturesSizes.MediumPictureHeight,
-                playListConfiguration.Routes.LargePicturesPath,
-                playListConfiguration.PicturesSizes.LargePictureWidth,
-                playListConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
+                originalPictureKey,
+                new ImageSize(
+                    playListConfiguration.Routes.SmallPicturesPath,
+                    playListConfiguration.PicturesSizes.SmallPictureWidth,
+                    playListConfiguration.PicturesSizes.SmallPictureHeight),
+                new ImageSize(
+                    playListConfiguration.Routes.MediumPicturesPath,
+                    playListConfiguration.PicturesSizes.MediumPictureWidth,
+                    playListConfiguration.PicturesSizes.MediumPictureHeight),
+                new ImageSize(
+                    playListConfiguration.Routes.LargePicturesPath,
+                    playListConfiguration.PicturesSizes.LargePictureWidth,
+                    playListConfiguration.PicturesSizes.LargePictureHeight)),
+                cancellationToken);
         }
     }
 }

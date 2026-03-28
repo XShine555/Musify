@@ -31,7 +31,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                 0,
                 executeContext.CancellationToken);
 
-            var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariableName);
+            var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariable);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var fileName = Path.GetFileName(sourceFilePath);
 
@@ -39,7 +39,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             {
                 var uploadResult = await storageHandler.UploadFileAsync(
                     sourceFilePath,
-                    executeContext.Arguments.DestinationBucketName,
+                    executeContext.Arguments.DestinationBucket,
                     Path.Combine(executeContext.Arguments.DestinationRoute, fileName),
                     executeContext.CancellationToken);
 
@@ -47,7 +47,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                 {
                     var errors = string.Join("; ", uploadResult.Errors);
                     logger.LogWarning("Failed to upload file to bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
-                        executeContext.Arguments.DestinationBucketName,
+                        executeContext.Arguments.DestinationBucket,
                         executeContext.Arguments.DestinationRoute,
                         errors);
                     throw new Exception(errors);
@@ -55,7 +55,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
-                    executeContext.Arguments.DestinationBucketName,
+                    executeContext.Arguments.DestinationBucket,
                     executeContext.Arguments.DestinationRoute));
             }
             catch (Exception exception)
@@ -71,14 +71,14 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             try
             {
                 var uploadResult = await storageHandler.RemoveFileAsync(
-                    compensateContext.Log.DestinationBucketName,
-                    compensateContext.Log.DestinationKeyName,
+                    compensateContext.Log.DestinationBucket,
+                    compensateContext.Log.DestinationKey,
                     compensateContext.CancellationToken);
                 
                 if (!uploadResult.IsSuccess)
                 {
                     var errors = string.Join("; ", uploadResult.Errors);
-                    var errorMessage = $"Failed to remove file from bucket during compensation. Bucket: {compensateContext.Log.DestinationBucketName}, Key: {compensateContext.Log.DestinationKeyName}, Errors: {errors}";
+                    var errorMessage = $"Failed to remove file from bucket during compensation. Bucket: {compensateContext.Log.DestinationBucket}, Key: {compensateContext.Log.DestinationKey}, Errors: {errors}";
 
                     logger.LogError(errorMessage);
                     return compensateContext.Failed(new Exception(errorMessage));
@@ -88,8 +88,8 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             catch (Exception exception)
             {
                 logger.LogError(exception, "An error occurred while compensating upload file to bucket activity for bucket {BucketName} and key {KeyName}",
-                    compensateContext.Log.DestinationBucketName,
-                    compensateContext.Log.DestinationKeyName);
+                    compensateContext.Log.DestinationBucket,
+                    compensateContext.Log.DestinationKey);
                 return compensateContext.Failed(exception);
             }
         }

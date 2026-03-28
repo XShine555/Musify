@@ -65,29 +65,19 @@ namespace Musify.Infrastructure.MassTransit
                     busFactoryConfigurator.UseConsumeFilter(typeof(ProcessTrackingConsumeFilter<>), busRegistrationContext);
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdatePlayListPictureConsumer.QueueName, endpointConfigurator =>
-                    {
-                        endpointConfigurator.ConfigureConsumer<UpdatePlayListPictureConsumer>(busRegistrationContext);
-                    } );
+                        endpointConfigurator.ConfigureConsumer<UpdatePlayListPictureConsumer>(busRegistrationContext));
 
                     busFactoryConfigurator.ReceiveEndpoint(RemoveFileConsumer.QueueName, endpointConfigurator =>
-                    {
-                        endpointConfigurator.ConfigureConsumer<RemoveFileConsumer>(busRegistrationContext);
-                    } );
+                        endpointConfigurator.ConfigureConsumer<RemoveFileConsumer>(busRegistrationContext));
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackAudioConsumer.QueueName, endpointConfigurator =>
-                    {
-                        endpointConfigurator.ConfigureConsumer<UpdateTrackAudioConsumer>(busRegistrationContext);
-                    } );
+                        endpointConfigurator.ConfigureConsumer<UpdateTrackAudioConsumer>(busRegistrationContext));
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackPictureConsumer.QueueName, endpointConfigurator =>
-                    {
-                        endpointConfigurator.ConfigureConsumer<UpdateTrackPictureConsumer>(busRegistrationContext);
-                    } );
+                        endpointConfigurator.ConfigureConsumer<UpdateTrackPictureConsumer>(busRegistrationContext));
 
                     busFactoryConfigurator.ReceiveEndpoint(RoutingSlipCleanUpConsumer.QueueName, endpointConfigurator =>
-                    {
-                        endpointConfigurator.ConfigureConsumer<RoutingSlipCleanUpConsumer>(busRegistrationContext);
-                    } );
+                        endpointConfigurator.ConfigureConsumer<RoutingSlipCleanUpConsumer>(busRegistrationContext));
 
                     ConfigureExecuteActivityEndpoint<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>(
                         busFactoryConfigurator,

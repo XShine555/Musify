@@ -95,21 +95,25 @@ namespace Musify.Application.PlayLists.Handlers
             return uploadFileResult;
         }
 
-        async Task PublishUpdateEvent(string originalPictureKeyName, PlayList playList, CancellationToken cancellationToken)
+        async Task PublishUpdateEvent(string originalPictureKey, PlayList playList, CancellationToken cancellationToken)
         {
             await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                 playList.Id,
                 storageConfiguration.BucketName,
-                originalPictureKeyName,
-                playListConfiguration.Routes.SmallPicturesPath,
-                playListConfiguration.PicturesSizes.SmallPictureWidth,
-                playListConfiguration.PicturesSizes.SmallPictureHeight,
-                playListConfiguration.Routes.MediumPicturesPath,
-                playListConfiguration.PicturesSizes.MediumPictureWidth,
-                playListConfiguration.PicturesSizes.MediumPictureHeight,
-                playListConfiguration.Routes.LargePicturesPath,
-                playListConfiguration.PicturesSizes.LargePictureWidth,
-                playListConfiguration.PicturesSizes.LargePictureHeight), cancellationToken);
+                originalPictureKey,
+                new ImageSize(
+                    playListConfiguration.Routes.SmallPicturesPath,
+                    playListConfiguration.PicturesSizes.SmallPictureWidth,
+                    playListConfiguration.PicturesSizes.SmallPictureHeight),
+                new ImageSize(
+                    playListConfiguration.Routes.MediumPicturesPath,
+                    playListConfiguration.PicturesSizes.MediumPictureWidth,
+                    playListConfiguration.PicturesSizes.MediumPictureHeight),
+                new ImageSize(
+                    playListConfiguration.Routes.LargePicturesPath,
+                    playListConfiguration.PicturesSizes.LargePictureWidth,
+                    playListConfiguration.PicturesSizes.LargePictureHeight)),
+                cancellationToken);
         }
     }
 }

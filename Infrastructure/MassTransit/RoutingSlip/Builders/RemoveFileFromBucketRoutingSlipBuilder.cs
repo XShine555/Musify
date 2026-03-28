@@ -12,7 +12,6 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
         public RoutingSlipBuilder Build(RemoveFileEvent message, Guid? correlationId)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
-
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
             routingSlipBuilder.AddSubscription(
@@ -23,8 +22,8 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 ActivityNames.RemoveFile,
                 EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                 new RemoveFileFromBucketArguments(
-                    message.BucketName,
-                    message.KeyName));
+                    message.Bucket,
+                    message.Key));
 
             return routingSlipBuilder;
         }

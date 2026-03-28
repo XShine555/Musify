@@ -15,17 +15,11 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
         public RoutingSlipBuilder Build(UpdateTrackPictureEvent message, Guid? correlationId)
         {
             var routingSlipBuilder = BuildPictureWorkflow(
-                message.SourceBucketName,
-                message.SourceKeyName,
-                message.SmallPictureRoute,
-                message.SmallPictureWidth,
-                message.SmallPictureHeight,
-                message.MediumPictureRoute,
-                message.MediumPictureWidth,
-                message.MediumPictureHeight,
-                message.LargePictureRoute,
-                message.LargePictureWidth,
-                message.LargePictureHeight,
+                message.Bucket,
+                message.SourceKey,
+                message.Small,
+                message.Medium,
+                message.Large,
                 correlationId);
 
             routingSlipBuilder.AddActivity(
@@ -33,7 +27,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(UpdateTrackPictureActivity.ExecuteEndpointName),
                 new UpdateTrackPictureArguments(
                     message.TrackId,
-                    message.SourceKeyName,
+                    message.SourceKey,
                     RoutingSlipVariableNames.Picture.SmallResizedFilePath,
                     RoutingSlipVariableNames.Picture.MediumResizedFilePath,
                     RoutingSlipVariableNames.Picture.LargeResizedFilePath));
@@ -44,17 +38,11 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
         public RoutingSlipBuilder Build(UpdatePlayListPictureEvent message, Guid? correlationId)
         {
             var routingSlipBuilder = BuildPictureWorkflow(
-                message.SourceBucketName,
-                message.SourceKeyName,
-                message.SmallPictureRoute,
-                message.SmallPictureWidth,
-                message.SmallPictureHeight,
-                message.MediumPictureRoute,
-                message.MediumPictureWidth,
-                message.MediumPictureHeight,
-                message.LargePictureRoute,
-                message.LargePictureWidth,
-                message.LargePictureHeight,
+                message.Bucket,
+                message.SourceKey,
+                message.Small,
+                message.Medium,
+                message.Large,
                 correlationId);
 
             routingSlipBuilder.AddActivity(
@@ -62,7 +50,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
                 new UpdatePlayListPictureArguments(
                     message.PlayListId,
-                    message.SourceKeyName,
+                    message.SourceKey,
                     RoutingSlipVariableNames.Picture.SmallResizedFilePath,
                     RoutingSlipVariableNames.Picture.MediumResizedFilePath,
                     RoutingSlipVariableNames.Picture.LargeResizedFilePath));
@@ -71,71 +59,58 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
         }
 
         RoutingSlipBuilder BuildPictureWorkflow(
-            string bucketName,
-            string sourceKeyName,
-            string destinationSmallPictureRoute,
-            int smallPictureWidth,
-            int smallPictureHeight,
-            string destinationMediumPictureRoute,
-            int mediumPictureWidth,
-            int mediumPictureHeight,
-            string destinationLargePictureRoute,
-            int largePictureWidth,
-            int largePictureHeight,
+            string bucket,
+            string sourceKey,
+            ImageSize small,
+            ImageSize medium,
+            ImageSize large,
             Guid? correlationId)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
+            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
             routingSlipBuilder.AddSubscription(
                 EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
                 RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
-
-            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.GeneratePictureWorkflowPaths,
                 EndpointHelper.BuildExecuteActivityUri(GeneratePictureWorkflowPathsActivity.ExecuteEndpointName),
                 new GeneratePictureWorkflowPathsArguments(
                     workerConfiguration.Routes.TemporaryFilesDirectory,
-                    sourceKeyName));
+                    sourceKey));
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.DownloadFile,
                 EndpointHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
                 new DownloadFileFromBucketArguments(
-                    bucketName,
-                    sourceKeyName,
+                    bucket,
+                    sourceKey,
                     RoutingSlipVariableNames.Picture.OriginalFilePath));
 
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeSmall,
                 ActivityNames.UploadSmall,
-                bucketName,
+                bucket,
                 RoutingSlipVariableNames.Picture.SmallResizedFilePath,
-                destinationSmallPictureRoute,
-                smallPictureWidth,
-                smallPictureHeight);
+                small);
 
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeMedium,
                 ActivityNames.ResizeMedium,
-                bucketName,
+                bucket,
                 RoutingSlipVariableNames.Picture.MediumResizedFilePath,
-                destinationMediumPictureRoute,
-                mediumPictureWidth,
-                mediumPictureHeight);
+                medium);
 
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeLarge,
                 ActivityNames.UploadLarge,
-                bucketName,
+                bucket,
                 RoutingSlipVariableNames.Picture.LargeResizedFilePath,
-                destinationLargePictureRoute,
-                largePictureWidth,
-                largePictureHeight);
+                large);
 
             return routingSlipBuilder;
         }
@@ -146,9 +121,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             string uploadActivityName,
             string bucketName,
             string destinationFilePathVariableName,
-            string destinationBucketRoute,
-            int width,
-            int height)
+            ImageSize imageSize)
         {
             routingSlipBuilder.AddActivity(
                 resizeActivityName,
@@ -156,8 +129,8 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 new ResizePictureLocalArguments(
                     RoutingSlipVariableNames.Picture.OriginalFilePath,
                     destinationFilePathVariableName,
-                    width,
-                    height));
+                    imageSize.Width,
+                    imageSize.Height));
 
             routingSlipBuilder.AddActivity(
                 uploadActivityName,
@@ -165,7 +138,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 new UploadFileToBucketArguments(
                     destinationFilePathVariableName,
                     bucketName,
-                    destinationBucketRoute));
+                    imageSize.SavePath));
         }
     }
 }

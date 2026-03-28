@@ -32,9 +32,9 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 0,
                 executeContext.CancellationToken);
 
-            var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariableName);
+            var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariable);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
-            var destinationFilePath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariableName);
+            var destinationFilePath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
             ArgumentNullException.ThrowIfNull(destinationFilePath, nameof(destinationFilePath));
 
             try

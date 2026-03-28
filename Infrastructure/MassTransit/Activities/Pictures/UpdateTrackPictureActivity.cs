@@ -31,11 +31,11 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 0,
                 executeContext.CancellationToken);
 
-            var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariableName);
+            var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariable);
             ArgumentNullException.ThrowIfNull(smallResizedVariable, nameof(smallResizedVariable));
-            var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariableName);
+            var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariable);
             ArgumentNullException.ThrowIfNull(mediumResizedVariable, nameof(mediumResizedVariable));
-            var largeResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.LargePictureVariableName);
+            var largeResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.LargePictureVariable);
             ArgumentNullException.ThrowIfNull(largeResizedVariable, nameof(largeResizedVariable));
 
             try
@@ -58,7 +58,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     track.MediumPictureKeyName,
                     track.LargePictureKeyName);
 
-                track.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKeyName);
+                track.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
                 track.SmallPictureKeyName = Path.GetFileName(smallResizedVariable);
                 track.MediumPictureKeyName = Path.GetFileName(mediumResizedVariable);
                 track.LargePictureKeyName = Path.GetFileName(largeResizedVariable);
@@ -94,10 +94,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     return compensateContext.Compensated();
                 }
 
-                track.OriginalPictureKeyName = compensateContext.Log.PreviousOriginalPictureKeyName;
-                track.SmallPictureKeyName = compensateContext.Log.PreviousSmallPictureKeyName;
-                track.MediumPictureKeyName = compensateContext.Log.PreviousMediumPictureKeyName;
-                track.LargePictureKeyName = compensateContext.Log.PreviousLargePictureKeyName;
+                track.OriginalPictureKeyName = compensateContext.Log.PreviousOriginalPictureKey;
+                track.SmallPictureKeyName = compensateContext.Log.PreviousSmallPictureKey;
+                track.MediumPictureKeyName = compensateContext.Log.PreviousMediumPictureKey;
+                track.LargePictureKeyName = compensateContext.Log.PreviousLargePictureKey;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
