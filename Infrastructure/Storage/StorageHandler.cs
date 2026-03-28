@@ -21,8 +21,6 @@ namespace Musify.Infrastructure.Storage
                 Key = key,
             };
 
-
-
             try
             {
                 var response = await amazonS3.GetObjectAsync(request, cancellationToken);
