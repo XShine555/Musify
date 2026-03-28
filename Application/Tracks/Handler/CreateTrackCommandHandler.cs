@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
@@ -17,11 +17,10 @@ namespace Musify.Application.Tracks.Handler
         public async Task<Result<TrackResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.FindAsync(request.UserId, cancellationToken);
-
             if (userExists is null)
             {
-                logger.LogWarning("User with id={UserId} not found.", request.UserId);
-                return Result.NotFound($"User with id {request.UserId} not found.");
+                logger.LogWarning("User {UserId} not found", request.UserId);
+                return Result.NotFound($"User {request.UserId} not found");
             }
 
             var trackEntity = CreateTrackCommand.ToEntity(
@@ -60,7 +59,7 @@ namespace Musify.Application.Tracks.Handler
             if (!pictureUpload.IsSuccess)
             {
                 var errors = string.Join(", ", pictureUpload.Errors);
-                return Result.Error($"Failed to upload picture for track {request.Title}. Errors: {errors}.");
+                return Result.Error($"Failed to upload picture for {request.Title}");
             }
 
             var audioUpload = await storageHandler.UploadFileAsync(
@@ -74,7 +73,7 @@ namespace Musify.Application.Tracks.Handler
             {
                 await RollbackFilesAsync(pictureKey, audioKey, cancellationToken);
                 var errors = string.Join(", ", audioUpload.Errors);
-                return Result.Error($"Failed to upload audio for track {request.Title}. Errors: {errors}.");
+                return Result.Error($"Failed to upload audio for {request.Title}");
             }
 
             return Result.Success();
@@ -84,7 +83,7 @@ namespace Musify.Application.Tracks.Handler
         {
             await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, pictureKey, cancellationToken);
             await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, audioKey, cancellationToken);
-            logger.LogInformation("Rolled back uploaded files={PictureKey}, {AudioKey}.", pictureKey, audioKey);
+            logger.LogInformation("Rolled back uploaded files {PictureKey}, {AudioKey}", pictureKey, audioKey);
         }
 
         async Task PublishUpdateEvent(Track track, CancellationToken cancellationToken)
@@ -110,7 +109,7 @@ namespace Musify.Application.Tracks.Handler
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish resize picture event for Track with id={TrackId}.", track.Id);
+                logger.LogError(exception, "Failed to publish track picture update event for track {TrackId}", track.Id);
             }
         }
 
@@ -130,7 +129,7 @@ namespace Musify.Application.Tracks.Handler
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish transcode audio event for Track with id={TrackId}.", track.Id);
+                logger.LogError(exception, "Failed to publish track audio update event for track {TrackId}", track.Id);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
@@ -19,13 +19,13 @@ namespace Musify.Application.PlayLists.Handlers
                 cancellationToken);
             if (playList is null)
             {
-                logger.LogDebug("PlayList with id={PlayListId} not found", request.PlayListId);
+                logger.LogDebug("Playlist {PlayListId} not found", request.PlayListId);
                 return Result.NotFound();
             }
 
             if (playList.UserId != request.UserId)
             {
-                logger.LogInformation("PlayList with id={PlayListId} does not belong to user with id={UserId}", request.PlayListId, request.UserId);
+                logger.LogWarning("Playlist {PlayListId} does not belong to user {UserId}", request.PlayListId, request.UserId);
                 return Result.Unauthorized();
             }
 
@@ -56,8 +56,8 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish remove file event for PlayList id={PlayListId} and key={Key}.", playListId, key);
-                return Result.Error($"Failed to publish remove file event for PlayList with id {playListId}.");
+                logger.LogError(exception, "Failed to publish remove file event for playlist {PlayListId} with key {Key}", playListId, key);
+                return Result.Error($"Failed to publish remove file event for playlist {playListId}");
             }
         }
     }

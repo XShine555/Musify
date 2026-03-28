@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,24 +14,24 @@ namespace Musify.Application.Users.Handlers
         public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.AnyAsync(u => u.Id == request.Id, cancellationToken);
-            if (!userExists)
+            if (userExists)
             {
-                logger.LogInformation("User with Id={UserId} already exists.", request.Id);
-                return Result<UserResponse>.Conflict($"A user with Id {request.Id} already exists.");
+                logger.LogInformation("User {UserId} already exists", request.Id);
+                return Result<UserResponse>.Conflict($"User {request.Id} already exists");
             }
 
             var keycloakUser = await keycloakUserClient.GetUserByIdAsync(request.Id.ToString(), cancellationToken);
             if (!keycloakUser.IsSuccess)
             {
-                logger.LogWarning("Keycloak user with Id={UserId} was not found.", request.Id);
-                return Result.NotFound("Keycloak user not found.");
+                logger.LogWarning("Keycloak user {UserId} not found", request.Id);
+                return Result.NotFound("Keycloak user not found");
             }
 
             var newUser = CreateUserCommand.ToEntity(request);
             await database.Users.AddAsync(newUser, cancellationToken);
             await database.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("User with Id={UserId} created successfully.", newUser.Id);
+            logger.LogInformation("Created user {UserId}", newUser.Id);
             return Result.Created(new UserResponse(
                 newUser.Id.ToString(),
                 keycloakUser.Value.Name,

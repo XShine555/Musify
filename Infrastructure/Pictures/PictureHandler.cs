@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using SixLabors.ImageSharp;
@@ -13,7 +13,7 @@ namespace Musify.Infrastructure.Pictures
         {
             try
             {
-                logger.LogDebug("Resizing picture to={Width}x{Height}", width, height);
+                logger.LogDebug("Resizing picture to {Width}x{Height}", width, height);
                 if (pictureStream.CanSeek && pictureStream.Position > 0)
                     pictureStream.Position = 0;
 
@@ -31,13 +31,13 @@ namespace Musify.Infrastructure.Pictures
 
                 memoryStream.Position = 0;
 
-                logger.LogDebug("Picture resized successfully. OutputLength={Length}", memoryStream.Length);
+                logger.LogDebug("Picture resized to {Width}x{Height}, length: {Length}", width, height, memoryStream.Length);
                 return Result<Stream>.Success(memoryStream);
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "An error occurred while resizing the picture to={Width}x{Height}.", width, height);
-                return Result.Error("An error occurred while resizing the picture.");
+                logger.LogError(exception, "Failed to resize picture to {Width}x{Height}", width, height);
+                return Result.Error("Failed to resize picture");
             }
         }
     }

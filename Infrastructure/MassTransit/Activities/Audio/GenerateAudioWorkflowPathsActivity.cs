@@ -38,9 +38,8 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 Directory.CreateDirectory(workingDirectory);
 
-                logger.LogDebug("Generated audio workflow paths. WorkingDirectory={WorkingDirectory}, SourceFilePath={SourceFilePath}",
-                    workingDirectory,
-                    sourceFilePath);
+                logger.LogDebug("Generated audio workflow paths in {WorkingDirectory}",
+                    workingDirectory);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.CompletedWithVariables(new Dictionary<string, object>
@@ -53,7 +52,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error generating audio workflow paths for key={SourceKey}",
+                logger.LogError(exception, "Failed to generate audio workflow paths for {SourceKey}",
                     executeContext.Arguments.SourceKey);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;

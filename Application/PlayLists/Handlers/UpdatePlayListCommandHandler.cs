@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
@@ -24,13 +24,13 @@ namespace Musify.Application.PlayLists.Handlers
                 cancellationToken);
             if (playListEntity is null)
             {
-                logger.LogInformation("PlayList with id={PlayListId} not found.", request.PlayListId);
+                logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
                 return Result.NotFound();
             }
 
             if (playListEntity.UserId != request.UserId)
             {
-                logger.LogWarning("User with id={UserId} is not the owner of the PlayList with id={PlayListId}.", request.UserId, request.PlayListId);
+                logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
                 return Result.Unauthorized();
             }
 
@@ -50,11 +50,11 @@ namespace Musify.Application.PlayLists.Handlers
             catch (Exception exception)
             {
                 await Rollback(updatePictureResult.Value, cancellationToken);
-                logger.LogError(exception, "Failed to update PlayList with id={PlayListId}.", playListEntity.Id);
-                return Result.Error($"Failed to update PlayList with id {playListEntity.Id}.");
+                logger.LogError(exception, "Failed to update playlist {PlayListId}", playListEntity.Id);
+                return Result.Error($"Failed to update playlist {playListEntity.Id}");
             }
 
-            logger.LogInformation("Successfully updated PlayList with id={PlayListId}.", playListEntity.Id);
+            logger.LogInformation("Updated playlist {PlayListId}", playListEntity.Id);
             return Result.Success(PlayListResponse.FromEntity(playListEntity));
         }
 
@@ -89,9 +89,9 @@ namespace Musify.Application.PlayLists.Handlers
 
             if (!uploadResult.IsSuccess)
             {
-                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error?={ErrorMessage}",
+                logger.LogError("Failed to upload picture for playlist {PlayListId} to storage: {ErrorMessage}",
                     playList.Id, string.Join("; ", uploadResult.Errors));
-                return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
+                return Result.Error($"Failed to upload playlist {playList.Id} picture");
             }
             playList.OriginalPictureName = pictureName;
             return Result.Success(pictureKey);
@@ -122,8 +122,8 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish UpdatePlayListPictureEvent for PlayList with id={PlayListId}.", playList.Id);
-                return Result.Error($"Failed to publish UpdatePlayListPictureEvent for PlayList with id {playList.Id}.");
+                logger.LogError(exception, "Failed to publish playlist picture update event for playlist {PlayListId}", playList.Id);
+                return Result.Error($"Failed to publish playlist {playList.Id} picture update event");
             }
         }
 
@@ -152,7 +152,7 @@ namespace Musify.Application.PlayLists.Handlers
                 storageConfiguration.BucketName,
                 pictureKey,
                 cancellationToken);
-            logger.LogInformation("Rolled back uploaded picture with key={PictureKey} from storage.", pictureKey);
+            logger.LogInformation("Rolled back uploaded picture {PictureKey} from storage", pictureKey);
         }
 
         async Task<Result> PublishRemoveFileEvent(string key, CancellationToken cancellationToken)
@@ -166,8 +166,8 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish remove file event for key={Key}.", key);
-                return Result.Error($"Failed to publish remove file event for key {key}.");
+                logger.LogError(exception, "Failed to publish remove file event for key {Key}", key);
+                return Result.Error($"Failed to publish remove file event for {key}");
             }
         }
     }

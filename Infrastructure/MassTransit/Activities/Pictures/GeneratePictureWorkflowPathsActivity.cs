@@ -47,9 +47,8 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 Directory.CreateDirectory(workingDirectory);
 
-                logger.LogDebug("Generated picture workflow paths. WorkingDirectory={WorkingDirectory}, SourceFilePath={SourceFilePath}",
-                    workingDirectory,
-                    sourceFilePath);
+                logger.LogDebug("Generated picture workflow paths in {WorkingDirectory}",
+                    workingDirectory);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.CompletedWithVariables(new Dictionary<string, object>
@@ -64,7 +63,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error generating picture workflow paths for key={SourceKey}",
+                logger.LogError(exception, "Failed to generate picture workflow paths for {SourceKey}",
                     executeContext.Arguments.SourceKey);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;

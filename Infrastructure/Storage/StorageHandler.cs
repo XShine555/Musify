@@ -1,4 +1,4 @@
-﻿using Amazon.S3;
+using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Ardalis.Result;
@@ -21,19 +21,19 @@ namespace Musify.Infrastructure.Storage
                 Key = key,
             };
 
-            logger.LogDebug("Getting file from S3. Bucket={Bucket}, Key={Key}", bucket, key);
+
 
             try
             {
                 var response = await amazonS3.GetObjectAsync(request, cancellationToken);
 
-                logger.LogDebug("Successfully got file from S3 with bucket={Bucket} and key={Key}", bucket, key);
+                logger.LogDebug("Retrieved file from S3 {Bucket}/{Key}", bucket, key);
                 return Result.Success(response.ResponseStream);
             }
             catch (Exception exception)
             {
-                logger.LogWarning(exception, "Failed to get file from S3. Bucket={Bucket}, Key={Key}", bucket, key);
-                return Result.NotFound($"File not found in S3 with bucket: {bucket} and key: {key}");
+                logger.LogWarning(exception, "Failed to get file from S3 {Bucket}/{Key}", bucket, key);
+                return Result.NotFound($"File {bucket}/{key} not found");
             }
         }
 
@@ -47,7 +47,7 @@ namespace Musify.Infrastructure.Storage
                 Protocol = storageClientConfiguration.UseHttp ? Protocol.HTTP : Protocol.HTTPS
             };
 
-            logger.LogDebug("Getting pre-signed URL from S3. Bucket={BucketName}, Key={Key}, Expires={Expires}", bucket, key, request.Expires);
+            logger.LogDebug("Generating pre-signed URL for {Bucket}/{Key}", bucket, key);
             var url = await amazonS3.GetPreSignedURLAsync(request);
 
             return url;
@@ -61,7 +61,7 @@ namespace Musify.Infrastructure.Storage
                 Key = key,
             };
 
-            logger.LogDebug("Removing file from S3. Bucket={Bucket}, Key={Key}", bucket, key);
+            logger.LogDebug("Removing file from S3 {Bucket}/{Key}", bucket, key);
             var response = await amazonS3.DeleteObjectAsync(request, cancellationToken);
 
             return Result.NoContent();
@@ -96,18 +96,18 @@ namespace Musify.Infrastructure.Storage
                     await trasnsferUtility.UploadAsync(filePath, bucket, key, cancellationToken);
                     upload.State = UploadState.Successful;
                     successCount++;
-                    logger.LogDebug("Transferred file to S3. Bucket={Bucket}, Key={Key}", bucket, key);
+                    logger.LogDebug("Transferred file to S3 {Bucket}/{Key}", bucket, key);
                 }
                 catch (Exception exception)
                 {
                     failedCount++;
                     upload.State = UploadState.Failed;
-                    logger.LogError(exception, "Failed to transfer file to S3. Bucket={Bucket}, key={key}", bucket, key);
+                    logger.LogError(exception, "Failed to transfer file to S3 {Bucket}/{Key}", bucket, key);
                 }
             }
 
             await database.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("TransferFiles completed. Bucket={Bucket}, Route={Route}, Success={SuccessCount}, Failed={FailedCount}", bucket, route, successCount, failedCount);
+            logger.LogInformation("File transfer completed to {Bucket}/{Route}. Success: {SuccessCount}, Failed: {FailedCount}", bucket, route, successCount, failedCount);
 
             return Result.Success();
         }
@@ -122,8 +122,8 @@ namespace Musify.Infrastructure.Storage
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to upload file to S3 with bucket={Bucket} and key={Key}", bucket, key);
-                return Result.Error($"Failed to upload file to S3 with bucket: {bucket} and key: {key}");
+                logger.LogError(exception, "Failed to upload file to S3 {Bucket}/{Key}", bucket, key);
+                return Result.Error($"Failed to upload to {bucket}/{key}");
             }
         }
 
@@ -149,18 +149,18 @@ namespace Musify.Infrastructure.Storage
             try
             {
                 var response = await amazonS3.PutObjectAsync(request, cancellationToken);
-                logger.LogDebug("Uploaded file to S3. Bucket?={Bucket}, Key={Key}", bucket, key);
+                logger.LogDebug("Uploaded file to S3 {Bucket}/{Key}", bucket, key);
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to upload file to S3 with bucket={Bucket} and key={Key}", bucket, key);
+                logger.LogError(exception, "Failed to upload file to S3 {Bucket}/{Key}", bucket, key);
                 upload.State = UploadState.Failed;
-                return Result.Error($"Failed to upload file to S3 with bucket: {bucket} and key: {key}");
+                return Result.Error($"Failed to upload to {bucket}/{key}");
             }
 
             upload.State = UploadState.Successful;
             await database.SaveChangesAsync(cancellationToken);
-            logger.LogDebug("Saved upload record to database. Bucket={Bucket}, Key={Key}", bucket, key);
+            logger.LogDebug("Saved upload record for {Bucket}/{Key}", bucket, key);
 
             return Result.Success(key);
         }
@@ -179,15 +179,15 @@ namespace Musify.Infrastructure.Storage
             try
             {
                 var response = await amazonS3.CopyObjectAsync(request, cancellationToken);
-                logger.LogInformation("Successfully copied file from S3 with bucket={SourceBucket} and key={SourceKey} to bucket={DestinationBucket} and key={DestinationKey}",
+                logger.LogInformation("Copied file from {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
                     sourceBucket, sourceKey, destinationBucket, destinationKey);
                 return Result.Success();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to copy file from S3 with bucket={SourceBucket} and key={SourceKey} to bucket={DestinationBucket} and key={DestinationKey}", 
+                logger.LogError(exception, "Failed to copy file from {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}", 
                     sourceBucket, sourceKey, destinationBucket, destinationKey);
-                return Result.Error($"Failed to copy file from S3 with bucket: {sourceBucket} and key: {sourceKey} to bucket: {destinationBucket} and key: {destinationKey}");
+                return Result.Error($"Failed to copy from {sourceBucket}/{sourceKey} to {destinationBucket}/{destinationKey}");
             }
         }
     }

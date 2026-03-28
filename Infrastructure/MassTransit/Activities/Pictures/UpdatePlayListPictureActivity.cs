@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
@@ -46,7 +46,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 if (playList is null)
                 {
-                    logger.LogWarning("PlayList with id={PlayListId} not found",
+                    logger.LogWarning("Playlist {PlayListId} not found",
                         executeContext.Arguments.PlayListId);
                     throw new InvalidOperationException($"PlayList with id {executeContext.Arguments.PlayListId} not found");
                 }
@@ -66,7 +66,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated PlayList={PlayListId} pictures",
+                logger.LogInformation("Updated playlist {PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
@@ -74,7 +74,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error updating PlayList={PlayListId} pictures",
+                logger.LogError(exception, "Failed to update playlist {PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
@@ -106,7 +106,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating PlayList={PlayListId} pictures", compensateContext.Log.PlayListId);
+                logger.LogError(exception, "Failed to compensate playlist {PlayListId} pictures", compensateContext.Log.PlayListId);
                 return compensateContext.Failed(exception);
             }
         }

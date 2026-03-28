@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
@@ -46,7 +46,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 if (track is null)
                 {
-                    logger.LogWarning("Track with id={TrackId} not found",
+                    logger.LogWarning("Track {TrackId} not found",
                         executeContext.Arguments.TrackId);
                     throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
                 }
@@ -66,7 +66,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated Track={TrackId} pictures",
+                logger.LogInformation("Updated track {TrackId} pictures",
                     executeContext.Arguments.TrackId);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
@@ -74,7 +74,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error updating Track={TrackId} pictures",
+                logger.LogError(exception, "Failed to update track {TrackId} pictures",
                     executeContext.Arguments.TrackId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
@@ -106,7 +106,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating Track={TrackId} pictures", compensateContext.Log.TrackId);
+                logger.LogError(exception, "Failed to compensate track {TrackId} pictures", compensateContext.Log.TrackId);
                 return compensateContext.Failed(exception);
             }
         }

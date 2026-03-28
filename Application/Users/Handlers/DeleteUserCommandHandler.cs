@@ -10,7 +10,6 @@ namespace Musify.Application.Users.Commands
         public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
             var existingUser = await database.Users.FindAsync(request.Id, cancellationToken);
-
             if (existingUser is null)
                 return Result.NotFound();
 

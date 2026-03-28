@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
@@ -40,7 +40,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 if (!removeFile.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", removeFile.Errors);
-                    logger.LogWarning("Failed to remove file={Key} from bucket={Bucket}. Errors={Errors}",
+                    logger.LogWarning("Failed to remove {Key} from bucket {Bucket}: {Errors}",
                         executeContext.Arguments.Key,
                         executeContext.Arguments.Bucket,
                         errorMessage);
@@ -51,7 +51,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error removing file={Key} from bucket={Bucket}",
+                logger.LogError(exception, "Failed to remove {Key} from bucket {Bucket}",
                     executeContext.Arguments.Key,
                     executeContext.Arguments.Bucket);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);

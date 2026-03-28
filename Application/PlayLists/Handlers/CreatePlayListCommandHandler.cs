@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,8 +22,8 @@ namespace Musify.Application.PlayLists.Handlers
             var userExists = await database.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
             if (!userExists)
             {
-                logger.LogWarning("User with Id={UserId} does not exist.", request.UserId);
-                return Result.NotFound($"User with Id {request.UserId} does not exist.");
+                logger.LogWarning("User {UserId} not found", request.UserId);
+                return Result.NotFound($"User {request.UserId} not found");
             }
 
             var playListEntity = CreatePlayListCommand.ToEntity(request,
@@ -54,11 +54,11 @@ namespace Musify.Application.PlayLists.Handlers
             catch (Exception exception)
             {
                 await RollbackPicture(playListEntity, cancellationToken);
-                logger.LogError(exception, "Failed to create PlayList for user with id={UserId}.", request.UserId);
-                return Result.Error($"Failed to create PlayList for user with id {request.UserId}.");
+                logger.LogError(exception, "Failed to create playlist for user {UserId}", request.UserId);
+                return Result.Error($"Failed to create playlist for user {request.UserId}");
             }
 
-            logger.LogInformation("PlayList with id={PlayListId} created successfully for user with id={UserId}.", playListEntity.Id, request.UserId);
+            logger.LogInformation("Created playlist {PlayListId} for user {UserId}", playListEntity.Id, request.UserId);
             return Result.Created(PlayListResponse.FromEntity(playListEntity));
         }
 
@@ -71,7 +71,7 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to rollback picture upload for PlayList with Id={PlayListId}.", playList.Id);
+                logger.LogError(exception, "Failed to rollback picture upload for playlist {PlayListId}", playList.Id);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Musify.Application.PlayLists.Handlers
             var uploadResult = await storageHandler.UploadFileAsync(picture.FileStream, picture.ContentType, storageConfiguration.BucketName, pictureKey, cancellationToken);
             if (!uploadResult.IsSuccess)
             {
-                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error={ErrorMessage}.",
+                logger.LogError("Failed to upload picture for playlist {PlayListId} to storage: {ErrorMessage}",
                     playList.Id, string.Join(", ", uploadResult.Errors));
                 return uploadResult.ToErrorResult();
             }
@@ -118,8 +118,8 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish UpdatePlayListPictureEvent for PlayList with Id={PlayListId}.", playList.Id);
-                return Result.Error($"Failed to publish UpdatePlayListPictureEvent for PlayList with Id {playList.Id}.");
+                logger.LogError(exception, "Failed to publish playlist picture update event for playlist {PlayListId}", playList.Id);
+                return Result.Error($"Failed to publish playlist {playList.Id} picture update event");
             }
         }
     }

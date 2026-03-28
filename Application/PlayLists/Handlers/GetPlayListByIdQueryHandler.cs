@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
@@ -18,7 +18,7 @@ namespace Musify.Application.PlayLists.Handlers
 
             return playList is not null
                 ? Result.Success(PlayListResponse.FromEntity(playList))
-                : Result.NotFound("Playlist not found.");
+                : Result.NotFound("Playlist not found");
         }
     }
 }

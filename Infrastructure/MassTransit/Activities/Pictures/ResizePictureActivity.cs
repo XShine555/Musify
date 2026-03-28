@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
@@ -41,7 +41,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             {
                 if (!File.Exists(sourceFilePath))
                 {
-                    logger.LogWarning("Source file not found at={SourceFilePath}", sourceFilePath);
+                    logger.LogWarning("Source file not found: {SourceFilePath}", sourceFilePath);
                     throw new FileNotFoundException($"Source file not found: {sourceFilePath}");
                 }
 
@@ -56,7 +56,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 if (!resizedPicture.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", resizedPicture.Errors);
-                    logger.LogError("Failed to resize picture={SourceFilePath} to={Width}x{Height}. Errors={Errors}",
+                    logger.LogError("Failed to resize picture {SourceFilePath} to {Width}x{Height}: {Errors}",
                         sourceFilePath,
                         executeContext.Arguments.Width,
                         executeContext.Arguments.Height,
@@ -71,7 +71,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 await using var destinationStream = File.Create(destinationFilePath);
                 await resizedPicture.Value.CopyToAsync(destinationStream, executeContext.CancellationToken);
 
-                logger.LogDebug("Picture resized from={SourceFilePath} to={DestinationFilePath}",
+                logger.LogDebug("Resized picture from {SourceFilePath} to {DestinationFilePath}",
                     sourceFilePath,
                     destinationFilePath);
 
@@ -80,7 +80,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error resizing picture={SourceFilePath}", sourceFilePath);
+                logger.LogError(exception, "Failed to resize picture {SourceFilePath}", sourceFilePath);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
@@ -95,7 +95,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating resized file={DestinationFilePath}", compensateContext.Log.DestinationFilePath);
+                logger.LogError(exception, "Failed to compensate resized file {DestinationFilePath}", compensateContext.Log.DestinationFilePath);
                 return Task.FromResult(compensateContext.Failed(exception));
             }
         }

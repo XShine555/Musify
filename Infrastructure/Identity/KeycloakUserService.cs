@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using Keycloak.Net;
 using Keycloak.Net.Models.Users;
 using Microsoft.Extensions.Logging;
@@ -23,12 +23,12 @@ namespace Musify.Infrastructure.Identity
             }
             catch (OperationCanceledException)
             {
-                logger.LogError("Operation to retrieve Keycloak user with id={KeycloakId} was cancelled.", keycloakId);
-                return Result.Error("Operation was cancelled.");
+                logger.LogWarning("Operation to retrieve Keycloak user {KeycloakId} was cancelled", keycloakId);
+                return Result.Error("Operation cancelled");
             }
             catch (Exception exception)
             {
-                logger.LogWarning(exception, "Keycloak user with id={KeycloakId} could not be retrieved.", keycloakId);
+                logger.LogWarning(exception, "Failed to retrieve Keycloak user {KeycloakId}", keycloakId);
                 return Result.NotFound();
             }
             return Result.Success(KeycloakUserMapper.Map(keycloakUser));

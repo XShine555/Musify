@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using DispatchR.Abstractions.Send;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
@@ -15,16 +15,15 @@ namespace Musify.Application.Tracks.Handler
         public async Task<Result> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
         {
             var track = await database.Tracks.FindAsync(request.TrackId, cancellationToken);
-
             if (track is null)
             {
-                logger.LogInformation("Track with id={TrackId} not found.", request.TrackId);
+                logger.LogInformation("Track {TrackId} not found", request.TrackId);
                 return Result.NotFound();
             }
 
             if (track.Id != request.UserId)
             {
-                logger.LogInformation("User with id={UserId} is not the owner of track with id={TrackId}.", request.UserId, request.TrackId);
+                logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
                 return Result.Unauthorized();
             }
 
@@ -63,7 +62,7 @@ namespace Musify.Application.Tracks.Handler
         async Task RemoveFile(string path, CancellationToken cancellationToken)
         {
             await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, path, cancellationToken);
-            logger.LogDebug("File with path={Path} removed from storage.", path);
+            logger.LogDebug("Removed file {Path} from storage", path);
         }
     }
 }
