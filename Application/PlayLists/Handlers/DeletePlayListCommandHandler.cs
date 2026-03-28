@@ -14,8 +14,9 @@ namespace Musify.Application.PlayLists.Handlers
     {
         public async Task<Result> Handle(DeletePlayListCommand request, CancellationToken cancellationToken)
         {
-            var playList = await database.PlayLists.FindAsync(request.PlayListId, cancellationToken);
-
+            var playList = await database.PlayLists.FindAsync(
+                [request.PlayListId],
+                cancellationToken);
             if (playList is null)
             {
                 logger.LogDebug("PlayList with id={PlayListId} not found", request.PlayListId);
@@ -28,33 +29,15 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.Unauthorized();
             }
 
-            var keysToRemove = new List<string>();
-
             if (playList.SmallPictureName != playListConfiguration.Routes.PresetSmallPicture)
-                keysToRemove.Add(Path.Combine(playListConfiguration.Routes.SmallPicturesPath,
-                    playList.SmallPictureName));
+                await PublishRemoveFileEventAsync(playList.Id, Path.Combine(playListConfiguration.Routes.SmallPicturesPath,
+                    playList.SmallPictureName), cancellationToken);
             if (playList.MediumPictureName != playListConfiguration.Routes.PresetMediumPicture)
-                keysToRemove.Add(Path.Combine(playListConfiguration.Routes.MediumPicturesPath,
-                    playList.MediumPictureName));
+                await PublishRemoveFileEventAsync(playList.Id, Path.Combine(playListConfiguration.Routes.MediumPicturesPath,
+                    playList.MediumPictureName), cancellationToken);
             if (playList.LargePictureName != playListConfiguration.Routes.PresetLargePicture)
-                keysToRemove.Add(Path.Combine(playListConfiguration.Routes.LargePicturesPath,
-                    playList.LargePictureName));
-
-            foreach (var key in keysToRemove)
-            {
-                var publishResult = await TryPublishRemoveFileEventAsync(playList.Id, key, cancellationToken);
-
-                if (!publishResult.IsSuccess)
-                {
-                    if (publishResult.IsNotFound())
-                    {
-                        logger.LogWarning("File with key={Key} not found in storage while trying to publish remove file event for PlayList with id={PlayListId}.", key, playList.Id);
-                        continue;
-                    }
-
-                    return publishResult;
-                }
-            }
+                await PublishRemoveFileEventAsync(playList.Id, Path.Combine(playListConfiguration.Routes.LargePicturesPath,
+                    playList.LargePictureName), cancellationToken);
 
             database.PlayLists.Remove(playList);
             await database.SaveChangesAsync(cancellationToken);
@@ -62,14 +45,13 @@ namespace Musify.Application.PlayLists.Handlers
             return Result.NoContent();
         }
 
-        async Task<Result> TryPublishRemoveFileEventAsync(Guid playListId, string key, CancellationToken cancellationToken)
+        async Task<Result> PublishRemoveFileEventAsync(Guid playListId, string key, CancellationToken cancellationToken)
         {
             try
             {
                 await eventBus.PublishAsync(new RemoveFileEvent(
                     storageConfiguration.BucketName,
                     key), cancellationToken);
-
                 return Result.Success();
             }
             catch (Exception exception)

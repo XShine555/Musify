@@ -15,7 +15,6 @@ namespace Musify.Application.Users.Commands
                 return Result.NotFound();
 
             database.Users.Remove(existingUser);
-
             await database.SaveChangesAsync(cancellationToken);
 
             return Result.NoContent();

@@ -6,6 +6,7 @@ using Musify.Application.Configuration;
 using Musify.Application.Contracts.Application;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
+using Musify.Application.Extensions;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
 using Musify.Domain.Entities;
@@ -19,101 +20,107 @@ namespace Musify.Application.PlayLists.Handlers
         public async Task<Result<PlayListResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
-
             if (!userExists)
             {
                 logger.LogWarning("User with Id={UserId} does not exist.", request.UserId);
                 return Result.NotFound($"User with Id {request.UserId} does not exist.");
             }
 
-            var playList = new PlayList
+            var playListEntity = CreatePlayListCommand.ToEntity(request,
+                playListConfiguration.Routes.PresetOriginalPicture,
+                playListConfiguration.Routes.PresetSmallPicture,
+                playListConfiguration.Routes.PresetMediumPicture,
+                playListConfiguration.Routes.PresetLargePicture);
+
+            if (request.Picture is not null)
             {
-                UserId = request.UserId,
-                Name = request.Name,
-                NormalizedName = request.Name.Trim().ToUpperInvariant(),
-                Description = request.Description,
-                OriginalPictureName = playListConfiguration.Routes.PresetOriginalPicture,
-                SmallPictureName = playListConfiguration.Routes.PresetSmallPicture,
-                MediumPictureName = playListConfiguration.Routes.PresetMediumPicture,
-                LargePictureName = playListConfiguration.Routes.PresetLargePicture,
-            };
+                var uploadResult = await SetPicture(playListEntity, request.Picture, cancellationToken);
+                if (!uploadResult.IsSuccess)
+                    return uploadResult;
 
-            var setPictureResult = request.Picture is null
-                ? Result.Success()
-                : await UploadPicture(playList, request.Picture, cancellationToken);
-
-            if (!setPictureResult.IsSuccess)
-                return setPictureResult;
-
-            await database.PlayLists.AddAsync(playList, cancellationToken);
-            await database.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("PlayList with id={PlayListId} created successfully for user with id={UserId}.", playList.Id, request.UserId);
-            return Result.Created(PlayListResponse.FromEntity(playList));
-        }
-
-        async Task<Result> UploadPicture(PlayList playList, IFileData picture, CancellationToken cancellationToken)
-        {
-            var imageId = Guid.NewGuid();
-            var pictureName = imageId + picture.FileType;
-            var pictureStorageKey = Path.Join(playListConfiguration.Routes.OriginalPicturesPath,
-                pictureName);
-
-            var uploadResult = await UploadFile(picture, pictureStorageKey, cancellationToken);
-
-            if (!uploadResult.IsSuccess)
-            {
-                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error={ErrorMessage}",
-                    playList.Id, string.Join("; ", uploadResult.Errors));
-                return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
+                var publishResult = await PublishUpdateEvent(playListEntity, cancellationToken);
+                if (!publishResult.IsSuccess)
+                {
+                    await RollbackPicture(playListEntity, cancellationToken);
+                    return publishResult;
+                }
             }
-
-            playList.OriginalPictureName = pictureName;
-            logger.LogInformation("Playlist image uploaded successfully for PlayList with Id={PlayListId}.", playList.Id);
 
             try
             {
-                await PublishUpdateEvent(pictureStorageKey, playList, cancellationToken);
+                await database.PlayLists.AddAsync(playListEntity, cancellationToken);
+                await database.SaveChangesAsync(cancellationToken);
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish resize picture event for PlayList with id={PlayListId}.", playList.Id);
-                return Result.Error($"Failed to publish resize picture event for PlayList with id {playList.Id}.");
+                await RollbackPicture(playListEntity, cancellationToken);
+                logger.LogError(exception, "Failed to create PlayList for user with id={UserId}.", request.UserId);
+                return Result.Error($"Failed to create PlayList for user with id {request.UserId}.");
             }
+
+            logger.LogInformation("PlayList with id={PlayListId} created successfully for user with id={UserId}.", playListEntity.Id, request.UserId);
+            return Result.Created(PlayListResponse.FromEntity(playListEntity));
+        }
+
+        async Task RollbackPicture(PlayList playList, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await storageHandler.RemoveFileAsync(storageConfiguration.BucketName,
+                    Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName), cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to rollback picture upload for PlayList with Id={PlayListId}.", playList.Id);
+            }
+        }
+
+        async Task<Result> SetPicture(PlayList playList, IFileData picture, CancellationToken cancellationToken)
+        {
+            var pictureName = Guid.NewGuid() + picture.FileType;
+            var pictureKey = Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, pictureName);
+
+            var uploadResult = await storageHandler.UploadFileAsync(picture.FileStream, picture.ContentType, storageConfiguration.BucketName, pictureKey, cancellationToken);
+            if (!uploadResult.IsSuccess)
+            {
+                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error={ErrorMessage}.",
+                    playList.Id, string.Join(", ", uploadResult.Errors));
+                return uploadResult.ToErrorResult();
+            }
+
+            playList.OriginalPictureName = pictureName;
+
             return Result.Success();
         }
 
-        async Task<Result<string>> UploadFile(IFileData fileData, string storageKeyName, CancellationToken cancellationToken)
+        async Task<Result> PublishUpdateEvent(PlayList playList, CancellationToken cancellationToken)
         {
-            var uploadFileResult = await storageHandler.UploadFileAsync(
-                fileData.FileStream,
-                fileData.ContentType,
-                storageConfiguration.BucketName,
-                storageKeyName,
-                cancellationToken);
-
-            return uploadFileResult;
-        }
-
-        async Task PublishUpdateEvent(string originalPictureKey, PlayList playList, CancellationToken cancellationToken)
-        {
-            await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
-                playList.Id,
-                storageConfiguration.BucketName,
-                originalPictureKey,
-                new ImageSize(
-                    playListConfiguration.Routes.SmallPicturesPath,
-                    playListConfiguration.PicturesSizes.SmallPictureWidth,
-                    playListConfiguration.PicturesSizes.SmallPictureHeight),
-                new ImageSize(
-                    playListConfiguration.Routes.MediumPicturesPath,
-                    playListConfiguration.PicturesSizes.MediumPictureWidth,
-                    playListConfiguration.PicturesSizes.MediumPictureHeight),
-                new ImageSize(
-                    playListConfiguration.Routes.LargePicturesPath,
-                    playListConfiguration.PicturesSizes.LargePictureWidth,
-                    playListConfiguration.PicturesSizes.LargePictureHeight)),
-                cancellationToken);
+            try
+            {
+                await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
+                    playList.Id,
+                    storageConfiguration.BucketName,
+                    playList.OriginalPictureName,
+                    new ImageSize(
+                        playListConfiguration.Routes.SmallPicturesPath,
+                        playListConfiguration.PicturesSizes.SmallPictureWidth,
+                        playListConfiguration.PicturesSizes.SmallPictureHeight),
+                    new ImageSize(
+                        playListConfiguration.Routes.MediumPicturesPath,
+                        playListConfiguration.PicturesSizes.MediumPictureWidth,
+                        playListConfiguration.PicturesSizes.MediumPictureHeight),
+                    new ImageSize(
+                        playListConfiguration.Routes.LargePicturesPath,
+                        playListConfiguration.PicturesSizes.LargePictureWidth,
+                        playListConfiguration.PicturesSizes.LargePictureHeight)),
+                    cancellationToken);
+                return Result.Success();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to publish UpdatePlayListPictureEvent for PlayList with Id={PlayListId}.", playList.Id);
+                return Result.Error($"Failed to publish UpdatePlayListPictureEvent for PlayList with Id {playList.Id}.");
+            }
         }
     }
 }

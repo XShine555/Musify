@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Users.Commands;
 using Musify.Application.Users.Responses;
-using Musify.Domain.Entities;
 
 namespace Musify.Application.Users.Handlers
 {
@@ -14,27 +13,21 @@ namespace Musify.Application.Users.Handlers
     {
         public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var existingUser = await database.Users.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
-
-            if (existingUser is not null)
+            var userExists = await database.Users.AnyAsync(u => u.Id == request.Id, cancellationToken);
+            if (!userExists)
             {
                 logger.LogInformation("User with Id={UserId} already exists.", request.Id);
                 return Result<UserResponse>.Conflict($"A user with Id {request.Id} already exists.");
             }
 
             var keycloakUser = await keycloakUserClient.GetUserByIdAsync(request.Id.ToString(), cancellationToken);
-
             if (!keycloakUser.IsSuccess)
             {
                 logger.LogWarning("Keycloak user with Id={UserId} was not found.", request.Id);
                 return Result.NotFound("Keycloak user not found.");
             }
 
-            var newUser = new User
-            {
-                Id = request.Id
-            };
-
+            var newUser = CreateUserCommand.ToEntity(request);
             await database.Users.AddAsync(newUser, cancellationToken);
             await database.SaveChangesAsync(cancellationToken);
 

@@ -1,0 +1,69 @@
+﻿using Ardalis.Result;
+using DispatchR.Abstractions.Send;
+using Microsoft.Extensions.Logging;
+using Musify.Application.Configuration;
+using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Tracks.Commands;
+using Musify.Domain.Entities;
+
+namespace Musify.Application.Tracks.Handler
+{
+    public class DeleteTrackCommandHandler(IDatabase database, IStorageHandler storageHandler, ILogger<DeleteTrackCommandHandler> logger,
+        TrackConfiguration trackConfiguration, ApplicationStorageConfiguration storageConfiguration)
+        : IRequestHandler<DeleteTrackCommand, Task<Result>>
+    {
+        public async Task<Result> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
+        {
+            var track = await database.Tracks.FindAsync(request.TrackId, cancellationToken);
+
+            if (track is null)
+            {
+                logger.LogInformation("Track with id={TrackId} not found.", request.TrackId);
+                return Result.NotFound();
+            }
+
+            if (track.Id != request.UserId)
+            {
+                logger.LogInformation("User with id={UserId} is not the owner of track with id={TrackId}.", request.UserId, request.TrackId);
+                return Result.Unauthorized();
+            }
+
+            await RemovePictures(track, cancellationToken);
+            await RemoveAudios(track, cancellationToken);
+
+            return Result.NoContent();
+        }
+
+        async Task RemovePictures(Track track, CancellationToken cancellationToken)
+        {
+            await RemoveFile(Path.Combine(trackConfiguration.Routes.OriginalPicturesPath, track.OriginalPictureName),
+                cancellationToken);
+
+            if (track.SmallPictureName != trackConfiguration.Routes.PresetSmallPicture)
+                await RemoveFile(Path.Combine(trackConfiguration.Routes.SmallPicturesPath, track.SmallPictureName),
+                    cancellationToken);
+            if (track.MediumPictureName != trackConfiguration.Routes.PresetMediumPicture)
+                await RemoveFile(Path.Combine(trackConfiguration.Routes.MediumPicturesPath, track.MediumPictureName),
+                    cancellationToken);
+            if (track.LargePictureName != trackConfiguration.Routes.PresetLargePicture)
+                await RemoveFile(Path.Combine(trackConfiguration.Routes.LargePicturesPath, track.LargePictureName),
+                    cancellationToken);
+
+        }
+
+        async Task RemoveAudios(Track track, CancellationToken cancellationToken)
+        {
+            await RemoveFile(Path.Combine(trackConfiguration.Routes.OriginalAudiosPath, track.OriginalAudioName),
+                cancellationToken);
+
+            await RemoveFile(Path.Combine(trackConfiguration.Routes.ProcessedAudiosPath, track.AudioFolderName),
+                cancellationToken);
+        }
+
+        async Task RemoveFile(string path, CancellationToken cancellationToken)
+        {
+            await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, path, cancellationToken);
+            logger.LogDebug("File with path={Path} removed from storage.", path);
+        }
+    }
+}
