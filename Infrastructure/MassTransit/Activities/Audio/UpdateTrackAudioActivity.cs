@@ -39,21 +39,21 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
                 if (track is null)
                 {
-                    logger.LogWarning("Track with id {TrackId} not found",
+                    logger.LogWarning("Track with id={TrackId} not found",
                         executeContext.Arguments.TrackId);
                     throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
                 }
 
                 var log = new UpdateTrackAudioLog(
                     track.Id,
-                    track.AudioFolderKeyName);
+                    track.AudioFolderName);
 
-                track.AudioFolderKeyName = Path.GetFileName(executeContext.Arguments.AudioFolderKey);
+                track.AudioFolderName = Path.GetFileName(executeContext.Arguments.AudioFolderKey);
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated Track {TrackId} audio",
+                logger.LogInformation("Updated Track={TrackId} audio",
                     executeContext.Arguments.TrackId);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
@@ -61,7 +61,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error updating Track {TrackId} audio",
+                logger.LogError(exception, "Error updating Track={TrackId} audio",
                     executeContext.Arguments.TrackId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
@@ -81,7 +81,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                     return compensateContext.Compensated();
                 }
 
-                track.AudioFolderKeyName = compensateContext.Log.PreviousFolderAudioKey;
+                track.AudioFolderName = compensateContext.Log.PreviousFolderAudioKey;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
@@ -90,7 +90,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating Track {TrackId} audio", compensateContext.Log.TrackId);
+                logger.LogError(exception, "Error compensating Track={TrackId} audio", compensateContext.Log.TrackId);
                 return compensateContext.Failed(exception);
             }
         }

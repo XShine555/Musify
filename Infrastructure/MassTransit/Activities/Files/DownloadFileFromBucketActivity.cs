@@ -44,7 +44,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 if (!getFile.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", getFile.Errors);
-                    logger.LogWarning("Failed to download file from bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
+                    logger.LogWarning("Failed to download file from bucket. Bucket={Bucket}, Key={Key}, Errors={Errors}",
                         executeContext.Arguments.Bucket,
                         executeContext.Arguments.Key,
                         errorMessage);
@@ -85,7 +85,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating downloaded file {DestinationFilePath}", compensateContext.Log.DestinationFilePath);
+                logger.LogError(exception, "Error compensating downloaded file={DestinationFilePath}", compensateContext.Log.DestinationFilePath);
                 return Task.FromResult(compensateContext.Failed(exception));
             }
         }

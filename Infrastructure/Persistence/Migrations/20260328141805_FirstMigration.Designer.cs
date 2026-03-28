@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Musify.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260325003221_FirstMigration")]
+    [Migration("20260328141805_FirstMigration")]
     partial class FirstMigration
     {
         /// <inheritdoc />
@@ -36,15 +36,15 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("character varying(254)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
-                    b.Property<string>("LargePictureKeyName")
+                    b.Property<string>("LargePictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("MediumPictureKeyName")
+                    b.Property<string>("MediumPictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -59,12 +59,12 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("OriginalPictureKeyName")
+                    b.Property<string>("OriginalPictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("SmallPictureKeyName")
+                    b.Property<string>("SmallPictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -195,7 +195,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AudioFolderKeyName")
+                    b.Property<string>("AudioFolderName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -203,12 +203,12 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("LargePictureKeyName")
+                    b.Property<string>("LargePictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("MediumPictureKeyName")
+                    b.Property<string>("MediumPictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -218,17 +218,17 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("OriginalAudioKeyName")
+                    b.Property<string>("OriginalAudioName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("OriginalPictureKeyName")
+                    b.Property<string>("OriginalPictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("SmallPictureKeyName")
+                    b.Property<string>("SmallPictureName")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -252,7 +252,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("BucketName")
+                    b.Property<string>("Bucket")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -263,7 +263,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("KeyName")
+                    b.Property<string>("Key")
                         .IsRequired()
                         .HasColumnType("text");
 

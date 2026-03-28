@@ -18,26 +18,26 @@ namespace Musify.Domain.Entities
 
         [Required]
         [MaxLength(64)]
-        public required string OriginalPictureKeyName { get; set; }
+        public required string OriginalPictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string SmallPictureKeyName { get; set; }
+        public required string SmallPictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string MediumPictureKeyName { get; set; }
+        public required string MediumPictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string LargePictureKeyName { get; set; }
+        public required string LargePictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string OriginalAudioKeyName { get; set; }
+        public required string OriginalAudioName { get; set; }
 
         [MaxLength(64)]
-        public string AudioFolderKeyName { get; set; } = string.Empty;
+        public string AudioFolderName { get; set; } = string.Empty;
 
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

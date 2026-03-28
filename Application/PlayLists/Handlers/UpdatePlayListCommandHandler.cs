@@ -23,13 +23,13 @@ namespace Musify.Application.PlayLists.Handlers
 
             if (playList is null)
             {
-                logger.LogInformation("PlayList with id {PlayListId} not found", request.PlayListId);
+                logger.LogInformation("PlayList with id={PlayListId} not found", request.PlayListId);
                 return Result.NotFound();
             }
 
             if (playList.UserId != request.UserId)
             {
-                logger.LogWarning("User with id {UserId} is not the owner of the PlayList with id {PlayListId}", request.UserId, request.PlayListId);
+                logger.LogWarning("User with id={UserId} is not the owner of the PlayList with id={PlayListId}", request.UserId, request.PlayListId);
                 return Result.Unauthorized();
             }
 
@@ -51,20 +51,20 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.Success(PlayListResponse.FromEntity(playList));
             }
 
-            if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
+            if (playList.SmallPictureName != playListConfiguration.Routes.PresetSmallPicture)
                 await PublishRemoveFileEvent(Path.Combine(
                     playListConfiguration.Routes.SmallPicturesPath,
-                    playList.SmallPictureKeyName),
+                    playList.SmallPictureName),
                     cancellationToken);
-            if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+            if (playList.MediumPictureName != playListConfiguration.Routes.PresetMediumPicture)
                 await PublishRemoveFileEvent(Path.Combine(
                     playListConfiguration.Routes.MediumPicturesPath,
-                    playList.MediumPictureKeyName),
+                    playList.MediumPictureName),
                     cancellationToken);
-            if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+            if (playList.LargePictureName != playListConfiguration.Routes.PresetLargePicture)
                 await PublishRemoveFileEvent(Path.Combine(
                     playListConfiguration.Routes.LargePicturesPath,
-                    playList.LargePictureKeyName),
+                    playList.LargePictureName),
                     cancellationToken);
 
             var newImageId = Guid.NewGuid();
@@ -74,7 +74,7 @@ namespace Musify.Application.PlayLists.Handlers
             var uploadResult = await UploadFile(request.NewPicture, newImageStorageKey, cancellationToken);
             if (!uploadResult.IsSuccess)
             {
-                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error: {ErrorMessage}",
+                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error?={ErrorMessage}",
                     playList.Id, string.Join("; ", uploadResult.Errors));
                 return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
             }
@@ -85,14 +85,14 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish update picture event for PlayList with id {PlayListId}.", playList.Id);
+                logger.LogError(exception, "Failed to publish update picture event for PlayList with id={PlayListId}.", playList.Id);
                 return Result.Error($"Failed to publish update picture event for PlayList with id {playList.Id}.");
             }
 
             database.PlayLists.Update(playList);
             await database.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Updated PlayList with id={PlayListId} and picture key {PictureKey}.", playList.Id, newImageStorageKey);
+            logger.LogInformation("Updated PlayList with id={PlayListId} and picture key={PictureKey}.", playList.Id, newImageStorageKey);
             return Result.Success(PlayListResponse.FromEntity(playList));
         }
 
@@ -110,7 +110,7 @@ namespace Musify.Application.PlayLists.Handlers
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish remove file event for key {Key}.", key);
+                logger.LogError(exception, "Failed to publish remove file event for key={Key}.", key);
                 return Result.Error($"Failed to publish remove file event for key {key}.");
             }
         }

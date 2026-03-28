@@ -14,8 +14,6 @@ namespace Musify.Application.Users.Handlers
     {
         public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            logger.LogDebug("Handling {CommandName} with Id: {UserId}", nameof(CreateUserCommand), request.Id);
-
             var existingUser = await database.Users.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
             if (existingUser is not null)

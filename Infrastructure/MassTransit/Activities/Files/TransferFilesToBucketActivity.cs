@@ -51,7 +51,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 if (!transferFilesResult.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", transferFilesResult.Errors);
-                    logger.LogWarning("Failed to transfer files from {FolderPath} to bucket {DestinationBucketName}, key {DestinationKeyName}. Errors: {Errors}",
+                    logger.LogWarning("Failed to transfer files from={FolderPath} to bucket={DestinationBucket}, key={DestinationKey}. Errors={Errors}",
                         folderPath,
                         executeContext.Arguments.DestinationBucket,
                         destinationKey,
@@ -64,7 +64,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error transferring files from {FolderPath} to bucket {DestinationBucketName}",
+                logger.LogError(exception, "Error transferring files from={FolderPath} to bucket={DestinationBucket}",
                     folderPath,
                     executeContext.Arguments.DestinationBucket);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
@@ -88,7 +88,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating transferred files to bucket {DestinationBucketName}", compensateContext.Log.DestinationBucket);
+                logger.LogError(exception, "Error compensating transferred files to bucket={DestinationBucket}", compensateContext.Log.DestinationBucket);
                 return compensateContext.Failed(exception);
             }
         }

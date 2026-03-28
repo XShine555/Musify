@@ -4,19 +4,19 @@ namespace Musify.Application.Contracts.Infrastructure
 {
     public interface IStorageHandler
     {
-        Task<Result<Stream>> GetFileAsync(string bucketName, string keyName, CancellationToken cancellationToken);
+        Task<Result<Stream>> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
-        Task<string> GetUrlAsync(string bucketName, string keyName, TimeSpan ExpirationTime, CancellationToken cancellationToken);
+        Task<string> GetUrlAsync(string bucket, string key, TimeSpan ExpirationTime, CancellationToken cancellationToken);
 
-        Task<Result<string>> UploadFileAsync(string filePath, string bucketName, string keyName, CancellationToken cancellationToken);
+        Task<Result<string>> UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken);
 
-        Task<Result<string>> UploadFileAsync(Stream sourceStream, string contentType, string bucketName, string keyName, CancellationToken cancellationToken);
+        Task<Result<string>> UploadFileAsync(Stream sourceStream, string contentType, string bucket, string key, CancellationToken cancellationToken);
 
-        Task<Result> TransferFilesAsync(string sourceDirectory, string bucketName, string route, CancellationToken cancellationToken);
+        Task<Result> TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken);
 
-        Task<Result> RemoveFileAsync(string bucketName, string keyName, CancellationToken cancellationToken);
+        Task<Result> RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
-        Task<Result> CopyFileAsync(string sourceBucketName, string sourceKeyName, string destinationBucketName, string destinationKeyName,
+        Task<Result> CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey,
             CancellationToken cancellationToken);
     }
 }

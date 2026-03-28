@@ -22,24 +22,24 @@ namespace Musify.Domain.Entities
         public required string NormalizedName { get; set; }
 
         [Required]
-        [MaxLength(254)]
+        [MaxLength(256)]
         public required string Description { get; set; } = "No description was provided.";
 
         [Required]
         [MaxLength(64)]
-        public required string OriginalPictureKeyName { get; set; }
+        public required string OriginalPictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string SmallPictureKeyName { get; set; }
+        public required string SmallPictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string MediumPictureKeyName { get; set; }
+        public required string MediumPictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
-        public required string LargePictureKeyName { get; set; }
+        public required string LargePictureName { get; set; }
 
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

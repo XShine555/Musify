@@ -30,15 +30,15 @@ namespace Musify.Application.PlayLists.Handlers
 
             var keysToRemove = new List<string>();
 
-            if (playList.SmallPictureKeyName != playListConfiguration.Routes.PresetSmallPicture)
+            if (playList.SmallPictureName != playListConfiguration.Routes.PresetSmallPicture)
                 keysToRemove.Add(Path.Combine(playListConfiguration.Routes.SmallPicturesPath,
-                    playList.SmallPictureKeyName));
-            if (playList.MediumPictureKeyName != playListConfiguration.Routes.PresetMediumPicture)
+                    playList.SmallPictureName));
+            if (playList.MediumPictureName != playListConfiguration.Routes.PresetMediumPicture)
                 keysToRemove.Add(Path.Combine(playListConfiguration.Routes.MediumPicturesPath,
-                    playList.MediumPictureKeyName));
-            if (playList.LargePictureKeyName != playListConfiguration.Routes.PresetLargePicture)
+                    playList.MediumPictureName));
+            if (playList.LargePictureName != playListConfiguration.Routes.PresetLargePicture)
                 keysToRemove.Add(Path.Combine(playListConfiguration.Routes.LargePicturesPath,
-                    playList.LargePictureKeyName));
+                    playList.LargePictureName));
 
             foreach (var key in keysToRemove)
             {
@@ -48,7 +48,7 @@ namespace Musify.Application.PlayLists.Handlers
                 {
                     if (publishResult.IsNotFound())
                     {
-                        logger.LogWarning("File with key={KeyName} not found in storage while trying to publish remove file event for PlayList with id={PlayListId}.", key, playList.Id);
+                        logger.LogWarning("File with key={Key} not found in storage while trying to publish remove file event for PlayList with id={PlayListId}.", key, playList.Id);
                         continue;
                     }
 
@@ -62,19 +62,19 @@ namespace Musify.Application.PlayLists.Handlers
             return Result.NoContent();
         }
 
-        async Task<Result> TryPublishRemoveFileEventAsync(Guid playListId, string keyName, CancellationToken cancellationToken)
+        async Task<Result> TryPublishRemoveFileEventAsync(Guid playListId, string key, CancellationToken cancellationToken)
         {
             try
             {
                 await eventBus.PublishAsync(new RemoveFileEvent(
                     storageConfiguration.BucketName,
-                    keyName), cancellationToken);
+                    key), cancellationToken);
 
                 return Result.Success();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish remove file event for PlayList id={PlayListId} and key={KeyName}.", playListId, keyName);
+                logger.LogError(exception, "Failed to publish remove file event for PlayList id={PlayListId} and key={Key}.", playListId, key);
                 return Result.Error($"Failed to publish remove file event for PlayList with id {playListId}.");
             }
         }

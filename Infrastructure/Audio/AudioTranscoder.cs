@@ -18,7 +18,7 @@ namespace Musify.Infrastructure.Audio
                 Directory.CreateDirectory(destinationPath);
 
                 logger.LogInformation(
-                    "Starting audio transcoding to DASH. DestinationPath: {DestinationPath}, Timeout: {Timeout}, Executable: {Executable}",
+                    "Starting audio transcoding to DASH. DestinationPath={DestinationPath}, Timeout={Timeout}, Executable={Executable}",
                     destinationPath,
                     audioTranscoderConfiguration.TranscodingTimeout,
                     audioTranscoderConfiguration.Ffmpeg.ExecutableName);
@@ -33,24 +33,24 @@ namespace Musify.Infrastructure.Audio
                 if (executionResult.ExitCode != 0)
                 {
                     logger.LogError(
-                        "Audio transcoding to DASH format failed with exit code {ExitCode}. Standard Output: {StandardOutput}, Standard Error: {StandardError}",
+                        "Audio transcoding to DASH format failed with exit code={ExitCode}. Standard Output={StandardOutput}, Standard Error={StandardError}",
                         executionResult.ExitCode,
                         executionResult.StandardOutput,
                         executionResult.StandardError);
-                    return Result.Error($"Audio transcoding failed with exit code {executionResult.ExitCode}. See logs for details.");
+                    return Result.Error($"Audio transcoding failed with exit code: {executionResult.ExitCode}. See logs for details.");
                 }
 
-                logger.LogInformation("Audio transcoding to DASH format completed successfully. DestinationPath: {DestinationPath}", destinationPath);
+                logger.LogInformation("Audio transcoding to DASH format completed successfully. DestinationPath={DestinationPath}", destinationPath);
                 return Result.Success();
             }
             catch (TimeoutException timeoutException)
             {
-                logger.LogError(timeoutException, "Audio transcoding timed out after {Timeout}. DestinationPath: {DestinationPath}", audioTranscoderConfiguration.TranscodingTimeout, destinationPath);
+                logger.LogError(timeoutException, "Audio transcoding timed out after={Timeout}. DestinationPath={DestinationPath}", audioTranscoderConfiguration.TranscodingTimeout, destinationPath);
                 return Result.Error("Audio transcoding timed out.");
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "An error occurred while transcoding audio to DASH format. DestinationPath: {DestinationPath}", destinationPath);
+                logger.LogError(exception, "An error occurred while transcoding audio to DASH format. DestinationPath={DestinationPath}", destinationPath);
                 return Result.Error(exception.Message);
             }
         }
@@ -59,13 +59,13 @@ namespace Musify.Infrastructure.Audio
         {
             if (!File.Exists(filePath))
             {
-                logger.LogWarning("Audio validation requested for a non-existing file. FilePath: {FilePath}", filePath);
+                logger.LogWarning("Audio validation requested for a non-existing file. FilePath={FilePath}", filePath);
                 return Result<bool>.Error($"Audio file not found: {filePath}");
             }
 
             try
             {
-                logger.LogInformation("Starting audio file validation. FilePath: {FilePath}, Timeout: {Timeout}", filePath, audioTranscoderConfiguration.TranscodingTimeout);
+                logger.LogInformation("Starting audio file validation. FilePath={FilePath}, Timeout={Timeout}", filePath, audioTranscoderConfiguration.TranscodingTimeout);
 
                 var executionResult = await ExecuteFfmpegAsync(
                     BuildValidateAudioArguments(filePath),
@@ -77,25 +77,25 @@ namespace Musify.Infrastructure.Audio
                 if (!isValid)
                 {
                     logger.LogWarning(
-                        "Audio validation failed for file {FilePath}. Standard Error: {StandardError}",
+                        "Audio validation failed for file={FilePath}. Standard Error={StandardError}",
                         filePath,
                         executionResult.StandardError);
                 }
                 else
                 {
-                    logger.LogInformation("Audio validation completed successfully. FilePath: {FilePath}", filePath);
+                    logger.LogInformation("Audio validation completed successfully. FilePath={FilePath}", filePath);
                 }
 
                 return Result<bool>.Success(isValid);
             }
             catch (TimeoutException timeoutException)
             {
-                logger.LogError(timeoutException, "Audio validation timed out after {Timeout} for file {FilePath}.", audioTranscoderConfiguration.TranscodingTimeout, filePath);
+                logger.LogError(timeoutException, "Audio validation timed out after={Timeout} for file={FilePath}.", audioTranscoderConfiguration.TranscodingTimeout, filePath);
                 return Result<bool>.Error("Audio validation timed out.");
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "An error occurred while validating audio file {FilePath}.", filePath);
+                logger.LogError(exception, "An error occurred while validating audio file={FilePath}.", filePath);
                 return Result<bool>.Error(exception.Message);
             }
         }
@@ -110,7 +110,7 @@ namespace Musify.Infrastructure.Audio
             using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: true);
             process.Start();
 
-            logger.LogDebug("[{Operation}] ffmpeg process started. ProcessId: {ProcessId}, WorkingDirectory: {WorkingDirectory}", operationName, process.Id, workingDirectory);
+            logger.LogDebug("[{Operation}] ffmpeg process started. ProcessId={ProcessId}, WorkingDirectory={WorkingDirectory}", operationName, process.Id, workingDirectory);
 
             if (inputStream.CanSeek)
                 inputStream.Position = 0;
@@ -130,7 +130,7 @@ namespace Musify.Infrastructure.Audio
             using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: false);
             process.Start();
 
-            logger.LogDebug("[{Operation}] ffmpeg process started. ProcessId: {ProcessId}, WorkingDirectory: {WorkingDirectory}", operationName, process.Id, workingDirectory);
+            logger.LogDebug("[{Operation}] ffmpeg process started. ProcessId={ProcessId}, WorkingDirectory={WorkingDirectory}", operationName, process.Id, workingDirectory);
 
             return await WaitForProcessResultAsync(process, operationName, cancellationToken);
         }
@@ -169,7 +169,7 @@ namespace Musify.Infrastructure.Audio
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 logger.LogError(
-                    "[{Operation}] ffmpeg timed out after {Timeout}. ProcessId: {ProcessId}",
+                    "[{Operation}] ffmpeg timed out after={Timeout}. ProcessId={ProcessId}",
                     operationName,
                     audioTranscoderConfiguration.TranscodingTimeout,
                     process.Id);
@@ -182,7 +182,7 @@ namespace Musify.Infrastructure.Audio
             var standardOutput = await outputTask;
 
             logger.LogDebug(
-                "[{Operation}] ffmpeg finished. ProcessId: {ProcessId}, ExitCode: {ExitCode}, StdOutLength: {StdOutLength}, StdErrLength: {StdErrLength}",
+                "[{Operation}] ffmpeg finished. ProcessId={ProcessId}, ExitCode={ExitCode}, StdOutLength={StdOutLength}, StdErrLength={StdErrLength}",
                 operationName,
                 process.Id,
                 process.ExitCode,
@@ -201,7 +201,7 @@ namespace Musify.Infrastructure.Audio
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to kill ffmpeg process. ProcessId: {ProcessId}", process.Id);
+                logger.LogError(exception, "Failed to kill ffmpeg process. ProcessId={ProcessId}", process.Id);
             }
         }
 

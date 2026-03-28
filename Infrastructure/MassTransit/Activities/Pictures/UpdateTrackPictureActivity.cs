@@ -46,27 +46,27 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 if (track is null)
                 {
-                    logger.LogWarning("Track with id {TrackId} not found",
+                    logger.LogWarning("Track with id={TrackId} not found",
                         executeContext.Arguments.TrackId);
                     throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
                 }
 
                 var log = new UpdateTrackPictureLog(
                     track.Id,
-                    track.OriginalPictureKeyName,
-                    track.SmallPictureKeyName,
-                    track.MediumPictureKeyName,
-                    track.LargePictureKeyName);
+                    track.OriginalPictureName,
+                    track.SmallPictureName,
+                    track.MediumPictureName,
+                    track.LargePictureName);
 
-                track.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
-                track.SmallPictureKeyName = Path.GetFileName(smallResizedVariable);
-                track.MediumPictureKeyName = Path.GetFileName(mediumResizedVariable);
-                track.LargePictureKeyName = Path.GetFileName(largeResizedVariable);
+                track.OriginalPictureName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
+                track.SmallPictureName = Path.GetFileName(smallResizedVariable);
+                track.MediumPictureName = Path.GetFileName(mediumResizedVariable);
+                track.LargePictureName = Path.GetFileName(largeResizedVariable);
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated Track {TrackId} pictures",
+                logger.LogInformation("Updated Track={TrackId} pictures",
                     executeContext.Arguments.TrackId);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
@@ -74,7 +74,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error updating Track {TrackId} pictures",
+                logger.LogError(exception, "Error updating Track={TrackId} pictures",
                     executeContext.Arguments.TrackId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
@@ -94,10 +94,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     return compensateContext.Compensated();
                 }
 
-                track.OriginalPictureKeyName = compensateContext.Log.PreviousOriginalPictureKey;
-                track.SmallPictureKeyName = compensateContext.Log.PreviousSmallPictureKey;
-                track.MediumPictureKeyName = compensateContext.Log.PreviousMediumPictureKey;
-                track.LargePictureKeyName = compensateContext.Log.PreviousLargePictureKey;
+                track.OriginalPictureName = compensateContext.Log.PreviousOriginalPictureKey;
+                track.SmallPictureName = compensateContext.Log.PreviousSmallPictureKey;
+                track.MediumPictureName = compensateContext.Log.PreviousMediumPictureKey;
+                track.LargePictureName = compensateContext.Log.PreviousLargePictureKey;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
@@ -106,7 +106,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating Track {TrackId} pictures", compensateContext.Log.TrackId);
+                logger.LogError(exception, "Error compensating Track={TrackId} pictures", compensateContext.Log.TrackId);
                 return compensateContext.Failed(exception);
             }
         }

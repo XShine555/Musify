@@ -46,27 +46,27 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 if (playList is null)
                 {
-                    logger.LogWarning("PlayList with id {PlayListId} not found",
+                    logger.LogWarning("PlayList with id={PlayListId} not found",
                         executeContext.Arguments.PlayListId);
                     throw new InvalidOperationException($"PlayList with id {executeContext.Arguments.PlayListId} not found");
                 }
 
                 var log = new UpdatePlayListPictureLog(
                     playList.Id,
-                    playList.OriginalPictureKeyName,
-                    playList.SmallPictureKeyName,
-                    playList.MediumPictureKeyName,
-                    playList.LargePictureKeyName);
+                    playList.OriginalPictureName,
+                    playList.SmallPictureName,
+                    playList.MediumPictureName,
+                    playList.LargePictureName);
 
-                playList.OriginalPictureKeyName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
-                playList.SmallPictureKeyName = Path.GetFileName(smallResizedVariable);
-                playList.MediumPictureKeyName = Path.GetFileName(mediumResizedVariable);
-                playList.LargePictureKeyName = Path.GetFileName(largeResizedVariable);
+                playList.OriginalPictureName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
+                playList.SmallPictureName = Path.GetFileName(smallResizedVariable);
+                playList.MediumPictureName = Path.GetFileName(mediumResizedVariable);
+                playList.LargePictureName = Path.GetFileName(largeResizedVariable);
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated PlayList {PlayListId} pictures",
+                logger.LogInformation("Updated PlayList={PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
@@ -74,7 +74,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error updating PlayList {PlayListId} pictures",
+                logger.LogError(exception, "Error updating PlayList={PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
@@ -94,10 +94,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     return compensateContext.Compensated();
                 }
 
-                playList.OriginalPictureKeyName = compensateContext.Log.PreviousOriginalPictureKey;
-                playList.SmallPictureKeyName = compensateContext.Log.PreviousSmallPictureKey;
-                playList.MediumPictureKeyName = compensateContext.Log.PreviousMediumPictureKey;
-                playList.LargePictureKeyName = compensateContext.Log.PreviousLargePictureKey;
+                playList.OriginalPictureName = compensateContext.Log.PreviousOriginalPictureKey;
+                playList.SmallPictureName = compensateContext.Log.PreviousSmallPictureKey;
+                playList.MediumPictureName = compensateContext.Log.PreviousMediumPictureKey;
+                playList.LargePictureName = compensateContext.Log.PreviousLargePictureKey;
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
@@ -106,7 +106,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating PlayList {PlayListId} pictures", compensateContext.Log.PlayListId);
+                logger.LogError(exception, "Error compensating PlayList={PlayListId} pictures", compensateContext.Log.PlayListId);
                 return compensateContext.Failed(exception);
             }
         }

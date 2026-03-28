@@ -48,7 +48,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     if (!result.IsSuccess)
                     {
                         var errorMessage = string.Join("; ", result.Errors);
-                        logger.LogError("Transcoding failed for file {SourceFilePath}. Errors: {ErrorMessage}",
+                        logger.LogError("Transcoding failed for file={SourceFilePath}. Errors={ErrorMessage}",
                             sourceFilePath, errorMessage);
                         throw new Exception(errorMessage);
                     }
@@ -60,7 +60,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error during transcoding activity for file {SourceFilePath}",
+                logger.LogError(exception, "Error during transcoding activity for file={SourceFilePath}",
                     sourceFilePath);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
@@ -74,13 +74,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 if (Directory.Exists(compensateContext.Log.WorkingDirectory))
                     Directory.Delete(compensateContext.Log.WorkingDirectory, recursive: true);
                 else
-                    logger.LogWarning("Working directory {WorkingDirectory} does not exist during compensation",
+                    logger.LogWarning("Working directory={WorkingDirectory} does not exist during compensation",
                         compensateContext.Log.WorkingDirectory);
                 return Task.FromResult(compensateContext.Compensated());
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error compensating transcoded audio directory {WorkingDirectory}", compensateContext.Log.WorkingDirectory);
+                logger.LogError(exception, "Error compensating transcoded audio directory={WorkingDirectory}", compensateContext.Log.WorkingDirectory);
                 return Task.FromResult(compensateContext.Failed(exception));
             }
         }

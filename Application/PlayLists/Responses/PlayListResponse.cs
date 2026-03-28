@@ -18,9 +18,9 @@ namespace Musify.Application.PlayLists.Responses
                 playList.Id,
                 playList.Name,
                 playList.Description,
-                playList.SmallPictureKeyName,
-                playList.MediumPictureKeyName,
-                playList.LargePictureKeyName,
+                playList.SmallPictureName,
+                playList.MediumPictureName,
+                playList.LargePictureName,
                 playList.CreatedDate,
                 playList.UpdatedDate);
         }

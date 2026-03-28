@@ -46,7 +46,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                 if (!uploadResult.IsSuccess)
                 {
                     var errors = string.Join("; ", uploadResult.Errors);
-                    logger.LogWarning("Failed to upload file to bucket. Bucket: {BucketName}, Key: {KeyName}, Errors: {Errors}",
+                    logger.LogWarning("Failed to upload file to bucket. Bucket={Bucket}, Key={Key}, Errors={Errors}",
                         executeContext.Arguments.DestinationBucket,
                         executeContext.Arguments.DestinationRoute,
                         errors);
@@ -60,7 +60,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "An error occurred while uploading file to bucket for process {ProcessId} at step {StepId}", processId, stepId);
+                logger.LogError(exception, "An error occurred while uploading file to bucket for process={ProcessId} at step={StepId}", processId, stepId);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
@@ -78,16 +78,15 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                 if (!uploadResult.IsSuccess)
                 {
                     var errors = string.Join("; ", uploadResult.Errors);
-                    var errorMessage = $"Failed to remove file from bucket during compensation. Bucket: {compensateContext.Log.DestinationBucket}, Key: {compensateContext.Log.DestinationKey}, Errors: {errors}";
+                    logger.LogError($"Failed to remove file from bucket during compensation. Bucket={compensateContext.Log.DestinationBucket}, Key={compensateContext.Log.DestinationKey}, Errors={errors}");
 
-                    logger.LogError(errorMessage);
-                    return compensateContext.Failed(new Exception(errorMessage));
+                    return compensateContext.Failed(new Exception($"Failed to remove file from bucket during compensation. Bucket: {compensateContext.Log.DestinationBucket}, Key: {compensateContext.Log.DestinationKey}, Errors: {errors}"));
                 }
                 return compensateContext.Compensated();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "An error occurred while compensating upload file to bucket activity for bucket {BucketName} and key {KeyName}",
+                logger.LogError(exception, "An error occurred while compensating upload file to bucket activity for bucket={Bucket} and key={Key}",
                     compensateContext.Log.DestinationBucket,
                     compensateContext.Log.DestinationKey);
                 return compensateContext.Failed(exception);

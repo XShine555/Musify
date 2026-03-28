@@ -40,7 +40,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 if (!removeFile.IsSuccess)
                 {
                     var errorMessage = string.Join("; ", removeFile.Errors);
-                    logger.LogWarning("Failed to remove file {KeyName} from bucket {BucketName}. Errors: {Errors}",
+                    logger.LogWarning("Failed to remove file={Key} from bucket={Bucket}. Errors={Errors}",
                         executeContext.Arguments.Key,
                         executeContext.Arguments.Bucket,
                         errorMessage);
@@ -51,7 +51,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Error removing file {KeyName} from bucket {BucketName}",
+                logger.LogError(exception, "Error removing file={Key} from bucket={Bucket}",
                     executeContext.Arguments.Key,
                     executeContext.Arguments.Bucket);
                 await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);

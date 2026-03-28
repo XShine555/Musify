@@ -32,10 +32,10 @@ namespace Musify.Application.PlayLists.Handlers
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
-                OriginalPictureKeyName = playListConfiguration.Routes.PresetOriginalPicture,
-                SmallPictureKeyName = playListConfiguration.Routes.PresetSmallPicture,
-                MediumPictureKeyName = playListConfiguration.Routes.PresetMediumPicture,
-                LargePictureKeyName = playListConfiguration.Routes.PresetLargePicture,
+                OriginalPictureName = playListConfiguration.Routes.PresetOriginalPicture,
+                SmallPictureName = playListConfiguration.Routes.PresetSmallPicture,
+                MediumPictureName = playListConfiguration.Routes.PresetMediumPicture,
+                LargePictureName = playListConfiguration.Routes.PresetLargePicture,
             };
 
             var setPictureResult = request.Picture is null
@@ -63,12 +63,12 @@ namespace Musify.Application.PlayLists.Handlers
 
             if (!uploadResult.IsSuccess)
             {
-                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error: {ErrorMessage}",
+                logger.LogError("Failed to upload picture for PlayList with Id={PlayListId} to storage. Storage handler returned error={ErrorMessage}",
                     playList.Id, string.Join("; ", uploadResult.Errors));
                 return Result.Error($"Failed to upload picture for PlayList with Id {playList.Id} to storage.");
             }
 
-            playList.OriginalPictureKeyName = pictureName;
+            playList.OriginalPictureName = pictureName;
             logger.LogInformation("Playlist image uploaded successfully for PlayList with Id={PlayListId}.", playList.Id);
 
             try

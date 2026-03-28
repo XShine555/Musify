@@ -21,7 +21,7 @@ namespace Musify.Application.Tracks.Handler
 
             if (userExists is null)
             {
-                logger.LogWarning("User with id {UserId} not found", request.UserId);
+                logger.LogWarning("User with id={UserId} not found", request.UserId);
                 return Result.NotFound($"User with id {request.UserId} not found");
             }
 
@@ -31,11 +31,11 @@ namespace Musify.Application.Tracks.Handler
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.Trim().ToUpperInvariant(),
-                OriginalPictureKeyName = originalPictureFileName,
-                OriginalAudioKeyName = originalAudioFileName,
-                SmallPictureKeyName = trackConfiguration.Routes.PresetMediumPicture,
-                MediumPictureKeyName = trackConfiguration.Routes.PresetMediumPicture,
-                LargePictureKeyName = trackConfiguration.Routes.PresetLargePicture,
+                OriginalPictureName = originalPictureFileName,
+                OriginalAudioName = originalAudioFileName,
+                SmallPictureName = trackConfiguration.Routes.PresetMediumPicture,
+                MediumPictureName = trackConfiguration.Routes.PresetMediumPicture,
+                LargePictureName = trackConfiguration.Routes.PresetLargePicture,
             };
 
             var originalPictureKey = Path.Combine(trackConfiguration.Routes.OriginalPicturesPath,
@@ -43,7 +43,7 @@ namespace Musify.Application.Tracks.Handler
             var pictureUploadResult = await UploadFile(request.Picture, originalPictureKey, cancellationToken);
             if (!pictureUploadResult.IsSuccess)
             {
-                logger.LogError("Failed to upload picture for track {TrackTitle}", request.Title);
+                logger.LogError("Failed to upload picture for track={TrackTitle}", request.Title);
                 return Result.Error($"Failed to upload picture for track {request.Title}");
             }
 
@@ -53,7 +53,7 @@ namespace Musify.Application.Tracks.Handler
             var audioUploadResult = await UploadFile(request.Audio, audioKey, cancellationToken);
             if (!audioUploadResult.IsSuccess)
             {
-                logger.LogError("Failed to upload audio for track {TrackTitle}", request.Title);
+                logger.LogError("Failed to upload audio for track={TrackTitle}", request.Title);
                 return Result.Error($"Failed to upload audio for track {request.Title}");
             }
 

@@ -10,10 +10,10 @@ namespace Musify.Domain.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        public required string KeyName { get; set; }
+        public required string Bucket { get; set; }
 
         [Required]
-        public required string BucketName { get; set; }
+        public required string Key { get; set; }
 
         [Required]
         public required string ContentType { get; set; }
