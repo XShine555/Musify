@@ -8,7 +8,7 @@ using Musify.Infrastructure.MassTransit.Activities.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class TranscodeDashAudioActivity(
-        IAudioTranscoder audioTranscoder,
+        IAudioTranscoderService audioTranscoder,
         ILogger<TranscodeDashAudioActivity> logger,
         IProcessTrackingStore processTrackingStore)
         : IActivity<TranscodeDashAudioArguments, TranscodeDashAudioLog>
@@ -40,18 +40,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
             {
                 await using (var fileStream = File.OpenRead(sourceFilePath))
                 {
-                    var result = await audioTranscoder.TranscodeToDashAsync(
+                    await audioTranscoder.TranscodeToDashAsync(
                         fileStream,
                         workingDirectory,
                         executeContext.CancellationToken);
-
-                    if (!result.IsSuccess)
-                    {
-                        var errorMessage = string.Join("; ", result.Errors);
-                        logger.LogError("Transcoding failed for {SourceFilePath}: {Errors}",
-                            sourceFilePath, errorMessage);
-                        throw new Exception(errorMessage);
-                    }
                 }
 
                 File.Delete(sourceFilePath);

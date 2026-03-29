@@ -18,15 +18,21 @@ namespace Musify.Application.Users.Handlers
             if (user is null)
                 return Result.NotFound("User not found");
 
-            var keycloakUser = await keycloakUserClient.GetUserByIdAsync(user.Id.ToString(), cancellationToken);
-            if (!keycloakUser.IsSuccess)
-                return Result.NotFound("Keycloak user not found");
+            KeycloakUserResponse keycloakUser;
+            try
+            {
+                keycloakUser = await keycloakUserClient.GetUserByIdAsync(user.Id.ToString(), cancellationToken);
+            }
+            catch
+            {
+                return Result.Error("Keycloak user not found");
+            }
 
             return Result.Success(new UserResponse(
                 user.Id.ToString(),
-                keycloakUser.Value.Name,
-                keycloakUser.Value.FirstName,
-                keycloakUser.Value.SecondName,
+                keycloakUser.Name,
+                keycloakUser.FirstName,
+                keycloakUser.SecondName,
                 user.CreatedAt,
                 user.UpdatedAt));
         }

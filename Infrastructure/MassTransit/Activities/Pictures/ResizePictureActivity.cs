@@ -9,7 +9,7 @@ using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class ResizePictureActivity(
-        IPictureHandler pictureHandler,
+        IPictureService pictureHandler,
         ILogger<ResizePictureActivity> logger,
         IProcessTrackingStore processTrackingStore)
         : IActivity<ResizePictureLocalArguments, ResizePictureLog>
@@ -53,23 +53,12 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     executeContext.Arguments.Height,
                     executeContext.CancellationToken);
 
-                if (!resizedPicture.IsSuccess)
-                {
-                    var errorMessage = string.Join("; ", resizedPicture.Errors);
-                    logger.LogError("Failed to resize picture {SourceFilePath} to {Width}x{Height}: {Errors}",
-                        sourceFilePath,
-                        executeContext.Arguments.Width,
-                        executeContext.Arguments.Height,
-                        errorMessage);
-                    throw new Exception(errorMessage);
-                }
-
                 var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
                 if (!string.IsNullOrEmpty(destinationDirectory))
                     Directory.CreateDirectory(destinationDirectory);
 
                 await using var destinationStream = File.Create(destinationFilePath);
-                await resizedPicture.Value.CopyToAsync(destinationStream, executeContext.CancellationToken);
+                await resizedPicture.CopyToAsync(destinationStream, executeContext.CancellationToken);
 
                 logger.LogDebug("Resized picture from {SourceFilePath} to {DestinationFilePath}",
                     sourceFilePath,

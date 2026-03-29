@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Infrastructure.Configuration
 {
-    public class MessagingConfiguration
+    public class MassTransitConfiguration
     {
         public const string SectionName = "Messaging";
 

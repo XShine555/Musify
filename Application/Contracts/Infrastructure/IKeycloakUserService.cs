@@ -1,11 +1,10 @@
-﻿using Ardalis.Result;
-using Musify.Application.Users.Responses;
+﻿using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Contracts.Infrastructure
 {
     public interface IKeycloakUserService
     {
-        Task<Result<KeycloakUserResponse>> GetUserByIdAsync(string keycloakId, CancellationToken cancellationToken);
+        Task<KeycloakUserResponse> GetUserByIdAsync(string keycloakId, CancellationToken cancellationToken);
 
         Task<IReadOnlyCollection<KeycloakUserResponse>> GetUsersAsync(
             CancellationToken cancellationToken,

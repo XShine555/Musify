@@ -13,7 +13,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
 {
-    public class CreatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageHandler storageHandler,
+    public class CreatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageService storageHandler,
         ILogger<CreatePlayListCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, PlayListConfiguration playListConfiguration)
         : IRequestHandler<CreatePlayListCommand, Task<Result<PlayListResponse>> >
     {
@@ -80,16 +80,16 @@ namespace Musify.Application.PlayLists.Handlers
             var pictureName = Guid.NewGuid() + picture.FileType;
             var pictureKey = Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, pictureName);
 
-            var uploadResult = await storageHandler.UploadFileAsync(picture.FileStream, picture.ContentType, storageConfiguration.BucketName, pictureKey, cancellationToken);
-            if (!uploadResult.IsSuccess)
+            try
             {
-                logger.LogError("Failed to upload picture for playlist {PlayListId} to storage: {ErrorMessage}",
-                    playList.Id, string.Join(", ", uploadResult.Errors));
-                return uploadResult.ToErrorResult();
+                await storageHandler.UploadFileAsync(picture.FileStream, picture.ContentType, storageConfiguration.BucketName, pictureKey, cancellationToken);
+            }
+            catch
+            {
+                return Result.Error($"An error occurred while uploading picture for playlist {playList.Id} to storage.");
             }
 
             playList.OriginalPictureName = pictureName;
-
             return Result.Success();
         }
 

@@ -10,7 +10,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
 {
-    public class CreateTrackCommandHandler(IDatabase database, IEventBus eventBus, IStorageHandler storageHandler,
+    public class CreateTrackCommandHandler(IDatabase database, IEventBus eventBus, IStorageService storageHandler,
         ILogger<CreateTrackCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, TrackConfiguration trackConfiguration)
         : IRequestHandler<CreateTrackCommand, Task<Result<TrackResponse> >>
     {
@@ -49,33 +49,34 @@ namespace Musify.Application.Tracks.Handler
             string audioKey,
             CancellationToken cancellationToken)
         {
-            var pictureUpload = await storageHandler.UploadFileAsync(
-                request.Picture.FileStream,
-                request.Picture.ContentType,
-                storageConfiguration.BucketName,
-                pictureKey,
-                cancellationToken);
-
-            if (!pictureUpload.IsSuccess)
+            try
             {
-                var errors = string.Join(", ", pictureUpload.Errors);
+                await storageHandler.UploadFileAsync(
+                    request.Picture.FileStream,
+                    request.Picture.ContentType,
+                    storageConfiguration.BucketName,
+                    pictureKey,
+                    cancellationToken);
+            }
+            catch
+            {
                 return Result.Error($"Failed to upload picture for {request.Title}");
             }
 
-            var audioUpload = await storageHandler.UploadFileAsync(
-                request.Audio.FileStream,
-                request.Audio.ContentType,
-                storageConfiguration.BucketName,
-                audioKey,
-                cancellationToken);
-
-            if (!audioUpload.IsSuccess)
+            try
+            {
+                await storageHandler.UploadFileAsync(
+                    request.Audio.FileStream,
+                    request.Audio.ContentType,
+                    storageConfiguration.BucketName,
+                    audioKey,
+                    cancellationToken);
+            }
+            catch
             {
                 await RollbackFilesAsync(pictureKey, audioKey, cancellationToken);
-                var errors = string.Join(", ", audioUpload.Errors);
                 return Result.Error($"Failed to upload audio for {request.Title}");
             }
-
             return Result.Success();
         }
 

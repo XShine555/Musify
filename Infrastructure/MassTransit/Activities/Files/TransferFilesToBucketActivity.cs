@@ -8,7 +8,7 @@ using Musify.Infrastructure.MassTransit.Activities.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class TransferFilesToBucketActivity(
-        IStorageHandler storageHandler,
+        IStorageService storageHandler,
         ILogger<TransferFilesToBucketActivity> logger,
         IProcessTrackingStore processTrackingStore)
         : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
@@ -42,22 +42,11 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     .Select(file => Path.Combine(destinationKey, Path.GetFileName(file)))
                     .ToArray();
 
-                var transferFilesResult = await storageHandler.TransferFilesAsync(
+                await storageHandler.TransferFilesAsync(
                     folderPath,
                     executeContext.Arguments.DestinationBucket,
                     destinationKey,
                     executeContext.CancellationToken);
-
-                if (!transferFilesResult.IsSuccess)
-                {
-                    var errorMessage = string.Join("; ", transferFilesResult.Errors);
-                    logger.LogWarning("Failed to transfer files from {FolderPath} to {DestinationBucket}/{DestinationKey}: {Errors}",
-                        folderPath,
-                        executeContext.Arguments.DestinationBucket,
-                        destinationKey,
-                        errorMessage);
-                    throw new Exception(errorMessage);
-                }
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();

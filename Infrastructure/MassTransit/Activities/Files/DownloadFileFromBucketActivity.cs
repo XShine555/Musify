@@ -8,7 +8,7 @@ using Musify.Infrastructure.MassTransit.Activities.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class DownloadFileFromBucketActivity(
-        IStorageHandler storageHandler,
+        IStorageService storageHandler,
         ILogger<DownloadFileFromBucketActivity> logger,
         IProcessTrackingStore processTrackingStore)
         : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
@@ -36,26 +36,15 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
             try
             {
-                var getFile = await storageHandler.GetFileAsync(
+                using var fileStream = await storageHandler.GetFileAsync(
                     executeContext.Arguments.Bucket,
                     executeContext.Arguments.Key,
                     executeContext.CancellationToken);
-
-                if (!getFile.IsSuccess)
-                {
-                    var errorMessage = string.Join("; ", getFile.Errors);
-                    logger.LogWarning("Failed to download {Bucket}/{Key}: {Errors}",
-                        executeContext.Arguments.Bucket,
-                        executeContext.Arguments.Key,
-                        errorMessage);
-                    throw new Exception(errorMessage);
-                }
 
                 var destinationDirectory = Path.GetDirectoryName(destinationPath);
                 if (!string.IsNullOrWhiteSpace(destinationDirectory))
                     Directory.CreateDirectory(destinationDirectory);
 
-                using var fileStream = getFile.Value;
                 if (fileStream.CanSeek)
                     fileStream.Position = 0;
 

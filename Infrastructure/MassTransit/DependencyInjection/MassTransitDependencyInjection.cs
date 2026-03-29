@@ -23,7 +23,7 @@ namespace Musify.Infrastructure.MassTransit
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                     ConfigureRabbitMqHost(
                         busFactoryConfigurator,
-                        busRegistrationContext.GetRequiredService<MessagingConfiguration>()));
+                        busRegistrationContext.GetRequiredService<MassTransitConfiguration>()));
             } );
 
             return serviceDescriptors;
@@ -60,7 +60,7 @@ namespace Musify.Infrastructure.MassTransit
                 {
                     ConfigureRabbitMqHost(
                         busFactoryConfigurator,
-                        busRegistrationContext.GetRequiredService<MessagingConfiguration>());
+                        busRegistrationContext.GetRequiredService<MassTransitConfiguration>());
 
                     busFactoryConfigurator.UseConsumeFilter(typeof(ProcessTrackingConsumeFilter<>), busRegistrationContext);
 
@@ -141,7 +141,7 @@ namespace Musify.Infrastructure.MassTransit
 
         static void ConfigureRabbitMqHost(
             IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
-            MessagingConfiguration massTransitConfiguration)
+            MassTransitConfiguration massTransitConfiguration)
         {
             busFactoryConfigurator.Host(massTransitConfiguration.Host, options =>
             {

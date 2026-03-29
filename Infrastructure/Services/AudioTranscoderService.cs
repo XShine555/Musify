@@ -1,17 +1,18 @@
-using Ardalis.Result;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.Configuration;
 using System.Diagnostics;
 
-namespace Musify.Infrastructure.Audio
+namespace Musify.Infrastructure.Services
 {
-    public class AudioTranscoder(
-        ILogger<AudioTranscoder> logger,
+    public class AudioTranscoderService(
+        ILogger<AudioTranscoderService> logger,
         AudioTranscoderConfiguration audioTranscoderConfiguration)
-        : IAudioTranscoder
+        : IAudioTranscoderService
     {
-        public async Task<Result> TranscodeToDashAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
+        record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
+
+        public async Task<int> TranscodeToDashAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
         {
             try
             {
@@ -30,30 +31,32 @@ namespace Musify.Infrastructure.Audio
                 {
                     logger.LogError("Audio transcoding to DASH failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
                         executionResult.ExitCode, executionResult.StandardOutput, executionResult.StandardError);
-                    return Result.Error($"Audio transcoding failed (ExitCode: {executionResult.ExitCode})");
+                }
+                else
+                {
+                    logger.LogInformation("Audio transcoding to DASH completed for {DestinationPath}", destinationPath);
                 }
 
-                logger.LogInformation("Audio transcoding to DASH completed for {DestinationPath}", destinationPath);
-                return Result.Success();
+                return executionResult.ExitCode;
             }
             catch (TimeoutException timeoutException)
             {
                 logger.LogError(timeoutException, "Audio transcoding timed out after {Timeout} for {DestinationPath}", audioTranscoderConfiguration.TranscodingTimeout, destinationPath);
-                return Result.Error("Audio transcoding timed out");
+                throw;
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to transcode audio to DASH for {DestinationPath}", destinationPath);
-                return Result.Error(exception.Message);
+                throw;
             }
         }
 
-        public async Task<Result<bool>> IsValidAudioFileAsync(string filePath, CancellationToken cancellationToken)
+        public async Task<bool> IsValidAudioFileAsync(string filePath, CancellationToken cancellationToken)
         {
             if (!File.Exists(filePath))
             {
                 logger.LogWarning("Audio validation requested for non-existing file {FilePath}", filePath);
-                return Result<bool>.Error($"Audio file not found: {filePath}");
+                return false;
             }
 
             try
@@ -76,18 +79,17 @@ namespace Musify.Infrastructure.Audio
                     logger.LogDebug("Audio validation successful for {FilePath}", filePath);
                 }
 
-                return Result<bool>.Success(isValid);
+                return isValid;
             }
             catch (TimeoutException timeoutException)
             {
                 logger.LogError(timeoutException, "Audio validation timed out for {FilePath}", filePath);
-                return Result<bool>.Error("Audio validation timed out.");
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to validate audio file {FilePath}", filePath);
-                return Result<bool>.Error(exception.Message);
             }
+            return false;
         }
 
         async Task<FfmpegExecutionResult> ExecuteFfmpegWithInputAsync(
@@ -216,7 +218,5 @@ namespace Musify.Infrastructure.Audio
 
         static string BuildValidateAudioArguments(string filePath)
             => $"-v error -i \"{filePath}\" -map 0:a:0 -f null -";
-
-        sealed record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
     }
 }

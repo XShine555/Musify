@@ -20,10 +20,13 @@ namespace Musify.Application.Users.Handlers
                 return Result<UserResponse>.Conflict($"User {request.Id} already exists");
             }
 
-            var keycloakUser = await keycloakUserClient.GetUserByIdAsync(request.Id.ToString(), cancellationToken);
-            if (!keycloakUser.IsSuccess)
+            KeycloakUserResponse keycloakUser;
+            try
             {
-                logger.LogWarning("Keycloak user {UserId} not found", request.Id);
+                keycloakUser = await keycloakUserClient.GetUserByIdAsync(request.Id.ToString(), cancellationToken);
+            }
+            catch
+            {
                 return Result.NotFound("Keycloak user not found");
             }
 
@@ -34,9 +37,9 @@ namespace Musify.Application.Users.Handlers
             logger.LogInformation("Created user {UserId}", newUser.Id);
             return Result.Created(new UserResponse(
                 newUser.Id.ToString(),
-                keycloakUser.Value.Name,
-                keycloakUser.Value.FirstName,
-                keycloakUser.Value.SecondName,
+                keycloakUser.Name,
+                keycloakUser.FirstName,
+                keycloakUser.SecondName,
                 newUser.CreatedAt,
                 newUser.UpdatedAt));
         }

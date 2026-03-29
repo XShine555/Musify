@@ -8,7 +8,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
 {
-    public class DeleteTrackCommandHandler(IDatabase database, IStorageHandler storageHandler, ILogger<DeleteTrackCommandHandler> logger,
+    public class DeleteTrackCommandHandler(IDatabase database, IStorageService storageHandler, ILogger<DeleteTrackCommandHandler> logger,
         TrackConfiguration trackConfiguration, ApplicationStorageConfiguration storageConfiguration)
         : IRequestHandler<DeleteTrackCommand, Task<Result>>
     {

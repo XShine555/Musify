@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Activities.Arguments;
 namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class RemoveFileFromBucketActivity(
-        IStorageHandler storageHandler,
+        IStorageService storageHandler,
         ILogger<RemoveFileFromBucketActivity> logger,
         IProcessTrackingStore processTrackingStore)
         : IExecuteActivity<RemoveFileFromBucketArguments>
@@ -32,19 +32,10 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
             try
             {
-                var removeFile = await storageHandler.RemoveFileAsync(
+                await storageHandler.RemoveFileAsync(
                     executeContext.Arguments.Bucket,
                     executeContext.Arguments.Key,
                     executeContext.CancellationToken);
-
-                if (!removeFile.IsSuccess)
-                {
-                    var errorMessage = string.Join("; ", removeFile.Errors);
-                    logger.LogWarning("Failed to remove {Key} from bucket {Bucket}: {Errors}",
-                        executeContext.Arguments.Key,
-                        executeContext.Arguments.Bucket,
-                        errorMessage);
-                }
 
                 await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
