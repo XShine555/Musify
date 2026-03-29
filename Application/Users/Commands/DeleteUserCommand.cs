@@ -1,8 +1,8 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 
 namespace Musify.Application.Users.Commands
 {
     public record DeleteUserCommand(Guid Id)
-        : IRequest<DeleteUserCommand, Task<Result>>;
+        : ICommand<Result>;
 }

@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
@@ -9,9 +9,9 @@ using Musify.Application.Users.Responses;
 namespace Musify.Application.Users.Handlers
 {
     public class CreateUserCommandHandler(IDatabase database, IKeycloakUserService keycloakUserClient, ILogger<CreateUserCommandHandler> logger)
-        : IRequestHandler<CreateUserCommand, Task<Result<UserResponse> >>
+        : ICommandHandler<CreateUserCommand, Result<UserResponse> >
     {
-        public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.AnyAsync(u => u.Id == request.Id, cancellationToken);
             if (userExists)

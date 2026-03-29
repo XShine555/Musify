@@ -1,5 +1,5 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Musify.Application.Contracts.Application;
 using Musify.Application.PlayLists.Responses;
 
@@ -11,5 +11,5 @@ namespace Musify.Application.PlayLists.Commands
         string? NewName,
         string? NewDescription,
         IFileData? NewPicture)
-        : IRequest<UpdatePlayListCommand, Task<Result<PlayListResponse>> >;
+        : ICommand<Result<PlayListResponse>>;
 }

@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
@@ -10,9 +10,9 @@ namespace Musify.Application.Tracks.Handler
 {
     public class DeleteTrackCommandHandler(IDatabase database, IStorageService storageHandler, ILogger<DeleteTrackCommandHandler> logger,
         TrackConfiguration trackConfiguration, ApplicationStorageConfiguration storageConfiguration)
-        : IRequestHandler<DeleteTrackCommand, Task<Result>>
+        : ICommandHandler<DeleteTrackCommand, Result>
     {
-        public async Task<Result> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
         {
             var track = await database.Tracks.FindAsync(request.TrackId, cancellationToken);
             if (track is null)

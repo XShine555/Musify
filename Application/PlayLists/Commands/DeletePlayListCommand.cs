@@ -1,8 +1,8 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 
 namespace Musify.Application.PlayLists.Commands
 {
     public record DeletePlayListCommand(Guid UserId, Guid PlayListId)
-        : IRequest<DeletePlayListCommand, Task<Result> >;
+        : ICommand<Result>;
 }

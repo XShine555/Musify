@@ -1,5 +1,5 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Musify.Application.Contracts.Application;
 using Musify.Application.Tracks.Responses;
 
@@ -10,5 +10,5 @@ namespace Musify.Application.Tracks.Queries
         string Name = "",
         int PageNumber = 1,
         int PageSize = 10)
-        : IRequest<GetTracksByUserIdQuery, Task<Result<PaginatedResponse<TrackResponse> > >>;
+        : IQuery<Result<PaginatedResponse<TrackResponse> > >;
 }

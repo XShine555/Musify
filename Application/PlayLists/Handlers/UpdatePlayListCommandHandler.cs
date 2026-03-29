@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Application;
@@ -14,9 +14,9 @@ namespace Musify.Application.PlayLists.Handlers
     public class UpdatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageService storageHandler,
         ILogger<UpdatePlayListCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration)
-        : IRequestHandler<UpdatePlayListCommand, Task<Result<PlayListResponse>> >
+        : ICommandHandler<UpdatePlayListCommand, Result<PlayListResponse>>
     {
-        public async Task<Result<PlayListResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result<PlayListResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
         {
             var playListEntity = await database.PlayLists.FindAsync(
                 [request.PlayListId],

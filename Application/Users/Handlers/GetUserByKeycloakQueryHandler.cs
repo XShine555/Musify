@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Users.Queries;
@@ -8,9 +8,9 @@ using Musify.Application.Users.Responses;
 namespace Musify.Application.Users.Handlers
 {
     public class GetUserByKeycloakQueryHandler(IDatabase database, IKeycloakUserService keycloakUserClient)
-        : IRequestHandler<GetUserByKeycloakQuery, Task<Result<UserResponse> >>
+        : IQueryHandler<GetUserByKeycloakQuery, Result<UserResponse> >
     {
-        public async Task<Result<UserResponse>> Handle(GetUserByKeycloakQuery request, CancellationToken cancellationToken)
+        public async ValueTask<Result<UserResponse>> Handle(GetUserByKeycloakQuery request, CancellationToken cancellationToken)
         {
             var user = await database.Users
                 .AsNoTracking()

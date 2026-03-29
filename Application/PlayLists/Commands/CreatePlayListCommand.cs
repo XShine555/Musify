@@ -1,5 +1,5 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Musify.Application.Contracts.Application;
 using Musify.Application.PlayLists.Responses;
 using Musify.Domain.Entities;
@@ -11,7 +11,7 @@ namespace Musify.Application.PlayLists.Commands
         string Name,
         string Description,
         IFileData? Picture)
-        : IRequest<CreatePlayListCommand, Task<Result<PlayListResponse>> >
+        : ICommand<Result<PlayListResponse>>
     {
         public static PlayList ToEntity(CreatePlayListCommand command, string originalKey, string smallKey, string mediumKey, string largeKey)
         {

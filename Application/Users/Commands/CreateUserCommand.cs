@@ -1,12 +1,12 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Musify.Application.Users.Responses;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Users.Commands
 {
     public record CreateUserCommand(Guid Id)
-        : IRequest<CreateUserCommand, Task<Result<UserResponse>> >
+        : ICommand<Result<UserResponse>>
     {
         public static User ToEntity(CreateUserCommand command)
         {

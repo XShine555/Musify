@@ -1,13 +1,13 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Musify.Application.Contracts.Infrastructure;
 
 namespace Musify.Application.Users.Commands
 {
     public class DeleteUserCommandHandler(IDatabase database)
-        : IRequestHandler<DeleteUserCommand, Task<Result>>
+        : ICommandHandler<DeleteUserCommand, Result>
     {
-        public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
             var existingUser = await database.Users.FindAsync(request.Id, cancellationToken);
             if (existingUser is null)

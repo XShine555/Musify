@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using DispatchR.Abstractions.Send;
+using Mediator;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
@@ -12,9 +12,9 @@ namespace Musify.Application.Tracks.Handler
 {
     public class CreateTrackCommandHandler(IDatabase database, IEventBus eventBus, IStorageService storageHandler,
         ILogger<CreateTrackCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, TrackConfiguration trackConfiguration)
-        : IRequestHandler<CreateTrackCommand, Task<Result<TrackResponse> >>
+        : ICommandHandler<CreateTrackCommand, Result<TrackResponse> >
     {
-        public async Task<Result<TrackResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result<TrackResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.FindAsync(request.UserId, cancellationToken);
             if (userExists is null)

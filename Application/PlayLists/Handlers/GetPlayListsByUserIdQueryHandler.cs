@@ -1,18 +1,18 @@
 ﻿using Ardalis.Result;
-using DispatchR.Abstractions.Send;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Application;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.PlayLists.Queries;
 using X.PagedList.EF;
+using Mediator;
 
 namespace Musify.Application.PlayLists.Handlers
 {
     public class GetPlayListsByUserIdQueryHandler(IDatabase database)
-        : IRequestHandler<GetPlayListsByUserIdQuery, Task<Result<PaginatedResponse<PlayListResponse> > >>
+        : IQueryHandler<GetPlayListsByUserIdQuery, Result<PaginatedResponse<PlayListResponse> > >
     {
-        public async Task<Result<PaginatedResponse<PlayListResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<Result<PaginatedResponse<PlayListResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
