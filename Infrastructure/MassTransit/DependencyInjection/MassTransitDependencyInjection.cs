@@ -11,6 +11,8 @@ using Musify.Infrastructure.MassTransit.Activities.Logs;
 using Musify.Infrastructure.MassTransit.Filters;
 using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 using Musify.Infrastructure.MassTransit.Activities.Files;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Musify.Infrastructure.MassTransit
 {
@@ -29,8 +31,16 @@ namespace Musify.Infrastructure.MassTransit
             return serviceDescriptors;
         }
 
-        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors)
+        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
+            serviceDescriptors
+                .AddOptionsWithValidateOnStart<WorkerConfiguration>()
+                .Bind(configuration.GetRequiredSection(WorkerConfiguration.SectionName))
+                .ValidateDataAnnotations();
+
+            serviceDescriptors.AddSingleton(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<WorkerConfiguration>>().Value);
+
             serviceDescriptors.AddScoped<AudioWorkflowRoutingSlipBuilder>();
             serviceDescriptors.AddScoped<PictureWorkflowRoutingSlipBuilder>();
             serviceDescriptors.AddScoped<RemoveFileFromBucketRoutingSlipBuilder>();
