@@ -7,7 +7,7 @@ namespace Musify.Infrastructure.Configuration
         public const string SectionName = "Messaging";
 
         [Required]
-        public required string Host { get; set; }
+        public required string Address { get; set; }
 
         [Required]
         public required string Username { get; set; }

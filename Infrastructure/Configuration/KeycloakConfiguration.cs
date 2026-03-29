@@ -7,7 +7,7 @@ namespace Musify.Infrastructure.Configuration
         public const string SectionName = "Keycloak";
 
         [Required]
-        public required string BaseUrl { get; set; }
+        public required string Address { get; set; }
 
         [Required]
         public required string Realm { get; set; }

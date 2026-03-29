@@ -143,7 +143,7 @@ namespace Musify.Infrastructure.MassTransit
             IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
             MassTransitConfiguration massTransitConfiguration)
         {
-            busFactoryConfigurator.Host(massTransitConfiguration.Host, options =>
+            busFactoryConfigurator.Host(massTransitConfiguration.Address, options =>
             {
                 options.Username(massTransitConfiguration.Username);
                 options.Password(massTransitConfiguration.Password);

@@ -8,7 +8,7 @@ namespace Musify.Infrastructure.Configuration
 
         [Required]
         [Url]
-        public required string ServiceUrl { get; set; }
+        public required string Address { get; set; }
 
         [Required]
         [MinLength(3)]

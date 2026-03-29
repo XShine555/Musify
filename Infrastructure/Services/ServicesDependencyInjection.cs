@@ -25,7 +25,7 @@ namespace Musify.Infrastructure.Services
                 var configuration = serviceProvider.GetRequiredService<InfrastructureStorageConfiguration>();
                 var s3Configuration = new AmazonS3Config
                 {
-                    ServiceURL = configuration.ServiceUrl,
+                    ServiceURL = configuration.Address,
                     ForcePathStyle = configuration.ForcePathStyle,
                     UseHttp = configuration.UseHttp,
                 };
@@ -56,7 +56,7 @@ namespace Musify.Infrastructure.Services
                 var keycloakConfiguration = serviceProvider.GetRequiredService<KeycloakConfiguration>();
 
                 return new KeycloakClient(
-                    keycloakConfiguration.BaseUrl,
+                    keycloakConfiguration.Address,
                     keycloakConfiguration.Username,
                     keycloakConfiguration.Password);
             } );
