@@ -7,10 +7,8 @@ using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Services
 {
-    public class KeycloakUserService(
-        KeycloakClient keycloakClient,
-        KeycloakConfiguration keycloakConfiguration,
-        ILogger<KeycloakUserService> logger) : IKeycloakUserService
+    public class KeycloakUserService(KeycloakClient keycloakClient, ILogger<KeycloakUserService> logger,
+        KeycloakConfiguration keycloakConfiguration) : IKeycloakUserService
     {
         public async Task<KeycloakUserResponse> GetUserByIdAsync(string keycloakId, CancellationToken cancellationToken)
         {

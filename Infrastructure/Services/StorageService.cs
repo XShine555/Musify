@@ -9,7 +9,8 @@ using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Services
 {
-    public class StorageService(IDatabase database, IAmazonS3 amazonS3, InfrastructureStorageConfiguration storageClientConfiguration, ILogger<StorageService> logger)
+    public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<StorageService> logger,
+        InfrastructureStorageConfiguration storageClientConfiguration)
         : IStorageService
     {
         public async Task<Stream> GetFileAsync(string bucket, string key, CancellationToken cancellationToken)

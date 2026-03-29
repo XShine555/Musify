@@ -5,8 +5,7 @@ using System.Diagnostics;
 
 namespace Musify.Infrastructure.Services
 {
-    public class AudioTranscoderService(
-        ILogger<AudioTranscoderService> logger,
+    public class AudioTranscoderService(ILogger<AudioTranscoderService> logger,
         AudioTranscoderConfiguration audioTranscoderConfiguration)
         : IAudioTranscoderService
     {
