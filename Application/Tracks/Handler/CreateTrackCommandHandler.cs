@@ -94,17 +94,17 @@ namespace Musify.Application.Tracks.Handler
                 await eventBus.PublishAsync(new UpdateTrackPictureEvent(
                     track.Id,
                     storageConfiguration.BucketName,
-                    track.OriginalPictureName,
+                    Path.Combine(trackConfiguration.Routes.OriginalPicturesPath, track.OriginalPictureName),
                     new ImageSize(
-                        trackConfiguration.Routes.PresetSmallPicture,
+                        trackConfiguration.Routes.SmallPicturesPath,
                         trackConfiguration.PicturesSizes.SmallPictureWidth,
                         trackConfiguration.PicturesSizes.SmallPictureHeight),
                     new ImageSize(
-                        trackConfiguration.Routes.PresetMediumPicture,
+                        trackConfiguration.Routes.MediumPicturesPath,
                         trackConfiguration.PicturesSizes.MediumPictureWidth,
                         trackConfiguration.PicturesSizes.MediumPictureHeight),
                     new ImageSize(
-                        trackConfiguration.Routes.PresetLargePicture,
+                        trackConfiguration.Routes.LargePicturesPath,
                         trackConfiguration.PicturesSizes.LargePictureWidth,
                         trackConfiguration.PicturesSizes.LargePictureHeight)), cancellationToken);
             }
@@ -124,7 +124,7 @@ namespace Musify.Application.Tracks.Handler
                 await eventBus.PublishAsync(new UpdateTrackAudioEvent(
                     track.Id,
                     storageConfiguration.BucketName,
-                    track.OriginalAudioName,
+                    Path.Combine(trackConfiguration.Routes.OriginalAudiosPath, track.OriginalAudioName),
                     storageConfiguration.BucketName,
                     destinationFolderAudio), cancellationToken);
             }

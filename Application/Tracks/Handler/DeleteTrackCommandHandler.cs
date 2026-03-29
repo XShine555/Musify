@@ -54,7 +54,6 @@ namespace Musify.Application.Tracks.Handler
         {
             await RemoveFile(Path.Combine(trackConfiguration.Routes.OriginalAudiosPath, track.OriginalAudioName),
                 cancellationToken);
-
             await RemoveFile(Path.Combine(trackConfiguration.Routes.ProcessedAudiosPath, track.AudioFolderName),
                 cancellationToken);
         }

@@ -37,18 +37,18 @@ namespace Musify.Application.PlayLists.Handlers
             UpdateDescription(playListEntity, request.NewDescription);
             var updatePictureResult = await UpdatePicture(playListEntity, request.NewPicture, cancellationToken);
             if (!updatePictureResult.IsSuccess)
-                return updatePictureResult.Map(_ => PlayListResponse.FromEntity(playListEntity));
+                return updatePictureResult;
 
             try
             {
                 database.PlayLists.Update(playListEntity);
                 await database.SaveChangesAsync(cancellationToken);
-                await PublishPlayListPictureEvent(playListEntity, updatePictureResult.Value, cancellationToken);
+                await PublishPlayListPictureEvent(playListEntity, cancellationToken);
                 await RemoveOldPictures(playListEntity, cancellationToken);
             }
             catch (Exception exception)
             {
-                await Rollback(updatePictureResult.Value, cancellationToken);
+                await Rollback(playListEntity.OriginalPictureName, cancellationToken);
                 logger.LogError(exception, "Failed to update playlist {PlayListId}", playListEntity.Id);
                 return Result.Error($"Failed to update playlist {playListEntity.Id}");
             }
@@ -72,7 +72,7 @@ namespace Musify.Application.PlayLists.Handlers
                 playList.Description = newDescription;
         }
 
-        async Task<Result<string>> UpdatePicture(PlayList playList, IFileData? newPicture, CancellationToken cancellationToken)
+        async Task<Result> UpdatePicture(PlayList playList, IFileData? newPicture, CancellationToken cancellationToken)
         {
             if (newPicture is null)
                 return Result.Success();
@@ -94,17 +94,17 @@ namespace Musify.Application.PlayLists.Handlers
             }
 
             playList.OriginalPictureName = pictureName;
-            return Result.Success(pictureKey);
+            return Result.Success();
         }
 
-        async Task<Result> PublishPlayListPictureEvent(PlayList playList, string pictureKey, CancellationToken cancellationToken)
+        async Task<Result> PublishPlayListPictureEvent(PlayList playList, CancellationToken cancellationToken)
         {
             try
             {
                 await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                     playList.Id,
                     storageConfiguration.BucketName,
-                    pictureKey,
+                    Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName),
                     new ImageSize(
                         playListConfiguration.Routes.SmallPicturesPath,
                         playListConfiguration.PicturesSizes.SmallPictureWidth,

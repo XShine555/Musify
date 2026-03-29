@@ -99,7 +99,7 @@ namespace Musify.Application.PlayLists.Handlers
                 await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                     playList.Id,
                     storageConfiguration.BucketName,
-                    playList.OriginalPictureName,
+                    Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName),
                     new ImageSize(
                         playListConfiguration.Routes.SmallPicturesPath,
                         playListConfiguration.PicturesSizes.SmallPictureWidth,
