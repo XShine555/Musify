@@ -5,7 +5,6 @@ using Musify.Application.Configuration;
 using Musify.Application.Contracts.Application;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
-using Musify.Application.Extensions;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
 using Musify.Domain.Entities;
@@ -38,7 +37,7 @@ namespace Musify.Application.PlayLists.Handlers
             UpdateDescription(playListEntity, request.NewDescription);
             var updatePictureResult = await UpdatePicture(playListEntity, request.NewPicture, cancellationToken);
             if (!updatePictureResult.IsSuccess)
-                return updatePictureResult.ToErrorResult();
+                return updatePictureResult.Map(_ => PlayListResponse.FromEntity(playListEntity));
 
             try
             {
