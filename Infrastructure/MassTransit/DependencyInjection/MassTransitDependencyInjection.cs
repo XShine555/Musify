@@ -1,25 +1,35 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.Configuration;
-using Musify.Infrastructure.MassTransit.Activities.Audio;
-using Musify.Infrastructure.MassTransit.Arguments;
-using Musify.Infrastructure.MassTransit.Consumers;
-using Musify.Infrastructure.MassTransit.Logs;
 using Musify.Infrastructure.MassTransit.Activities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
-using Musify.Infrastructure.MassTransit.Activities.Logs;
-using Musify.Infrastructure.MassTransit.Filters;
-using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
+using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Activities.Files;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+using Musify.Infrastructure.MassTransit.Activities.Logs;
+using Musify.Infrastructure.MassTransit.Arguments;
+using Musify.Infrastructure.MassTransit.Consumers;
+using Musify.Infrastructure.MassTransit.Filters;
+using Musify.Infrastructure.MassTransit.Logs;
+using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
 namespace Musify.Infrastructure.MassTransit
 {
     public static class MassTransitDependencyInjection
     {
-        public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors)
+        public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
+            serviceDescriptors
+                .AddOptionsWithValidateOnStart<MassTransitConfiguration>()
+                .Bind(configuration.GetRequiredSection(MassTransitConfiguration.SectionName))
+                .ValidateDataAnnotations();
+
+            serviceDescriptors.AddSingleton(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<MassTransitConfiguration>>().Value);
+
+            serviceDescriptors.AddScoped<IEventBus, MassTransitEventBus>();
             serviceDescriptors.AddMassTransit(options =>
             {
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
@@ -33,6 +43,14 @@ namespace Musify.Infrastructure.MassTransit
 
         public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
+            serviceDescriptors
+                .AddOptionsWithValidateOnStart<MassTransitConfiguration>()
+                .Bind(configuration.GetRequiredSection(MassTransitConfiguration.SectionName))
+                .ValidateDataAnnotations();
+
+            serviceDescriptors.AddSingleton(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<MassTransitConfiguration>>().Value);
+
             serviceDescriptors
                 .AddOptionsWithValidateOnStart<WorkerConfiguration>()
                 .Bind(configuration.GetRequiredSection(WorkerConfiguration.SectionName))
