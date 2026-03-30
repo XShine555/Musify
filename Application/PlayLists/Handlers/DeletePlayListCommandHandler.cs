@@ -50,7 +50,7 @@ namespace Musify.Application.PlayLists.Handlers
             try
             {
                 await eventBus.PublishAsync(new RemoveFileEvent(
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     key), cancellationToken);
                 return Result.Success();
             }

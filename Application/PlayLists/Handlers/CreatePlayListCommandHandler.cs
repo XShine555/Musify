@@ -65,7 +65,7 @@ namespace Musify.Application.PlayLists.Handlers
         {
             try
             {
-                await storageHandler.RemoveFileAsync(storageConfiguration.BucketName,
+                await storageHandler.RemoveFileAsync(storageConfiguration.Bucket,
                     Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName), cancellationToken);
             }
             catch (Exception exception)
@@ -81,7 +81,7 @@ namespace Musify.Application.PlayLists.Handlers
 
             try
             {
-                await storageHandler.UploadFileAsync(picture.FileStream, picture.ContentType, storageConfiguration.BucketName, pictureKey, cancellationToken);
+                await storageHandler.UploadFileAsync(picture.FileStream, picture.ContentType, storageConfiguration.Bucket, pictureKey, cancellationToken);
             }
             catch
             {
@@ -98,7 +98,7 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                     playList.Id,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName),
                     new ImageSize(
                         playListConfiguration.Routes.SmallPicturesPath,

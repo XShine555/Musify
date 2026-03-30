@@ -54,7 +54,7 @@ namespace Musify.Application.Tracks.Handler
                 await storageHandler.UploadFileAsync(
                     request.Picture.FileStream,
                     request.Picture.ContentType,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     pictureKey,
                     cancellationToken);
             }
@@ -68,7 +68,7 @@ namespace Musify.Application.Tracks.Handler
                 await storageHandler.UploadFileAsync(
                     request.Audio.FileStream,
                     request.Audio.ContentType,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     audioKey,
                     cancellationToken);
             }
@@ -82,8 +82,8 @@ namespace Musify.Application.Tracks.Handler
 
         async Task RollbackFilesAsync(string pictureKey, string audioKey, CancellationToken cancellationToken)
         {
-            await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, pictureKey, cancellationToken);
-            await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, audioKey, cancellationToken);
+            await storageHandler.RemoveFileAsync(storageConfiguration.Bucket, pictureKey, cancellationToken);
+            await storageHandler.RemoveFileAsync(storageConfiguration.Bucket, audioKey, cancellationToken);
             logger.LogInformation("Rolled back uploaded files {PictureKey}, {AudioKey}", pictureKey, audioKey);
         }
 
@@ -93,7 +93,7 @@ namespace Musify.Application.Tracks.Handler
             {
                 await eventBus.PublishAsync(new UpdateTrackPictureEvent(
                     track.Id,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     Path.Combine(trackConfiguration.Routes.OriginalPicturesPath, track.OriginalPictureName),
                     new ImageSize(
                         trackConfiguration.Routes.SmallPicturesPath,
@@ -123,9 +123,9 @@ namespace Musify.Application.Tracks.Handler
             {
                 await eventBus.PublishAsync(new UpdateTrackAudioEvent(
                     track.Id,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     Path.Combine(trackConfiguration.Routes.OriginalAudiosPath, track.OriginalAudioName),
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     destinationFolderAudio), cancellationToken);
             }
             catch (Exception exception)

@@ -9,6 +9,6 @@ namespace Musify.Application.Configuration
         [Required]
         [MinLength(3)]
         [MaxLength(63)]
-        public required string BucketName { get; set; }
+        public required string Bucket { get; set; }
     }
 }

@@ -4,7 +4,7 @@ namespace Musify.Application.Configuration
 {
     public class PlayListConfiguration
     {
-        public const string SectionName = "PlayListConfiguration";
+        public const string SectionName = "PlayList";
 
         [Required]
         public PlayListRoutes Routes { get; set; } = new PlayListRoutes();

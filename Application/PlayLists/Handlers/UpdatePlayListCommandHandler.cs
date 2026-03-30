@@ -84,7 +84,7 @@ namespace Musify.Application.PlayLists.Handlers
                 await storageHandler.UploadFileAsync(
                     newPicture.FileStream,
                     newPicture.ContentType,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     pictureKey,
                     cancellationToken);
             }
@@ -103,7 +103,7 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
                     playList.Id,
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName),
                     new ImageSize(
                         playListConfiguration.Routes.SmallPicturesPath,
@@ -149,7 +149,7 @@ namespace Musify.Application.PlayLists.Handlers
         async Task Rollback(string pictureKey, CancellationToken cancellationToken)
         {
             await storageHandler.RemoveFileAsync(
-                storageConfiguration.BucketName,
+                storageConfiguration.Bucket,
                 pictureKey,
                 cancellationToken);
             logger.LogInformation("Rolled back uploaded picture {PictureKey} from storage", pictureKey);
@@ -160,7 +160,7 @@ namespace Musify.Application.PlayLists.Handlers
             try
             {
                 await eventBus.PublishAsync(new RemoveFileEvent(
-                    storageConfiguration.BucketName,
+                    storageConfiguration.Bucket,
                     key), cancellationToken);
                 return Result.NoContent();
             }

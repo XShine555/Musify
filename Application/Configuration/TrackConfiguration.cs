@@ -4,7 +4,7 @@ namespace Musify.Application.Configuration
 {
     public class TrackConfiguration
     {
-        public const string SectionName = "TrackConfiguration";
+        public const string SectionName = "Track";
 
         [Required]
         public TrackRoutes Routes { get; set; } = new TrackRoutes();

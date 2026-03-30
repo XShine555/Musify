@@ -60,7 +60,7 @@ namespace Musify.Application.Tracks.Handler
 
         async Task RemoveFile(string path, CancellationToken cancellationToken)
         {
-            await storageHandler.RemoveFileAsync(storageConfiguration.BucketName, path, cancellationToken);
+            await storageHandler.RemoveFileAsync(storageConfiguration.Bucket, path, cancellationToken);
             logger.LogDebug("Removed file {Path} from storage", path);
         }
     }
