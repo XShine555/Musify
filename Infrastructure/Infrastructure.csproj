@@ -33,16 +33,4 @@
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="MassTransit\**\*.cs" />
-    <Compile Include="MassTransit\**\*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="MassTransit\Activities\Pictures\" />
-    <Folder Include="MassTransit\RoutingSlip\Variables\" />
-    <Folder Include="MassTransit\Filters\" />
-    <Folder Include="MassTransit\EventBus\" />
-  </ItemGroup>
-
 </Project>
