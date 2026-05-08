@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Musify.Infrastructure.Configuration;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using SixLabors.ImageSharp;
 
@@ -30,16 +31,25 @@ namespace Musify.Infrastructure.Observability
 
             serviceDescriptors
                 .AddOpenTelemetry()
-                .WithTracing(tracing =>
+                .ConfigureResource(resource =>
                 {
-                    tracing.AddSource("MassTransit");
-                    tracing.AddOtlpExporter();
+                    resource.AddService("Musify");
                 } )
+                .WithTracing(tracing =>
+                    tracing.AddSource("MassTransit")
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddEntityFrameworkCoreInstrumentation()
+                        .AddOtlpExporter()
+                )
                 .WithMetrics(metrics =>
-                {
-                    metrics.AddMeter("MassTransit");
-                    metrics.AddOtlpExporter();
-                } );
+                    metrics.AddMeter("MassTransit")
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddProcessInstrumentation()
+                        .AddOtlpExporter()
+                );
 
             return serviceDescriptors;
         }
