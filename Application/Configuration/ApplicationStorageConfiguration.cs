@@ -7,8 +7,7 @@ namespace Musify.Application.Configuration
         public const string SectionName = "ApplicationStorage";
 
         [Required]
-        [MinLength(3)]
-        [MaxLength(63)]
+        [StringLength(128, MinimumLength = 1)]
         public required string Bucket { get; set; }
     }
 }
