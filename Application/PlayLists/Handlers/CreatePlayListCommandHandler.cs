@@ -23,7 +23,9 @@ namespace Musify.Application.PlayLists.Handlers
     {
         public async ValueTask<Result<PlayListResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
         {
-            var userExists = await database.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
+            var userExists = await database.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == request.UserId, cancellationToken);
             if (!userExists)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
