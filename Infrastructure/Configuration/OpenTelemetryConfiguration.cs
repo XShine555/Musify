@@ -6,8 +6,8 @@ namespace Musify.Infrastructure.Configuration
     {
         public const string SectionName = "OpenTelemetry";
 
-        [Required]
         [Url]
+        [Required]
         public required string OtlpEndpoint { get; set; }
     }
 }

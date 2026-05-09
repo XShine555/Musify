@@ -1,5 +1,4 @@
 ﻿using Amazon.S3;
-using Keycloak.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -39,28 +38,6 @@ namespace Musify.Infrastructure.Services
         public static IServiceCollection AddPictureService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddScoped<IPictureService, PictureService>();
-            return serviceDescriptors;
-        }
-
-        public static IServiceCollection AddKeycloakService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddOptionsWithValidateOnStart<KeycloakConfiguration>()
-                .Bind(configuration.GetRequiredSection(KeycloakConfiguration.SectionName))
-                .ValidateDataAnnotations();
-
-            serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<KeycloakConfiguration>>().Value);
-
-            serviceDescriptors.AddScoped(serviceProvider =>
-            {
-                var keycloakConfiguration = serviceProvider.GetRequiredService<KeycloakConfiguration>();
-
-                return new KeycloakClient(
-                    keycloakConfiguration.Address,
-                    keycloakConfiguration.Username,
-                    keycloakConfiguration.Password);
-            } );
-            serviceDescriptors.AddScoped<IKeycloakUserService, KeycloakUserService>();
             return serviceDescriptors;
         }
 

@@ -42,7 +42,7 @@ namespace Musify.Application.Tracks.Handler
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
             await database.SaveChangesAsync(cancellationToken);
 
-            return Result.Success();
+            return Result.Created(TrackResponse.FromEntity(trackEntity));
         }
 
         async Task<Result> UploadFilesAsync(

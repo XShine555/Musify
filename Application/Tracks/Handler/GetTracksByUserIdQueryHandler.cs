@@ -33,16 +33,7 @@ namespace Musify.Application.Tracks.Handler
                 .Select(t => TrackResponse.FromEntity(t.Track))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
-            var response = new PaginatedResponse<TrackResponse>(
-                pagedTracks.ToArray(),
-                pagedTracks.PageNumber,
-                pagedTracks.PageSize,
-                pagedTracks.PageCount,
-                pagedTracks.TotalItemCount,
-                pagedTracks.HasNextPage,
-                pagedTracks.HasPreviousPage);
-
-            return Result.Success(response);
+            return Result.Success(PaginatedResponse<TrackResponse>.FromPagedList(pagedTracks));
         }
     }
 }

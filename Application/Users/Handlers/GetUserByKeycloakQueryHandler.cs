@@ -7,34 +7,17 @@ using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Users.Handlers
 {
-    public class GetUserByKeycloakQueryHandler(IDatabase database, IKeycloakUserService keycloakUserClient)
+    public class GetUserByKeycloakQueryHandler(IDatabase database)
         : IQueryHandler<GetUserByKeycloakQuery, Result<UserResponse> >
     {
         public async ValueTask<Result<UserResponse>> Handle(GetUserByKeycloakQuery request, CancellationToken cancellationToken)
         {
             var user = await database.Users
                 .AsNoTracking()
+                .Select(u => UserResponse.FromEntity(u))
                 .SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
-            if (user is null)
-                return Result.NotFound("User not found");
 
-            KeycloakUserResponse keycloakUser;
-            try
-            {
-                keycloakUser = await keycloakUserClient.GetUserByIdAsync(user.Id.ToString(), cancellationToken);
-            }
-            catch
-            {
-                return Result.NotFound("Keycloak user not found");
-            }
-
-            return Result.Success(new UserResponse(
-                user.Id.ToString(),
-                keycloakUser.Name,
-                keycloakUser.FirstName,
-                keycloakUser.SecondName,
-                user.CreatedAt,
-                user.UpdatedAt));
+            return user ?? Result<UserResponse>.NotFound();
         }
     }
 }

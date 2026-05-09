@@ -25,16 +25,7 @@ namespace Musify.Application.PlayLists.Handlers
                 .Select(p => PlayListResponse.FromEntity(p))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
-            var response = new PaginatedResponse<PlayListResponse>(
-                pagedPlayLists.ToArray(),
-                pagedPlayLists.PageNumber,
-                pagedPlayLists.PageSize,
-                pagedPlayLists.PageCount,
-                pagedPlayLists.TotalItemCount,
-                pagedPlayLists.HasNextPage,
-                pagedPlayLists.HasPreviousPage);
-
-            return Result.Success(response);
+            return Result.Success(PaginatedResponse<PlayListResponse>.FromPagedList(pagedPlayLists));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Musify.Application.Contracts.Application
+﻿using X.PagedList;
+
+namespace Musify.Application.Contracts.Application
 {
     public record PaginatedResponse<T>(
         IReadOnlyCollection<T> Items,
@@ -7,5 +9,18 @@
         int PageCount,
         int TotalItemCount,
         bool HasNextPage,
-        bool HasPreviousPage);
+        bool HasPreviousPage)
+    {
+        public static PaginatedResponse<T> FromPagedList(IPagedList<T> pagedList)
+        {
+            return new PaginatedResponse<T>(
+                pagedList.ToArray(),
+                pagedList.PageNumber,
+                pagedList.PageSize,
+                pagedList.PageCount,
+                pagedList.TotalItemCount,
+                pagedList.HasNextPage,
+                pagedList.HasPreviousPage);
+        }
+    }
 }

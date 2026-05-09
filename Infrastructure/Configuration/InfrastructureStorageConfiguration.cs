@@ -6,16 +6,14 @@ namespace Musify.Infrastructure.Configuration
     {
         public const string SectionName = "InfrastructureStorage";
 
-        [Required]
         [Url]
+        [Required]
         public required string Address { get; set; }
 
         [Required]
-        [MinLength(3)]
         public required string AccessKey { get; set; }
 
         [Required]
-        [MinLength(8)]
         public required string SecretAccessKey { get; set; }
 
         [Required]
