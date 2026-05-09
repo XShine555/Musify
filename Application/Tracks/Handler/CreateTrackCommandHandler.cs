@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
@@ -16,8 +17,9 @@ namespace Musify.Application.Tracks.Handler
     {
         public async ValueTask<Result<TrackResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
         {
-            var userExists = await database.Users.FindAsync(request.UserId, cancellationToken);
-            if (userExists is null)
+            var userExists = await database.Users.AsNoTracking()
+                .AnyAsync(u => u.Id == request.UserId, cancellationToken);
+            if (!userExists)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
                 return Result.NotFound($"User {request.UserId} not found");
@@ -29,8 +31,8 @@ namespace Musify.Application.Tracks.Handler
                 trackConfiguration.Routes.PresetMediumPicture,
                 trackConfiguration.Routes.PresetLargePicture);
 
-            var fullPictureKey = Path.Combine(trackConfiguration.Routes.OriginalPicturesPath, trackEntity.OriginalPictureName);
-            var fullAudioKey = Path.Combine(trackConfiguration.Routes.OriginalAudiosPath, trackEntity.OriginalAudioName);
+            var fullPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(trackEntity.OriginalPictureName);
+            var fullAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(trackEntity.OriginalAudioName);
 
             await UploadFilesAsync(request, fullPictureKey, fullAudioKey, cancellationToken);
 
@@ -58,8 +60,9 @@ namespace Musify.Application.Tracks.Handler
                     pictureKey,
                     cancellationToken);
             }
-            catch
+            catch (Exception exception)
             {
+                logger.LogError(exception, "Failed to upload picture for track {Title}", request.Title);
                 return Result.Error($"Failed to upload picture for {request.Title}");
             }
 
@@ -72,8 +75,9 @@ namespace Musify.Application.Tracks.Handler
                     audioKey,
                     cancellationToken);
             }
-            catch
+            catch (Exception exception)
             {
+                logger.LogError(exception, "Failed to upload audio for track {Title}", request.Title);
                 await RollbackFilesAsync(pictureKey, audioKey, cancellationToken);
                 return Result.Error($"Failed to upload audio for {request.Title}");
             }
@@ -94,7 +98,7 @@ namespace Musify.Application.Tracks.Handler
                 await eventBus.PublishAsync(new UpdateTrackPictureEvent(
                     track.Id,
                     storageConfiguration.Bucket,
-                    Path.Combine(trackConfiguration.Routes.OriginalPicturesPath, track.OriginalPictureName),
+                    trackConfiguration.Routes.BuildOriginalPicturePath(track.OriginalPictureName),
                     new ImageSize(
                         trackConfiguration.Routes.SmallPicturesPath,
                         trackConfiguration.PicturesSizes.SmallPictureWidth,
@@ -116,15 +120,14 @@ namespace Musify.Application.Tracks.Handler
 
         async Task PublishTranscodeEvent(Track track, CancellationToken cancellationToken)
         {
-            var destinationFolderAudio = Path.Combine(trackConfiguration.Routes.ProcessedAudiosPath,
-                Guid.NewGuid().ToString());
+            var destinationFolderAudio = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
             try
             {
                 await eventBus.PublishAsync(new UpdateTrackAudioEvent(
                     track.Id,
                     storageConfiguration.Bucket,
-                    Path.Combine(trackConfiguration.Routes.OriginalAudiosPath, track.OriginalAudioName),
+                    trackConfiguration.Routes.BuildOriginalAudioPath(track.OriginalAudioName),
                     storageConfiguration.Bucket,
                     destinationFolderAudio), cancellationToken);
             }

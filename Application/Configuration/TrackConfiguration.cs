@@ -65,6 +65,18 @@ namespace Musify.Application.Configuration
         public string OriginalAudiosPath => Path.Combine(ParentFolder, OriginalAudiosFolder);
 
         public string ProcessedAudiosPath => Path.Combine(ParentFolder, ProcessedAudioFolder);
+
+        public string BuildOriginalPicturePath(string pictureName) => Path.Combine(OriginalPicturesPath, pictureName);
+
+        public string BuildSmallPicturePath(string pictureName) => Path.Combine(SmallPicturesPath, pictureName);
+
+        public string BuildMediumPicturePath(string pictureName) => Path.Combine(MediumPicturesPath, pictureName);
+
+        public string BuildLargePicturePath(string pictureName) => Path.Combine(LargePicturesPath, pictureName);
+
+        public string BuildOriginalAudioPath(string audioName) => Path.Combine(OriginalAudiosPath, audioName);
+
+        public string BuildProcessedAudioPath(string audioName) => Path.Combine(ProcessedAudiosPath, audioName);
     }
 
     public class TrackPicturesSizes
