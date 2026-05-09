@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Application;
@@ -18,9 +19,7 @@ namespace Musify.Application.PlayLists.Handlers
     {
         public async ValueTask<Result<PlayListResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
         {
-            var playListEntity = await database.PlayLists.FindAsync(
-                [request.PlayListId],
-                cancellationToken);
+            var playListEntity = await database.PlayLists.SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
             if (playListEntity is null)
             {
                 logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
@@ -43,13 +42,22 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 database.PlayLists.Update(playListEntity);
                 await database.SaveChangesAsync(cancellationToken);
-                await PublishPlayListPictureEvent(playListEntity, cancellationToken);
-                await RemoveOldPictures(playListEntity, cancellationToken);
             }
             catch (Exception exception)
             {
                 await Rollback(playListEntity.OriginalPictureName, cancellationToken);
                 logger.LogError(exception, "Failed to update playlist {PlayListId}", playListEntity.Id);
+                return Result.Error($"Failed to update playlist {playListEntity.Id}");
+            }
+
+            try
+            {
+                await PublishPlayListPictureEvent(playListEntity, cancellationToken);
+                await RemoveOldPictures(playListEntity, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to publish playlist picture update event or remove old pictures for playlist {PlayListId}", playListEntity.Id);
                 return Result.Error($"Failed to update playlist {playListEntity.Id}");
             }
 

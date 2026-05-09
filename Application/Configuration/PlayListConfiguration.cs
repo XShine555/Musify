@@ -55,6 +55,14 @@ namespace Musify.Application.Configuration
         public string PresetLargePicturePath => Path.Combine(ParentFolders, PresetLargePicture);
 
         public string OriginalPicturesPath => Path.Combine(ParentFolders, OriginalPicturesFolder);
+
+        public string BuildOriginalPicturePath(string pictureName) => Path.Combine(ParentFolders, OriginalPicturesFolder, pictureName);
+
+        public string BuildSmallPicturePath(string pictureName) => Path.Combine(ParentFolders, SmallPicturesFolder, pictureName);
+
+        public string BuildMediumPicturePath(string pictureName) => Path.Combine(ParentFolders, MediumPicturesFolder, pictureName);
+
+        public string BuildLargePicturePath(string pictureName) => Path.Combine(ParentFolders, LargePicturesFolder, pictureName);
     }
 
     public class PlayListPicturesSizes

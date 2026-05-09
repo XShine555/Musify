@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
@@ -14,9 +15,7 @@ namespace Musify.Application.PlayLists.Handlers
     {
         public async ValueTask<Result> Handle(DeletePlayListCommand request, CancellationToken cancellationToken)
         {
-            var playList = await database.PlayLists.FindAsync(
-                [request.PlayListId],
-                cancellationToken);
+            var playList = await database.PlayLists.SingleOrDefaultAsync(p => p.Id == request.PlayListId, cancellationToken);
             if (playList is null)
             {
                 logger.LogDebug("Playlist {PlayListId} not found", request.PlayListId);
@@ -29,15 +28,18 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.Unauthorized();
             }
 
+            if (!string.IsNullOrWhiteSpace(playList.OriginalPictureName))
+                await PublishRemoveFileEventAsync(playList.Id,
+                        playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName), cancellationToken);
             if (playList.SmallPictureName != playListConfiguration.Routes.PresetSmallPicture)
-                await PublishRemoveFileEventAsync(playList.Id, Path.Combine(playListConfiguration.Routes.SmallPicturesPath,
-                    playList.SmallPictureName), cancellationToken);
+                await PublishRemoveFileEventAsync(playList.Id,
+                    playListConfiguration.Routes.BuildSmallPicturePath(playList.SmallPictureName), cancellationToken);
             if (playList.MediumPictureName != playListConfiguration.Routes.PresetMediumPicture)
-                await PublishRemoveFileEventAsync(playList.Id, Path.Combine(playListConfiguration.Routes.MediumPicturesPath,
-                    playList.MediumPictureName), cancellationToken);
+                await PublishRemoveFileEventAsync(playList.Id,
+                    playListConfiguration.Routes.BuildMediumPicturePath(playList.MediumPictureName), cancellationToken);
             if (playList.LargePictureName != playListConfiguration.Routes.PresetLargePicture)
-                await PublishRemoveFileEventAsync(playList.Id, Path.Combine(playListConfiguration.Routes.LargePicturesPath,
-                    playList.LargePictureName), cancellationToken);
+                await PublishRemoveFileEventAsync(playList.Id,
+                    playListConfiguration.Routes.BuildLargePicturePath(playList.LargePictureName), cancellationToken);
 
             database.PlayLists.Remove(playList);
             await database.SaveChangesAsync(cancellationToken);

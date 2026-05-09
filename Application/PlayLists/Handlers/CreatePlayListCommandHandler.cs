@@ -72,7 +72,7 @@ namespace Musify.Application.PlayLists.Handlers
         async Task<Result> UploadPictureAsync(PlayList playList, IFileData picture, CancellationToken cancellationToken)
         {
             var pictureName = Guid.NewGuid() + picture.FileType;
-            var pictureKey = Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, pictureName);
+            var pictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(pictureName);
 
             try
             {
@@ -94,7 +94,7 @@ namespace Musify.Application.PlayLists.Handlers
                 var updateEvent = new UpdatePlayListPictureEvent(
                     playList.Id,
                     storageConfiguration.Bucket,
-                    Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName),
+                    playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName),
                     new ImageSize(
                         playListConfiguration.Routes.SmallPicturesPath,
                         playListConfiguration.PicturesSizes.SmallPictureWidth,
@@ -123,7 +123,7 @@ namespace Musify.Application.PlayLists.Handlers
             if (string.IsNullOrEmpty(playList.OriginalPictureName))
                 return;
 
-            var originalPicturePath = Path.Combine(playListConfiguration.Routes.OriginalPicturesPath, playList.OriginalPictureName);
+            var originalPicturePath = playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName);
 
             try
             {
