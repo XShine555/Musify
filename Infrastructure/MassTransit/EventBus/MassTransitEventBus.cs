@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Infrastructure;
 
 namespace Musify.Infrastructure.MassTransit
 {

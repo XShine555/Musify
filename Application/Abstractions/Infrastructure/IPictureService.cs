@@ -1,4 +1,4 @@
-﻿namespace Musify.Application.Contracts.Infrastructure
+﻿namespace Musify.Application.Abstractions.Infrastructure
 {
     public interface IPictureService
     {

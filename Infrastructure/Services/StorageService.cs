@@ -3,7 +3,7 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Logging;
 using MimeMapping;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
 

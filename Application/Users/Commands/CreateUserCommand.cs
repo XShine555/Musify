@@ -9,7 +9,7 @@ namespace Musify.Application.Users.Commands
         string Name,
         string? FirstName,
         string? SecondName)
-        : ICommand<Result<UserResponse>>
+        : ICommand<Result<UserApplicationResponse>>
     {
         public static User ToEntity(CreateUserCommand command)
         {

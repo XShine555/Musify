@@ -1,6 +1,6 @@
 ﻿using Ardalis.Result;
 using Mediator;
-using Musify.Application.Contracts.Application;
+using Musify.Application.Abstractions.Application;
 using Musify.Application.PlayLists.Responses;
 
 namespace Musify.Application.PlayLists.Queries
@@ -10,5 +10,5 @@ namespace Musify.Application.PlayLists.Queries
     string? Name = null,
         int PageNumber = 1,
         int PageSize = 10)
-        : IQuery<Result<PaginatedResponse<PlayListResponse>> >;
+        : IQuery<Result<PaginatedResponse<PlayListApplicationResponse>> >;
 }

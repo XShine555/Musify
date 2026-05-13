@@ -2,7 +2,7 @@
 
 namespace Musify.Application.PlayLists.Responses
 {
-    public record PlayListResponse(
+    public record PlayListApplicationResponse(
         Guid Id,
         string Name,
         string Description,
@@ -12,9 +12,9 @@ namespace Musify.Application.PlayLists.Responses
         DateTime CreatedAt,
         DateTime UpdatedAt)
     {
-        public static PlayListResponse FromEntity(PlayList playList)
+        public static PlayListApplicationResponse FromEntity(PlayList playList)
         {
-            return new PlayListResponse(
+            return new PlayListApplicationResponse(
                 playList.Id,
                 playList.Name,
                 playList.Description,

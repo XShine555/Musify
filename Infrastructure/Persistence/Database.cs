@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
 

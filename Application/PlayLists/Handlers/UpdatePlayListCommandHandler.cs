@@ -3,8 +3,8 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Contracts.Application;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Application;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
@@ -15,12 +15,12 @@ namespace Musify.Application.PlayLists.Handlers
     public class UpdatePlayListCommandHandler(IEventBus eventBus, IDatabase database, IStorageService storageHandler,
         ILogger<UpdatePlayListCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration)
-        : ICommandHandler<UpdatePlayListCommand, Result<PlayListResponse>>
+        : ICommandHandler<UpdatePlayListCommand, Result<PlayListApplicationResponse>>
     {
         record UpdatePictureOutcome(Result Result, bool PictureUpdated, string? UploadedPictureKey);
         record PreviousPlayListState(string Name, string NormalizedName, string Description, string OriginalPictureName);
 
-        public async ValueTask<Result<PlayListResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result<PlayListApplicationResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
         {
             var playListEntity = await database.PlayLists.SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
             if (playListEntity is null)
@@ -72,7 +72,7 @@ namespace Musify.Application.PlayLists.Handlers
             }
 
             logger.LogInformation("Updated playlist {PlayListId}", playListEntity.Id);
-            return Result.Success(PlayListResponse.FromEntity(playListEntity));
+            return Result.Success(PlayListApplicationResponse.FromEntity(playListEntity));
         }
 
         void UpdateName(PlayList playList, string? newName)

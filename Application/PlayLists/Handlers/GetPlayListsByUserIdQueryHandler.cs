@@ -1,7 +1,7 @@
 ﻿using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Contracts.Application;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Application;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.PlayLists.Queries;
 using X.PagedList.EF;
@@ -10,9 +10,9 @@ using Mediator;
 namespace Musify.Application.PlayLists.Handlers
 {
     public class GetPlayListsByUserIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListsByUserIdQuery, Result<PaginatedResponse<PlayListResponse> > >
+        : IQueryHandler<GetPlayListsByUserIdQuery, Result<PaginatedResponse<PlayListApplicationResponse> > >
     {
-        public async ValueTask<Result<PaginatedResponse<PlayListResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<Result<PaginatedResponse<PlayListApplicationResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
@@ -31,10 +31,10 @@ namespace Musify.Application.PlayLists.Handlers
 
             var pagedPlayLists = await playListsQuery
                 .OrderBy(p => p.CreatedDate)
-                .Select(p => PlayListResponse.FromEntity(p))
+                .Select(p => PlayListApplicationResponse.FromEntity(p))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
-            return Result.Success(PaginatedResponse<PlayListResponse>.FromPagedList(pagedPlayLists));
+            return Result.Success(PaginatedResponse<PlayListApplicationResponse>.FromPagedList(pagedPlayLists));
         }
     }
 }

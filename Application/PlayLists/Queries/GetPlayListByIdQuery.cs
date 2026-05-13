@@ -5,5 +5,5 @@ using Musify.Application.PlayLists.Responses;
 namespace Musify.Application.PlayLists.Queries
 {
     public record GetPlayListByIdQuery(Guid Id)
-        : IQuery<Result<PlayListResponse>>;
+        : IQuery<Result<PlayListApplicationResponse>>;
 }

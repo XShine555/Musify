@@ -1,6 +1,6 @@
 ﻿using Ardalis.Result;
 using Mediator;
-using Musify.Application.Contracts.Application;
+using Musify.Application.Abstractions.Application;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
 
@@ -11,7 +11,7 @@ namespace Musify.Application.Tracks.Commands
         string Title,
         IFileData Picture,
         IFileData Audio)
-        : ICommand<Result<TrackResponse> >
+        : ICommand<Result<TrackApplicationResponse> >
     {
         public static Track ToEntity(CreateTrackCommand command, string smallPictureName, string mediumPictureName, string largePictureName)
         {

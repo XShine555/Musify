@@ -2,15 +2,15 @@
 
 namespace Musify.Application.Tracks.Responses
 {
-    public record TrackResponse(
+    public record TrackApplicationResponse(
         Guid Id,
         string Title,
         DateTime CreatedDate,
         DateTime UpdatedDate)
     {
-        public static TrackResponse FromEntity(Track track)
+        public static TrackApplicationResponse FromEntity(Track track)
         {
-            return new TrackResponse(
+            return new TrackApplicationResponse(
                 track.Id,
                 track.Title,
                 track.CreatedDate,

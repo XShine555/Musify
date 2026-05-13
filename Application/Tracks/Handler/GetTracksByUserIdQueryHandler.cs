@@ -1,8 +1,8 @@
 ﻿using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Contracts.Application;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Application;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Tracks.Queries;
 using Musify.Application.Tracks.Responses;
 using X.PagedList.EF;
@@ -10,9 +10,9 @@ using X.PagedList.EF;
 namespace Musify.Application.Tracks.Handler
 {
     public class GetTracksByUserIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetTracksByUserIdQuery, Result<PaginatedResponse<TrackResponse>> >
+        : IQueryHandler<GetTracksByUserIdQuery, Result<PaginatedResponse<TrackApplicationResponse>> >
     {
-        public async ValueTask<Result<PaginatedResponse<TrackResponse> >> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<Result<PaginatedResponse<TrackApplicationResponse> >> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
@@ -32,10 +32,10 @@ namespace Musify.Application.Tracks.Handler
 
             var pagedTracks = await tracksQuery
                 .OrderBy(t => t.Track.CreatedDate)
-                .Select(t => TrackResponse.FromEntity(t.Track))
+                .Select(t => TrackApplicationResponse.FromEntity(t.Track))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
-            return Result.Success(PaginatedResponse<TrackResponse>.FromPagedList(pagedTracks));
+            return Result.Success(PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks));
         }
     }
 }

@@ -3,8 +3,8 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Contracts.Application;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Application;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
@@ -19,9 +19,9 @@ namespace Musify.Application.PlayLists.Handlers
         ILogger<CreatePlayListCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration)
-        : ICommandHandler<CreatePlayListCommand, Result<PlayListResponse>>
+        : ICommandHandler<CreatePlayListCommand, Result<PlayListApplicationResponse>>
     {
-        public async ValueTask<Result<PlayListResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
                 .AsNoTracking()
@@ -69,7 +69,7 @@ namespace Musify.Application.PlayLists.Handlers
             }
 
             logger.LogInformation("Created playlist {PlayListId} for user {UserId}", playList.Id, request.UserId);
-            return Result.Created(PlayListResponse.FromEntity(playList));
+            return Result.Created(PlayListApplicationResponse.FromEntity(playList));
         }
 
         async Task TryRollbackOnPublishFailureAsync(PlayList playList, CancellationToken cancellationToken)

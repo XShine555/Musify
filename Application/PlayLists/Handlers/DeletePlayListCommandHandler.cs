@@ -3,7 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 

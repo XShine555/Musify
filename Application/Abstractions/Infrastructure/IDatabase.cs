@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Musify.Domain.Entities;
 
-namespace Musify.Application.Contracts.Infrastructure
+namespace Musify.Application.Abstractions.Infrastructure
 {
     public interface IDatabase
     {

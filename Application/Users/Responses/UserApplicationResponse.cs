@@ -2,7 +2,7 @@
 
 namespace Musify.Application.Users.Responses
 {
-    public record UserResponse(
+    public record UserApplicationResponse(
         Guid Id,
         string Name,
         string? FirstName,
@@ -10,9 +10,9 @@ namespace Musify.Application.Users.Responses
         DateTime CreatedAt,
         DateTime UpdatedAt)
     {
-        public static UserResponse FromEntity(User user)
+        public static UserApplicationResponse FromEntity(User user)
         {
-            return new UserResponse(
+            return new UserApplicationResponse(
                 user.Id,
                 user.Name,
                 user.FirstName,

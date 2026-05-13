@@ -3,7 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
@@ -13,9 +13,9 @@ namespace Musify.Application.Tracks.Handler
 {
     public class CreateTrackCommandHandler(IDatabase database, IEventBus eventBus, IStorageService storageHandler,
         ILogger<CreateTrackCommandHandler> logger, ApplicationStorageConfiguration storageConfiguration, TrackConfiguration trackConfiguration)
-        : ICommandHandler<CreateTrackCommand, Result<TrackResponse> >
+        : ICommandHandler<CreateTrackCommand, Result<TrackApplicationResponse> >
     {
-        public async ValueTask<Result<TrackResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Result<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.AsNoTracking()
                 .AnyAsync(u => u.Id == request.UserId, cancellationToken);
@@ -64,7 +64,7 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Error($"Failed to create track for {request.Title}");
             }
 
-            return Result.Created(TrackResponse.FromEntity(trackEntity));
+            return Result.Created(TrackApplicationResponse.FromEntity(trackEntity));
         }
 
         async Task<Result> UploadFilesAsync(
