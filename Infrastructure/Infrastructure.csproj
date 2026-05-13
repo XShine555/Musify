@@ -8,7 +8,7 @@
 	<UserSecretsId>07d419fc-9ade-471a-bc0e-aebece785b30</UserSecretsId>
 	<RootNamespace>Musify.Infrastructure</RootNamespace>
 	<PackageId>Musify.Infrastructure</PackageId>
-	<Version>0.1.0</Version>
+	<Version>0.1.1</Version>
 	<Authors>NotS1mp</Authors>
 	<RepositoryUrl>https://github.com/XShine555/MusifyBackend</RepositoryUrl>
   </PropertyGroup>

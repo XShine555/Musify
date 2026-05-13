@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 	<RootNamespace>Musify.Domain</RootNamespace>
 	<PackageId>Musify.Domain</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>NotS1mp</Authors>
 	<RepositoryUrl>https://github.com/XShine555/MusifyBackend</RepositoryUrl>
   </PropertyGroup>
