@@ -106,86 +106,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.ToTable("PlayListHasTrack");
                 });
 
-            modelBuilder.Entity("Musify.Domain.Entities.ProcessExecution", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ConversationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("CorrelationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.Property<DateTime?>("FinishedDateTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("MessageId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ProcessName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime>("StartedDateTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CorrelationId", "ProcessName");
-
-                    b.ToTable("ProcessExecution");
-                });
-
-            modelBuilder.Entity("Musify.Domain.Entities.ProcessStepExecution", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Attempt")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ComponentType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
-
-                    b.Property<DateTime?>("FinishedDateTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ProcessExecutionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("StartedDateTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("StepName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProcessExecutionId", "StepName");
-
-                    b.ToTable("ProcessStepExecution");
-                });
-
             modelBuilder.Entity("Musify.Domain.Entities.Track", b =>
                 {
                     b.Property<Guid>("Id")
@@ -193,20 +113,23 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AudioFolderName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<int>("AudioTranscodeProcessingStatus")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LargePictureName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<DateTime?>("LastRetryAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("MediumPictureName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
@@ -225,8 +148,13 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<int>("PicturesProcessingStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("SmallPictureName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
@@ -280,6 +208,24 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(48)
+                        .HasColumnType("character varying(48)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(48)
+                        .HasColumnType("character varying(48)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(48)
+                        .HasColumnType("character varying(48)");
+
+                    b.Property<string>("SecondName")
+                        .HasMaxLength(48)
+                        .HasColumnType("character varying(48)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -340,17 +286,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("Track");
                 });
 
-            modelBuilder.Entity("Musify.Domain.Entities.ProcessStepExecution", b =>
-                {
-                    b.HasOne("Musify.Domain.Entities.ProcessExecution", "ProcessExecution")
-                        .WithMany("Steps")
-                        .HasForeignKey("ProcessExecutionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProcessExecution");
-                });
-
             modelBuilder.Entity("Musify.Domain.Entities.UserHasTrack", b =>
                 {
                     b.HasOne("Musify.Domain.Entities.Track", "Track")
@@ -373,11 +308,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Musify.Domain.Entities.PlayList", b =>
                 {
                     b.Navigation("PlayListTracks");
-                });
-
-            modelBuilder.Entity("Musify.Domain.Entities.ProcessExecution", b =>
-                {
-                    b.Navigation("Steps");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Track", b =>

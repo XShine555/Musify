@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -11,25 +12,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ProcessExecution",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CorrelationId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ConversationId = table.Column<Guid>(type: "uuid", nullable: true),
-                    MessageId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ProcessName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    StartedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FinishedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ErrorMessage = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProcessExecution", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Tracks",
                 columns: table => new
                 {
@@ -37,11 +19,15 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     Title = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     NormalizedTitle = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     OriginalPictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    SmallPictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    MediumPictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    LargePictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    SmallPictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    MediumPictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    LargePictureName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     OriginalAudioName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AudioFolderName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    AudioFolderName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    PicturesProcessingStatus = table.Column<int>(type: "integer", nullable: false),
+                    AudioTranscodeProcessingStatus = table.Column<int>(type: "integer", nullable: false),
+                    RetryCount = table.Column<int>(type: "integer", nullable: false),
+                    LastRetryAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -71,37 +57,16 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(48)", maxLength: 48, nullable: false),
+                    NormalizedName = table.Column<string>(type: "character varying(48)", maxLength: 48, nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(48)", maxLength: 48, nullable: true),
+                    SecondName = table.Column<string>(type: "character varying(48)", maxLength: 48, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProcessStepExecution",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProcessExecutionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StepName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    ComponentType = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    Attempt = table.Column<int>(type: "integer", nullable: false),
-                    StartedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FinishedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ErrorMessage = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProcessStepExecution", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProcessStepExecution_ProcessExecution_ProcessExecutionId",
-                        column: x => x.ProcessExecutionId,
-                        principalTable: "ProcessExecution",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -199,16 +164,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProcessExecution_CorrelationId_ProcessName",
-                table: "ProcessExecution",
-                columns: new[] { "CorrelationId", "ProcessName" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProcessStepExecution_ProcessExecutionId_StepName",
-                table: "ProcessStepExecution",
-                columns: new[] { "ProcessExecutionId", "StepName" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_UserHasTrack_TrackId",
                 table: "UserHasTrack",
                 column: "TrackId");
@@ -226,9 +181,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 name: "PlayListHasTrack");
 
             migrationBuilder.DropTable(
-                name: "ProcessStepExecution");
-
-            migrationBuilder.DropTable(
                 name: "Upload");
 
             migrationBuilder.DropTable(
@@ -236,9 +188,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "PlayLists");
-
-            migrationBuilder.DropTable(
-                name: "ProcessExecution");
 
             migrationBuilder.DropTable(
                 name: "Tracks");
