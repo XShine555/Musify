@@ -1,7 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
-using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 
@@ -9,28 +8,13 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
     internal class DownloadFileFromBucketActivity(
         IStorageService storageHandler,
-        ILogger<DownloadFileFromBucketActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<DownloadFileFromBucketActivity> logger)
         : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
     {
         public const string ExecuteEndpointName = "download-file-from-bucket";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<DownloadFileFromBucketArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(DownloadFileFromBucketActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
             ArgumentNullException.ThrowIfNull(destinationPath, nameof(destinationPath));
 
@@ -50,8 +34,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
 
                 using var destinationStream = File.Create(destinationPath);
                 await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
-
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed(new DownloadFileFromBucketLog(
                     executeContext.Arguments.Bucket,
                     executeContext.Arguments.Key,
@@ -60,7 +42,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to download file from bucket");
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }

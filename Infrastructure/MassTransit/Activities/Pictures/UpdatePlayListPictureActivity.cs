@@ -1,7 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
-using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 
@@ -9,28 +8,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class UpdatePlayListPictureActivity(
         IDatabase database,
-        ILogger<UpdatePlayListPictureActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<UpdatePlayListPictureActivity> logger)
         : IActivity<UpdatePlayListPictureArguments, UpdatePlayListPictureLog>
     {
         public const string ExecuteEndpointName = "update-playlist-picture";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<UpdatePlayListPictureArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(UpdatePlayListPictureActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariable);
             ArgumentNullException.ThrowIfNull(smallResizedVariable, nameof(smallResizedVariable));
             var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariable);
@@ -68,15 +52,12 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 logger.LogInformation("Updated playlist {PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
-
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to update playlist {PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }

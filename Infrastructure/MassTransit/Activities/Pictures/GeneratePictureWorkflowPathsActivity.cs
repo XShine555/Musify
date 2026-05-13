@@ -1,14 +1,11 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
-using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class GeneratePictureWorkflowPathsActivity(
-        ILogger<GeneratePictureWorkflowPathsActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<GeneratePictureWorkflowPathsActivity> logger)
         : IExecuteActivity<GeneratePictureWorkflowPathsArguments>
     {
         public const string ExecuteEndpointName = "generate-picture-workflow-paths";
@@ -17,20 +14,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
         public async Task<ExecutionResult> Execute(ExecuteContext<GeneratePictureWorkflowPathsArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(GeneratePictureWorkflowPathsActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             try
             {
                 var destinationFolderName = Guid.NewGuid().ToString();
@@ -49,8 +32,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
                 logger.LogDebug("Generated picture workflow paths in {WorkingDirectory}",
                     workingDirectory);
-
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.CompletedWithVariables(new Dictionary<string, object>
                 {
                     [RoutingSlipVariableNames.Workflow.TemporalDirectory] = workingDirectory,
@@ -65,7 +46,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
             {
                 logger.LogError(exception, "Failed to generate picture workflow paths for {SourceKey}",
                     executeContext.Arguments.SourceKey);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }

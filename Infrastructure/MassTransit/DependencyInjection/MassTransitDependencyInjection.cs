@@ -11,7 +11,6 @@ using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
-using Musify.Infrastructure.MassTransit.Filters;
 using Musify.Infrastructure.MassTransit.Logs;
 using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 using Musify.Infrastructure.MassTransit.Activities.Tracks;
@@ -91,8 +90,6 @@ namespace Musify.Infrastructure.MassTransit
                     ConfigureRabbitMqHost(
                         busFactoryConfigurator,
                         busRegistrationContext.GetRequiredService<MassTransitConfiguration>());
-
-                    busFactoryConfigurator.UseConsumeFilter(typeof(ProcessTrackingConsumeFilter<>), busRegistrationContext);
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdatePlayListPictureConsumer.QueueName, endpointConfigurator =>
                         endpointConfigurator.ConfigureConsumer<UpdatePlayListPictureConsumer>(busRegistrationContext));

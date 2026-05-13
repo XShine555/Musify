@@ -23,11 +23,5 @@ namespace Musify.Infrastructure.Persistence
 
             return serviceDescriptors;
         }
-
-        public static IServiceCollection AddProcessTrackingStore(this IServiceCollection serviceDescriptors)
-        {
-            serviceDescriptors.AddScoped<IProcessTrackingStore, ProcessTrackingStore>();
-            return serviceDescriptors;
-        }
     }
 }

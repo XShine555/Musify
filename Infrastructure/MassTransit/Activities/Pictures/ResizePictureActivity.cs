@@ -1,7 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
-using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
@@ -10,28 +9,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class ResizePictureActivity(
         IPictureService pictureHandler,
-        ILogger<ResizePictureActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<ResizePictureActivity> logger)
         : IActivity<ResizePictureLocalArguments, ResizePictureLog>
     {
         public const string ExecuteEndpointName = "resize-picture";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<ResizePictureLocalArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(ResizePictureActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariable);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var destinationFilePath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
@@ -63,14 +47,11 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 logger.LogDebug("Resized picture from {SourceFilePath} to {DestinationFilePath}",
                     sourceFilePath,
                     destinationFilePath);
-
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed(new ResizePictureLog(destinationFilePath));
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to resize picture {SourceFilePath}", sourceFilePath);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }

@@ -1,7 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
-using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 
@@ -9,28 +8,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class TransferFilesToBucketActivity(
         IStorageService storageHandler,
-        ILogger<TransferFilesToBucketActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<TransferFilesToBucketActivity> logger)
         : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
     {
         public const string ExecuteEndpointName = "transfer-files-to-bucket";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(TransferFilesToBucketActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariable);
             ArgumentNullException.ThrowIfNull(folderPath, nameof(folderPath));
             var destinationKey = executeContext.Arguments.DestinationKey;
@@ -47,8 +31,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     executeContext.Arguments.DestinationBucket,
                     destinationKey,
                     executeContext.CancellationToken);
-
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }
             catch (Exception exception)
@@ -56,7 +38,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 logger.LogError(exception, "Failed to transfer files from {FolderPath} to {DestinationBucket}",
                     folderPath,
                     executeContext.Arguments.DestinationBucket);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }
