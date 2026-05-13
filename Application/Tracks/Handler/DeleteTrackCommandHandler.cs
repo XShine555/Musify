@@ -24,7 +24,10 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound();
             }
 
-            if (track.Id != request.UserId)
+            var isOwner = await database.UserHasTracks
+                .AsNoTracking()
+                .AnyAsync(ut => ut.TrackId == request.TrackId && ut.UserId == request.UserId, cancellationToken);
+            if (!isOwner)
             {
                 logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
                 return Result.Unauthorized();
@@ -37,13 +40,46 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Conflict("Track is currently being processed and cannot be deleted");
             }
 
+            var previousPicturesStatus = track.PicturesProcessingStatus;
+            var previousAudioStatus = track.AudioTranscodeProcessingStatus;
+
             track.PicturesProcessingStatus = ProcessingStatus.Processing;
             track.AudioTranscodeProcessingStatus = ProcessingStatus.Processing;
-            await database.SaveChangesAsync(cancellationToken);
 
-            await eventBus.PublishAsync(
-                new DeleteTrackEvent(track.Id, request.UserId),
-                cancellationToken);
+            try
+            {
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to mark track {TrackId} as processing before deletion", request.TrackId);
+                return Result.Error($"Failed to delete track {request.TrackId}");
+            }
+
+            try
+            {
+                await eventBus.PublishAsync(
+                    new DeleteTrackEvent(track.Id, request.UserId),
+                    cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to publish delete track event for track {TrackId}", request.TrackId);
+
+                track.PicturesProcessingStatus = previousPicturesStatus;
+                track.AudioTranscodeProcessingStatus = previousAudioStatus;
+
+                try
+                {
+                    await database.SaveChangesAsync(cancellationToken);
+                }
+                catch (Exception rollbackException)
+                {
+                    logger.LogError(rollbackException, "Failed to rollback track {TrackId} processing flags after publish failure", request.TrackId);
+                }
+
+                return Result.Error($"Failed to delete track {request.TrackId}");
+            }
 
             return Result.NoContent();
         }

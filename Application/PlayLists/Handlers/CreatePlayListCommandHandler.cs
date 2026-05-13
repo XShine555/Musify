@@ -62,11 +62,29 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 var publishResult = await PublishPictureUpdateEventAsync(playList, cancellationToken);
                 if (!publishResult.IsSuccess)
+                {
+                    await TryRollbackOnPublishFailureAsync(playList, cancellationToken);
                     return publishResult;
+                }
             }
 
             logger.LogInformation("Created playlist {PlayListId} for user {UserId}", playList.Id, request.UserId);
             return Result.Created(PlayListResponse.FromEntity(playList));
+        }
+
+        async Task TryRollbackOnPublishFailureAsync(PlayList playList, CancellationToken cancellationToken)
+        {
+            try
+            {
+                database.PlayLists.Remove(playList);
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to rollback playlist creation after publish failure for playlist {PlayListId}", playList.Id);
+            }
+
+            await RollbackAllPicturesAsync(playList, cancellationToken);
         }
 
         async Task<Result> UploadPictureAsync(PlayList playList, IFileData picture, CancellationToken cancellationToken)
@@ -121,6 +139,9 @@ namespace Musify.Application.PlayLists.Handlers
         async Task RollbackAllPicturesAsync(PlayList playList, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(playList.OriginalPictureName))
+                return;
+
+            if (playList.OriginalPictureName == playListConfiguration.Routes.PresetOriginalPicture)
                 return;
 
             var originalPicturePath = playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName);

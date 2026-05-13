@@ -1,6 +1,5 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using MimeMapping;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;

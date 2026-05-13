@@ -28,23 +28,71 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.Unauthorized();
             }
 
-            if (!string.IsNullOrWhiteSpace(playList.OriginalPictureName))
-                await PublishRemoveFileEventAsync(playList.Id,
-                        playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName), cancellationToken);
-            if (playList.SmallPictureName != playListConfiguration.Routes.PresetSmallPicture)
-                await PublishRemoveFileEventAsync(playList.Id,
-                    playListConfiguration.Routes.BuildSmallPicturePath(playList.SmallPictureName), cancellationToken);
-            if (playList.MediumPictureName != playListConfiguration.Routes.PresetMediumPicture)
-                await PublishRemoveFileEventAsync(playList.Id,
-                    playListConfiguration.Routes.BuildMediumPicturePath(playList.MediumPictureName), cancellationToken);
-            if (playList.LargePictureName != playListConfiguration.Routes.PresetLargePicture)
-                await PublishRemoveFileEventAsync(playList.Id,
-                    playListConfiguration.Routes.BuildLargePicturePath(playList.LargePictureName), cancellationToken);
+            var originalPictureName = playList.OriginalPictureName;
+            var smallPictureName = playList.SmallPictureName;
+            var mediumPictureName = playList.MediumPictureName;
+            var largePictureName = playList.LargePictureName;
 
-            database.PlayLists.Remove(playList);
-            await database.SaveChangesAsync(cancellationToken);
+            var originalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName);
+            var smallPictureKey = playListConfiguration.Routes.BuildSmallPicturePath(playList.SmallPictureName);
+            var mediumPictureKey = playListConfiguration.Routes.BuildMediumPicturePath(playList.MediumPictureName);
+            var largePictureKey = playListConfiguration.Routes.BuildLargePicturePath(playList.LargePictureName);
+
+            try
+            {
+                database.PlayLists.Remove(playList);
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to delete playlist {PlayListId}", request.PlayListId);
+                return Result.Error($"Failed to delete playlist {request.PlayListId}");
+            }
+
+            await PublishRemoveFileEventsBestEffortAsync(
+                playList.Id,
+                originalPictureName,
+                smallPictureName,
+                mediumPictureName,
+                largePictureName,
+                originalPictureKey,
+                smallPictureKey,
+                mediumPictureKey,
+                largePictureKey,
+                playListConfiguration.Routes,
+                cancellationToken);
 
             return Result.NoContent();
+        }
+
+        async Task PublishRemoveFileEventsBestEffortAsync(
+            Guid playListId,
+            string originalPictureName,
+            string smallPictureName,
+            string mediumPictureName,
+            string largePictureName,
+            string originalPictureKey,
+            string smallPictureKey,
+            string mediumPictureKey,
+            string largePictureKey,
+            PlayListRoutes playListRoutes,
+            CancellationToken cancellationToken)
+        {
+            if (originalPictureName != playListRoutes.PresetOriginalPicture)
+                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, originalPictureKey, cancellationToken);
+            if (smallPictureName != playListRoutes.PresetSmallPicture)
+                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, smallPictureKey, cancellationToken);
+            if (mediumPictureName != playListRoutes.PresetMediumPicture)
+                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, mediumPictureKey, cancellationToken);
+            if (largePictureName != playListRoutes.PresetLargePicture)
+                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, largePictureKey, cancellationToken);
+        }
+
+        async Task PublishRemoveFileEventIgnoringErrorsAsync(Guid playListId, string key, CancellationToken cancellationToken)
+        {
+            var result = await PublishRemoveFileEventAsync(playListId, key, cancellationToken);
+            if (!result.IsSuccess)
+                logger.LogWarning("Remove file event publish failed for playlist {PlayListId} with key {Key}", playListId, key);
         }
 
         async Task<Result> PublishRemoveFileEventAsync(Guid playListId, string key, CancellationToken cancellationToken)

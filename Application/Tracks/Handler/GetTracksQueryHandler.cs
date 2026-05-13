@@ -17,15 +17,16 @@ namespace Musify.Application.Tracks.Handler
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
 
-            var totalCount = await database.PlayLists.CountAsync(cancellationToken);
-            var pagedPlayLists = await database.UserHasTracks
+            var tracksQuery = database.UserHasTracks
                 .AsNoTracking()
                 .OrderBy(t => t.Id)
                 .Include(ut => ut.Track)
-                .Select(t => TrackResponse.FromEntity(t.Track))
-                .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
+                .Select(t => TrackResponse.FromEntity(t.Track));
 
-            return Result.Success(PaginatedResponse<TrackResponse>.FromPagedList(pagedPlayLists));
+            var totalCount = await tracksQuery.CountAsync(cancellationToken);
+            var pagedTracks = await tracksQuery.ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
+
+            return Result.Success(PaginatedResponse<TrackResponse>.FromPagedList(pagedTracks));
         }
     }
 }

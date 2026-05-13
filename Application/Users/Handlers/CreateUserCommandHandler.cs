@@ -21,8 +21,17 @@ namespace Musify.Application.Users.Handlers
             }
 
             var newUser = CreateUserCommand.ToEntity(request);
-            await database.Users.AddAsync(newUser, cancellationToken);
-            await database.SaveChangesAsync(cancellationToken);
+
+            try
+            {
+                await database.Users.AddAsync(newUser, cancellationToken);
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to create user {UserId}", request.Id);
+                return Result.Error($"Failed to create user {request.Id}");
+            }
 
             logger.LogInformation("Created user {UserId}", newUser.Id);
             return Result.Created(UserResponse.FromEntity(newUser));

@@ -16,15 +16,17 @@ namespace Musify.Application.Tracks.Handler
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-            var normalizedName = request.Name?.Trim().ToUpperInvariant() ?? string.Empty;
 
             var tracksQuery = database.UserHasTracks
                 .AsNoTracking()
                 .Include(ut => ut.Track)
                 .Where(p => p.UserId == request.UserId);
 
-            if (!string.IsNullOrWhiteSpace(normalizedName))
+            if (request.Name is not null)
+            {
+                var normalizedName = request.Name.Trim().ToUpperInvariant();
                 tracksQuery = tracksQuery.Where(t => t.Track.NormalizedTitle.Contains(normalizedName));
+            }
 
             var totalCount = await tracksQuery.CountAsync(cancellationToken);
 

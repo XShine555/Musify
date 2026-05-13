@@ -34,13 +34,35 @@ namespace Musify.Application.Tracks.Handler
             var fullPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(trackEntity.OriginalPictureName);
             var fullAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(trackEntity.OriginalAudioName);
 
-            await UploadFilesAsync(request, fullPictureKey, fullAudioKey, cancellationToken);
+            var uploadResult = await UploadFilesAsync(request, fullPictureKey, fullAudioKey, cancellationToken);
+            if (!uploadResult.IsSuccess)
+                return uploadResult;
 
-            await PublishUpdateEvent(trackEntity, cancellationToken);
-            await PublishTranscodeEvent(trackEntity, cancellationToken);
+            try
+            {
+                await database.Tracks.AddAsync(trackEntity, cancellationToken);
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to save track {Title} after uploading files", request.Title);
+                await RollbackFilesAsync(fullPictureKey, fullAudioKey, cancellationToken);
+                return Result.Error($"Failed to create track for {request.Title}");
+            }
 
-            await database.Tracks.AddAsync(trackEntity, cancellationToken);
-            await database.SaveChangesAsync(cancellationToken);
+            var publishPictureResult = await PublishUpdateEvent(trackEntity, cancellationToken);
+            if (!publishPictureResult.IsSuccess)
+            {
+                await RollbackTrackAfterPublishFailureAsync(trackEntity, fullPictureKey, fullAudioKey, cancellationToken);
+                return Result.Error($"Failed to create track for {request.Title}");
+            }
+
+            var publishTranscodeResult = await PublishTranscodeEvent(trackEntity, cancellationToken);
+            if (!publishTranscodeResult.IsSuccess)
+            {
+                await RollbackTrackAfterPublishFailureAsync(trackEntity, fullPictureKey, fullAudioKey, cancellationToken);
+                return Result.Error($"Failed to create track for {request.Title}");
+            }
 
             return Result.Created(TrackResponse.FromEntity(trackEntity));
         }
@@ -91,7 +113,7 @@ namespace Musify.Application.Tracks.Handler
             logger.LogInformation("Rolled back uploaded files {PictureKey}, {AudioKey}", pictureKey, audioKey);
         }
 
-        async Task PublishUpdateEvent(Track track, CancellationToken cancellationToken)
+        async Task<Result> PublishUpdateEvent(Track track, CancellationToken cancellationToken)
         {
             try
             {
@@ -111,14 +133,16 @@ namespace Musify.Application.Tracks.Handler
                         trackConfiguration.Routes.LargePicturesPath,
                         trackConfiguration.PicturesSizes.LargePictureWidth,
                         trackConfiguration.PicturesSizes.LargePictureHeight)), cancellationToken);
+                return Result.Success();
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish track picture update event for track {TrackId}", track.Id);
+                return Result.Error($"Failed to publish track picture update event for track {track.Id}");
             }
         }
 
-        async Task PublishTranscodeEvent(Track track, CancellationToken cancellationToken)
+        async Task<Result> PublishTranscodeEvent(Track track, CancellationToken cancellationToken)
         {
             var destinationFolderAudio = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
@@ -130,10 +154,38 @@ namespace Musify.Application.Tracks.Handler
                     trackConfiguration.Routes.BuildOriginalAudioPath(track.OriginalAudioName),
                     storageConfiguration.Bucket,
                     destinationFolderAudio), cancellationToken);
+                return Result.Success();
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish track audio update event for track {TrackId}", track.Id);
+                return Result.Error($"Failed to publish track audio update event for track {track.Id}");
+            }
+        }
+
+        async Task RollbackTrackAfterPublishFailureAsync(
+            Track track,
+            string pictureKey,
+            string audioKey,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                database.Tracks.Remove(track);
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to rollback track {TrackId} persistence after publish failure", track.Id);
+            }
+
+            try
+            {
+                await RollbackFilesAsync(pictureKey, audioKey, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to rollback uploaded files after publish failure for track {TrackId}", track.Id);
             }
         }
     }

@@ -6,7 +6,6 @@ using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Users.Queries;
 using Musify.Application.Users.Responses;
 using X.PagedList.EF;
-using X.PagedList.Extensions;
 
 namespace Musify.Application.Users.Handlers
 {
@@ -17,12 +16,12 @@ namespace Musify.Application.Users.Handlers
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-            var first = (pageNumber - 1) * pageSize;
 
             var user = database.Users
                 .AsNoTracking()
                 .AsQueryable();
-            if (!string.IsNullOrEmpty(request.UsernameSearch))
+
+            if (request.UsernameSearch is not null)
             {
                 var normalizedUsername = request.UsernameSearch.Trim().ToUpperInvariant();
                 user = user.Where(u => u.NormalizedName.Contains(normalizedUsername));

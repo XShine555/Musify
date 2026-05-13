@@ -16,14 +16,16 @@ namespace Musify.Application.PlayLists.Handlers
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-            var normalizedName = request.Name?.Trim().ToUpperInvariant() ?? string.Empty;
 
             var playListsQuery = database.PlayLists
                 .AsNoTracking()
                 .Where(p => p.UserId == request.UserId);
 
-            if (!string.IsNullOrWhiteSpace(normalizedName))
+            if (request.Name is not null)
+            {
+                var normalizedName = request.Name.Trim().ToUpperInvariant();
                 playListsQuery = playListsQuery.Where(p => p.NormalizedName.Contains(normalizedName));
+            }
 
             var totalCount = await playListsQuery.CountAsync(cancellationToken);
 

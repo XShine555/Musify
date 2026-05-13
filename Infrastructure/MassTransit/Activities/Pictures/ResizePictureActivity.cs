@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
-using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {
