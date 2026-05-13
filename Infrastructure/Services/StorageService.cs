@@ -180,5 +180,43 @@ namespace Musify.Infrastructure.Services
                 throw;
             }
         }
+
+        public async Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken)
+        {
+            var prefix = folderKey.EndsWith('/') ? folderKey : $"{folderKey}/";
+            var listRequest = new ListObjectsV2Request
+            {
+                BucketName = bucket,
+                Prefix = prefix
+            };
+
+            ListObjectsV2Response listResponse;
+            do
+            {
+                listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
+
+                if (listResponse.S3Objects.Count == 0)
+                    break;
+
+                var deleteRequest = new DeleteObjectsRequest
+                {
+                    BucketName = bucket,
+                    Objects = listResponse.S3Objects
+                        .Select(o => new KeyVersion { Key = o.Key } )
+                        .ToList()
+                };
+
+                var deleteResponse = await amazonS3.DeleteObjectsAsync(deleteRequest, cancellationToken);
+
+                if (deleteResponse.DeleteErrors.Count > 0)
+                {
+                    var errors = string.Join(", ", deleteResponse.DeleteErrors.Select(e => $"{e.Key}: {e.Message}"));
+                    throw new InvalidOperationException($"Failed to delete some objects in folder {folderKey}: {errors}");
+                }
+
+                listRequest.ContinuationToken = listResponse.NextContinuationToken;
+
+            } while (listResponse.IsTruncated.HasValue && listResponse.IsTruncated.Value);
+        }
     }
 }

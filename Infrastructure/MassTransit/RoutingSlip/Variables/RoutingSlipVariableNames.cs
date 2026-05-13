@@ -13,6 +13,7 @@ namespace Musify.Infrastructure.MassTransit
             internal const string SourceFilePath = "Audio.SourceFilePath";
             internal const string WorkingDirectory = "Audio.WorkingDirectory";
             internal const string TranscodedDirectory = "Audio.TranscodedDirectory";
+            internal const string PreviousAudioFolderName = "Audio.PreviousAudioFolderName";
         }
 
         internal static class Picture

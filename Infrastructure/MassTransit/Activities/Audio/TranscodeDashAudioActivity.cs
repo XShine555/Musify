@@ -1,4 +1,5 @@
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
@@ -7,54 +8,59 @@ using Musify.Infrastructure.MassTransit.Activities.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {
-    public class TranscodeDashAudioActivity(
+    internal class TranscodeDashAudioActivity(
+        IDatabase database,
         IAudioTranscoderService audioTranscoder,
-        ILogger<TranscodeDashAudioActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<TranscodeDashAudioActivity> logger)
         : IActivity<TranscodeDashAudioArguments, TranscodeDashAudioLog>
     {
         public const string ExecuteEndpointName = "transcode-dash-audio";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<TranscodeDashAudioArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(TranscodeDashAudioActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariable);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var workingDirectory = executeContext.GetVariable<string>(executeContext.Arguments.WorkingDirectoryVariable);
             ArgumentNullException.ThrowIfNull(workingDirectory, nameof(workingDirectory));
 
+            Track track;
             try
             {
-                await using (var fileStream = File.OpenRead(sourceFilePath))
-                {
-                    await audioTranscoder.TranscodeToDashAsync(
-                        fileStream,
-                        workingDirectory,
-                        executeContext.CancellationToken);
-                }
+                var getTrack = await database.Tracks.SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
+                track = getTrack ?? throw new InvalidOperationException($"Track with Id {executeContext.Arguments.TrackId} not found");
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to retrieve track with Id {TrackId} from database", executeContext.Arguments.TrackId);
+                throw;
+            }
+
+            try
+            {
+                await using var fileStream = File.OpenRead(sourceFilePath);
+                await audioTranscoder.TranscodeToDashAsync(
+                    fileStream,
+                    workingDirectory,
+                    executeContext.CancellationToken);
 
                 File.Delete(sourceFilePath);
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to transcode {SourceFilePath}",
-                    sourceFilePath);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
+                logger.LogError(exception, "Failed to transcode {SourceFilePath}", sourceFilePath);
+
+                try
+                {
+                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
+                    await database.SaveChangesAsync(executeContext.CancellationToken);
+                }
+                catch (Exception dbException)
+                {
+                    logger.LogError(dbException, "Failed to update ProcessingStatus to Failed for track {TrackId}",
+                        executeContext.Arguments.TrackId);
+                }
+
                 throw;
             }
         }

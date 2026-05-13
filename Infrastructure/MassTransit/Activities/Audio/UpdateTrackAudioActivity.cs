@@ -1,4 +1,5 @@
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
@@ -7,63 +8,76 @@ using Musify.Infrastructure.MassTransit.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
-    public class UpdateTrackAudioActivity(
+    internal class UpdateTrackAudioActivity(
         IDatabase database,
-        ILogger<TranscodeDashAudioActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<UpdateTrackAudioActivity> logger)
         : IActivity<UpdateTrackAudioArguments, UpdateTrackAudioLog>
     {
         public const string ExecuteEndpointName = "update-track-audio";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackAudioArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
+            Track track;
+            try
+            {
+                var getTrack = await database.Tracks.SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
+                track = getTrack ?? throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to retrieve track {TrackId}",
+                    executeContext.Arguments.TrackId);
+                throw;
+            }
 
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(UpdateTrackAudioActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
+            string? audioFolderKey;
+            try
+            {
+                audioFolderKey = executeContext.GetVariable<string>(executeContext.Arguments.AudioFolderKeyVariable);
+                logger.LogDebug("Resolved audio folder key: {AudioFolderKey}", audioFolderKey);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Audio folder key variable could not be resolved for track {TrackId}", track.Id);
+                return executeContext.Completed();
+            }
+
+            if (string.IsNullOrWhiteSpace(audioFolderKey))
+            {
+                logger.LogWarning("Audio folder key is empty for track {TrackId}; skipping update", track.Id);
+                return executeContext.Completed();
+            }
 
             try
             {
-                var track = await database.Tracks.FindAsync(
-                    [executeContext.Arguments.TrackId],
-                    cancellationToken: executeContext.CancellationToken);
-
-                if (track is null)
-                {
-                    logger.LogWarning("Track {TrackId} not found",
-                        executeContext.Arguments.TrackId);
-                    throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
-                }
-
                 var log = new UpdateTrackAudioLog(
                     track.Id,
                     track.AudioFolderName);
 
-                track.AudioFolderName = Path.GetFileName(executeContext.Arguments.AudioFolderKey);
-
-                database.Tracks.Update(track);
+                track.AudioFolderName = Path.GetFileName(audioFolderKey);
+                track.AudioTranscodeProcessingStatus = ProcessingStatus.Completed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                logger.LogInformation("Updated track {TrackId} audio",
-                    executeContext.Arguments.TrackId);
+                logger.LogInformation("Updated track {TrackId} audio", executeContext.Arguments.TrackId);
 
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
-                return executeContext.Completed();
+                return executeContext.Completed(log);
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to update track {TrackId} audio",
                     executeContext.Arguments.TrackId);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
+
+                try
+                {
+                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
+                    await database.SaveChangesAsync(executeContext.CancellationToken);
+                }
+                catch (Exception dbException)
+                {
+                    logger.LogError(dbException, "Failed to update ProcessingStatus to Failed for track {TrackId}",
+                        executeContext.Arguments.TrackId);
+                }
+
                 throw;
             }
         }
@@ -72,25 +86,22 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
         {
             try
             {
-                var track = await database.Tracks.FindAsync(
-                    [compensateContext.Log.TrackId],
-                    cancellationToken: compensateContext.CancellationToken);
-
+                var track = await database.Tracks.SingleOrDefaultAsync(t => t.Id == compensateContext.Log.TrackId, compensateContext.CancellationToken);
                 if (track is null)
-                {
-                    return compensateContext.Compensated();
-                }
+                    throw new InvalidOperationException($"Track with id {compensateContext.Log.TrackId} not found");
 
-                track.AudioFolderName = compensateContext.Log.PreviousFolderAudioKey;
-
-                database.Tracks.Update(track);
+                track.AudioFolderName = compensateContext.Log.PreviousAudioFolderName;
+                track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
+
+                logger.LogInformation("Compensated track {TrackId} audio", compensateContext.Log.TrackId);
 
                 return compensateContext.Compensated();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to compensate track {TrackId} audio", compensateContext.Log.TrackId);
+                logger.LogError(exception, "Failed to compensate track {TrackId} audio",
+                    compensateContext.Log.TrackId);
                 return compensateContext.Failed(exception);
             }
         }

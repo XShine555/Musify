@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Musify.Domain.Entities
 {
@@ -20,24 +22,32 @@ namespace Musify.Domain.Entities
         [MaxLength(64)]
         public required string OriginalPictureName { get; set; }
 
-        [Required]
         [MaxLength(64)]
-        public required string SmallPictureName { get; set; }
+        public string? SmallPictureName { get; set; }
 
-        [Required]
         [MaxLength(64)]
-        public required string MediumPictureName { get; set; }
+        public string? MediumPictureName { get; set; }
 
-        [Required]
         [MaxLength(64)]
-        public required string LargePictureName { get; set; }
+        public string? LargePictureName { get; set; }
 
         [Required]
         [MaxLength(64)]
         public required string OriginalAudioName { get; set; }
 
         [MaxLength(64)]
-        public string AudioFolderName { get; set; } = string.Empty;
+        public string? AudioFolderName { get; set; }
+
+        [Required]
+        public ProcessingStatus PicturesProcessingStatus { get; set; } = ProcessingStatus.Pending;
+
+        [Required]
+        public ProcessingStatus AudioTranscodeProcessingStatus { get; set; } = ProcessingStatus.Pending;
+
+        [Required]
+        public int RetryCount { get; set; } = 0;
+
+        public DateTime? LastRetryAt { get; set; }
 
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
@@ -48,5 +58,15 @@ namespace Musify.Domain.Entities
         public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
         public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
+
+        [NotMapped]
+        [MemberNotNullWhen(true, nameof(SmallPictureName)) ]
+        [MemberNotNullWhen(true, nameof(MediumPictureName)) ]
+        [MemberNotNullWhen(true, nameof(LargePictureName)) ]
+        public bool IsPicturesProcessed => PicturesProcessingStatus == ProcessingStatus.Completed;
+
+        [NotMapped]
+        [MemberNotNullWhen(true, nameof(AudioFolderName)) ]
+        public bool IsAudioProcessed => AudioTranscodeProcessingStatus == ProcessingStatus.Completed;
     }
 }

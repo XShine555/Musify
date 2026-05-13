@@ -3,6 +3,7 @@ using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Activities.Audio;
+using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.MassTransit.Activities;
@@ -25,6 +26,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 ActivityNames.GenerateAudioWorkflowPaths,
                 EndpointHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
                 new GenerateAudioWorkflowPathsArguments(
+                    message.TrackId,
                     workerConfiguration.Routes.TemporaryFilesDirectory,
                     message.SourceKey));
 
@@ -40,6 +42,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 ActivityNames.TranscodeAudio,
                 EndpointHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
                 new TranscodeDashAudioArguments(
+                    message.TrackId,
                     RoutingSlipVariableNames.Audio.SourceFilePath,
                     RoutingSlipVariableNames.Workflow.TemporalDirectory));
 
@@ -56,7 +59,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
                 new UpdateTrackAudioArguments(
                     message.TrackId,
-                    message.DestinationFolderKey));
+                   RoutingSlipVariableNames.Audio.TranscodedDirectory));
 
             return routingSlipBuilder;
         }

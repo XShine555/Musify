@@ -14,6 +14,7 @@ using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.MassTransit.Filters;
 using Musify.Infrastructure.MassTransit.Logs;
 using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
+using Musify.Infrastructure.MassTransit.Activities.Tracks;
 
 namespace Musify.Infrastructure.MassTransit
 {
@@ -61,19 +62,20 @@ namespace Musify.Infrastructure.MassTransit
 
             serviceDescriptors.AddScoped<AudioWorkflowRoutingSlipBuilder>();
             serviceDescriptors.AddScoped<PictureWorkflowRoutingSlipBuilder>();
-            serviceDescriptors.AddScoped<RemoveFileFromBucketRoutingSlipBuilder>();
+            serviceDescriptors.AddScoped<DeleteTrackRoutingSlipBuilder>();
 
             serviceDescriptors.AddMassTransit(options =>
             {
                 options.AddConsumer<UpdatePlayListPictureConsumer>();
-                options.AddConsumer<RemoveFileConsumer>();
                 options.AddConsumer<UpdateTrackPictureConsumer>();
                 options.AddConsumer<RoutingSlipCleanUpConsumer>();
                 options.AddConsumer<UpdateTrackAudioConsumer>();
+                options.AddConsumer<DeleteTrackConsumer>();
 
                 options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
                 options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
                 options.AddExecuteActivity<GeneratePictureWorkflowPathsActivity, GeneratePictureWorkflowPathsArguments>();
+                options.AddExecuteActivity<DeleteTrackActivity, DeleteTrackArguments>();
 
                 options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
                 options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();
@@ -95,14 +97,14 @@ namespace Musify.Infrastructure.MassTransit
                     busFactoryConfigurator.ReceiveEndpoint(UpdatePlayListPictureConsumer.QueueName, endpointConfigurator =>
                         endpointConfigurator.ConfigureConsumer<UpdatePlayListPictureConsumer>(busRegistrationContext));
 
-                    busFactoryConfigurator.ReceiveEndpoint(RemoveFileConsumer.QueueName, endpointConfigurator =>
-                        endpointConfigurator.ConfigureConsumer<RemoveFileConsumer>(busRegistrationContext));
-
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackAudioConsumer.QueueName, endpointConfigurator =>
                         endpointConfigurator.ConfigureConsumer<UpdateTrackAudioConsumer>(busRegistrationContext));
 
                     busFactoryConfigurator.ReceiveEndpoint(UpdateTrackPictureConsumer.QueueName, endpointConfigurator =>
                         endpointConfigurator.ConfigureConsumer<UpdateTrackPictureConsumer>(busRegistrationContext));
+
+                    busFactoryConfigurator.ReceiveEndpoint(DeleteTrackConsumer.QueueName, endpointConfigurator =>
+                        endpointConfigurator.ConfigureConsumer<DeleteTrackConsumer>(busRegistrationContext));
 
                     busFactoryConfigurator.ReceiveEndpoint(RoutingSlipCleanUpConsumer.QueueName, endpointConfigurator =>
                         endpointConfigurator.ConfigureConsumer<RoutingSlipCleanUpConsumer>(busRegistrationContext));

@@ -9,28 +9,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
 {
     public class UpdateTrackPictureActivity(
         IDatabase database,
-        ILogger<UpdateTrackPictureActivity> logger,
-        IProcessTrackingStore processTrackingStore)
+        ILogger<UpdateTrackPictureActivity> logger)
         : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>
     {
         public const string ExecuteEndpointName = "update-track-picture";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackPictureArguments> executeContext)
         {
-            var processId = await processTrackingStore.GetOrCreateProcessAsync(
-                "RoutingSlip",
-                executeContext.CorrelationId ?? executeContext.TrackingNumber,
-                executeContext.ConversationId,
-                executeContext.MessageId,
-                executeContext.CancellationToken);
-
-            var stepId = await processTrackingStore.StartStepAsync(
-                processId,
-                nameof(UpdateTrackPictureActivity),
-                ProcessStepComponentType.Activity,
-                0,
-                executeContext.CancellationToken);
-
             var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariable);
             ArgumentNullException.ThrowIfNull(smallResizedVariable, nameof(smallResizedVariable));
             var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariable);
@@ -69,14 +54,12 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 logger.LogInformation("Updated track {TrackId} pictures",
                     executeContext.Arguments.TrackId);
 
-                await processTrackingStore.CompleteStepAsync(processId, stepId, executeContext.CancellationToken);
                 return executeContext.Completed();
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to update track {TrackId} pictures",
                     executeContext.Arguments.TrackId);
-                await processTrackingStore.FailStepAsync(processId, stepId, exception.Message, executeContext.CancellationToken);
                 throw;
             }
         }

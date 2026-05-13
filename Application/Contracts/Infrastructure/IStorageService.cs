@@ -16,5 +16,7 @@
 
         Task CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey,
             CancellationToken cancellationToken);
+
+        Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken);
     }
 }

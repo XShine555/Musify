@@ -2,15 +2,17 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Configuration;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Tracks.Commands;
 using Musify.Domain.Entities;
+using Musify.Application.Events;
 
 namespace Musify.Application.Tracks.Handler
 {
-    public class DeleteTrackCommandHandler(IDatabase database, IStorageService storageHandler, ILogger<DeleteTrackCommandHandler> logger,
-        TrackConfiguration trackConfiguration, ApplicationStorageConfiguration storageConfiguration)
+    public class DeleteTrackCommandHandler(
+        IDatabase database,
+        IEventBus eventBus,
+        ILogger<DeleteTrackCommandHandler> logger)
         : ICommandHandler<DeleteTrackCommand, Result>
     {
         public async ValueTask<Result> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
@@ -28,48 +30,22 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Unauthorized();
             }
 
-            await RemovePictures(track, cancellationToken);
-            await RemoveAudios(track, cancellationToken);
+            if (track.AudioTranscodeProcessingStatus == ProcessingStatus.Processing
+                || track.AudioTranscodeProcessingStatus == ProcessingStatus.Pending)
+            {
+                logger.LogWarning("Track {TrackId} is currently being processed and cannot be deleted", request.TrackId);
+                return Result.Conflict("Track is currently being processed and cannot be deleted");
+            }
+
+            track.PicturesProcessingStatus = ProcessingStatus.Processing;
+            track.AudioTranscodeProcessingStatus = ProcessingStatus.Processing;
+            await database.SaveChangesAsync(cancellationToken);
+
+            await eventBus.PublishAsync(
+                new DeleteTrackEvent(track.Id, request.UserId),
+                cancellationToken);
 
             return Result.NoContent();
-        }
-
-        async Task RemovePictures(Track track, CancellationToken cancellationToken)
-        {
-            await RemoveFile(trackConfiguration.Routes.BuildOriginalPicturePath(track.OriginalPictureName),
-                cancellationToken);
-
-            if (track.SmallPictureName != trackConfiguration.Routes.PresetSmallPicture)
-                await RemoveFile(trackConfiguration.Routes.BuildSmallPicturePath(track.SmallPictureName),
-                    cancellationToken);
-            if (track.MediumPictureName != trackConfiguration.Routes.PresetMediumPicture)
-                await RemoveFile(trackConfiguration.Routes.BuildMediumPicturePath(track.MediumPictureName),
-                    cancellationToken);
-            if (track.LargePictureName != trackConfiguration.Routes.PresetLargePicture)
-                await RemoveFile(trackConfiguration.Routes.BuildLargePicturePath(track.LargePictureName),
-                    cancellationToken);
-
-        }
-
-        async Task RemoveAudios(Track track, CancellationToken cancellationToken)
-        {
-            await RemoveFile(trackConfiguration.Routes.BuildOriginalAudioPath(track.OriginalAudioName),
-                cancellationToken);
-            await RemoveFile(trackConfiguration.Routes.BuildProcessedAudioPath(track.AudioFolderName),
-                cancellationToken);
-        }
-
-        async Task RemoveFile(string path, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await storageHandler.RemoveFileAsync(storageConfiguration.Bucket, path, cancellationToken);
-                logger.LogDebug("Removed file {Path} from storage", path);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to remove file {Path} from storage", path);
-            }
         }
     }
 }

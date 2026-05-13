@@ -5,9 +5,9 @@ using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
-    public class DownloadFileFromBucketActivity(
+    internal class DownloadFileFromBucketActivity(
         IStorageService storageHandler,
         ILogger<DownloadFileFromBucketActivity> logger,
         IProcessTrackingStore processTrackingStore)

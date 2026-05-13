@@ -1,15 +1,13 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
-using Musify.Application.Events;
+using Musify.Infrastructure.MassTransit.Activities.Tracks;
 using Musify.Infrastructure.MassTransit.Consumers;
-using Musify.Infrastructure.MassTransit.Activities;
-using Musify.Infrastructure.MassTransit.Activities.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
-    public class RemoveFileFromBucketRoutingSlipBuilder
+    public class DeleteTrackRoutingSlipBuilder
     {
-        public RoutingSlipBuilder Build(RemoveFileEvent message, Guid? correlationId)
+        public RoutingSlipBuilder Build(Guid trackId, Guid userId, Guid? correlationId)
         {
             var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
@@ -19,11 +17,9 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
             routingSlipBuilder.AddActivity(
-                ActivityNames.RemoveFile,
-                EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                new RemoveFileFromBucketArguments(
-                    message.Bucket,
-                    message.Key));
+                ActivityNames.DeleteTrack,
+                EndpointHelper.BuildExecuteActivityUri(DeleteTrackActivity.ExecuteEndpointName),
+                new DeleteTrackArguments(trackId, userId));
 
             return routingSlipBuilder;
         }
