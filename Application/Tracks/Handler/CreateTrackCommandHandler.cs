@@ -7,6 +7,7 @@ using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
+using Musify.Application.UploadIntents;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
@@ -14,9 +15,11 @@ namespace Musify.Application.Tracks.Handler
     public class CreateTrackCommandHandler(
         IDatabase database,
         IEventBus eventBus,
+        IStorageService storageService,
         ILogger<CreateTrackCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
-        TrackConfiguration trackConfiguration)
+        TrackConfiguration trackConfiguration,
+        UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<CreateTrackCommand, Result<TrackApplicationResponse>>
     {
         public async ValueTask<Result<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
@@ -29,12 +32,41 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
+            var pictureValidation = await UploadIntentHelpers.ValidateAndLoadAsync(
+                database, storageService, uploadIntentConfiguration,
+                request.PictureIntentId, request.UserId, cancellationToken);
+            if (!pictureValidation.IsSuccess)
+                return pictureValidation.Error!.Value;
+
+            var audioValidation = await UploadIntentHelpers.ValidateAndLoadAsync(
+                database, storageService, uploadIntentConfiguration,
+                request.AudioIntentId, request.UserId, cancellationToken);
+            if (!audioValidation.IsSuccess)
+                return audioValidation.Error!.Value;
+
+            var pictureIntent = pictureValidation.Intent!;
+            var audioIntent = audioValidation.Intent!;
+
+            var finalPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
+            var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
+
+            try
+            {
+                await storageService.CopyFileAsync(pictureIntent.Bucket, pictureIntent.Key, pictureIntent.Bucket, finalPictureKey, cancellationToken);
+                await storageService.CopyFileAsync(audioIntent.Bucket, audioIntent.Key, audioIntent.Bucket, finalAudioKey, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to copy track files from temp to final location for user {UserId}", request.UserId);
+                return Result.Error("Failed to move uploaded files to their final locations.");
+            }
+
             var trackEntity = new Track
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.ToUpperInvariant(),
-                OriginalPictureName = request.OriginalPictureName,
-                OriginalAudioName = request.OriginalAudioName,
+                OriginalPictureName = pictureIntent.ObjectName,
+                OriginalAudioName = audioIntent.ObjectName,
                 SmallPictureName = trackConfiguration.Routes.PresetSmallPicture,
                 MediumPictureName = trackConfiguration.Routes.PresetMediumPicture,
                 LargePictureName = trackConfiguration.Routes.PresetLargePicture,
@@ -43,6 +75,9 @@ namespace Musify.Application.Tracks.Handler
             };
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
+
+            pictureIntent.Status = UploadIntentStatus.Consumed;
+            audioIntent.Status = UploadIntentStatus.Consumed;
 
             var publishPictureResult = await PublishUpdateEvent(request.UserId, trackEntity, cancellationToken);
             if (!publishPictureResult.IsSuccess)
@@ -114,6 +149,5 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Error($"Failed to publish track audio update event for track {track.Id}");
             }
         }
-
     }
 }

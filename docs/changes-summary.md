@@ -159,7 +159,7 @@ Archivo:
 
 ---
 
-## 10) Estado final
+## 10) Estado final (iteración anterior)
 
 - `dotnet build MusifyBackend.slnx -c Release` ✅
 
@@ -192,3 +192,142 @@ Archivos clave:
 - `Infrastructure/MassTransit/Activities/Files/RemoveFileFromBucketActivity.cs`
 - `Infrastructure/MassTransit/DependencyInjection/MassTransitDependencyInjection.Registration.cs`
 - `Infrastructure/Persistence/Migrations/20260514161518_AddLifeCycleStatus.cs`
+
+---
+
+## 12) Hardening de pre-signed uploads (Fases 1 y 2)
+
+**Objetivo**: evitar abuso de coste/almacenamiento cuando usuarios hacen spam de endpoints presigned sin crear la entidad final (objetos huérfanos en S3).
+
+Referencia: `docs/presigned-upload-hardening.md`
+
+---
+
+### Fase 1 — Upload Intents en DB
+
+#### Nuevas entidades (Domain)
+- `Domain/Entities/UploadIntent.cs` — tabla `UploadIntents` con campos: `Id`, `UserId`, `Bucket`, `Key`, `ObjectName`, `ContentType`, `ExpectedSizeBytes`, `Purpose`, `Status`, `ExpiresAt`, `CreatedAt`.
+- `Domain/Entities/UploadIntentStatus.cs` — enum: `Issued`, `Consumed`, `Expired`.
+- `Domain/Entities/UploadIntentPurpose.cs` — enum: `PlayListPicture`, `TrackPicture`, `TrackAudio`.
+
+#### Nueva configuración (Application)
+- `Application/Configuration/UploadIntentConfiguration.cs` — sección `UploadIntent`:
+  - `UploadUrlExpiresInSeconds` (default: 120)
+  - `MaxActiveUploadIntentsPerUser` (default: 5)
+  - `MaxActiveUploadBytesPerUser` (default: 200 MB)
+  - `MaxUploadBytes` (default: 100 MB, para validación HEAD)
+  - `DefaultExpectedPictureSizeBytes` / `DefaultExpectedAudioSizeBytes` (fallback cuando el caller no envía tamaño)
+  - `ExpirationJobIntervalSeconds` / `ExpiredIntentsRetentionDays`
+  - `TempRootPrefix` / `TempUploadsRetentionDays` / `TempCleanupJobIntervalSeconds` (Fase 2)
+
+#### Interfaces actualizadas
+- `Application/Abstractions/Infrastructure/IDatabase.cs` — añadido `DbSet<UploadIntent> UploadIntents`.
+- `Application/Abstractions/Infrastructure/IStorageService.cs` — añadidos:
+  - `HeadObjectAsync(bucket, key)` → `ObjectMetadata?` (para validación antes de consumir).
+  - `ListObjectsAsync(bucket, prefix)` → `IAsyncEnumerable<(string Key, DateTime LastModifiedUtc)>` (para el cleanup job).
+- `Application/Abstractions/Infrastructure/ObjectMetadata.cs` — record `(ContentType, ContentLength)`.
+
+#### Infrastructure actualizada
+- `Infrastructure/Persistence/Database.cs` — añadido `DbSet<UploadIntent>`.
+- `Infrastructure/Services/StorageService.cs` — implementaciones de `HeadObjectAsync` y `ListObjectsAsync`.
+
+#### Commands actualizados (cambio de contrato)
+- `RequestPlayListPictureUploadCommand` — nuevo campo opcional `ExpectedSizeBytes?`.
+- `RequestTrackUploadUrlsCommand` — nuevos campos opcionales `ExpectedPictureSizeBytes?`, `ExpectedAudioSizeBytes?`.
+- `CreatePlayListCommand` — `OriginalPictureName?` → `PictureIntentId?` (Guid).
+- `CreateTrackCommand` — `OriginalPictureName` + `OriginalAudioName` → `PictureIntentId` + `AudioIntentId` (Guid).
+- `UpdatePlayListCommand` — `NewOriginalPictureName?` → `NewPictureIntentId?` (Guid).
+
+#### Responses actualizadas
+- `PlayListPictureUploadResponse` — añadido `IntentId` (Guid).
+- `TrackUploadUrlsResponse` — añadidos `PictureIntentId` + `AudioIntentId` (Guid).
+
+#### Handlers actualizados
+
+**Request upload** (`RequestPlayListPictureUploadCommandHandler`, `RequestTrackUploadUrlsCommandHandler`):
+- Comprueban cuota de usuario (conteo de intents activos + suma de bytes) antes de generar la URL.
+- Crean un registro `UploadIntent` (Status = `Issued`) en la misma llamada.
+- TTL reducido a `UploadUrlExpiresInSeconds` (configurable, default 120 s vs. los anteriores 600 s hardcodeados).
+
+**Create/Update** (`CreatePlayListCommandHandler`, `CreateTrackCommandHandler`, `UpdatePlayListCommandHandler`):
+- Reciben `IntentId` en lugar del nombre de fichero.
+- Validan el intent: existe, pertenece al usuario, Status = `Issued`, no caducado.
+- Realizan `HEAD` del objeto en S3: debe existir y tamaño ≤ `MaxUploadBytes`.
+- Marcan el intent como `Consumed` y guardan todo en el mismo `SaveChangesAsync`.
+
+#### Job de expiración
+- `Infrastructure/Jobs/UploadIntentExpirationJob.cs` — `BackgroundService` que:
+  - Marca como `Expired` los intents `Issued` con `ExpiresAt < now`.
+  - Elimina intents `Expired` cuya fecha de expiración supera la ventana de retención configurable.
+
+#### Migración
+- `Infrastructure/Persistence/Migrations/*_AddUploadIntentTable.cs`
+
+---
+
+### Fase 2 — Prefijo temporal + cleanup de S3
+
+#### Rutas temporales
+- `TrackRoutes.BuildTempPicturePath` / `BuildTempAudioPath` — construyen `{TempRootPrefix}/{userId}/{ParentFolder}/{objectName}`.
+- `PlayListRoutes.BuildTempPicturePath` — ídem para playlists.
+
+#### Handlers de request upload
+- La presigned URL ahora apunta a `temp/{userId}/...` (prefijo temporal) en lugar de la ruta final.
+- El intent almacena la temp key.
+
+#### Handlers de create/update (consume)
+- Al consumir un intent, se llama `CopyFileAsync(tempKey → finalKey)` antes de publicar el evento de procesado.
+- El objeto temporal queda en S3 y es eliminado posteriormente por el cleanup job.
+
+#### Job de cleanup de temporales
+- `Infrastructure/Jobs/TempUploadsCleanupJob.cs` — `BackgroundService` que:
+  - Lista objetos bajo `TempRootPrefix/` usando `ListObjectsAsync`.
+  - Borra los que superan `TempUploadsRetentionDays` (default 3 días).
+  - Tolerante a errores por objeto (continúa si un borrado falla).
+
+#### DI
+- `Infrastructure/Services/ServicesDependencyInjection.AddUploadIntentJobs()` — registra `UploadIntentConfiguration` + ambos background jobs.
+
+---
+
+## 13) Refactor: IntentValidationResult (eliminar tuplas)
+
+**Objetivo**: evitar retornar tuplas `(Result?, UploadIntent?)` desde métodos privados — patrón no idiomático en C#.
+
+### Cambios
+- Creado `Application/UploadIntents/IntentValidationResult.cs` — `internal sealed record` con:
+  - `Result? Error` / `UploadIntent? Intent`
+  - `bool IsSuccess`
+  - Factory methods `Ok(intent)` / `Fail(error)`
+- Los tres handlers (`CreatePlayListCommandHandler`, `CreateTrackCommandHandler`, `UpdatePlayListCommandHandler`) ahora usan `IntentValidationResult` en `ValidateAndLoadIntentAsync`.
+- El tipo es `internal` (no `private`) porque es compartido entre 3 handlers de distintas carpetas.
+
+---
+
+## 14) Fix: race condition en cuota de intents
+
+**Objetivo**: garantizar que el check de cuota + insert del intent sean atómicos y no admitan concurrent bypass.
+
+### Cambios
+- Añadida `IDatabaseTransaction` en `Application/Abstractions/Infrastructure/IDatabaseTransaction.cs` — interfaz limpia (`CommitAsync`, `DisposeAsync`) que no expone tipos EF.
+- Añadido `BeginTransactionAsync(IsolationLevel, CancellationToken)` a `IDatabase`.
+- Implementado en `Infrastructure/Persistence/Database.cs` con un `private sealed class DatabaseTransaction` que envuelve `IDbContextTransaction` de EF.
+- `RequestPlayListPictureUploadCommandHandler` y `RequestTrackUploadUrlsCommandHandler`: el bloque quota check + insert ahora se ejecuta dentro de una transacción `SERIALIZABLE`, eliminando la ventana de race condition entre el check y el commit.
+
+---
+
+## 15) Fix: separación AddUploadIntentConfiguration / AddUploadIntentJobs
+
+**Objetivo**: `UploadIntentConfiguration` es necesaria tanto en el host del API (para los handlers) como en el worker (para los jobs). El método anterior mezclaba config + jobs en uno solo, haciendo imposible registrar la config sin registrar los `BackgroundService`.
+
+### Cambios
+- `AddUploadIntentConfiguration(services, configuration)` — registra solo la config. Lo llama el host del API **y** el worker.
+- `AddUploadIntentJobs(services, configuration)` — llama internamente a `AddUploadIntentConfiguration` y además registra `UploadIntentExpirationJob` + `TempUploadsCleanupJob`. Solo lo llama el worker.
+
+Archivo: `Infrastructure/Services/ServicesDependencyInjection.cs`
+
+---
+
+## 16) Estado final
+
+- `dotnet build` ✅ — 0 errores, 0 advertencias.

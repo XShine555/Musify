@@ -6,6 +6,8 @@ using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
+using Musify.Application.UploadIntents;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
 {
@@ -14,11 +16,11 @@ namespace Musify.Application.PlayLists.Handlers
         IStorageService storageService,
         ILogger<RequestPlayListPictureUploadCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
-        PlayListConfiguration playListConfiguration)
+        PlayListConfiguration playListConfiguration,
+        UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<RequestPlayListPictureUploadCommand, Result<PlayListPictureUploadResponse>>
     {
         static readonly string[] AllowedExtensions = [".webp", ".png", ".jpg", ".jpeg"];
-        const int ExpiresInSeconds = 600;
 
         public async ValueTask<Result<PlayListPictureUploadResponse>> Handle(RequestPlayListPictureUploadCommand request, CancellationToken cancellationToken)
         {
@@ -31,31 +33,61 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var extensionResult = ValidateExtension(request.FileType);
+            var extensionResult = UploadIntentHelpers.ValidateExtension(request.FileType, AllowedExtensions);
             if (!extensionResult.IsSuccess)
                 return Result.Invalid(extensionResult.Errors.Select(error => new ValidationError(error)).ToArray());
 
-            if (string.IsNullOrWhiteSpace(request.ContentType))
-                return Result.Invalid(new ValidationError("ContentType is required"));
+            var effectiveSizeBytes = request.ExpectedSizeBytes
+                ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
 
-            var pictureName = Guid.NewGuid() + extensionResult.Value;
-            var key = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureName);
+            var objectName = Guid.NewGuid() + extensionResult.Value;
+
+            var tempKey = playListConfiguration.Routes.BuildTempPicturePath(
+                uploadIntentConfiguration.TempRootPrefix, request.UserId, objectName);
 
             try
             {
                 var uploadUrl = await storageService.GetUploadUrlAsync(
                     storageConfiguration.Bucket,
-                    key,
+                    tempKey,
                     request.ContentType,
-                    TimeSpan.FromSeconds(ExpiresInSeconds),
+                    TimeSpan.FromSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds),
                     cancellationToken);
 
+                await using var transaction = await database.BeginTransactionAsync(
+                    System.Data.IsolationLevel.Serializable, cancellationToken);
+
+                var quotaCheck = await UploadIntentHelpers.CheckQuotaAsync(
+                    database, uploadIntentConfiguration, logger,
+                    request.UserId, effectiveSizeBytes, 1, cancellationToken);
+                if (!quotaCheck.IsSuccess)
+                    return quotaCheck;
+
+                var intent = new UploadIntent
+                {
+                    UserId = request.UserId,
+                    Bucket = storageConfiguration.Bucket,
+                    Key = tempKey,
+                    ObjectName = objectName,
+                    ContentType = request.ContentType,
+                    ExpectedSizeBytes = effectiveSizeBytes,
+                    Purpose = UploadIntentPurpose.PlayListPicture,
+                    ExpiresAt = DateTime.UtcNow.AddSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds),
+                };
+
+                await database.UploadIntents.AddAsync(intent, cancellationToken);
+                await database.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                logger.LogInformation("Issued upload intent {IntentId} for user {UserId} (PlayListPicture, temp key: {Key})", intent.Id, request.UserId, tempKey);
+
                 return Result.Success(new PlayListPictureUploadResponse(
+                    intent.Id,
                     storageConfiguration.Bucket,
-                    key,
-                    pictureName,
+                    tempKey,
+                    objectName,
                     request.ContentType,
-                    ExpiresInSeconds,
+                    uploadIntentConfiguration.UploadUrlExpiresInSeconds,
                     uploadUrl));
             }
             catch (Exception exception)
@@ -63,26 +95,6 @@ namespace Musify.Application.PlayLists.Handlers
                 logger.LogError(exception, "Failed to generate playlist picture upload URL for user {UserId}", request.UserId);
                 return Result.Error("Failed to generate upload URL");
             }
-        }
-
-        static Result<string> ValidateExtension(string fileType)
-        {
-            if (string.IsNullOrWhiteSpace(fileType))
-                return Result.Error("FileType is required");
-
-            var extension = fileType.Trim();
-            if (!extension.StartsWith('.'))
-                extension = "." + extension;
-
-            extension = extension.ToLowerInvariant();
-
-            if (extension.Contains('/') || extension.Contains('\\'))
-                return Result.Error("Invalid FileType");
-
-            if (!AllowedExtensions.Contains(extension))
-                return Result.Error($"Unsupported FileType '{extension}'");
-
-            return Result.Success(extension);
         }
     }
 }

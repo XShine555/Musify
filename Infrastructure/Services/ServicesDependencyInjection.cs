@@ -3,7 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.Jobs;
 
 namespace Musify.Infrastructure.Services
 {
@@ -38,6 +40,31 @@ namespace Musify.Infrastructure.Services
         public static IServiceCollection AddPictureService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddScoped<IPictureService, PictureService>();
+            return serviceDescriptors;
+        }
+
+        // Called by both the web API host and the worker
+        public static IServiceCollection AddUploadIntentConfiguration(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors
+                .AddOptionsWithValidateOnStart<UploadIntentConfiguration>()
+                .Bind(configuration.GetRequiredSection(UploadIntentConfiguration.SectionName))
+                .ValidateDataAnnotations();
+
+            serviceDescriptors.AddSingleton(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<UploadIntentConfiguration>>().Value);
+
+            return serviceDescriptors;
+        }
+
+        // Called only by the worker host (registers background jobs)
+        public static IServiceCollection AddUploadIntentJobs(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors.AddUploadIntentConfiguration(configuration);
+
+            serviceDescriptors.AddHostedService<UploadIntentExpirationJob>();
+            serviceDescriptors.AddHostedService<TempUploadsCleanupJob>();
+
             return serviceDescriptors;
         }
 

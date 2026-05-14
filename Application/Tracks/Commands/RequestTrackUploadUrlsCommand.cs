@@ -9,6 +9,8 @@ namespace Musify.Application.Tracks.Commands
         string PictureFileType,
         string PictureContentType,
         string AudioFileType,
-        string AudioContentType)
+        string AudioContentType,
+        long? ExpectedPictureSizeBytes = null,
+        long? ExpectedAudioSizeBytes = null)
         : ICommand<Result<TrackUploadUrlsResponse>>;
 }

@@ -17,6 +17,10 @@ namespace Musify.Application.Abstractions.Infrastructure
 
         DbSet<Upload> Uploads { get; }
 
+        DbSet<UploadIntent> UploadIntents { get; }
+
+        Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

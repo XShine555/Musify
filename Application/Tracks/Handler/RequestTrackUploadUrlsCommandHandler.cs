@@ -6,6 +6,8 @@ using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
+using Musify.Application.UploadIntents;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
 {
@@ -14,12 +16,12 @@ namespace Musify.Application.Tracks.Handler
         IStorageService storageService,
         ILogger<RequestTrackUploadUrlsCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
-        TrackConfiguration trackConfiguration)
+        TrackConfiguration trackConfiguration,
+        UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<RequestTrackUploadUrlsCommand, Result<TrackUploadUrlsResponse>>
     {
         static readonly string[] AllowedPictureExtensions = [".webp", ".png", ".jpg", ".jpeg"];
         static readonly string[] AllowedAudioExtensions = [".mp3", ".wav", ".m4a", ".flac", ".ogg", ".aac", ".opus"];
-        const int ExpiresInSeconds = 600;
 
         public async ValueTask<Result<TrackUploadUrlsResponse>> Handle(RequestTrackUploadUrlsCommand request, CancellationToken cancellationToken)
         {
@@ -32,79 +34,107 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var pictureExtensionResult = ValidateExtension(request.PictureFileType, AllowedPictureExtensions);
+            var pictureExtensionResult = UploadIntentHelpers.ValidateExtension(request.PictureFileType, AllowedPictureExtensions);
             if (!pictureExtensionResult.IsSuccess)
                 return Result.Invalid(pictureExtensionResult.Errors.Select(error => new ValidationError(error)).ToArray());
 
-            var audioExtensionResult = ValidateExtension(request.AudioFileType, AllowedAudioExtensions);
+            var audioExtensionResult = UploadIntentHelpers.ValidateExtension(request.AudioFileType, AllowedAudioExtensions);
             if (!audioExtensionResult.IsSuccess)
                 return Result.Invalid(audioExtensionResult.Errors.Select(error => new ValidationError(error)).ToArray());
 
-            if (string.IsNullOrWhiteSpace(request.PictureContentType))
-                return Result.Invalid(new ValidationError("PictureContentType is required"));
+            var effectivePictureSize = request.ExpectedPictureSizeBytes
+                ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
+            var effectiveAudioSize = request.ExpectedAudioSizeBytes
+                ?? uploadIntentConfiguration.DefaultExpectedAudioSizeBytes;
 
-            if (string.IsNullOrWhiteSpace(request.AudioContentType))
-                return Result.Invalid(new ValidationError("AudioContentType is required"));
+            var pictureObjectName = Guid.NewGuid() + pictureExtensionResult.Value;
+            var audioObjectName = Guid.NewGuid() + audioExtensionResult.Value;
 
-            var pictureName = Guid.NewGuid() + pictureExtensionResult.Value;
-            var audioName = Guid.NewGuid() + audioExtensionResult.Value;
-
-            var pictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureName);
-            var audioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioName);
+            var tempPictureKey = trackConfiguration.Routes.BuildTempPicturePath(
+                uploadIntentConfiguration.TempRootPrefix, request.UserId, pictureObjectName);
+            var tempAudioKey = trackConfiguration.Routes.BuildTempAudioPath(
+                uploadIntentConfiguration.TempRootPrefix, request.UserId, audioObjectName);
 
             try
             {
+                var expiresIn = TimeSpan.FromSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds);
+
                 var pictureUploadUrl = await storageService.GetUploadUrlAsync(
                     storageConfiguration.Bucket,
-                    pictureKey,
+                    tempPictureKey,
                     request.PictureContentType,
-                    TimeSpan.FromSeconds(ExpiresInSeconds),
+                    expiresIn,
                     cancellationToken);
 
                 var audioUploadUrl = await storageService.GetUploadUrlAsync(
                     storageConfiguration.Bucket,
-                    audioKey,
+                    tempAudioKey,
                     request.AudioContentType,
-                    TimeSpan.FromSeconds(ExpiresInSeconds),
+                    expiresIn,
                     cancellationToken);
 
+                var expiresAt = DateTime.UtcNow.AddSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds);
+
+                await using var transaction = await database.BeginTransactionAsync(
+                    System.Data.IsolationLevel.Serializable, cancellationToken);
+
+                var quotaCheck = await UploadIntentHelpers.CheckQuotaAsync(
+                    database, uploadIntentConfiguration, logger,
+                    request.UserId, effectivePictureSize + effectiveAudioSize, 2, cancellationToken);
+                if (!quotaCheck.IsSuccess)
+                    return quotaCheck;
+
+                var pictureIntent = new UploadIntent
+                {
+                    UserId = request.UserId,
+                    Bucket = storageConfiguration.Bucket,
+                    Key = tempPictureKey,
+                    ObjectName = pictureObjectName,
+                    ContentType = request.PictureContentType,
+                    ExpectedSizeBytes = effectivePictureSize,
+                    Purpose = UploadIntentPurpose.TrackPicture,
+                    ExpiresAt = expiresAt,
+                };
+
+                var audioIntent = new UploadIntent
+                {
+                    UserId = request.UserId,
+                    Bucket = storageConfiguration.Bucket,
+                    Key = tempAudioKey,
+                    ObjectName = audioObjectName,
+                    ContentType = request.AudioContentType,
+                    ExpectedSizeBytes = effectiveAudioSize,
+                    Purpose = UploadIntentPurpose.TrackAudio,
+                    ExpiresAt = expiresAt,
+                };
+
+                await database.UploadIntents.AddAsync(pictureIntent, cancellationToken);
+                await database.UploadIntents.AddAsync(audioIntent, cancellationToken);
+                await database.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                logger.LogInformation("Issued upload intents {PictureIntentId}/{AudioIntentId} for user {UserId} (TrackPicture/TrackAudio)",
+                    pictureIntent.Id, audioIntent.Id, request.UserId);
+
                 return Result.Success(new TrackUploadUrlsResponse(
+                    pictureIntent.Id,
+                    audioIntent.Id,
                     storageConfiguration.Bucket,
-                    pictureKey,
-                    pictureName,
+                    tempPictureKey,
+                    pictureObjectName,
                     request.PictureContentType,
                     pictureUploadUrl,
-                    audioKey,
-                    audioName,
+                    tempAudioKey,
+                    audioObjectName,
                     request.AudioContentType,
                     audioUploadUrl,
-                    ExpiresInSeconds));
+                    uploadIntentConfiguration.UploadUrlExpiresInSeconds));
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to generate track upload URLs for user {UserId}", request.UserId);
                 return Result.Error("Failed to generate upload URLs");
             }
-        }
-
-        static Result<string> ValidateExtension(string fileType, string[] allowedExtensions)
-        {
-            if (string.IsNullOrWhiteSpace(fileType))
-                return Result.Error("FileType is required");
-
-            var extension = fileType.Trim();
-            if (!extension.StartsWith('.'))
-                extension = "." + extension;
-
-            extension = extension.ToLowerInvariant();
-
-            if (extension.Contains('/') || extension.Contains('\\'))
-                return Result.Error("Invalid FileType");
-
-            if (!allowedExtensions.Contains(extension))
-                return Result.Error($"Unsupported FileType '{extension}'");
-
-            return Result.Success(extension);
         }
     }
 }

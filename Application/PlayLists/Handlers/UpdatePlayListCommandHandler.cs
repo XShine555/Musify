@@ -7,15 +7,19 @@ using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
+using Musify.Application.UploadIntents;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
 {
     public class UpdatePlayListCommandHandler(
         IEventBus eventBus,
         IDatabase database,
+        IStorageService storageService,
         ILogger<UpdatePlayListCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
-        PlayListConfiguration playListConfiguration)
+        PlayListConfiguration playListConfiguration,
+        UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<UpdatePlayListCommand, Result<PlayListApplicationResponse>>
     {
         public async ValueTask<Result<PlayListApplicationResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
@@ -44,9 +48,28 @@ namespace Musify.Application.PlayLists.Handlers
                 playListEntity.Description = request.NewDescription;
             }
 
-            if (request.NewOriginalPictureName is not null)
+            if (request.NewPictureIntentId.HasValue)
             {
-                playListEntity.OriginalPictureName = request.NewOriginalPictureName;
+                var validation = await UploadIntentHelpers.ValidateAndLoadAsync(
+                    database, storageService, uploadIntentConfiguration,
+                    request.NewPictureIntentId.Value, request.UserId, cancellationToken);
+                if (!validation.IsSuccess)
+                    return validation.Error!.Value;
+
+                var intent = validation.Intent!;
+                var finalKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, intent.ObjectName);
+                try
+                {
+                    await storageService.CopyFileAsync(intent.Bucket, intent.Key, intent.Bucket, finalKey, cancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    logger.LogError(exception, "Failed to copy playlist picture from temp {TempKey} to final {FinalKey}", intent.Key, finalKey);
+                    return Result.Error("Failed to move uploaded file to its final location.");
+                }
+
+                playListEntity.OriginalPictureName = intent.ObjectName;
+                intent.Status = UploadIntentStatus.Consumed;
 
                 var publishResult = await PublishPlayListPictureEvent(playListEntity.UserId, playListEntity.Id, playListEntity.OriginalPictureName, cancellationToken);
                 if (!publishResult.IsSuccess)

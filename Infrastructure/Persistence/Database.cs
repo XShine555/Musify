@@ -1,13 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using MassTransit;
 using Musify.Application.Abstractions.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
+using AppIDatabase = Musify.Application.Abstractions.Infrastructure.IDatabase;
 
 namespace Musify.Infrastructure.Persistence
 {
     public class Database(DatabaseConfiguration configuration)
-        : DbContext, IDatabase
+        : DbContext, AppIDatabase
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -34,5 +36,21 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<PlayListHasTrack> PlayListHasTracks => Set<PlayListHasTrack>();
 
         public DbSet<Upload> Uploads => Set<Upload>();
+
+        public DbSet<UploadIntent> UploadIntents => Set<UploadIntent>();
+
+        public async Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken)
+        {
+            var transaction = await Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+            return new DatabaseTransaction(transaction);
+        }
+
+        private sealed class DatabaseTransaction(IDbContextTransaction inner) : IDatabaseTransaction
+        {
+            public Task CommitAsync(CancellationToken cancellationToken = default) =>
+                inner.CommitAsync(cancellationToken);
+
+            public ValueTask DisposeAsync() => inner.DisposeAsync();
+        }
     }
 }

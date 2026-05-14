@@ -69,6 +69,10 @@ namespace Musify.Application.Configuration
 
         public string BuildLargePicturePath(string pictureName) => CombineKey(ParentFolders, LargePicturesFolder, pictureName);
 
+        // Temp path used in Phase 2 for pre-signed upload keys (moved to final on consumption)
+        public string BuildTempPicturePath(string tempRootPrefix, Guid userId, string objectName) =>
+            CombineKey(tempRootPrefix, userId.ToString(), ParentFolders, objectName);
+
         static string CombineKey(params string[] segments)
         {
             return string.Join('/', segments

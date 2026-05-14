@@ -85,6 +85,13 @@ namespace Musify.Application.Configuration
 
         public string BuildProcessedAudioPath(string audioName) => CombineKey(ProcessedAudiosPath, audioName);
 
+        // Temp paths used in Phase 2 for pre-signed upload keys (moved to final on consumption)
+        public string BuildTempPicturePath(string tempRootPrefix, Guid userId, string objectName) =>
+            CombineKey(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
+
+        public string BuildTempAudioPath(string tempRootPrefix, Guid userId, string objectName) =>
+            CombineKey(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
+
         static string CombineKey(params string[] segments)
         {
             return string.Join('/', segments

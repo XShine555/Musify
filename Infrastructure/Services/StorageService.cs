@@ -6,6 +6,7 @@ using MimeMapping;
 using Musify.Application.Abstractions.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
+using ObjectMetadata = Musify.Application.Abstractions.Infrastructure.ObjectMetadata;
 
 namespace Musify.Infrastructure.Services
 {
@@ -67,6 +68,24 @@ namespace Musify.Infrastructure.Services
 
             logger.LogDebug("Generating pre-signed upload URL for {Bucket}/{Key}", bucket, key);
             return await amazonS3.GetPreSignedURLAsync(request);
+        }
+
+        public async Task<ObjectMetadata?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var response = await amazonS3.GetObjectMetadataAsync(bucket, key, cancellationToken);
+                return new ObjectMetadata(response.Headers.ContentType, response.ContentLength);
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "HEAD failed for {Bucket}/{Key}", bucket, key);
+                throw;
+            }
         }
 
         public async Task RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken)
@@ -202,6 +221,27 @@ namespace Musify.Infrastructure.Services
                     sourceBucket, sourceKey, destinationBucket, destinationKey);
                 throw;
             }
+        }
+
+        public async IAsyncEnumerable<(string Key, DateTime LastModifiedUtc)> ListObjectsAsync(
+            string bucket, string prefix, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var listRequest = new ListObjectsV2Request
+            {
+                BucketName = bucket,
+                Prefix = prefix.EndsWith('/') ? prefix : $"{prefix}/"
+            };
+
+            ListObjectsV2Response listResponse;
+            do
+            {
+                listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
+                foreach (var obj in listResponse.S3Objects)
+                    yield return (obj.Key, (obj.LastModified ?? DateTime.UtcNow).ToUniversalTime());
+
+                listRequest.ContinuationToken = listResponse.NextContinuationToken;
+            }
+            while (listResponse.IsTruncated.HasValue && listResponse.IsTruncated.Value);
         }
 
         public async Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using Mediator;
 using Musify.Application.PlayLists.Responses;
 
@@ -8,6 +8,6 @@ namespace Musify.Application.PlayLists.Commands
         Guid UserId,
         string Name,
         string Description,
-        string? OriginalPictureName)
+        Guid? PictureIntentId)
         : ICommand<Result<PlayListApplicationResponse>>;
 }

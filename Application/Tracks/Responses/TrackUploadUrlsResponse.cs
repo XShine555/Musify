@@ -1,6 +1,8 @@
 namespace Musify.Application.Tracks.Responses
 {
     public record TrackUploadUrlsResponse(
+        Guid PictureIntentId,
+        Guid AudioIntentId,
         string Bucket,
         string PictureKey,
         string PictureName,

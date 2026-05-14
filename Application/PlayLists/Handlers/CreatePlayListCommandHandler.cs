@@ -7,6 +7,7 @@ using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
+using Musify.Application.UploadIntents;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
@@ -14,9 +15,11 @@ namespace Musify.Application.PlayLists.Handlers
     public class CreatePlayListCommandHandler(
         IEventBus eventBus,
         IDatabase database,
+        IStorageService storageService,
         ILogger<CreatePlayListCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
-        PlayListConfiguration playListConfiguration)
+        PlayListConfiguration playListConfiguration,
+        UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<CreatePlayListCommand, Result<PlayListApplicationResponse>>
     {
         public async ValueTask<Result<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
@@ -30,7 +33,35 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var originalPictureName = request.OriginalPictureName ?? playListConfiguration.Routes.PresetOriginalPicture;
+            string originalPictureName;
+            UploadIntent? pictureIntent = null;
+
+            if (request.PictureIntentId.HasValue)
+            {
+                var validation = await UploadIntentHelpers.ValidateAndLoadAsync(
+                    database, storageService, uploadIntentConfiguration,
+                    request.PictureIntentId.Value, request.UserId, cancellationToken);
+                if (!validation.IsSuccess)
+                    return validation.Error!.Value;
+
+                pictureIntent = validation.Intent!;
+                originalPictureName = pictureIntent.ObjectName;
+
+                var finalKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, originalPictureName);
+                try
+                {
+                    await storageService.CopyFileAsync(pictureIntent.Bucket, pictureIntent.Key, pictureIntent.Bucket, finalKey, cancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    logger.LogError(exception, "Failed to copy playlist picture from temp {TempKey} to final {FinalKey}", pictureIntent.Key, finalKey);
+                    return Result.Error("Failed to move uploaded file to its final location.");
+                }
+            }
+            else
+            {
+                originalPictureName = playListConfiguration.Routes.PresetOriginalPicture;
+            }
 
             var playList = new PlayList
             {
@@ -46,8 +77,10 @@ namespace Musify.Application.PlayLists.Handlers
 
             await database.PlayLists.AddAsync(playList, cancellationToken);
 
-            if (request.OriginalPictureName is not null)
+            if (pictureIntent is not null)
             {
+                pictureIntent.Status = UploadIntentStatus.Consumed;
+
                 var publishResult = await PublishPictureUpdateEventAsync(playList, cancellationToken);
                 if (!publishResult.IsSuccess)
                     return publishResult;
