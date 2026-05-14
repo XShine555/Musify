@@ -8,6 +8,8 @@ using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.UploadIntents;
+using Musify.Application.Extensions;
+using Musify.Application.Abstractions.Application;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
@@ -15,6 +17,7 @@ namespace Musify.Application.PlayLists.Handlers
     public class CreatePlayListCommandHandler(
         IEventBus eventBus,
         IDatabase database,
+        IUploadIntentService uploadIntentService,
         IStorageService storageService,
         ILogger<CreatePlayListCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -38,13 +41,13 @@ namespace Musify.Application.PlayLists.Handlers
 
             if (request.PictureIntentId.HasValue)
             {
-                var validation = await UploadIntentHelpers.ValidateAndLoadAsync(
-                    database, storageService, uploadIntentConfiguration,
+                var validation = await uploadIntentService.ValidateAndLoadAsync(
+                    uploadIntentConfiguration,
                     request.PictureIntentId.Value, request.UserId, cancellationToken);
                 if (!validation.IsSuccess)
-                    return validation.Error!.Value;
+                    return validation.As<UploadIntent, PlayListApplicationResponse>();
 
-                pictureIntent = validation.Intent!;
+                pictureIntent = validation.Value;
                 originalPictureName = pictureIntent.ObjectName;
 
                 var finalKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, originalPictureName);

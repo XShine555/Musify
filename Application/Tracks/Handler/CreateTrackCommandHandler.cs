@@ -8,6 +8,8 @@ using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.UploadIntents;
+using Musify.Application.Extensions;
+using Musify.Application.Abstractions.Application;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
@@ -15,6 +17,7 @@ namespace Musify.Application.Tracks.Handler
     public class CreateTrackCommandHandler(
         IDatabase database,
         IEventBus eventBus,
+        IUploadIntentService uploadIntentService,
         IStorageService storageService,
         ILogger<CreateTrackCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -32,20 +35,20 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var pictureValidation = await UploadIntentHelpers.ValidateAndLoadAsync(
-                database, storageService, uploadIntentConfiguration,
+            var pictureValidation = await uploadIntentService.ValidateAndLoadAsync(
+                uploadIntentConfiguration,
                 request.PictureIntentId, request.UserId, cancellationToken);
             if (!pictureValidation.IsSuccess)
-                return pictureValidation.Error!.Value;
+                return pictureValidation.As<UploadIntent, TrackApplicationResponse>();
 
-            var audioValidation = await UploadIntentHelpers.ValidateAndLoadAsync(
-                database, storageService, uploadIntentConfiguration,
+            var audioValidation = await uploadIntentService.ValidateAndLoadAsync(
+                uploadIntentConfiguration,
                 request.AudioIntentId, request.UserId, cancellationToken);
             if (!audioValidation.IsSuccess)
-                return audioValidation.Error!.Value;
+                return audioValidation.As<UploadIntent, TrackApplicationResponse>();
 
-            var pictureIntent = pictureValidation.Intent!;
-            var audioIntent = audioValidation.Intent!;
+            var pictureIntent = pictureValidation.Value;
+            var audioIntent = audioValidation.Value;
 
             var finalPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);

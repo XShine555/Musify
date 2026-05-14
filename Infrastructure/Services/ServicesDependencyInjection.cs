@@ -3,9 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Abstractions.Application;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Jobs;
+using Musify.Application.Services;
 
 namespace Musify.Infrastructure.Services
 {
@@ -53,6 +55,8 @@ namespace Musify.Infrastructure.Services
 
             serviceDescriptors.AddSingleton(serviceProvider =>
                 serviceProvider.GetRequiredService<IOptions<UploadIntentConfiguration>>().Value);
+
+            serviceDescriptors.AddScoped<IUploadIntentService, UploadIntentService>();
 
             return serviceDescriptors;
         }

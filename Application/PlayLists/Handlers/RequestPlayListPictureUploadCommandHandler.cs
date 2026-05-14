@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Abstractions.Application;
 using Musify.Application.Configuration;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
@@ -13,6 +14,7 @@ namespace Musify.Application.PlayLists.Handlers
 {
     public class RequestPlayListPictureUploadCommandHandler(
         IDatabase database,
+        IUploadIntentService uploadIntentService,
         IStorageService storageService,
         ILogger<RequestPlayListPictureUploadCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -57,8 +59,8 @@ namespace Musify.Application.PlayLists.Handlers
                 await using var transaction = await database.BeginTransactionAsync(
                     System.Data.IsolationLevel.Serializable, cancellationToken);
 
-                var quotaCheck = await UploadIntentHelpers.CheckQuotaAsync(
-                    database, uploadIntentConfiguration, logger,
+                var quotaCheck = await uploadIntentService.CheckQuotaAsync(
+                    uploadIntentConfiguration, logger,
                     request.UserId, effectiveSizeBytes, 1, cancellationToken);
                 if (!quotaCheck.IsSuccess)
                     return quotaCheck;

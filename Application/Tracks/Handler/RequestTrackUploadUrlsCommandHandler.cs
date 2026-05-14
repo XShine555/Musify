@@ -2,6 +2,7 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Musify.Application.Abstractions.Application;
 using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Application.Tracks.Commands;
@@ -13,6 +14,7 @@ namespace Musify.Application.Tracks.Handler
 {
     public class RequestTrackUploadUrlsCommandHandler(
         IDatabase database,
+        IUploadIntentService uploadIntentService,
         IStorageService storageService,
         ILogger<RequestTrackUploadUrlsCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -78,8 +80,8 @@ namespace Musify.Application.Tracks.Handler
                 await using var transaction = await database.BeginTransactionAsync(
                     System.Data.IsolationLevel.Serializable, cancellationToken);
 
-                var quotaCheck = await UploadIntentHelpers.CheckQuotaAsync(
-                    database, uploadIntentConfiguration, logger,
+                var quotaCheck = await uploadIntentService.CheckQuotaAsync(
+                    uploadIntentConfiguration, logger,
                     request.UserId, effectivePictureSize + effectiveAudioSize, 2, cancellationToken);
                 if (!quotaCheck.IsSuccess)
                     return quotaCheck;
