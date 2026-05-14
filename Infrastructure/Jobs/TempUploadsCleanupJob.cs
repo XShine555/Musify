@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Jobs

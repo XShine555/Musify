@@ -2,19 +2,18 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Infrastructure;
-using Musify.Application.Abstractions.Application;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
-using Musify.Application.UploadIntents;
+using Musify.Application.Services;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
 {
     public class RequestPlayListPictureUploadCommandHandler(
         IDatabase database,
-        IUploadIntentService uploadIntentService,
+        UploadIntentValidator uploadIntentValidator,
         IStorageService storageService,
         ILogger<RequestPlayListPictureUploadCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -22,8 +21,6 @@ namespace Musify.Application.PlayLists.Handlers
         UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<RequestPlayListPictureUploadCommand, Result<PlayListPictureUploadResponse>>
     {
-        static readonly string[] AllowedExtensions = [".webp", ".png", ".jpg", ".jpeg"];
-
         public async ValueTask<Result<PlayListPictureUploadResponse>> Handle(RequestPlayListPictureUploadCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
@@ -35,14 +32,10 @@ namespace Musify.Application.PlayLists.Handlers
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var extensionResult = UploadIntentHelpers.ValidateExtension(request.FileType, AllowedExtensions);
-            if (!extensionResult.IsSuccess)
-                return Result.Invalid(extensionResult.Errors.Select(error => new ValidationError(error)).ToArray());
-
             var effectiveSizeBytes = request.ExpectedSizeBytes
                 ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
 
-            var objectName = Guid.NewGuid() + extensionResult.Value;
+            var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
 
             var tempKey = playListConfiguration.Routes.BuildTempPicturePath(
                 uploadIntentConfiguration.TempRootPrefix, request.UserId, objectName);
@@ -59,11 +52,14 @@ namespace Musify.Application.PlayLists.Handlers
                 await using var transaction = await database.BeginTransactionAsync(
                     System.Data.IsolationLevel.Serializable, cancellationToken);
 
-                var quotaCheck = await uploadIntentService.CheckQuotaAsync(
-                    uploadIntentConfiguration, logger,
+                var quotaCheck = await uploadIntentValidator.CheckQuotaAsync(
+                    uploadIntentConfiguration,
                     request.UserId, effectiveSizeBytes, 1, cancellationToken);
                 if (!quotaCheck.IsSuccess)
+                {
+                    logger.LogWarning("User {UserId} failed upload intent quota check", request.UserId);
                     return quotaCheck;
+                }
 
                 var intent = new UploadIntent
                 {

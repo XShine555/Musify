@@ -3,13 +3,13 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.UploadIntents;
 using Musify.Application.Extensions;
-using Musify.Application.Abstractions.Application;
+using Musify.Application.Services;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
@@ -17,7 +17,7 @@ namespace Musify.Application.Tracks.Handler
     public class CreateTrackCommandHandler(
         IDatabase database,
         IEventBus eventBus,
-        IUploadIntentService uploadIntentService,
+        UploadIntentValidator uploadIntentValidator,
         IStorageService storageService,
         ILogger<CreateTrackCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -35,13 +35,13 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var pictureValidation = await uploadIntentService.ValidateAndLoadAsync(
+            var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
                 uploadIntentConfiguration,
                 request.PictureIntentId, request.UserId, cancellationToken);
             if (!pictureValidation.IsSuccess)
                 return pictureValidation.As<UploadIntent, TrackApplicationResponse>();
 
-            var audioValidation = await uploadIntentService.ValidateAndLoadAsync(
+            var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
                 uploadIntentConfiguration,
                 request.AudioIntentId, request.UserId, cancellationToken);
             if (!audioValidation.IsSuccess)

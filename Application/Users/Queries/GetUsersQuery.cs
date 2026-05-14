@@ -1,6 +1,6 @@
 using Ardalis.Result;
 using Mediator;
-using Musify.Application.Abstractions.Application;
+using Musify.Application.Pagination;
 using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Users.Queries

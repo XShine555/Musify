@@ -1,7 +1,7 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;

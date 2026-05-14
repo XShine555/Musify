@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;

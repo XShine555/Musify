@@ -3,10 +3,10 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Logging;
 using MimeMapping;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
-using ObjectMetadata = Musify.Application.Abstractions.Infrastructure.ObjectMetadata;
+using ObjectMetadata = Musify.Application.Contracts.Infrastructure.ObjectMetadata;
 
 namespace Musify.Infrastructure.Services
 {

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MassTransit;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
-using AppIDatabase = Musify.Application.Abstractions.Infrastructure.IDatabase;
+using AppIDatabase = Musify.Application.Contracts.Infrastructure.IDatabase;
 
 namespace Musify.Infrastructure.Persistence
 {

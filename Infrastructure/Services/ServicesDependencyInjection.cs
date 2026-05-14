@@ -1,9 +1,8 @@
-﻿using Amazon.S3;
+using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Musify.Application.Abstractions.Infrastructure;
-using Musify.Application.Abstractions.Application;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Jobs;
@@ -56,7 +55,7 @@ namespace Musify.Infrastructure.Services
             serviceDescriptors.AddSingleton(serviceProvider =>
                 serviceProvider.GetRequiredService<IOptions<UploadIntentConfiguration>>().Value);
 
-            serviceDescriptors.AddScoped<IUploadIntentService, UploadIntentService>();
+            serviceDescriptors.AddScoped<UploadIntentValidator>();
 
             return serviceDescriptors;
         }

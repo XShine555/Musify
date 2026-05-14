@@ -2,19 +2,18 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Application;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
+using Musify.Application.Services;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
-using Musify.Application.UploadIntents;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks.Handler
 {
     public class RequestTrackUploadUrlsCommandHandler(
         IDatabase database,
-        IUploadIntentService uploadIntentService,
+        UploadIntentValidator uploadIntentValidator,
         IStorageService storageService,
         ILogger<RequestTrackUploadUrlsCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -22,9 +21,6 @@ namespace Musify.Application.Tracks.Handler
         UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<RequestTrackUploadUrlsCommand, Result<TrackUploadUrlsResponse>>
     {
-        static readonly string[] AllowedPictureExtensions = [".webp", ".png", ".jpg", ".jpeg"];
-        static readonly string[] AllowedAudioExtensions = [".mp3", ".wav", ".m4a", ".flac", ".ogg", ".aac", ".opus"];
-
         public async ValueTask<Result<TrackUploadUrlsResponse>> Handle(RequestTrackUploadUrlsCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
@@ -36,21 +32,13 @@ namespace Musify.Application.Tracks.Handler
                 return Result.NotFound($"User {request.UserId} not found");
             }
 
-            var pictureExtensionResult = UploadIntentHelpers.ValidateExtension(request.PictureFileType, AllowedPictureExtensions);
-            if (!pictureExtensionResult.IsSuccess)
-                return Result.Invalid(pictureExtensionResult.Errors.Select(error => new ValidationError(error)).ToArray());
-
-            var audioExtensionResult = UploadIntentHelpers.ValidateExtension(request.AudioFileType, AllowedAudioExtensions);
-            if (!audioExtensionResult.IsSuccess)
-                return Result.Invalid(audioExtensionResult.Errors.Select(error => new ValidationError(error)).ToArray());
-
             var effectivePictureSize = request.ExpectedPictureSizeBytes
                 ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
             var effectiveAudioSize = request.ExpectedAudioSizeBytes
                 ?? uploadIntentConfiguration.DefaultExpectedAudioSizeBytes;
 
-            var pictureObjectName = Guid.NewGuid() + pictureExtensionResult.Value;
-            var audioObjectName = Guid.NewGuid() + audioExtensionResult.Value;
+            var pictureObjectName = $"{Guid.NewGuid()}.{request.PictureFileType.TrimStart('.').ToLowerInvariant()}";
+            var audioObjectName = $"{Guid.NewGuid()}.{request.AudioFileType.TrimStart('.').ToLowerInvariant()}";
 
             var tempPictureKey = trackConfiguration.Routes.BuildTempPicturePath(
                 uploadIntentConfiguration.TempRootPrefix, request.UserId, pictureObjectName);
@@ -80,11 +68,14 @@ namespace Musify.Application.Tracks.Handler
                 await using var transaction = await database.BeginTransactionAsync(
                     System.Data.IsolationLevel.Serializable, cancellationToken);
 
-                var quotaCheck = await uploadIntentService.CheckQuotaAsync(
-                    uploadIntentConfiguration, logger,
+                var quotaCheck = await uploadIntentValidator.CheckQuotaAsync(
+                    uploadIntentConfiguration,
                     request.UserId, effectivePictureSize + effectiveAudioSize, 2, cancellationToken);
                 if (!quotaCheck.IsSuccess)
+                {
+                    logger.LogWarning("User {UserId} failed upload intent quota check", request.UserId);
                     return quotaCheck;
+                }
 
                 var pictureIntent = new UploadIntent
                 {

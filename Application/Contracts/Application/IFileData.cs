@@ -1,4 +1,4 @@
-﻿namespace Musify.Application.Abstractions.Application
+namespace Musify.Application.Contracts.Application
 {
     public interface IFileData
     {

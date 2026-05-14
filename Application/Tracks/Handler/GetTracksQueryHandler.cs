@@ -1,8 +1,8 @@
-﻿using Ardalis.Result;
+using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Abstractions.Application;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Pagination;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Tracks.Queries;
 using Musify.Application.Tracks.Responses;
 using X.PagedList.EF;

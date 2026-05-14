@@ -1,6 +1,6 @@
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.PlayLists.Queries;
 using Mediator;

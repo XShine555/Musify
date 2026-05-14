@@ -2,7 +2,7 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Users.Commands;
 using Musify.Application.Users.Responses;
 

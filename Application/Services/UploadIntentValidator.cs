@@ -1,20 +1,17 @@
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Infrastructure;
-using Musify.Application.Abstractions.Application;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Services;
 
-public sealed class UploadIntentService(
+public sealed class UploadIntentValidator(
     IDatabase database,
-    IStorageService storageService) : IUploadIntentService
+    IStorageService storageService)
 {
     public async Task<Result> CheckQuotaAsync(
         UploadIntentConfiguration config,
-        ILogger logger,
         Guid userId,
         long requiredBytes,
         int requiredIntentCount,
@@ -26,17 +23,11 @@ public sealed class UploadIntentService(
             .ToListAsync(cancellationToken);
 
         if (activeIntents.Count + requiredIntentCount > config.MaxActiveUploadIntentsPerUser)
-        {
-            logger.LogWarning("User {UserId} exceeded max active upload intents ({Max})", userId, config.MaxActiveUploadIntentsPerUser);
             return Result.Invalid(new ValidationError("Upload intent limit exceeded. Wait for existing uploads to complete or expire."));
-        }
 
         var activeBytes = activeIntents.Sum(i => i.ExpectedSizeBytes ?? config.DefaultExpectedPictureSizeBytes);
         if (activeBytes + requiredBytes > config.MaxActiveUploadBytesPerUser)
-        {
-            logger.LogWarning("User {UserId} exceeded max active upload bytes ({Max})", userId, config.MaxActiveUploadBytesPerUser);
             return Result.Invalid(new ValidationError("Upload byte quota exceeded. Wait for existing uploads to complete or expire."));
-        }
 
         return Result.Success();
     }

@@ -3,13 +3,13 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.UploadIntents;
 using Musify.Application.Extensions;
-using Musify.Application.Abstractions.Application;
+using Musify.Application.Services;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Handlers
@@ -17,7 +17,7 @@ namespace Musify.Application.PlayLists.Handlers
     public class UpdatePlayListCommandHandler(
         IEventBus eventBus,
         IDatabase database,
-        IUploadIntentService uploadIntentService,
+        UploadIntentValidator uploadIntentValidator,
         IStorageService storageService,
         ILogger<UpdatePlayListCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
@@ -53,7 +53,7 @@ namespace Musify.Application.PlayLists.Handlers
 
             if (request.NewPictureIntentId.HasValue)
             {
-                var validation = await uploadIntentService.ValidateAndLoadAsync(
+                var validation = await uploadIntentValidator.ValidateAndLoadAsync(
                     uploadIntentConfiguration,
                     request.NewPictureIntentId.Value, request.UserId, cancellationToken);
                 if (!validation.IsSuccess)

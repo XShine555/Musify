@@ -1,6 +1,6 @@
-﻿using X.PagedList;
+using X.PagedList;
 
-namespace Musify.Application.Abstractions.Application
+namespace Musify.Application.Pagination
 {
     public record PaginatedResponse<T>(
         IReadOnlyCollection<T> Items,

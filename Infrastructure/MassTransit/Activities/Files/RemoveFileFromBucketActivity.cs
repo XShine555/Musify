@@ -1,7 +1,7 @@
 using MassTransit;
 using Amazon.S3;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Abstractions.Infrastructure;
+using Musify.Application.Contracts.Infrastructure;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using System.Net;
 
