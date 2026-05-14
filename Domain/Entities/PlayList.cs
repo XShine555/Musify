@@ -42,6 +42,9 @@ namespace Musify.Domain.Entities
         public required string LargePictureName { get; set; }
 
         [Required]
+        public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
+
+        [Required]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [Required]

@@ -6,6 +6,7 @@ using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
+using Musify.Infrastructure.MassTransit.Activities.PlayLists;
 using Musify.Infrastructure.MassTransit.Activities.Tracks;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
@@ -21,6 +22,7 @@ namespace Musify.Infrastructure.MassTransit
             services.AddScoped<AudioWorkflowRoutingSlipBuilder>();
             services.AddScoped<PictureWorkflowRoutingSlipBuilder>();
             services.AddScoped<DeleteTrackRoutingSlipBuilder>();
+            services.AddScoped<DeletePlayListRoutingSlipBuilder>();
         }
 
         static void RegisterConsumersAndActivities(IBusRegistrationConfigurator options)
@@ -30,12 +32,15 @@ namespace Musify.Infrastructure.MassTransit
             options.AddConsumer<RoutingSlipCleanUpConsumer>();
             options.AddConsumer<UpdateTrackAudioConsumer>();
             options.AddConsumer<DeleteTrackConsumer>();
-            options.AddConsumer<RemoveFileConsumer>();
+            options.AddConsumer<DeletePlayListConsumer>();
 
             options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
             options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
             options.AddExecuteActivity<GeneratePictureWorkflowPathsActivity, GeneratePictureWorkflowPathsArguments>();
-            options.AddExecuteActivity<DeleteTrackActivity, DeleteTrackArguments>();
+            options.AddExecuteActivity<MarkTrackAsRemovingActivity, MarkTrackAsRemovingArguments>();
+            options.AddExecuteActivity<DeleteTrackFromDbActivity, DeleteTrackFromDbArguments>();
+            options.AddExecuteActivity<MarkPlayListAsRemovingActivity, MarkPlayListAsRemovingArguments>();
+            options.AddExecuteActivity<DeletePlayListFromDbActivity, DeletePlayListFromDbArguments>();
 
             options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
             options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();
@@ -75,10 +80,10 @@ namespace Musify.Infrastructure.MassTransit
                 busRegistrationContext,
                 DeleteTrackConsumer.QueueName);
 
-            ConfigureConsumerEndpoint<RemoveFileConsumer>(
+            ConfigureConsumerEndpoint<DeletePlayListConsumer>(
                 busFactoryConfigurator,
                 busRegistrationContext,
-                RemoveFileConsumer.QueueName);
+                DeletePlayListConsumer.QueueName);
 
             ConfigureConsumerEndpoint<RoutingSlipCleanUpConsumer>(
                 busFactoryConfigurator,
@@ -99,6 +104,26 @@ namespace Musify.Infrastructure.MassTransit
                 busFactoryConfigurator,
                 busRegistrationContext,
                 GeneratePictureWorkflowPathsActivity.ExecuteEndpointName);
+
+            ConfigureExecuteActivityEndpoint<MarkTrackAsRemovingActivity, MarkTrackAsRemovingArguments>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                MarkTrackAsRemovingActivity.ExecuteEndpointName);
+
+            ConfigureExecuteActivityEndpoint<DeleteTrackFromDbActivity, DeleteTrackFromDbArguments>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                DeleteTrackFromDbActivity.ExecuteEndpointName);
+
+            ConfigureExecuteActivityEndpoint<MarkPlayListAsRemovingActivity, MarkPlayListAsRemovingArguments>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                MarkPlayListAsRemovingActivity.ExecuteEndpointName);
+
+            ConfigureExecuteActivityEndpoint<DeletePlayListFromDbActivity, DeletePlayListFromDbArguments>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                DeletePlayListFromDbActivity.ExecuteEndpointName);
 
             ConfigureActivityEndpoint<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>(
                 busFactoryConfigurator,

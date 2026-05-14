@@ -1,7 +1,9 @@
 using MassTransit;
+using Amazon.S3;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Abstractions.Infrastructure;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using System.Net;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
@@ -20,6 +22,16 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                     executeContext.Arguments.Bucket,
                     executeContext.Arguments.Key,
                     executeContext.CancellationToken);
+                return executeContext.Completed();
+            }
+            catch (AmazonS3Exception exception) when (
+                exception.StatusCode == HttpStatusCode.NotFound
+                || string.Equals(exception.ErrorCode, "NoSuchKey", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInformation(
+                    "Key {Key} not found in bucket {Bucket}, skipping",
+                    executeContext.Arguments.Key,
+                    executeContext.Arguments.Bucket);
                 return executeContext.Completed();
             }
             catch (Exception exception)

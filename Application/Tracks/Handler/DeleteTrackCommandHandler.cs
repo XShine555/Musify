@@ -40,8 +40,7 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Conflict("Track is currently being processed and cannot be deleted");
             }
 
-            track.PicturesProcessingStatus = ProcessingStatus.Processing;
-            track.AudioTranscodeProcessingStatus = ProcessingStatus.Processing;
+            track.LifeCycleStatus = LifeCycleStatus.Removing;
 
             try
             {

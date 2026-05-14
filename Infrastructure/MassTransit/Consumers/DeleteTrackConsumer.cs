@@ -13,8 +13,8 @@ namespace Musify.Infrastructure.MassTransit.Consumers
 
         public async Task Consume(ConsumeContext<DeleteTrackEvent> consumeContext)
         {
-            var routingSlip = routingSlipBuilder
-                .Build(consumeContext.Message.TrackId, consumeContext.Message.UserId, consumeContext.CorrelationId)
+            var routingSlip = (await routingSlipBuilder
+                    .BuildAsync(consumeContext.Message.TrackId, consumeContext.Message.UserId, consumeContext.CorrelationId, consumeContext.CancellationToken))
                 .Build();
 
             await bus.Execute(routingSlip);

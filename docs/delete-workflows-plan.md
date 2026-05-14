@@ -4,9 +4,9 @@
 
 Actualmente hay dos problemas de diseño en los deletes:
 
-**PlayLists:** el borrado dispara múltiples `RemoveFileEvent` sueltos desde `DeletePlayListCommandHandler` (4 llamadas separadas para original/small/medium/large) y luego elimina la entidad en DB. Sin workflow, sin trazabilidad.
+**PlayLists:** el borrado disparaba múltiples `RemoveFileEvent` sueltos desde `DeletePlayListCommandHandler` (4 llamadas separadas para original/small/medium/large) y luego eliminaba la entidad en DB. Sin workflow, sin trazabilidad.
 
-**Tracks:** ya existe un workflow (`DeleteTrackEvent` → consumer → RoutingSlip → `DeleteTrackActivity`), pero `DeleteTrackActivity` hace **demasiado en un único paso**: carga la entidad, borra todos los archivos de S3 (pictures + audios), y elimina de DB. Esto rompe el principio de actividades granulares y reutilizables, hace que el slip no sea "seguible" paso a paso, y dificulta los reintentos parciales.
+**Tracks:** existía un workflow (`DeleteTrackEvent` → consumer → RoutingSlip → `DeleteTrackActivity`), pero `DeleteTrackActivity` hacía **demasiado en un único paso**: carga la entidad, borra todos los archivos de S3 (pictures + audios), y elimina de DB. Esto rompe el principio de actividades granulares y reutilizables, hace que el slip no sea "seguible" paso a paso, y dificulta los reintentos parciales.
 
 La idea es **homogeneizar y corregir ambos**: que los deletes de Track y PlayList sigan un RoutingSlip con actividades pequeñas, ordenadas, repetibles e independientes.
 
@@ -42,30 +42,54 @@ No objetivos (por ahora):
 
 ## Diseño propuesto
 
+## Implementación final (nombres reales)
+
+Este plan se implementó con los siguientes nombres finales (para facilitar traceo/debug):
+
+### Colas (consumers)
+- `delete-track` (`DeleteTrackConsumer`)
+- `delete-playList` (`DeletePlayListConsumer`)
+
+### Execute endpoints (activities)
+MassTransit crea las colas de execute como `<endpointName>_execute`.
+
+- `remove-file-from-bucket` → cola `remove-file-from-bucket_execute`
+- `mark-track-as-removing` → cola `mark-track-as-removing_execute`
+- `delete-track-from-db` → cola `delete-track-from-db_execute`
+- `mark-playList-as-removing` → cola `mark-playList-as-removing_execute`
+- `delete-playList-from-db` → cola `delete-playList-from-db_execute`
+
+### Estado de borrado (DB)
+- Se introdujo `LifeCycleStatus` en `Track` y `PlayList` con valores `Active` y `Removing`.
+- El handler marca `Removing` antes de publicar el evento (y persiste con `SaveChanges`).
+
+> Nota: se eliminó el enfoque de “estado Removing” implícito en `ProcessingStatus` para deletes. El tracking de delete queda en `LifeCycleStatus`.
+
 ### Actividades compartidas / reutilizables
 
 Ya existe (y se mantiene):
 - `RemoveFileFromBucketActivity` — borra un único objeto de S3. Se usará N veces en cada slip.
 
-Se añaden actividades de DB compartibles por aggregate:
-- `MarkAsRemovingActivity<TArgs>` — cambia estado de la entidad a `Removing` y persiste. (O una por aggregate si la lógica difiere.)
+Se añaden actividades de DB por aggregate:
+- `MarkTrackAsRemovingActivity` — cambia estado `LifeCycleStatus` a `Removing` y persiste.
 - `DeleteTrackFromDbActivity` — elimina el Track de EF (cascade elimina relaciones).
+- `MarkPlayListAsRemovingActivity` — cambia estado `LifeCycleStatus` a `Removing` y persiste.
 - `DeletePlayListFromDbActivity` — elimina la PlayList de EF (cascade elimina relaciones).
 
 ### Estructura del RoutingSlip para Track
 
 ```
 DeleteTrackEvent
-  └─► DeleteTrackConsumer
-        └─► DeleteTrackRoutingSlipBuilder
-              ├─ MarkTrackAsRemovingActivity          (cambia estado → Removing, persiste)
-              ├─ RemoveFileFromBucketActivity          (original picture)
-              ├─ RemoveFileFromBucketActivity          (small picture)     ← solo si IsPicturesProcessed
-              ├─ RemoveFileFromBucketActivity          (medium picture)    ← solo si IsPicturesProcessed
-              ├─ RemoveFileFromBucketActivity          (large picture)     ← solo si IsPicturesProcessed
-              ├─ RemoveFileFromBucketActivity          (original audio)
-              ├─ RemoveFileFromBucketActivity          (processed audio)   ← solo si IsAudioProcessed
-              └─ DeleteTrackFromDbActivity             (Remove() + SaveChanges)
+  └─► DeleteTrackConsumer (queue: `delete-track`)
+    └─► DeleteTrackRoutingSlipBuilder.BuildAsync(...)
+      ├─ MarkTrackAsRemovingActivity           (endpoint: `mark-track-as-removing`)
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — original picture
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — small (si IsPicturesProcessed)
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — medium (si IsPicturesProcessed)
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — large (si IsPicturesProcessed)
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — original audio
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — processed audio (si IsAudioProcessed)
+      └─ DeleteTrackFromDbActivity             (endpoint: `delete-track-from-db`)
 ```
 
 > El builder carga la entidad para construir el plan (keys condicionales) antes de arrancar el slip. Las actividades de S3 son idempotentes (NotFound → log Information + continue).
@@ -74,14 +98,14 @@ DeleteTrackEvent
 
 ```
 DeletePlayListEvent
-  └─► DeletePlayListConsumer
-        └─► DeletePlayListRoutingSlipBuilder
-              ├─ MarkPlayListAsRemovingActivity        (cambia estado → Removing, persiste)
-              ├─ RemoveFileFromBucketActivity          (original — uploads/{userId}/...)  ← solo si no es preset
-              ├─ RemoveFileFromBucketActivity          (small)                            ← solo si no es preset
-              ├─ RemoveFileFromBucketActivity          (medium)                           ← solo si no es preset
-              ├─ RemoveFileFromBucketActivity          (large)                            ← solo si no es preset
-              └─ DeletePlayListFromDbActivity          (Remove() + SaveChanges, cascade elimina PlayListHasTrack)
+  └─► DeletePlayListConsumer (queue: `delete-playList`)
+    └─► DeletePlayListRoutingSlipBuilder.BuildAsync(...)
+      ├─ MarkPlayListAsRemovingActivity        (endpoint: `mark-playList-as-removing`)
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — original (uploads/{userId}/...) ← solo si no es preset
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — small                          ← solo si no es preset
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — medium                         ← solo si no es preset
+      ├─ RemoveFileFromBucketActivity          (endpoint: `remove-file-from-bucket`) — large                          ← solo si no es preset
+      └─ DeletePlayListFromDbActivity          (endpoint: `delete-playList-from-db`)
 ```
 
 ### Handler de comando (ambos aggregates)
@@ -93,14 +117,20 @@ database.PlayLists.Remove(playlist);
 await database.SaveChangesAsync();
 
 // DESPUÉS
+playlist.LifeCycleStatus = LifeCycleStatus.Removing;
 await eventBus.PublishAsync(new DeletePlayListEvent(command.PlayListId, command.UserId));
-// Nada más. El workflow se encarga de todo.
+await database.SaveChangesAsync();
+// El workflow se encarga de borrar ficheros y eliminar en DB.
 ```
 
 ```csharp
 // DeleteTrackCommandHandler — ANTES
 // (ya publicaba DeleteTrackEvent, se mantiene igual)
+
+// DESPUÉS
+track.LifeCycleStatus = LifeCycleStatus.Removing;
 await eventBus.PublishAsync(new DeleteTrackEvent(command.TrackId, command.UserId));
+await database.SaveChangesAsync();
 
 // La diferencia es que ahora el slip tiene pasos granulares, no una activity monolítica.
 ```
@@ -120,7 +150,7 @@ await eventBus.PublishAsync(new DeleteTrackEvent(command.TrackId, command.UserId
 ## Idempotencia / reintentos
 
 - RoutingSlip + reintentos de endpoint ya configurados en MassTransit.
-- Operaciones S3: idempotentes por diseño. Si el key no existe → log `Information` y `Completed()` (no throw).
+- Operaciones S3: idempotentes por diseño. Si el key no existe (`NoSuchKey`/`NotFound`) → log `Information` y `Completed()` (no throw).
 - DB: si la entidad ya no existe cuando llega `DeleteTrackFromDbActivity` / `DeletePlayListFromDbActivity`, el workflow se considera `Completed` (misma lógica que ahora).
 - Estado `Removing`: permite identificar entidades en proceso de borrado si el sistema se reinicia a mitad del slip.
 

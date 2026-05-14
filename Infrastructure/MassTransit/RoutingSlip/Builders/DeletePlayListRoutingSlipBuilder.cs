@@ -5,18 +5,18 @@ using Musify.Application.Abstractions.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
-using Musify.Infrastructure.MassTransit.Activities.Tracks;
+using Musify.Infrastructure.MassTransit.Activities.PlayLists;
 using Musify.Infrastructure.MassTransit.Consumers;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
-    public class DeleteTrackRoutingSlipBuilder(
+    public class DeletePlayListRoutingSlipBuilder(
         IDatabase database,
-        TrackConfiguration trackConfiguration,
+        PlayListConfiguration playListConfiguration,
         ApplicationStorageConfiguration storageConfiguration)
     {
         public async Task<RoutingSlipBuilder> BuildAsync(
-            Guid trackId,
+            Guid playListId,
             Guid userId,
             Guid? correlationId,
             CancellationToken cancellationToken)
@@ -28,72 +28,65 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
                 RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
-            var track = await database.Tracks
+            var playList = await database.PlayLists
                 .AsNoTracking()
-                .SingleOrDefaultAsync(t => t.Id == trackId, cancellationToken);
+                .SingleOrDefaultAsync(p => p.Id == playListId, cancellationToken);
 
             routingSlipBuilder.AddActivity(
-                ActivityNames.MarkTrackAsRemoving,
-                EndpointHelper.BuildExecuteActivityUri(MarkTrackAsRemovingActivity.ExecuteEndpointName),
-                new MarkTrackAsRemovingArguments(trackId));
+                ActivityNames.MarkPlayListAsRemoving,
+                EndpointHelper.BuildExecuteActivityUri(MarkPlayListAsRemovingActivity.ExecuteEndpointName),
+                new MarkPlayListAsRemovingArguments(playListId));
 
-            if (track is not null)
+            if (playList is not null)
             {
                 var bucket = storageConfiguration.Bucket;
+                var routes = playListConfiguration.Routes;
 
-                routingSlipBuilder.AddActivity(
-                    "RemoveTrackOriginalPicture",
-                    EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                    new RemoveFileFromBucketArguments(
-                        bucket,
-                        trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.OriginalPictureName)));
-
-                if (track.IsPicturesProcessed)
+                if (playList.OriginalPictureName != routes.PresetOriginalPicture)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemoveTrackSmallPicture",
+                        "RemovePlayListOriginalPicture",
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildSmallPicturePath(track.SmallPictureName)));
-
-                    routingSlipBuilder.AddActivity(
-                        "RemoveTrackMediumPicture",
-                        EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                        new RemoveFileFromBucketArguments(
-                            bucket,
-                            trackConfiguration.Routes.BuildMediumPicturePath(track.MediumPictureName)));
-
-                    routingSlipBuilder.AddActivity(
-                        "RemoveTrackLargePicture",
-                        EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                        new RemoveFileFromBucketArguments(
-                            bucket,
-                            trackConfiguration.Routes.BuildLargePicturePath(track.LargePictureName)));
+                            routes.BuildOriginalPicturePath(userId, playList.OriginalPictureName)));
                 }
 
-                routingSlipBuilder.AddActivity(
-                    "RemoveTrackOriginalAudio",
-                    EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                    new RemoveFileFromBucketArguments(
-                        bucket,
-                        trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.OriginalAudioName)));
-
-                if (track.IsAudioProcessed)
+                if (playList.SmallPictureName != routes.PresetSmallPicture)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemoveTrackProcessedAudio",
+                        "RemovePlayListSmallPicture",
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildProcessedAudioPath(track.AudioFolderName)));
+                            routes.BuildSmallPicturePath(playList.SmallPictureName)));
+                }
+
+                if (playList.MediumPictureName != routes.PresetMediumPicture)
+                {
+                    routingSlipBuilder.AddActivity(
+                        "RemovePlayListMediumPicture",
+                        EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                        new RemoveFileFromBucketArguments(
+                            bucket,
+                            routes.BuildMediumPicturePath(playList.MediumPictureName)));
+                }
+
+                if (playList.LargePictureName != routes.PresetLargePicture)
+                {
+                    routingSlipBuilder.AddActivity(
+                        "RemovePlayListLargePicture",
+                        EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                        new RemoveFileFromBucketArguments(
+                            bucket,
+                            routes.BuildLargePicturePath(playList.LargePictureName)));
                 }
             }
 
             routingSlipBuilder.AddActivity(
-                ActivityNames.DeleteTrackFromDb,
-                EndpointHelper.BuildExecuteActivityUri(DeleteTrackFromDbActivity.ExecuteEndpointName),
-                new DeleteTrackFromDbArguments(trackId));
+                ActivityNames.DeletePlayListFromDb,
+                EndpointHelper.BuildExecuteActivityUri(DeletePlayListFromDbActivity.ExecuteEndpointName),
+                new DeletePlayListFromDbArguments(playListId));
 
             return routingSlipBuilder;
         }

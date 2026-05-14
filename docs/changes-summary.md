@@ -97,8 +97,7 @@ Archivos clave:
 - Se añadieron overloads de rutas para construir keys con `userId`.
 - Los handlers de request presigned URL ahora generan keys usando el prefijo con `userId`.
 - Los eventos de workflows (sourceKey) se publican con la key prefijada.
-- El borrado de playlist borra la key original prefijada.
-- El borrado de track (`DeleteTrackActivity`) borra originales usando el `userId` presente en `DeleteTrackArguments`.
+- El borrado de playlist y track usan keys prefijadas dentro de sus workflows de delete.
 
 Archivos:
 - `Application/Configuration/PlayListConfiguration.cs`
@@ -109,7 +108,7 @@ Archivos:
 - `Application/PlayLists/Handlers/UpdatePlayListCommandHandler.cs`
 - `Application/Tracks/Handler/CreateTrackCommandHandler.cs`
 - `Application/PlayLists/Handlers/DeletePlayListCommandHandler.cs`
-- `Infrastructure/MassTransit/Activities/Tracks/DeleteTrackActivity.cs`
+
 
 ---
 
@@ -163,3 +162,33 @@ Archivo:
 ## 10) Estado final
 
 - `dotnet build MusifyBackend.slnx -c Release` ✅
+
+---
+
+## 11) Deletes unificados con Workflows (RoutingSlip)
+
+**Objetivo**: homogeneizar deletes de Track/PlayList usando Courier RoutingSlip con actividades granulares e idempotentes.
+
+### Cambios
+- Se añadió `LifeCycleStatus` (`Active`/`Removing`) a `Track` y `PlayList` y se generó migración.
+- Track delete:
+  - Se eliminó la activity monolítica y el slip ahora encadena: marcar como removing → borrar N ficheros (condicional) → borrar en DB.
+- PlayList delete:
+  - Se añadió `DeletePlayListEvent` + consumer + routing slip builder + activities para marcar como removing, borrar pictures (si no son preset) y borrar en DB.
+- Se endureció la idempotencia de borrado en S3: si una key no existe, se loguea y el paso se considera completado.
+- Se eliminaron `RemoveFileEvent`/`RemoveFileConsumer` por quedar sin usos.
+
+Archivos clave:
+- `Domain/Entities/LifeCycleStatus.cs`
+- `Domain/Entities/Track.cs`
+- `Domain/Entities/PlayList.cs`
+- `Application/Events/DeletePlayListEvent.cs`
+- `Application/PlayLists/Handlers/DeletePlayListCommandHandler.cs`
+- `Application/Tracks/Handler/DeleteTrackCommandHandler.cs`
+- `Infrastructure/MassTransit/Consumers/DeleteTrackConsumer.cs`
+- `Infrastructure/MassTransit/Consumers/DeletePlayListConsumer.cs`
+- `Infrastructure/MassTransit/RoutingSlip/Builders/DeleteTrackRoutingSlipBuilder.cs`
+- `Infrastructure/MassTransit/RoutingSlip/Builders/DeletePlayListRoutingSlipBuilder.cs`
+- `Infrastructure/MassTransit/Activities/Files/RemoveFileFromBucketActivity.cs`
+- `Infrastructure/MassTransit/DependencyInjection/MassTransitDependencyInjection.Registration.cs`
+- `Infrastructure/Persistence/Migrations/20260514161518_AddLifeCycleStatus.cs`

@@ -45,6 +45,9 @@ namespace Musify.Domain.Entities
         public ProcessingStatus AudioTranscodeProcessingStatus { get; set; } = ProcessingStatus.Pending;
 
         [Required]
+        public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
+
+        [Required]
         public int RetryCount { get; set; } = 0;
 
         public DateTime? LastRetryAt { get; set; }
