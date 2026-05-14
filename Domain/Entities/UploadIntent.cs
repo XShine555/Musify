@@ -40,7 +40,7 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey(nameof(UserId))]
+        [ForeignKey(nameof(UserId)) ]
         public User User { get; set; } = null!;
     }
 }
