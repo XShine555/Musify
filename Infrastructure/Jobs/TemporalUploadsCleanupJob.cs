@@ -6,16 +6,16 @@ using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Jobs
 {
-    public class TempUploadsCleanupJob(
+    public class TemporalUploadsCleanupJob(
         IServiceScopeFactory scopeFactory,
-        ILogger<TempUploadsCleanupJob> logger,
+        ILogger<TemporalUploadsCleanupJob> logger,
         ApplicationStorageConfiguration storageConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
         : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("TempUploadsCleanupJob started (interval: {Interval}s, prefix: {Prefix})",
+            logger.LogInformation("TemporalUploadsCleanupJob started (interval: {Interval}s, prefix: {Prefix})",
                 uploadIntentConfiguration.TempCleanupJobIntervalSeconds,
                 uploadIntentConfiguration.TempRootPrefix);
 
@@ -27,7 +27,7 @@ namespace Musify.Infrastructure.Jobs
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
-                    logger.LogError(exception, "Error in TempUploadsCleanupJob");
+                    logger.LogError(exception, "Error in TemporalUploadsCleanupJob");
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(uploadIntentConfiguration.TempCleanupJobIntervalSeconds), stoppingToken);
@@ -64,7 +64,7 @@ namespace Musify.Infrastructure.Jobs
             }
 
             if (deleted > 0 || errors > 0)
-                logger.LogInformation("TempUploadsCleanupJob: deleted {Deleted} orphaned objects, {Errors} errors", deleted, errors);
+                logger.LogInformation("TemporalUploadsCleanupJob: deleted {Deleted} orphaned objects, {Errors} errors", deleted, errors);
         }
     }
 }

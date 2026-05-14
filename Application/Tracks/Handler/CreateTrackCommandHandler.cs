@@ -7,7 +7,6 @@ using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
-using Musify.Application.UploadIntents;
 using Musify.Application.Extensions;
 using Musify.Application.Services;
 using Musify.Domain.Entities;

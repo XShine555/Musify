@@ -66,7 +66,7 @@ namespace Musify.Infrastructure.Services
             serviceDescriptors.AddUploadIntentConfiguration(configuration);
 
             serviceDescriptors.AddHostedService<UploadIntentExpirationJob>();
-            serviceDescriptors.AddHostedService<TempUploadsCleanupJob>();
+            serviceDescriptors.AddHostedService<TemporalUploadsCleanupJob>();
 
             return serviceDescriptors;
         }
