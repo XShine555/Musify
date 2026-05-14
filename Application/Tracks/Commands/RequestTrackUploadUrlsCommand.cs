@@ -1,0 +1,14 @@
+using Ardalis.Result;
+using Mediator;
+using Musify.Application.Tracks.Responses;
+
+namespace Musify.Application.Tracks.Commands
+{
+    public record RequestTrackUploadUrlsCommand(
+        Guid UserId,
+        string PictureFileType,
+        string PictureContentType,
+        string AudioFileType,
+        string AudioContentType)
+        : ICommand<Result<TrackUploadUrlsResponse>>;
+}

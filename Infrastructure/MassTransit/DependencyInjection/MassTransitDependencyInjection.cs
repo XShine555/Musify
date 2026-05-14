@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Application.Abstractions.Infrastructure;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.Persistence;
 
 namespace Musify.Infrastructure.MassTransit
 {
@@ -18,6 +19,15 @@ namespace Musify.Infrastructure.MassTransit
             serviceDescriptors.AddScoped<IEventBus, MassTransitEventBus>();
             serviceDescriptors.AddMassTransit(options =>
             {
+                options.AddEntityFrameworkOutbox<Database>(outbox =>
+                {
+                    outbox.UsePostgres();
+                    outbox.UseBusOutbox();
+
+                    outbox.QueryDelay = TimeSpan.FromSeconds(1);
+                    outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
+                });
+
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                     ConfigureRabbitMqHost(
                         busFactoryConfigurator,
@@ -43,6 +53,15 @@ namespace Musify.Infrastructure.MassTransit
 
             serviceDescriptors.AddMassTransit(options =>
             {
+                options.AddEntityFrameworkOutbox<Database>(outbox =>
+                {
+                    outbox.UsePostgres();
+                    outbox.UseBusOutbox();
+
+                    outbox.QueryDelay = TimeSpan.FromSeconds(1);
+                    outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
+                });
+
                 RegisterConsumersAndActivities(options);
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>

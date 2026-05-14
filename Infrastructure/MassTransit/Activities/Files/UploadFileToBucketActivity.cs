@@ -17,17 +17,20 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariable);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
             var fileName = Path.GetFileName(sourceFilePath);
+            var destinationKey = string.Join('/', new[] { executeContext.Arguments.DestinationRoute, fileName }
+                .Where(static s => !string.IsNullOrWhiteSpace(s))
+                .Select(static s => s.Trim().Trim('/', '\\')));
 
             try
             {
                 await storageHandler.UploadFileAsync(
                     sourceFilePath,
                     executeContext.Arguments.DestinationBucket,
-                    Path.Combine(executeContext.Arguments.DestinationRoute, fileName),
+                    destinationKey,
                     executeContext.CancellationToken);
                 return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
                     executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationRoute));
+                    destinationKey));
             }
             catch (Exception exception)
             {

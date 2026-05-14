@@ -16,6 +16,9 @@ namespace Musify.Application.Configuration
     public class TrackRoutes
     {
         [Required]
+        public string UploadsFolder { get; set; } = "uploads";
+
+        [Required]
         public string ParentFolder { get; set; } = "Tracks";
 
         [Required]
@@ -48,35 +51,46 @@ namespace Musify.Application.Configuration
         [Required]
         public string ProcessedAudioFolder { get; set; } = "ProcessedAudios";
 
-        public string SmallPicturesPath => Path.Combine(ParentFolder, SmallPicturesFolder);
+        public string SmallPicturesPath => CombineKey(ParentFolder, SmallPicturesFolder);
 
-        public string MediumPicturesPath => Path.Combine(ParentFolder, MediumPicturesFolder);
+        public string MediumPicturesPath => CombineKey(ParentFolder, MediumPicturesFolder);
 
-        public string LargePicturesPath => Path.Combine(ParentFolder, LargePicturesFolder);
+        public string LargePicturesPath => CombineKey(ParentFolder, LargePicturesFolder);
 
-        public string PresetSmallPicturePath => Path.Combine(ParentFolder, PresetSmallPicture);
+        public string PresetSmallPicturePath => CombineKey(ParentFolder, PresetSmallPicture);
 
-        public string PresetMediumPicturePath => Path.Combine(ParentFolder, PresetMediumPicture);
+        public string PresetMediumPicturePath => CombineKey(ParentFolder, PresetMediumPicture);
 
-        public string PresetLargePicturePath => Path.Combine(ParentFolder, PresetLargePicture);
+        public string PresetLargePicturePath => CombineKey(ParentFolder, PresetLargePicture);
 
-        public string OriginalPicturesPath => Path.Combine(ParentFolder, OriginalPicturesFolder);
+        public string OriginalPicturesPath => CombineKey(ParentFolder, OriginalPicturesFolder);
 
-        public string OriginalAudiosPath => Path.Combine(ParentFolder, OriginalAudiosFolder);
+        public string OriginalAudiosPath => CombineKey(ParentFolder, OriginalAudiosFolder);
 
-        public string ProcessedAudiosPath => Path.Combine(ParentFolder, ProcessedAudioFolder);
+        public string ProcessedAudiosPath => CombineKey(ParentFolder, ProcessedAudioFolder);
 
-        public string BuildOriginalPicturePath(string pictureName) => Path.Combine(OriginalPicturesPath, pictureName);
+        public string BuildOriginalPicturePath(string pictureName) => CombineKey(OriginalPicturesPath, pictureName);
 
-        public string BuildSmallPicturePath(string pictureName) => Path.Combine(SmallPicturesPath, pictureName);
+        public string BuildOriginalPicturePath(Guid userId, string pictureName) => CombineKey(UploadsFolder, userId.ToString(), OriginalPicturesPath, pictureName);
 
-        public string BuildMediumPicturePath(string pictureName) => Path.Combine(MediumPicturesPath, pictureName);
+        public string BuildSmallPicturePath(string pictureName) => CombineKey(SmallPicturesPath, pictureName);
 
-        public string BuildLargePicturePath(string pictureName) => Path.Combine(LargePicturesPath, pictureName);
+        public string BuildMediumPicturePath(string pictureName) => CombineKey(MediumPicturesPath, pictureName);
 
-        public string BuildOriginalAudioPath(string audioName) => Path.Combine(OriginalAudiosPath, audioName);
+        public string BuildLargePicturePath(string pictureName) => CombineKey(LargePicturesPath, pictureName);
 
-        public string BuildProcessedAudioPath(string audioName) => Path.Combine(ProcessedAudiosPath, audioName);
+        public string BuildOriginalAudioPath(string audioName) => CombineKey(OriginalAudiosPath, audioName);
+
+        public string BuildOriginalAudioPath(Guid userId, string audioName) => CombineKey(UploadsFolder, userId.ToString(), OriginalAudiosPath, audioName);
+
+        public string BuildProcessedAudioPath(string audioName) => CombineKey(ProcessedAudiosPath, audioName);
+
+        static string CombineKey(params string[] segments)
+        {
+            return string.Join('/', segments
+                .Where(static s => !string.IsNullOrWhiteSpace(s))
+                .Select(static s => s.Trim().Trim('/', '\\')));
+        }
     }
 
     public class TrackPicturesSizes

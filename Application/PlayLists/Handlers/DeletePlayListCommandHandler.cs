@@ -33,23 +33,12 @@ namespace Musify.Application.PlayLists.Handlers
             var mediumPictureName = playList.MediumPictureName;
             var largePictureName = playList.LargePictureName;
 
-            var originalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(playList.OriginalPictureName);
+            var originalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(playList.UserId, playList.OriginalPictureName);
             var smallPictureKey = playListConfiguration.Routes.BuildSmallPicturePath(playList.SmallPictureName);
             var mediumPictureKey = playListConfiguration.Routes.BuildMediumPicturePath(playList.MediumPictureName);
             var largePictureKey = playListConfiguration.Routes.BuildLargePicturePath(playList.LargePictureName);
 
-            try
-            {
-                database.PlayLists.Remove(playList);
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to delete playlist {PlayListId}", request.PlayListId);
-                return Result.Error($"Failed to delete playlist {request.PlayListId}");
-            }
-
-            await PublishRemoveFileEventsBestEffortAsync(
+            var publishResult = await PublishRemoveFileEventsAsync(
                 playList.Id,
                 originalPictureName,
                 smallPictureName,
@@ -62,10 +51,24 @@ namespace Musify.Application.PlayLists.Handlers
                 playListConfiguration.Routes,
                 cancellationToken);
 
+            if (!publishResult.IsSuccess)
+                return publishResult;
+
+            try
+            {
+                database.PlayLists.Remove(playList);
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to delete playlist {PlayListId}", request.PlayListId);
+                return Result.Error($"Failed to delete playlist {request.PlayListId}");
+            }
+
             return Result.NoContent();
         }
 
-        async Task PublishRemoveFileEventsBestEffortAsync(
+        async Task<Result> PublishRemoveFileEventsAsync(
             Guid playListId,
             string originalPictureName,
             string smallPictureName,
@@ -79,20 +82,31 @@ namespace Musify.Application.PlayLists.Handlers
             CancellationToken cancellationToken)
         {
             if (originalPictureName != playListRoutes.PresetOriginalPicture)
-                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, originalPictureKey, cancellationToken);
+            {
+                var result = await PublishRemoveFileEventAsync(playListId, originalPictureKey, cancellationToken);
+                if (!result.IsSuccess)
+                    return result;
+            }
             if (smallPictureName != playListRoutes.PresetSmallPicture)
-                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, smallPictureKey, cancellationToken);
+            {
+                var result = await PublishRemoveFileEventAsync(playListId, smallPictureKey, cancellationToken);
+                if (!result.IsSuccess)
+                    return result;
+            }
             if (mediumPictureName != playListRoutes.PresetMediumPicture)
-                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, mediumPictureKey, cancellationToken);
+            {
+                var result = await PublishRemoveFileEventAsync(playListId, mediumPictureKey, cancellationToken);
+                if (!result.IsSuccess)
+                    return result;
+            }
             if (largePictureName != playListRoutes.PresetLargePicture)
-                await PublishRemoveFileEventIgnoringErrorsAsync(playListId, largePictureKey, cancellationToken);
-        }
+            {
+                var result = await PublishRemoveFileEventAsync(playListId, largePictureKey, cancellationToken);
+                if (!result.IsSuccess)
+                    return result;
+            }
 
-        async Task PublishRemoveFileEventIgnoringErrorsAsync(Guid playListId, string key, CancellationToken cancellationToken)
-        {
-            var result = await PublishRemoveFileEventAsync(playListId, key, cancellationToken);
-            if (!result.IsSuccess)
-                logger.LogWarning("Remove file event publish failed for playlist {PlayListId} with key {Key}", playListId, key);
+            return Result.Success();
         }
 
         async Task<Result> PublishRemoveFileEventAsync(Guid playListId, string key, CancellationToken cancellationToken)

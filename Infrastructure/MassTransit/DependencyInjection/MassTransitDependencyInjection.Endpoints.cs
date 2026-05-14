@@ -1,5 +1,6 @@
 using MassTransit;
 using Musify.Infrastructure.MassTransit.Consumers;
+using Musify.Infrastructure.Persistence;
 
 namespace Musify.Infrastructure.MassTransit
 {
@@ -12,7 +13,18 @@ namespace Musify.Infrastructure.MassTransit
             where TConsumer : class, IConsumer
         {
             busFactoryConfigurator.ReceiveEndpoint(queueName, endpointConfigurator =>
-                endpointConfigurator.ConfigureConsumer<TConsumer>(busRegistrationContext));
+            {
+                endpointConfigurator.UseMessageRetry(retryConfigurator =>
+                    retryConfigurator.Exponential(
+                        retryLimit: 5,
+                        minInterval: TimeSpan.FromSeconds(1),
+                        maxInterval: TimeSpan.FromSeconds(30),
+                        intervalDelta: TimeSpan.FromSeconds(2)));
+
+                endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
+
+                endpointConfigurator.ConfigureConsumer<TConsumer>(busRegistrationContext);
+            });
         }
 
         static void ConfigureExecuteActivityEndpoint<TActivity, TArguments>(
@@ -24,6 +36,15 @@ namespace Musify.Infrastructure.MassTransit
         {
             busFactoryConfigurator.ReceiveEndpoint(MassTransitEndpointNames.ExecuteQueue(endpointName), endpointConfigurator =>
             {
+                endpointConfigurator.UseMessageRetry(retryConfigurator =>
+                    retryConfigurator.Exponential(
+                        retryLimit: 5,
+                        minInterval: TimeSpan.FromSeconds(1),
+                        maxInterval: TimeSpan.FromSeconds(30),
+                        intervalDelta: TimeSpan.FromSeconds(2)));
+
+                endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
+
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(busRegistrationContext);
             });
         }
@@ -37,14 +58,34 @@ namespace Musify.Infrastructure.MassTransit
             where TLog : class
         {
             busFactoryConfigurator.ReceiveEndpoint(MassTransitEndpointNames.ExecuteQueue(endpointName), endpointConfigurator =>
+            {
+                endpointConfigurator.UseMessageRetry(retryConfigurator =>
+                    retryConfigurator.Exponential(
+                        retryLimit: 5,
+                        minInterval: TimeSpan.FromSeconds(1),
+                        maxInterval: TimeSpan.FromSeconds(30),
+                        intervalDelta: TimeSpan.FromSeconds(2)));
+
+                endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
+
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(
                     EndpointHelper.BuildCompensateActivityUri(endpointName),
-                    busRegistrationContext)
-            );
+                    busRegistrationContext);
+            });
 
             busFactoryConfigurator.ReceiveEndpoint(MassTransitEndpointNames.CompensateQueue(endpointName), endpointConfigurator =>
-                endpointConfigurator.CompensateActivityHost<TActivity, TLog>(busRegistrationContext)
-            );
+            {
+                endpointConfigurator.UseMessageRetry(retryConfigurator =>
+                    retryConfigurator.Exponential(
+                        retryLimit: 5,
+                        minInterval: TimeSpan.FromSeconds(1),
+                        maxInterval: TimeSpan.FromSeconds(30),
+                        intervalDelta: TimeSpan.FromSeconds(2)));
+
+                endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
+
+                endpointConfigurator.CompensateActivityHost<TActivity, TLog>(busRegistrationContext);
+            });
         }
     }
 }

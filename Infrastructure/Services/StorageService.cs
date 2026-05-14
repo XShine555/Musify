@@ -48,6 +48,27 @@ namespace Musify.Infrastructure.Services
             return await amazonS3.GetPreSignedURLAsync(request);
         }
 
+        public async Task<string> GetUploadUrlAsync(
+            string bucket,
+            string key,
+            string contentType,
+            TimeSpan expirationTime,
+            CancellationToken cancellationToken)
+        {
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = bucket,
+                Key = key,
+                Expires = DateTime.UtcNow + expirationTime,
+                Protocol = storageClientConfiguration.UseHttp ? Protocol.HTTP : Protocol.HTTPS,
+                Verb = HttpVerb.PUT,
+                ContentType = contentType
+            };
+
+            logger.LogDebug("Generating pre-signed upload URL for {Bucket}/{Key}", bucket, key);
+            return await amazonS3.GetPreSignedURLAsync(request);
+        }
+
         public async Task RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken)
         {
             var request = new DeleteObjectRequest
@@ -74,7 +95,9 @@ namespace Musify.Infrastructure.Services
                 string fileName = Path.GetFileName(file);
                 string filePath = Path.Combine(sourceDirectory, file);
 
-                var key = Path.Combine(route, fileName);
+                var key = string.Join('/', new[] { route, fileName }
+                    .Where(static s => !string.IsNullOrWhiteSpace(s))
+                    .Select(static s => s.Trim().Trim('/', '\\')));
                 var upload = new Upload
                 {
                     Id = Guid.NewGuid(),

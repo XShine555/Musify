@@ -99,7 +99,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             AddResizeActivity(
                 routingSlipBuilder,
                 ActivityNames.ResizeMedium,
-                ActivityNames.ResizeMedium,
+                ActivityNames.UploadMedium,
                 bucket,
                 RoutingSlipVariableNames.Picture.MediumResizedFilePath,
                 medium);

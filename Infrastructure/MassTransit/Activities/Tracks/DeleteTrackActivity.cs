@@ -33,11 +33,11 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
 
             try
             {
-                await RemovePicturesAsync(track, executeContext.CancellationToken);
+                await RemovePicturesAsync(track, executeContext.Arguments.UserId, executeContext.CancellationToken);
                 track.PicturesProcessingStatus = ProcessingStatus.Completed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
-                await RemoveAudiosAsync(track, executeContext.CancellationToken);
+                await RemoveAudiosAsync(track, executeContext.Arguments.UserId, executeContext.CancellationToken);
                 track.AudioTranscodeProcessingStatus = ProcessingStatus.Completed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
@@ -66,9 +66,9 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
             }
         }
 
-        async Task RemovePicturesAsync(Track track, CancellationToken cancellationToken)
+        async Task RemovePicturesAsync(Track track, Guid userId, CancellationToken cancellationToken)
         {
-            await RemoveFileAsync(trackConfiguration.Routes.BuildOriginalPicturePath(track.OriginalPictureName), cancellationToken);
+            await RemoveFileAsync(trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.OriginalPictureName), cancellationToken);
 
             if (!track.IsPicturesProcessed)
             {
@@ -83,9 +83,9 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
             await RemoveFileAsync(trackConfiguration.Routes.BuildLargePicturePath(track.LargePictureName), cancellationToken);
         }
 
-        async Task RemoveAudiosAsync(Track track, CancellationToken cancellationToken)
+        async Task RemoveAudiosAsync(Track track, Guid userId, CancellationToken cancellationToken)
         {
-            await RemoveFileAsync(trackConfiguration.Routes.BuildOriginalAudioPath(track.OriginalAudioName), cancellationToken);
+            await RemoveFileAsync(trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.OriginalAudioName), cancellationToken);
 
             if (!track.IsAudioProcessed)
             {

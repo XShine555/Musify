@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MassTransit;
 using Musify.Application.Abstractions.Infrastructure;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Configuration;
@@ -11,6 +12,15 @@ namespace Musify.Infrastructure.Persistence
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(configuration.ConnectionString);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.AddInboxStateEntity();
+            modelBuilder.AddOutboxMessageEntity();
+            modelBuilder.AddOutboxStateEntity();
         }
 
         public DbSet<User> Users => Set<User>();

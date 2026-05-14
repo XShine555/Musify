@@ -6,6 +6,8 @@
 
         Task<string> GetUrlAsync(string bucket, string key, TimeSpan ExpirationTime, CancellationToken cancellationToken);
 
+        Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, CancellationToken cancellationToken);
+
         Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken);
 
         Task UploadFileAsync(Stream sourceStream, string contentType, string bucket, string key, CancellationToken cancellationToken);

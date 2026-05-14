@@ -40,21 +40,8 @@ namespace Musify.Application.Tracks.Handler
                 return Result.Conflict("Track is currently being processed and cannot be deleted");
             }
 
-            var previousPicturesStatus = track.PicturesProcessingStatus;
-            var previousAudioStatus = track.AudioTranscodeProcessingStatus;
-
             track.PicturesProcessingStatus = ProcessingStatus.Processing;
             track.AudioTranscodeProcessingStatus = ProcessingStatus.Processing;
-
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to mark track {TrackId} as processing before deletion", request.TrackId);
-                return Result.Error($"Failed to delete track {request.TrackId}");
-            }
 
             try
             {
@@ -65,19 +52,16 @@ namespace Musify.Application.Tracks.Handler
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish delete track event for track {TrackId}", request.TrackId);
+                return Result.Error($"Failed to delete track {request.TrackId}");
+            }
 
-                track.PicturesProcessingStatus = previousPicturesStatus;
-                track.AudioTranscodeProcessingStatus = previousAudioStatus;
-
-                try
-                {
-                    await database.SaveChangesAsync(cancellationToken);
-                }
-                catch (Exception rollbackException)
-                {
-                    logger.LogError(rollbackException, "Failed to rollback track {TrackId} processing flags after publish failure", request.TrackId);
-                }
-
+            try
+            {
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to mark track {TrackId} as processing before deletion", request.TrackId);
                 return Result.Error($"Failed to delete track {request.TrackId}");
             }
 
