@@ -3,6 +3,7 @@ using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Queries;
 using WebApi.DataTransferObjects.PlayLists;
 using WebApi.Extensions;
+using WebApi.Filters;
 
 namespace WebApi.Endpoints;
 
@@ -11,7 +12,8 @@ public static class PlayListEndpoints
     public static IEndpointRouteBuilder MapPlayListEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/playlists")
-            .WithTags("PlayLists");
+            .WithTags("PlayLists")
+            .AddEndpointFilter<ValidationFilter>();
 
         group.MapGet("/", GetPlayLists)
             .WithName("GetPlayLists")

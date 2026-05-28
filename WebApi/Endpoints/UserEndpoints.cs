@@ -3,6 +3,7 @@ using Musify.Application.Users.Commands;
 using Musify.Application.Users.Queries;
 using WebApi.DataTransferObjects.Users;
 using WebApi.Extensions;
+using WebApi.Filters;
 
 namespace WebApi.Endpoints;
 
@@ -11,7 +12,8 @@ public static class UserEndpoints
     public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/users")
-            .WithTags("Users");
+            .WithTags("Users")
+            .AddEndpointFilter<ValidationFilter>();
 
         group.MapGet("/", GetUsers)
             .WithName("GetUsers")

@@ -3,6 +3,7 @@ using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Queries;
 using WebApi.DataTransferObjects.Tracks;
 using WebApi.Extensions;
+using WebApi.Filters;
 
 namespace WebApi.Endpoints;
 
@@ -11,7 +12,8 @@ public static class TrackEndpoints
     public static IEndpointRouteBuilder MapTrackEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/tracks")
-            .WithTags("Tracks");
+            .WithTags("Tracks")
+            .AddEndpointFilter<ValidationFilter>();
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")

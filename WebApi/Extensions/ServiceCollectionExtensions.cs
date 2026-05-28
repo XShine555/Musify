@@ -1,3 +1,4 @@
+using FluentValidation;
 using Mediator;
 using Musify.Application;
 using Musify.Infrastructure.MassTransit;
@@ -6,6 +7,7 @@ using Musify.Infrastructure.Services;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using WebApi.DataTransferObjects.PlayLists;
 using WebApi.Options;
 
 namespace WebApi.Extensions;
@@ -21,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddMassTransitClient(configuration);
         services.AddMediator();
         services.AddOpenApi();
+        services.AddValidatorsFromAssemblyContaining<CreatePlayListRequest>();
 
         return services;
     }
