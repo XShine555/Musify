@@ -16,8 +16,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
         {
             try
             {
-                var destinationFolderName = Guid.NewGuid().ToString();
-                var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, destinationFolderName);
+                var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, Guid.NewGuid().ToString());
 
                 var sourceFilePath = Path.Combine(
                     workingDirectory, Guid.NewGuid().ToString() + Path.GetExtension(executeContext.Arguments.SourceKey));
@@ -38,8 +37,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     [RoutingSlipVariableNames.Picture.OriginalFilePath] = sourceFilePath,
                     [RoutingSlipVariableNames.Picture.SmallResizedFilePath] = smallPictureFilePath,
                     [RoutingSlipVariableNames.Picture.MediumResizedFilePath] = mediumPictureFilePath,
-                    [RoutingSlipVariableNames.Picture.LargeResizedFilePath] = largePictureFilePath,
-                    [RoutingSlipVariableNames.Picture.DestinationFolderName] = destinationFolderName
+                    [RoutingSlipVariableNames.Picture.LargeResizedFilePath] = largePictureFilePath
                 } );
             }
             catch (Exception exception)

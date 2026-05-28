@@ -17,7 +17,6 @@ namespace Musify.Application.PlayLists.Handlers
         IEventBus eventBus,
         IDatabase database,
         UploadIntentValidator uploadIntentValidator,
-        IStorageService storageService,
         ILogger<UpdatePlayListCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration,
@@ -50,6 +49,9 @@ namespace Musify.Application.PlayLists.Handlers
                 playListEntity.Description = request.NewDescription;
             }
 
+            UploadIntent? pictureIntent = null;
+            string? finalPictureKey = null;
+
             if (request.NewPictureIntentId.HasValue)
             {
                 var validation = await uploadIntentValidator.ValidateAndLoadAsync(
@@ -58,29 +60,23 @@ namespace Musify.Application.PlayLists.Handlers
                 if (!validation.IsSuccess)
                     return validation.As<UploadIntent, PlayListApplicationResponse>();
 
-                var intent = validation.Value;
-                var finalKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, intent.ObjectName);
-                try
-                {
-                    await storageService.CopyFileAsync(intent.Bucket, intent.Key, intent.Bucket, finalKey, cancellationToken);
-                }
-                catch (Exception exception)
-                {
-                    logger.LogError(exception, "Failed to copy playlist picture from temp {TempKey} to final {FinalKey}", intent.Key, finalKey);
-                    return Result.Error("Failed to move uploaded file to its final location.");
-                }
+                pictureIntent = validation.Value;
+                playListEntity.OriginalPictureName = pictureIntent.ObjectName;
+                finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
+            }
 
-                playListEntity.OriginalPictureName = intent.ObjectName;
-                intent.Status = UploadIntentStatus.Consumed;
+            database.PlayLists.Update(playListEntity);
 
-                var publishResult = await PublishPlayListPictureEvent(playListEntity.UserId, playListEntity.Id, playListEntity.OriginalPictureName, cancellationToken);
+            if (pictureIntent is not null && finalPictureKey is not null)
+            {
+                var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(
+                    playListEntity.Id, pictureIntent, finalPictureKey, cancellationToken);
                 if (!publishResult.IsSuccess)
                     return publishResult;
             }
 
             try
             {
-                database.PlayLists.Update(playListEntity);
                 await database.SaveChangesAsync(cancellationToken);
             }
             catch (Exception exception)
@@ -93,33 +89,40 @@ namespace Musify.Application.PlayLists.Handlers
             return Result.Success(PlayListApplicationResponse.FromEntity(playListEntity));
         }
 
-        async Task<Result> PublishPlayListPictureEvent(Guid userId, Guid playListId, string originalPictureName, CancellationToken cancellationToken)
+        async Task<Result<PlayListApplicationResponse>> PublishUpdatePlayListPictureSourceEventAsync(
+            Guid playListId,
+            UploadIntent pictureIntent,
+            string finalPictureKey,
+            CancellationToken cancellationToken)
         {
             try
             {
-                await eventBus.PublishAsync(new UpdatePlayListPictureEvent(
-                    playListId,
-                    storageConfiguration.Bucket,
-                    playListConfiguration.Routes.BuildOriginalPicturePath(userId, originalPictureName),
-                    new ImageSize(
-                        playListConfiguration.Routes.SmallPicturesPath,
-                        playListConfiguration.PicturesSizes.SmallPictureWidth,
-                        playListConfiguration.PicturesSizes.SmallPictureHeight),
-                    new ImageSize(
-                        playListConfiguration.Routes.MediumPicturesPath,
-                        playListConfiguration.PicturesSizes.MediumPictureWidth,
-                        playListConfiguration.PicturesSizes.MediumPictureHeight),
-                    new ImageSize(
-                        playListConfiguration.Routes.LargePicturesPath,
-                        playListConfiguration.PicturesSizes.LargePictureWidth,
-                        playListConfiguration.PicturesSizes.LargePictureHeight)),
+                await eventBus.PublishAsync(
+                    new UpdatePlayListPictureSourceEvent(
+                        playListId,
+                        pictureIntent.Id,
+                        storageConfiguration.Bucket,
+                        pictureIntent.Key,
+                        finalPictureKey,
+                        new ImageSize(
+                            playListConfiguration.Routes.SmallPicturesPath,
+                            playListConfiguration.PicturesSizes.SmallPictureWidth,
+                            playListConfiguration.PicturesSizes.SmallPictureHeight),
+                        new ImageSize(
+                            playListConfiguration.Routes.MediumPicturesPath,
+                            playListConfiguration.PicturesSizes.MediumPictureWidth,
+                            playListConfiguration.PicturesSizes.MediumPictureHeight),
+                        new ImageSize(
+                            playListConfiguration.Routes.LargePicturesPath,
+                            playListConfiguration.PicturesSizes.LargePictureWidth,
+                            playListConfiguration.PicturesSizes.LargePictureHeight)),
                     cancellationToken);
                 return Result.Success();
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to publish playlist picture update event for playlist {PlayListId}", playListId);
-                return Result.Error($"Failed to publish playlist {playListId} picture update event");
+                logger.LogError(exception, "Failed to publish update playlist picture source event for playlist {PlayListId}", playListId);
+                return Result.Error($"Failed to publish update playlist picture source event for playlist {playListId}");
             }
         }
     }

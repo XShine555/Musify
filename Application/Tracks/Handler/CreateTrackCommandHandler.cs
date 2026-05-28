@@ -17,7 +17,6 @@ namespace Musify.Application.Tracks.Handler
         IDatabase database,
         IEventBus eventBus,
         UploadIntentValidator uploadIntentValidator,
-        IStorageService storageService,
         ILogger<CreateTrackCommandHandler> logger,
         ApplicationStorageConfiguration storageConfiguration,
         TrackConfiguration trackConfiguration,
@@ -51,17 +50,7 @@ namespace Musify.Application.Tracks.Handler
 
             var finalPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
-
-            try
-            {
-                await storageService.CopyFileAsync(pictureIntent.Bucket, pictureIntent.Key, pictureIntent.Bucket, finalPictureKey, cancellationToken);
-                await storageService.CopyFileAsync(audioIntent.Bucket, audioIntent.Key, audioIntent.Bucket, finalAudioKey, cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to copy track files from temp to final location for user {UserId}", request.UserId);
-                return Result.Error("Failed to move uploaded files to their final locations.");
-            }
+            var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
             var trackEntity = new Track
             {
@@ -78,16 +67,38 @@ namespace Musify.Application.Tracks.Handler
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
 
-            pictureIntent.Status = UploadIntentStatus.Consumed;
-            audioIntent.Status = UploadIntentStatus.Consumed;
-
-            var publishPictureResult = await PublishUpdateEvent(request.UserId, trackEntity, cancellationToken);
-            if (!publishPictureResult.IsSuccess)
+            try
+            {
+                await eventBus.PublishAsync(
+                    new CreateTrackResourcesEvent(
+                        trackEntity.Id,
+                        pictureIntent.Id,
+                        audioIntent.Id,
+                        storageConfiguration.Bucket,
+                        pictureIntent.Key,
+                        finalPictureKey,
+                        audioIntent.Key,
+                        finalAudioKey,
+                        audioProcessedFolderKey,
+                        new ImageSize(
+                            trackConfiguration.Routes.SmallPicturesPath,
+                            trackConfiguration.PicturesSizes.SmallPictureWidth,
+                            trackConfiguration.PicturesSizes.SmallPictureHeight),
+                        new ImageSize(
+                            trackConfiguration.Routes.MediumPicturesPath,
+                            trackConfiguration.PicturesSizes.MediumPictureWidth,
+                            trackConfiguration.PicturesSizes.MediumPictureHeight),
+                        new ImageSize(
+                            trackConfiguration.Routes.LargePicturesPath,
+                            trackConfiguration.PicturesSizes.LargePictureWidth,
+                            trackConfiguration.PicturesSizes.LargePictureHeight)),
+                    cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to publish create track event for track {TrackId}", trackEntity.Id);
                 return Result.Error($"Failed to create track for {request.Title}");
-
-            var publishTranscodeResult = await PublishTranscodeEvent(request.UserId, trackEntity, cancellationToken);
-            if (!publishTranscodeResult.IsSuccess)
-                return Result.Error($"Failed to create track for {request.Title}");
+            }
 
             try
             {
@@ -100,56 +111,6 @@ namespace Musify.Application.Tracks.Handler
             }
 
             return Result.Created(TrackApplicationResponse.FromEntity(trackEntity));
-        }
-
-        async Task<Result> PublishUpdateEvent(Guid userId, Track track, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await eventBus.PublishAsync(new UpdateTrackPictureEvent(
-                    track.Id,
-                    storageConfiguration.Bucket,
-                    trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.OriginalPictureName),
-                    new ImageSize(
-                        trackConfiguration.Routes.SmallPicturesPath,
-                        trackConfiguration.PicturesSizes.SmallPictureWidth,
-                        trackConfiguration.PicturesSizes.SmallPictureHeight),
-                    new ImageSize(
-                        trackConfiguration.Routes.MediumPicturesPath,
-                        trackConfiguration.PicturesSizes.MediumPictureWidth,
-                        trackConfiguration.PicturesSizes.MediumPictureHeight),
-                    new ImageSize(
-                        trackConfiguration.Routes.LargePicturesPath,
-                        trackConfiguration.PicturesSizes.LargePictureWidth,
-                        trackConfiguration.PicturesSizes.LargePictureHeight)), cancellationToken);
-                return Result.Success();
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to publish track picture update event for track {TrackId}", track.Id);
-                return Result.Error($"Failed to publish track picture update event for track {track.Id}");
-            }
-        }
-
-        async Task<Result> PublishTranscodeEvent(Guid userId, Track track, CancellationToken cancellationToken)
-        {
-            var destinationFolderAudio = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
-
-            try
-            {
-                await eventBus.PublishAsync(new UpdateTrackAudioEvent(
-                    track.Id,
-                    storageConfiguration.Bucket,
-                    trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.OriginalAudioName),
-                    storageConfiguration.Bucket,
-                    destinationFolderAudio), cancellationToken);
-                return Result.Success();
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to publish track audio update event for track {TrackId}", track.Id);
-                return Result.Error($"Failed to publish track audio update event for track {track.Id}");
-            }
         }
     }
 }

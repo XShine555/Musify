@@ -3,8 +3,8 @@ using MassTransit.Courier.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
-using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Tracks;
 using Musify.Infrastructure.MassTransit.Consumers;
 
@@ -42,7 +42,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 var bucket = storageConfiguration.Bucket;
 
                 routingSlipBuilder.AddActivity(
-                    "RemoveTrackOriginalPicture",
+                    ActivityNames.RemoveTrackOriginalPicture,
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
@@ -51,21 +51,21 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 if (track.IsPicturesProcessed)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemoveTrackSmallPicture",
+                        ActivityNames.RemoveTrackSmallPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
                             trackConfiguration.Routes.BuildSmallPicturePath(track.SmallPictureName)));
 
                     routingSlipBuilder.AddActivity(
-                        "RemoveTrackMediumPicture",
+                        ActivityNames.RemoveTrackMediumPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
                             trackConfiguration.Routes.BuildMediumPicturePath(track.MediumPictureName)));
 
                     routingSlipBuilder.AddActivity(
-                        "RemoveTrackLargePicture",
+                        ActivityNames.RemoveTrackLargePicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
@@ -73,7 +73,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 }
 
                 routingSlipBuilder.AddActivity(
-                    "RemoveTrackOriginalAudio",
+                    ActivityNames.RemoveTrackOriginalAudio,
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
@@ -82,7 +82,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 if (track.IsAudioProcessed)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemoveTrackProcessedAudio",
+                        ActivityNames.RemoveTrackProcessedAudio,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,

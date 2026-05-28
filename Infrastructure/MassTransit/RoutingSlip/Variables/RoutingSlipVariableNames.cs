@@ -11,9 +11,7 @@ namespace Musify.Infrastructure.MassTransit
         internal static class Audio
         {
             internal const string SourceFilePath = "Audio.SourceFilePath";
-            internal const string WorkingDirectory = "Audio.WorkingDirectory";
             internal const string TranscodedDirectory = "Audio.TranscodedDirectory";
-            internal const string PreviousAudioFolderName = "Audio.PreviousAudioFolderName";
         }
 
         internal static class Picture
@@ -22,7 +20,6 @@ namespace Musify.Infrastructure.MassTransit
             internal const string SmallResizedFilePath = "Picture.SmallResizedFilePath";
             internal const string MediumResizedFilePath = "Picture.MediumResizedFilePath";
             internal const string LargeResizedFilePath = "Picture.LargeResizedFilePath";
-            internal const string DestinationFolderName = "Picture.DestinationFolderName";
         }
     }
 }

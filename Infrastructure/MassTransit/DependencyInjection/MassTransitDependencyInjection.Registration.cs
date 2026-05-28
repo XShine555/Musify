@@ -8,6 +8,7 @@ using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Logs;
 using Musify.Infrastructure.MassTransit.Activities.PlayLists;
 using Musify.Infrastructure.MassTransit.Activities.Tracks;
+using Musify.Infrastructure.MassTransit.Activities.UploadIntents;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.MassTransit.Logs;
@@ -23,6 +24,8 @@ namespace Musify.Infrastructure.MassTransit
             services.AddScoped<PictureWorkflowRoutingSlipBuilder>();
             services.AddScoped<DeleteTrackRoutingSlipBuilder>();
             services.AddScoped<DeletePlayListRoutingSlipBuilder>();
+            services.AddScoped<CreateTrackRoutingSlipBuilder>();
+            services.AddScoped<PlayListPictureSourceRoutingSlipBuilder>();
         }
 
         static void RegisterConsumersAndActivities(IBusRegistrationConfigurator options)
@@ -33,6 +36,9 @@ namespace Musify.Infrastructure.MassTransit
             options.AddConsumer<UpdateTrackAudioConsumer>();
             options.AddConsumer<DeleteTrackConsumer>();
             options.AddConsumer<DeletePlayListConsumer>();
+            options.AddConsumer<CreateTrackConsumer>();
+            options.AddConsumer<CreatePlayListConsumer>();
+            options.AddConsumer<UpdatePlayListPictureSourceConsumer>();
 
             options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
             options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
@@ -41,6 +47,8 @@ namespace Musify.Infrastructure.MassTransit
             options.AddExecuteActivity<DeleteTrackFromDbActivity, DeleteTrackFromDbArguments>();
             options.AddExecuteActivity<MarkPlayListAsRemovingActivity, MarkPlayListAsRemovingArguments>();
             options.AddExecuteActivity<DeletePlayListFromDbActivity, DeletePlayListFromDbArguments>();
+            options.AddExecuteActivity<PublishTrackProcessingEventsActivity, PublishTrackProcessingEventsArguments>();
+            options.AddExecuteActivity<PublishPlayListPictureProcessingEventActivity, PublishPlayListPictureProcessingEventArguments>();
 
             options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
             options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();
@@ -50,6 +58,8 @@ namespace Musify.Infrastructure.MassTransit
             options.AddActivity<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
             options.AddActivity<UpdateTrackAudioActivity, UpdateTrackAudioArguments, UpdateTrackAudioLog>();
             options.AddActivity<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>();
+            options.AddActivity<CopyFileInBucketActivity, CopyFileInBucketArguments, CopyFileInBucketLog>();
+            options.AddActivity<ConsumeUploadIntentsActivity, ConsumeUploadIntentsArguments, ConsumeUploadIntentsLog>();
         }
 
         static void ConfigureRabbitMqWorkerEndpoints(
@@ -84,6 +94,21 @@ namespace Musify.Infrastructure.MassTransit
                 busFactoryConfigurator,
                 busRegistrationContext,
                 DeletePlayListConsumer.QueueName);
+
+            ConfigureConsumerEndpoint<CreateTrackConsumer>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                CreateTrackConsumer.QueueName);
+
+            ConfigureConsumerEndpoint<CreatePlayListConsumer>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                CreatePlayListConsumer.QueueName);
+
+            ConfigureConsumerEndpoint<UpdatePlayListPictureSourceConsumer>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                UpdatePlayListPictureSourceConsumer.QueueName);
 
             ConfigureConsumerEndpoint<RoutingSlipCleanUpConsumer>(
                 busFactoryConfigurator,
@@ -125,6 +150,16 @@ namespace Musify.Infrastructure.MassTransit
                 busRegistrationContext,
                 DeletePlayListFromDbActivity.ExecuteEndpointName);
 
+            ConfigureExecuteActivityEndpoint<PublishTrackProcessingEventsActivity, PublishTrackProcessingEventsArguments>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                PublishTrackProcessingEventsActivity.ExecuteEndpointName);
+
+            ConfigureExecuteActivityEndpoint<PublishPlayListPictureProcessingEventActivity, PublishPlayListPictureProcessingEventArguments>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                PublishPlayListPictureProcessingEventActivity.ExecuteEndpointName);
+
             ConfigureActivityEndpoint<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>(
                 busFactoryConfigurator,
                 busRegistrationContext,
@@ -164,6 +199,16 @@ namespace Musify.Infrastructure.MassTransit
                 busFactoryConfigurator,
                 busRegistrationContext,
                 UploadFileToBucketActivity.ExecuteEndpointName);
+
+            ConfigureActivityEndpoint<CopyFileInBucketActivity, CopyFileInBucketArguments, CopyFileInBucketLog>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                CopyFileInBucketActivity.ExecuteEndpointName);
+
+            ConfigureActivityEndpoint<ConsumeUploadIntentsActivity, ConsumeUploadIntentsArguments, ConsumeUploadIntentsLog>(
+                busFactoryConfigurator,
+                busRegistrationContext,
+                ConsumeUploadIntentsActivity.ExecuteEndpointName);
         }
     }
 }

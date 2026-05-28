@@ -45,7 +45,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 if (playList.OriginalPictureName != routes.PresetOriginalPicture)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemovePlayListOriginalPicture",
+                        ActivityNames.RemovePlayListOriginalPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
@@ -55,7 +55,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 if (playList.SmallPictureName != routes.PresetSmallPicture)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemovePlayListSmallPicture",
+                        ActivityNames.RemovePlayListSmallPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
@@ -65,7 +65,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 if (playList.MediumPictureName != routes.PresetMediumPicture)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemovePlayListMediumPicture",
+                        ActivityNames.RemovePlayListMediumPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
@@ -75,7 +75,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 if (playList.LargePictureName != routes.PresetLargePicture)
                 {
                     routingSlipBuilder.AddActivity(
-                        "RemovePlayListLargePicture",
+                        ActivityNames.RemovePlayListLargePicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,

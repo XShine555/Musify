@@ -45,7 +45,6 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 return executeContext.CompletedWithVariables(new Dictionary<string, object>
                 {
                     [RoutingSlipVariableNames.Workflow.TemporalDirectory] = workingDirectory,
-                    [RoutingSlipVariableNames.Audio.WorkingDirectory] = workingDirectory,
                     [RoutingSlipVariableNames.Audio.SourceFilePath] = sourceFilePath,
                     [RoutingSlipVariableNames.Audio.TranscodedDirectory] = workingDirectory
                 } );
