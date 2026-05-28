@@ -1,4 +1,4 @@
-namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
+namespace Musify.Infrastructure.MassTransit.Arguments
 {
     internal record MarkPlayListAsRemovingArguments(
         Guid PlayListId);

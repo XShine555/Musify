@@ -1,21 +1,21 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
+using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.Jobs
 {
-    public class TemporalUploadsCleanupJob(
+    public class TemporalUploadsCleanUpJob(
         IServiceScopeFactory scopeFactory,
-        ILogger<TemporalUploadsCleanupJob> logger,
+        ILogger<TemporalUploadsCleanUpJob> logger,
         ApplicationStorageConfiguration storageConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
         : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("TemporalUploadsCleanupJob started (interval: {Interval}s, prefix: {Prefix})",
+            logger.LogInformation("TemporalUploadsCleanUpJob started (interval: {Interval}s, prefix: {Prefix})",
                 uploadIntentConfiguration.TempCleanupJobIntervalSeconds,
                 uploadIntentConfiguration.TempRootPrefix);
 
@@ -27,7 +27,7 @@ namespace Musify.Infrastructure.Jobs
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
-                    logger.LogError(exception, "Error in TemporalUploadsCleanupJob");
+                    logger.LogError(exception, "Error in TemporalUploadsCleanUpJob");
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(uploadIntentConfiguration.TempCleanupJobIntervalSeconds), stoppingToken);
@@ -39,7 +39,7 @@ namespace Musify.Infrastructure.Jobs
             await using var scope = scopeFactory.CreateAsyncScope();
             var storageService = scope.ServiceProvider.GetRequiredService<IStorageService>();
 
-            var cutoff = DateTime.UtcNow.AddDays(-uploadIntentConfiguration.TempUploadsRetentionDays);
+            var cutOff = DateTime.UtcNow.AddDays(-uploadIntentConfiguration.TempUploadsRetentionDays);
             var deleted = 0;
             var errors = 0;
 
@@ -48,7 +48,7 @@ namespace Musify.Infrastructure.Jobs
                 uploadIntentConfiguration.TempRootPrefix,
                 cancellationToken))
             {
-                if (lastModified >= cutoff)
+                if (lastModified >= cutOff)
                     continue;
 
                 try
@@ -64,7 +64,7 @@ namespace Musify.Infrastructure.Jobs
             }
 
             if (deleted > 0 || errors > 0)
-                logger.LogInformation("TemporalUploadsCleanupJob: deleted {Deleted} orphaned objects, {Errors} errors", deleted, errors);
+                logger.LogInformation("TemporalUploadsCleanUpJob: deleted {Deleted} orphaned objects, {Errors} errors", deleted, errors);
         }
     }
 }

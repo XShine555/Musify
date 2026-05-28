@@ -2,12 +2,12 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Pagination;
-using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Tracks.Queries;
 using Musify.Application.Tracks.Responses;
 using X.PagedList.EF;
+using Musify.Application.Contracts;
 
-namespace Musify.Application.Tracks.Handler
+namespace Musify.Application.Tracks.Handlers
 {
     public class GetTracksByUserIdQueryHandler(IDatabase database)
         : IQueryHandler<GetTracksByUserIdQuery, Result<PaginatedResponse<TrackApplicationResponse>> >

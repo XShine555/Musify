@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Musify.Domain.ValueObjects;
+
 namespace Musify.Domain.Entities
 {
     [Table("Upload")]

@@ -1,4 +1,4 @@
-namespace Musify.Infrastructure.MassTransit.Activities.Logs
+namespace Musify.Infrastructure.MassTransit.Logs
 {
     public record UpdateTrackPictureLog(
         Guid TrackId,

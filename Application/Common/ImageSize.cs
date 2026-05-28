@@ -1,4 +1,4 @@
-﻿namespace Musify.Application.Events
+﻿namespace Musify.Application.Common
 {
     public record ImageSize(
         string SavePath,

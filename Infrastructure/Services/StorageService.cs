@@ -3,10 +3,11 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Logging;
 using MimeMapping;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Contracts;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.Configuration;
-using ObjectMetadata = Musify.Application.Contracts.Infrastructure.ObjectMetadata;
+using ObjectMetaData = Musify.Application.Contracts.ObjectMetaData;
 
 namespace Musify.Infrastructure.Services
 {
@@ -70,12 +71,12 @@ namespace Musify.Infrastructure.Services
             return await amazonS3.GetPreSignedURLAsync(request);
         }
 
-        public async Task<ObjectMetadata?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken)
+        public async Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken)
         {
             try
             {
                 var response = await amazonS3.GetObjectMetadataAsync(bucket, key, cancellationToken);
-                return new ObjectMetadata(response.Headers.ContentType, response.ContentLength);
+                return new ObjectMetaData(response.Headers.ContentType, response.ContentLength);
             }
             catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

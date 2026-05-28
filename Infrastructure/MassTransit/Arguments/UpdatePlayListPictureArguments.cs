@@ -1,4 +1,4 @@
-﻿namespace Musify.Infrastructure.MassTransit.Activities.Arguments
+﻿namespace Musify.Infrastructure.MassTransit.Arguments
 {
     public record UpdatePlayListPictureArguments(
         Guid PlayListId,

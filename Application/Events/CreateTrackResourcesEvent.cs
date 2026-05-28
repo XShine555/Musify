@@ -1,3 +1,5 @@
+using Musify.Application.Common;
+
 namespace Musify.Application.Events
 {
     public record CreateTrackResourcesEvent(

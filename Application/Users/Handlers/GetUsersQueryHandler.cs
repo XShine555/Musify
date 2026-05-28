@@ -2,10 +2,10 @@ using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Pagination;
-using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Users.Queries;
 using Musify.Application.Users.Responses;
 using X.PagedList.EF;
+using Musify.Application.Contracts;
 
 namespace Musify.Application.Users.Handlers
 {

@@ -3,15 +3,17 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Common;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Extensions;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
+using Musify.Application.Contracts;
 
-namespace Musify.Application.Tracks.Handler
+namespace Musify.Application.Tracks.Handlers
 {
     public class CreateTrackCommandHandler(
         IDatabase database,

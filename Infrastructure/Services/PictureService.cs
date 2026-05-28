@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Contracts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 

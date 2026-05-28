@@ -1,3 +1,4 @@
+using Musify.Application.Common;
 using Musify.Application.Events;
 
 namespace Musify.Infrastructure.MassTransit.Arguments

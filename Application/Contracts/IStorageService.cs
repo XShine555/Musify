@@ -1,11 +1,11 @@
-namespace Musify.Application.Contracts.Infrastructure
+namespace Musify.Application.Contracts
 {
     public interface IStorageService
     {
         Task<Stream> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
         // Returns null if the object does not exist
-        Task<ObjectMetadata?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
+        Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
 
         Task<string> GetUrlAsync(string bucket, string key, TimeSpan ExpirationTime, CancellationToken cancellationToken);
 

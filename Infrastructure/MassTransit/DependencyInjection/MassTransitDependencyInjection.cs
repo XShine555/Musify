@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Persistence;
 

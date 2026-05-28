@@ -1,9 +1,9 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
+using Musify.Application.Common;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Activities;
-using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;

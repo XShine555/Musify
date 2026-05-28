@@ -3,13 +3,15 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Common;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Extensions;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
+using Musify.Application.Contracts;
 
 namespace Musify.Application.PlayLists.Handlers
 {

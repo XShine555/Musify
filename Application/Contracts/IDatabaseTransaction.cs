@@ -1,4 +1,4 @@
-namespace Musify.Application.Contracts.Infrastructure
+namespace Musify.Application.Contracts
 {
     public interface IDatabaseTransaction : IAsyncDisposable
     {

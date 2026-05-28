@@ -1,9 +1,10 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Contracts;
 using Musify.Domain.Entities;
-using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using Musify.Domain.ValueObjects;
+using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {

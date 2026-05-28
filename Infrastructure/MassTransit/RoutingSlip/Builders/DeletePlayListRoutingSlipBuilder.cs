@@ -1,12 +1,12 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.MassTransit.Activities.Files;
-using Musify.Infrastructure.MassTransit.Activities.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.PlayLists;
+using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
+using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {

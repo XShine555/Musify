@@ -2,11 +2,11 @@ using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Jobs;
 using Musify.Application.Services;
+using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.Services
 {
@@ -66,7 +66,7 @@ namespace Musify.Infrastructure.Services
             serviceDescriptors.AddUploadIntentConfiguration(configuration);
 
             serviceDescriptors.AddHostedService<UploadIntentExpirationJob>();
-            serviceDescriptors.AddHostedService<TemporalUploadsCleanupJob>();
+            serviceDescriptors.AddHostedService<TemporalUploadsCleanUpJob>();
 
             return serviceDescriptors;
         }

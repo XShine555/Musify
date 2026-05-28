@@ -1,4 +1,4 @@
-namespace Musify.Infrastructure.MassTransit.Activities.Tracks
+namespace Musify.Infrastructure.MassTransit.Arguments
 {
     internal record MarkTrackAsRemovingArguments(
         Guid TrackId);

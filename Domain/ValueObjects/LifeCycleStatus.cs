@@ -1,4 +1,4 @@
-namespace Musify.Domain.Entities
+namespace Musify.Domain.ValueObjects
 {
     public enum LifeCycleStatus
     {

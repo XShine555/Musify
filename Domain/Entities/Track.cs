@@ -2,6 +2,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
+using Musify.Domain.ValueObjects;
+
 namespace Musify.Domain.Entities
 {
 #pragma warning disable CS8618

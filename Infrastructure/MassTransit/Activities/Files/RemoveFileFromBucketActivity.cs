@@ -1,9 +1,9 @@
 using MassTransit;
 using Amazon.S3;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
-using Musify.Infrastructure.MassTransit.Activities.Arguments;
+using Musify.Infrastructure.MassTransit.Arguments;
 using System.Net;
+using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {

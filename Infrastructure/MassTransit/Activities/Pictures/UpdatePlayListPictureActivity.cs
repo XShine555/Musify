@@ -1,8 +1,8 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
-using Musify.Infrastructure.MassTransit.Activities.Arguments;
-using Musify.Infrastructure.MassTransit.Activities.Logs;
+using Musify.Application.Contracts;
+using Musify.Infrastructure.MassTransit.Arguments;
+using Musify.Infrastructure.MassTransit.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {

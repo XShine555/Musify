@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Contracts.Infrastructure;
 using Musify.Application.Configuration;
-using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
+using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.Jobs
 {

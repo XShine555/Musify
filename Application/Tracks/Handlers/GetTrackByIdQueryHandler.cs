@@ -1,11 +1,11 @@
 using Ardalis.Result;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Contracts.Infrastructure;
+using Musify.Application.Contracts;
 using Musify.Application.Tracks.Queries;
 using Musify.Application.Tracks.Responses;
 
-namespace Musify.Application.Tracks.Handler
+namespace Musify.Application.Tracks.Handlers
 {
     public class GetTrackByIdQueryHandler(IDatabase database)
         : IQueryHandler<GetTrackByIdQuery, Result<TrackApplicationResponse> >
