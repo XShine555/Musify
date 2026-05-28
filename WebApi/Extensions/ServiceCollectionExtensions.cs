@@ -1,6 +1,4 @@
 using FluentValidation;
-using Mediator;
-using Musify.Application;
 using Musify.Infrastructure.MassTransit;
 using Musify.Infrastructure.Persistence;
 using Musify.Application.Configuration;
