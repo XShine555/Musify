@@ -22,10 +22,6 @@ public static class UserEndpoints
             .WithName("GetUserById")
             .WithSummary("Get a user by ID.");
 
-        group.MapGet("/keycloak/{id}", GetUserByKeycloak)
-            .WithName("GetUserByKeycloak")
-            .WithSummary("Get a user by Keycloak ID.");
-
         group.MapPost("/", CreateUser)
             .WithName("CreateUser")
             .WithSummary("Create a new user.")
@@ -51,15 +47,6 @@ public static class UserEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetUserByIdQuery(id), cancellationToken);
-        return result.ToHttpResult();
-    }
-
-    private static async Task<IResult> GetUserByKeycloak(
-        IMediator mediator,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(new GetUserByKeycloakQuery(id), cancellationToken);
         return result.ToHttpResult();
     }
 
