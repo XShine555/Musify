@@ -228,7 +228,7 @@ namespace Musify.Infrastructure.Services
             }
         }
 
-        public async IAsyncEnumerable<(string Key, DateTime LastModifiedUtc)> ListObjectsAsync(
+        public async IAsyncEnumerable<StorageObject> ListObjectsAsync(
             string bucket, string prefix, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var listRequest = new ListObjectsV2Request
@@ -242,7 +242,7 @@ namespace Musify.Infrastructure.Services
             {
                 listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
                 foreach (var obj in listResponse.S3Objects)
-                    yield return (obj.Key, (obj.LastModified ?? DateTime.UtcNow).ToUniversalTime());
+                    yield return new StorageObject(obj.Key, (obj.LastModified ?? DateTime.UtcNow).ToUniversalTime());
 
                 listRequest.ContinuationToken = listResponse.NextContinuationToken;
             }

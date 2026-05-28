@@ -23,6 +23,6 @@ namespace Musify.Application.Contracts
 
         Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken);
         
-        IAsyncEnumerable<(string Key, DateTime LastModifiedUtc)> ListObjectsAsync(string bucket, string prefix, CancellationToken cancellationToken);
+        IAsyncEnumerable<StorageObject> ListObjectsAsync(string bucket, string prefix, CancellationToken cancellationToken);
     }
 }

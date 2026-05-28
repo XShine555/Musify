@@ -1,4 +1,4 @@
-﻿namespace Musify.Application.Common
+﻿namespace Musify.Application.Shared
 {
     public record ImageSize(
         string SavePath,

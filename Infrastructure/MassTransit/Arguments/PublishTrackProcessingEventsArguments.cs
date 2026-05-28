@@ -1,4 +1,4 @@
-using Musify.Application.Common;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 
 namespace Musify.Infrastructure.MassTransit.Arguments

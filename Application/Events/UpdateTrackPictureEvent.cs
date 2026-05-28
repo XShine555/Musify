@@ -1,4 +1,4 @@
-using Musify.Application.Common;
+using Musify.Application.Shared;
 
 ﻿namespace Musify.Application.Events
 {

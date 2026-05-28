@@ -1,6 +1,6 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
-using Musify.Application.Common;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Activities;
