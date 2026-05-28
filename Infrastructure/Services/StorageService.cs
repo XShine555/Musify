@@ -55,7 +55,8 @@ namespace Musify.Infrastructure.Services
             string key,
             string contentType,
             TimeSpan expirationTime,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool preventOverwrite = true)
         {
             var request = new GetPreSignedUrlRequest
             {
@@ -66,6 +67,9 @@ namespace Musify.Infrastructure.Services
                 Verb = HttpVerb.PUT,
                 ContentType = contentType
             };
+
+            if (preventOverwrite)
+                request.Headers["If-None-Match"] = "*";
 
             logger.LogDebug("Generating pre-signed upload URL for {Bucket}/{Key}", bucket, key);
             return await amazonS3.GetPreSignedURLAsync(request);

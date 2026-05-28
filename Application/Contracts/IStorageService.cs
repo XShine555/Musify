@@ -4,12 +4,11 @@ namespace Musify.Application.Contracts
     {
         Task<Stream> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
-        // Returns null if the object does not exist
         Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
 
         Task<string> GetUrlAsync(string bucket, string key, TimeSpan ExpirationTime, CancellationToken cancellationToken);
 
-        Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, CancellationToken cancellationToken);
+        Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, CancellationToken cancellationToken, bool preventOverwrite = true);
 
         Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken);
 
@@ -23,8 +22,7 @@ namespace Musify.Application.Contracts
             CancellationToken cancellationToken);
 
         Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken);
-
-        // Returns (key, lastModifiedUtc) for all objects under the given prefix
+        
         IAsyncEnumerable<(string Key, DateTime LastModifiedUtc)> ListObjectsAsync(string bucket, string prefix, CancellationToken cancellationToken);
     }
 }
