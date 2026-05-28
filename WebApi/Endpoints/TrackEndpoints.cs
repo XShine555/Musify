@@ -10,7 +10,7 @@ public static class TrackEndpoints
 {
     public static IEndpointRouteBuilder MapTrackEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/tracks")
+        var group = app.MapGroup("/tracks")
             .WithTags("Tracks");
 
         group.MapGet("/", GetTracks)
@@ -42,32 +42,32 @@ public static class TrackEndpoints
 
     private static async Task<IResult> GetTracks(
         IMediator mediator,
+        CancellationToken cancellationToken,
         int pageNumber = 1,
-        int pageSize = 10,
-        CancellationToken ct = default)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetTracksQuery(pageNumber, pageSize), ct);
+        var result = await mediator.Send(new GetTracksQuery(pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetTrackById(
         IMediator mediator,
         Guid id,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetTrackByIdQuery(id), ct);
+        var result = await mediator.Send(new GetTrackByIdQuery(id), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetTracksByUserId(
         IMediator mediator,
         Guid userId,
-        string? name,
+        CancellationToken cancellationToken,
+        string? name = null,
         int pageNumber = 1,
-        int pageSize = 10,
-        CancellationToken ct = default)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetTracksByUserIdQuery(userId, name, pageNumber, pageSize), ct);
+        var result = await mediator.Send(new GetTracksByUserIdQuery(userId, name, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -75,11 +75,11 @@ public static class TrackEndpoints
         IMediator mediator,
         Guid userId,
         CreateTrackRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new CreateTrackCommand(userId, request.Title, request.PictureIntentId, request.AudioIntentId),
-            ct);
+            cancellationToken);
 
         if (!result.IsSuccess)
             return result.ToHttpResult();
@@ -91,9 +91,9 @@ public static class TrackEndpoints
         IMediator mediator,
         Guid userId,
         Guid trackId,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteTrackCommand(userId, trackId), ct);
+        var result = await mediator.Send(new DeleteTrackCommand(userId, trackId), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -101,7 +101,7 @@ public static class TrackEndpoints
         IMediator mediator,
         Guid userId,
         RequestTrackUploadUrlsRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new RequestTrackUploadUrlsCommand(
@@ -112,7 +112,7 @@ public static class TrackEndpoints
                 request.AudioContentType,
                 request.ExpectedPictureSizeBytes,
                 request.ExpectedAudioSizeBytes),
-            ct);
+            cancellationToken);
 
         return result.ToHttpResult();
     }

@@ -10,7 +10,7 @@ public static class UserEndpoints
 {
     public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/users")
+        var group = app.MapGroup("/users")
             .WithTags("Users");
 
         group.MapGet("/", GetUsers)
@@ -34,41 +34,41 @@ public static class UserEndpoints
 
     private static async Task<IResult> GetUsers(
         IMediator mediator,
+        CancellationToken cancellationToken,
         int pageNumber = 1,
         int pageSize = 10,
-        string? usernameSearch = null,
-        CancellationToken ct = default)
+        string? usernameSearch = null)
     {
-        var result = await mediator.Send(new GetUsersQuery(pageNumber, pageSize, usernameSearch), ct);
+        var result = await mediator.Send(new GetUsersQuery(pageNumber, pageSize, usernameSearch), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetUserById(
         IMediator mediator,
         Guid id,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetUserByIdQuery(id), ct);
+        var result = await mediator.Send(new GetUserByIdQuery(id), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetUserByKeycloak(
         IMediator mediator,
         Guid id,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetUserByKeycloakQuery(id), ct);
+        var result = await mediator.Send(new GetUserByKeycloakQuery(id), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> CreateUser(
         IMediator mediator,
         CreateUserRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new CreateUserCommand(request.Id, request.Name, request.FirstName, request.SecondName),
-            ct);
+            cancellationToken);
 
         if (!result.IsSuccess)
             return result.ToHttpResult();

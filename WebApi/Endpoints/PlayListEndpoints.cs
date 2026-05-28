@@ -10,7 +10,7 @@ public static class PlayListEndpoints
 {
     public static IEndpointRouteBuilder MapPlayListEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/playlists")
+        var group = app.MapGroup("/playlists")
             .WithTags("PlayLists");
 
         group.MapGet("/", GetPlayLists)
@@ -46,32 +46,32 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> GetPlayLists(
         IMediator mediator,
+        CancellationToken cancellationToken,
         int pageNumber = 1,
-        int pageSize = 10,
-        CancellationToken ct = default)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetPlayListsQuery(pageNumber, pageSize), ct);
+        var result = await mediator.Send(new GetPlayListsQuery(pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetPlayListById(
         IMediator mediator,
         Guid id,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetPlayListByIdQuery(id), ct);
+        var result = await mediator.Send(new GetPlayListByIdQuery(id), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetPlayListsByUserId(
         IMediator mediator,
         Guid userId,
-        string? name,
+        CancellationToken cancellationToken,
+        string? name = null,
         int pageNumber = 1,
-        int pageSize = 10,
-        CancellationToken ct = default)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize), ct);
+        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -79,11 +79,11 @@ public static class PlayListEndpoints
         IMediator mediator,
         Guid userId,
         CreatePlayListRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new CreatePlayListCommand(userId, request.Name, request.Description, request.PictureIntentId),
-            ct);
+            cancellationToken);
 
         if (!result.IsSuccess)
             return result.ToHttpResult();
@@ -96,11 +96,11 @@ public static class PlayListEndpoints
         Guid userId,
         Guid playlistId,
         UpdatePlayListRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new UpdatePlayListCommand(userId, playlistId, request.NewName, request.NewDescription, request.NewPictureIntentId),
-            ct);
+            cancellationToken);
 
         return result.ToHttpResult();
     }
@@ -109,9 +109,9 @@ public static class PlayListEndpoints
         IMediator mediator,
         Guid userId,
         Guid playlistId,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeletePlayListCommand(userId, playlistId), ct);
+        var result = await mediator.Send(new DeletePlayListCommand(userId, playlistId), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -119,11 +119,11 @@ public static class PlayListEndpoints
         IMediator mediator,
         Guid userId,
         RequestPlayListPictureUploadRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new RequestPlayListPictureUploadCommand(userId, request.FileType, request.ContentType, request.ExpectedSizeBytes),
-            ct);
+            cancellationToken);
 
         return result.ToHttpResult();
     }
