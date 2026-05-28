@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace WebApi.Extensions;
 

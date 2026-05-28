@@ -3,6 +3,7 @@ using Mediator;
 using Musify.Application;
 using Musify.Infrastructure.MassTransit;
 using Musify.Infrastructure.Persistence;
+using Musify.Application.Configuration;
 using Musify.Infrastructure.Services;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -16,10 +17,12 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddApplicationConfigurations(configuration);
         services.AddDatabase(configuration);
-        services.AddKeycloakService(configuration);
+        services.AddApplicationStorageConfiguration(configuration);
+        services.AddPlayListConfiguration(configuration);
+        services.AddTrackConfiguration(configuration);
         services.AddStorageService(configuration);
+        services.AddUploadIntentConfiguration(configuration);
         services.AddMassTransitClient(configuration);
         services.AddMediator();
         services.AddOpenApi();
