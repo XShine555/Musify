@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Musify.Infrastructure.Configuration;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -48,6 +49,9 @@ namespace Musify.Infrastructure.Observability
                         .AddRuntimeInstrumentation()
                         .AddProcessInstrumentation()
                         .AddOtlpExporter()
+                )
+                .WithLogging(logging =>
+                    logging.AddOtlpExporter()
                 );
 
             return serviceDescriptors;
