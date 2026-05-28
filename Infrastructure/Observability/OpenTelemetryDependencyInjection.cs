@@ -12,7 +12,7 @@ namespace Musify.Infrastructure.Observability
 {
     public static class OpenTelemetryDependencyInjection
     {
-        public static IServiceCollection AddInfrastructureOpenTelemetry(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddObservability(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors
                 .AddOptionsWithValidateOnStart<OpenTelemetryConfiguration>()
