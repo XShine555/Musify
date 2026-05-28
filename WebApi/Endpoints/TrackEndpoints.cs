@@ -12,8 +12,7 @@ public static class TrackEndpoints
     public static IEndpointRouteBuilder MapTrackEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/tracks")
-            .WithTags("Tracks")
-            .AddEndpointFilter<ValidationFilter>();
+            .WithTags("Tracks");
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
@@ -29,7 +28,8 @@ public static class TrackEndpoints
 
         group.MapPost("/users/{userId}", CreateTrack)
             .WithName("CreateTrack")
-            .WithSummary("Create a new track.");
+            .WithSummary("Create a new track.")
+            .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>();
 
         group.MapDelete("/{trackId}/users/{userId}", DeleteTrack)
             .WithName("DeleteTrack")
@@ -37,7 +37,8 @@ public static class TrackEndpoints
 
         group.MapPost("/upload-urls/users/{userId}", RequestTrackUploadUrls)
             .WithName("RequestTrackUploadUrls")
-            .WithSummary("Request pre-signed URLs to upload track picture and audio.");
+            .WithSummary("Request pre-signed URLs to upload track picture and audio.")
+            .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>();
 
         return app;
     }

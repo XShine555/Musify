@@ -12,8 +12,7 @@ public static class PlayListEndpoints
     public static IEndpointRouteBuilder MapPlayListEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/playlists")
-            .WithTags("PlayLists")
-            .AddEndpointFilter<ValidationFilter>();
+            .WithTags("PlayLists");
 
         group.MapGet("/", GetPlayLists)
             .WithName("GetPlayLists")
@@ -29,11 +28,13 @@ public static class PlayListEndpoints
 
         group.MapPost("/users/{userId}", CreatePlayList)
             .WithName("CreatePlayList")
-            .WithSummary("Create a new playlist.");
+            .WithSummary("Create a new playlist.")
+            .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>();
 
         group.MapPut("/{playlistId}/users/{userId}", UpdatePlayList)
             .WithName("UpdatePlayList")
-            .WithSummary("Update an existing playlist.");
+            .WithSummary("Update an existing playlist.")
+            .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>();
 
         group.MapDelete("/{playlistId}/users/{userId}", DeletePlayList)
             .WithName("DeletePlayList")
@@ -41,7 +42,8 @@ public static class PlayListEndpoints
 
         group.MapPost("/upload-picture/users/{userId}", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
-            .WithSummary("Request a pre-signed URL to upload a playlist picture.");
+            .WithSummary("Request a pre-signed URL to upload a playlist picture.")
+            .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>();
 
         return app;
     }

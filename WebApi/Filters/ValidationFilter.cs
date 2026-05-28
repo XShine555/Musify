@@ -2,27 +2,19 @@ using FluentValidation;
 
 namespace WebApi.Filters;
 
-public sealed class ValidationFilter : IEndpointFilter
+public sealed class ValidationFilter<T>(IValidator<T> validator) : IEndpointFilter where T : class
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        foreach (var argument in context.Arguments)
-        {
-            if (argument is null)
-                continue;
+        var argument = context.Arguments.OfType<T>().FirstOrDefault();
 
-            var validatorType = typeof(IValidator<>).MakeGenericType(argument.GetType());
+        if (argument is null)
+            return await next(context);
 
-            if (context.HttpContext.RequestServices.GetService(validatorType) is not IValidator validator)
-                continue;
+        var result = await validator.ValidateAsync(argument, context.HttpContext.RequestAborted);
 
-            var validationContext = new ValidationContext<object>(argument);
-            var result = await validator.ValidateAsync(validationContext, context.HttpContext.RequestAborted);
-
-            if (!result.IsValid)
-                return Results.ValidationProblem(result.ToDictionary());
-        }
-
-        return await next(context);
+        return result.IsValid
+            ? await next(context)
+            : Results.ValidationProblem(result.ToDictionary());
     }
 }

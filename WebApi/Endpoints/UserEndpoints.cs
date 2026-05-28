@@ -12,8 +12,7 @@ public static class UserEndpoints
     public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/users")
-            .WithTags("Users")
-            .AddEndpointFilter<ValidationFilter>();
+            .WithTags("Users");
 
         group.MapGet("/", GetUsers)
             .WithName("GetUsers")
@@ -29,7 +28,8 @@ public static class UserEndpoints
 
         group.MapPost("/", CreateUser)
             .WithName("CreateUser")
-            .WithSummary("Create a new user.");
+            .WithSummary("Create a new user.")
+            .AddEndpointFilter<ValidationFilter<CreateUserRequest>>();
 
         return app;
     }
