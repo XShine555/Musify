@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder();
 
 builder.Services
     .AddApplicationServices(builder.Configuration)
-    .AddInfrastructureOpenTelemetry(builder.Configuration);
+    .AddObservability(builder.Configuration);
 
 var app = builder.Build();
 
