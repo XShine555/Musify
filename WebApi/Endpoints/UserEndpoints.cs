@@ -37,9 +37,9 @@ public static class UserEndpoints
     private static async Task<IResult> GetUsers(
         IMediator mediator,
         CancellationToken cancellationToken,
+        string? usernameSearch,
         int pageNumber = 1,
-        int pageSize = 10,
-        string? usernameSearch = null)
+        int pageSize = 10)
     {
         var result = await mediator.Send(new GetUsersQuery(pageNumber, pageSize, usernameSearch), cancellationToken);
         return result.ToHttpResult();

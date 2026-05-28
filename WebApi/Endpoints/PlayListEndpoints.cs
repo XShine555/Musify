@@ -11,38 +11,38 @@ public static class PlayListEndpoints
 {
     public static IEndpointRouteBuilder MapPlayListEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/playlists")
+        var group = app.MapGroup("/playLists")
             .WithTags("PlayLists");
 
         group.MapGet("/", GetPlayLists)
             .WithName("GetPlayLists")
-            .WithSummary("Get paginated playlists.");
+            .WithSummary("Get paginated playLists.");
 
         group.MapGet("/{id}", GetPlayListById)
             .WithName("GetPlayListById")
-            .WithSummary("Get a playlist by ID.");
+            .WithSummary("Get a playLists by ID.");
 
         group.MapGet("/users/{userId}", GetPlayListsByUserId)
             .WithName("GetPlayListsByUserId")
-            .WithSummary("Get paginated playlists for a user.");
+            .WithSummary("Get paginated playLists for a user.");
 
         group.MapPost("/users/{userId}", CreatePlayList)
             .WithName("CreatePlayList")
-            .WithSummary("Create a new playlist.")
+            .WithSummary("Create a new playLists.")
             .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>();
 
         group.MapPut("/{playlistId}/users/{userId}", UpdatePlayList)
             .WithName("UpdatePlayList")
-            .WithSummary("Update an existing playlist.")
+            .WithSummary("Update an existing playLists.")
             .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>();
 
         group.MapDelete("/{playlistId}/users/{userId}", DeletePlayList)
             .WithName("DeletePlayList")
-            .WithSummary("Delete a playlist.");
+            .WithSummary("Delete a playLists.");
 
         group.MapPost("/upload-picture/users/{userId}", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
-            .WithSummary("Request a pre-signed URL to upload a playlist picture.")
+            .WithSummary("Request a pre-signed URL to upload a playLists picture.")
             .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>();
 
         return app;
@@ -71,7 +71,7 @@ public static class PlayListEndpoints
         IMediator mediator,
         Guid userId,
         CancellationToken cancellationToken,
-        string? name = null,
+        string? name,
         int pageNumber = 1,
         int pageSize = 10)
     {

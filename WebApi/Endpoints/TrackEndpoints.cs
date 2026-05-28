@@ -66,7 +66,7 @@ public static class TrackEndpoints
         IMediator mediator,
         Guid userId,
         CancellationToken cancellationToken,
-        string? name = null,
+        string? name,
         int pageNumber = 1,
         int pageSize = 10)
     {
