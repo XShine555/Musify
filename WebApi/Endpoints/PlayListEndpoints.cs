@@ -17,27 +17,27 @@ public static class PlayListEndpoints
             .WithName("GetPlayLists")
             .WithSummary("Get paginated playlists.");
 
-        group.MapGet("/{id:guid}", GetPlayListById)
+        group.MapGet("/{id}", GetPlayListById)
             .WithName("GetPlayListById")
             .WithSummary("Get a playlist by ID.");
 
-        group.MapGet("/users/{userId:guid}", GetPlayListsByUserId)
+        group.MapGet("/users/{userId}", GetPlayListsByUserId)
             .WithName("GetPlayListsByUserId")
             .WithSummary("Get paginated playlists for a user.");
 
-        group.MapPost("/users/{userId:guid}", CreatePlayList)
+        group.MapPost("/users/{userId}", CreatePlayList)
             .WithName("CreatePlayList")
             .WithSummary("Create a new playlist.");
 
-        group.MapPut("/{playlistId:guid}/users/{userId:guid}", UpdatePlayList)
+        group.MapPut("/{playlistId}/users/{userId}", UpdatePlayList)
             .WithName("UpdatePlayList")
             .WithSummary("Update an existing playlist.");
 
-        group.MapDelete("/{playlistId:guid}/users/{userId:guid}", DeletePlayList)
+        group.MapDelete("/{playlistId}/users/{userId}", DeletePlayList)
             .WithName("DeletePlayList")
             .WithSummary("Delete a playlist.");
 
-        group.MapPost("/upload-picture/users/{userId:guid}", RequestPlayListPictureUpload)
+        group.MapPost("/upload-picture/users/{userId}", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
             .WithSummary("Request a pre-signed URL to upload a playlist picture.");
 
@@ -88,7 +88,7 @@ public static class PlayListEndpoints
         if (!result.IsSuccess)
             return result.ToHttpResult();
 
-        return Results.Created($"/api/playlists/{result.Value.Id}", result.Value);
+        return Results.Created($"/playlists/{result.Value.Id}", result.Value);
     }
 
     private static async Task<IResult> UpdatePlayList(

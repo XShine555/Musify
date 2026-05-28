@@ -17,23 +17,23 @@ public static class TrackEndpoints
             .WithName("GetTracks")
             .WithSummary("Get paginated tracks.");
 
-        group.MapGet("/{id:guid}", GetTrackById)
+        group.MapGet("/{id}", GetTrackById)
             .WithName("GetTrackById")
             .WithSummary("Get a track by ID.");
 
-        group.MapGet("/users/{userId:guid}", GetTracksByUserId)
+        group.MapGet("/users/{userId}", GetTracksByUserId)
             .WithName("GetTracksByUserId")
             .WithSummary("Get paginated tracks for a user.");
 
-        group.MapPost("/users/{userId:guid}", CreateTrack)
+        group.MapPost("/users/{userId}", CreateTrack)
             .WithName("CreateTrack")
             .WithSummary("Create a new track.");
 
-        group.MapDelete("/{trackId:guid}/users/{userId:guid}", DeleteTrack)
+        group.MapDelete("/{trackId}/users/{userId}", DeleteTrack)
             .WithName("DeleteTrack")
             .WithSummary("Delete a track.");
 
-        group.MapPost("/upload-urls/users/{userId:guid}", RequestTrackUploadUrls)
+        group.MapPost("/upload-urls/users/{userId}", RequestTrackUploadUrls)
             .WithName("RequestTrackUploadUrls")
             .WithSummary("Request pre-signed URLs to upload track picture and audio.");
 
@@ -84,7 +84,7 @@ public static class TrackEndpoints
         if (!result.IsSuccess)
             return result.ToHttpResult();
 
-        return Results.Created($"/api/tracks/{result.Value.Id}", result.Value);
+        return Results.Created($"/tracks/{result.Value.Id}", result.Value);
     }
 
     private static async Task<IResult> DeleteTrack(

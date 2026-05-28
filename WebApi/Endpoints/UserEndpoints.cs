@@ -17,11 +17,11 @@ public static class UserEndpoints
             .WithName("GetUsers")
             .WithSummary("Get paginated users.");
 
-        group.MapGet("/{id:guid}", GetUserById)
+        group.MapGet("/{id}", GetUserById)
             .WithName("GetUserById")
             .WithSummary("Get a user by ID.");
 
-        group.MapGet("/keycloak/{id:guid}", GetUserByKeycloak)
+        group.MapGet("/keycloak/{id}", GetUserByKeycloak)
             .WithName("GetUserByKeycloak")
             .WithSummary("Get a user by Keycloak ID.");
 
@@ -73,6 +73,6 @@ public static class UserEndpoints
         if (!result.IsSuccess)
             return result.ToHttpResult();
 
-        return Results.Created($"/api/users/{result.Value.Id}", result.Value);
+        return Results.Created($"/users/{result.Value.Id}", result.Value);
     }
 }
