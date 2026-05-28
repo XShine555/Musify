@@ -1,3 +1,4 @@
+using Musify.Infrastructure.Observability;
 using Scalar.AspNetCore;
 using WebApi.Endpoints;
 using WebApi.Extensions;
@@ -6,7 +7,7 @@ var builder = WebApplication.CreateBuilder();
 
 builder.Services
     .AddApplicationServices(builder.Configuration)
-    .AddObservability(builder.Configuration);
+    .AddInfrastructureOpenTelemetry(builder.Configuration);
 
 var app = builder.Build();
 
