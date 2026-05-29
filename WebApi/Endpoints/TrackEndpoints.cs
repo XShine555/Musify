@@ -1,6 +1,7 @@
 using Mediator;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Queries;
+using WebApi.Authentication;
 using WebApi.DataTransferObjects.Tracks;
 using WebApi.Extensions;
 using WebApi.Filters;
@@ -26,19 +27,22 @@ public static class TrackEndpoints
             .WithName("GetTracksByUserId")
             .WithSummary("Get Paginated Tracks For A User.");
 
-        group.MapPost("/users/{userId}", CreateTrack)
+        group.MapPost("/", CreateTrack)
             .WithName("CreateTrack")
             .WithSummary("Create A New Track.")
-            .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>();
+            .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>()
+            .RequireAuthorization();
 
-        group.MapDelete("/{trackId}/users/{userId}", DeleteTrack)
+        group.MapDelete("/{trackId}", DeleteTrack)
             .WithName("DeleteTrack")
-            .WithSummary("Delete A Track.");
+            .WithSummary("Delete A Track.")
+            .RequireAuthorization();
 
-        group.MapPost("/upload-urls/users/{userId}", RequestTrackUploadUrls)
+        group.MapPost("/upload-urls", RequestTrackUploadUrls)
             .WithName("RequestTrackUploadUrls")
             .WithSummary("Request Pre-Signed URLs To Upload Track Picture And Audio.")
-            .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>();
+            .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>()
+            .RequireAuthorization();
 
         return app;
     }
@@ -76,12 +80,12 @@ public static class TrackEndpoints
 
     private static async Task<IResult> CreateTrack(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         CreateTrackRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new CreateTrackCommand(userId, request.Title, request.PictureIntentId, request.AudioIntentId),
+            new CreateTrackCommand(currentUser.RequiredId, request.Title, request.PictureIntentId, request.AudioIntentId),
             cancellationToken);
 
         if (!result.IsSuccess)
@@ -92,23 +96,23 @@ public static class TrackEndpoints
 
     private static async Task<IResult> DeleteTrack(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         Guid trackId,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteTrackCommand(userId, trackId), cancellationToken);
+        var result = await mediator.Send(new DeleteTrackCommand(currentUser.RequiredId, trackId), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> RequestTrackUploadUrls(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         RequestTrackUploadUrlsRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
             new RequestTrackUploadUrlsCommand(
-                userId,
+                currentUser.RequiredId,
                 request.PictureFileType,
                 request.PictureContentType,
                 request.AudioFileType,
