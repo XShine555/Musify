@@ -16,15 +16,15 @@ public static class UserEndpoints
 
         group.MapGet("/", GetUsers)
             .WithName("GetUsers")
-            .WithSummary("Get paginated users.");
+            .WithSummary("Get paginated Users.");
 
         group.MapGet("/{id}", GetUserById)
             .WithName("GetUserById")
-            .WithSummary("Get a user by ID.");
+            .WithSummary("Get a User by Id.");
 
         group.MapPost("/", CreateUser)
             .WithName("CreateUser")
-            .WithSummary("Create a new user.")
+            .WithSummary("Create a new User.")
             .AddEndpointFilter<ValidationFilter<CreateUserRequest>>();
 
         return app;
