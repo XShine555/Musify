@@ -1,8 +1,4 @@
 <Solution>
-  <Folder Name="/Tests/">
-    <Project Path="Tests/Musify.Application.Tests/Musify.Application.Tests.csproj" />
-    <Project Path="Tests/Musify.Infrastructure.Tests/Musify.Infrastructure.Tests.csproj" />
-  </Folder>
   <Project Path="Application/Application.csproj" />
   <Project Path="Infrastructure/Infrastructure.csproj" />
   <Project Path="Domain/Domain.csproj" />
