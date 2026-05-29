@@ -16,28 +16,28 @@ public static class TrackEndpoints
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
-            .WithSummary("Get paginated Tracks.");
+            .WithSummary("Get Paginated Tracks.");
 
         group.MapGet("/{id}", GetTrackById)
             .WithName("GetTrackById")
-            .WithSummary("Get a Track by Id.");
+            .WithSummary("Get A Track By Id.");
 
         group.MapGet("/users/{userId}", GetTracksByUserId)
             .WithName("GetTracksByUserId")
-            .WithSummary("Get paginated Tracks for a User.");
+            .WithSummary("Get Paginated Tracks For A User.");
 
         group.MapPost("/users/{userId}", CreateTrack)
             .WithName("CreateTrack")
-            .WithSummary("Create a new Track.")
+            .WithSummary("Create A New Track.")
             .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>();
 
         group.MapDelete("/{trackId}/users/{userId}", DeleteTrack)
             .WithName("DeleteTrack")
-            .WithSummary("Delete a Track.");
+            .WithSummary("Delete A Track.");
 
         group.MapPost("/upload-urls/users/{userId}", RequestTrackUploadUrls)
             .WithName("RequestTrackUploadUrls")
-            .WithSummary("Request pre-signed URLs to upload Track picture and audio.")
+            .WithSummary("Request Pre-Signed URLs To Upload Track Picture And Audio.")
             .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>();
 
         return app;

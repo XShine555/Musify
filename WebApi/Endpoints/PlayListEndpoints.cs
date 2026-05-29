@@ -16,33 +16,33 @@ public static class PlayListEndpoints
 
         group.MapGet("/", GetPlayLists)
             .WithName("GetPlayLists")
-            .WithSummary("Get paginated PlayLists.");
+            .WithSummary("Get Paginated PlayLists.");
 
         group.MapGet("/{id}", GetPlayListById)
             .WithName("GetPlayListById")
-            .WithSummary("Get a PlayList by Id.");
+            .WithSummary("Get A PlayList By Id.");
 
         group.MapGet("/users/{userId}", GetPlayListsByUserId)
             .WithName("GetPlayListsByUserId")
-            .WithSummary("Get paginated PlayLists for a User.");
+            .WithSummary("Get Paginated PlayLists For A User.");
 
         group.MapPost("/users/{userId}", CreatePlayList)
             .WithName("CreatePlayList")
-            .WithSummary("Create a new PlayList.")
+            .WithSummary("Create A New PlayList.")
             .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>();
 
         group.MapPut("/{playlistId}/users/{userId}", UpdatePlayList)
             .WithName("UpdatePlayList")
-            .WithSummary("Update an existing PlayList.")
+            .WithSummary("Update An Existing PlayList.")
             .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>();
 
         group.MapDelete("/{playlistId}/users/{userId}", DeletePlayList)
             .WithName("DeletePlayList")
-            .WithSummary("Delete a PlayList.");
+            .WithSummary("Delete A PlayList.");
 
         group.MapPost("/upload-picture/users/{userId}", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
-            .WithSummary("Request a pre-signed URL to upload a PlayList picture.")
+            .WithSummary("Request A Pre-Signed URL To Upload A PlayList Picture.")
             .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>();
 
         return app;
