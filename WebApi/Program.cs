@@ -23,3 +23,6 @@ app
     .MapUserEndpoints();
 
 app.Run();
+
+// Exposed so WebApplicationFactory<Program> can bootstrap the app in integration tests.
+public partial class Program { }
