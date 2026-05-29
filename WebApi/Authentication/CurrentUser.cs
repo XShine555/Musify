@@ -32,7 +32,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
 
     public string? LastName { get; }
 
-    public Guid RequiredId => Id.HasValue? Id.Value : throw new InvalidOperationException("User ID is required but not present.");
+    public Guid RequiredId => Id ?? throw new InvalidOperationException("User Id claim is missing or invalid.");
 
     public bool HasClaim(string type) => Principal.HasClaim(c => c.Type == type);
 
