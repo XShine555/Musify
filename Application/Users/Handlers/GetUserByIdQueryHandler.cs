@@ -14,10 +14,13 @@ namespace Musify.Application.Users.Handlers
         {
             var user = await database.Users
                 .AsNoTracking()
+                .Where(u => u.Id == request.Id)
                 .Select(u => UserApplicationResponse.FromEntity(u))
-                .SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
+                .SingleOrDefaultAsync(cancellationToken);
 
-            return user ?? Result<UserApplicationResponse>.NotFound();
+            return user is null
+                ? Result<UserApplicationResponse>.NotFound()
+                : Result.Success(user);
         }
     }
 }

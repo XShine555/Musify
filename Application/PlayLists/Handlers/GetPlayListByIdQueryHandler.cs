@@ -14,10 +14,13 @@ namespace Musify.Application.PlayLists.Handlers
         {
             var playList = await database.PlayLists
                 .AsNoTracking()
+                .Where(p => p.Id == request.Id)
                 .Select(p => PlayListApplicationResponse.FromEntity(p))
-                .SingleOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
+                .SingleOrDefaultAsync(cancellationToken);
 
-            return playList ?? Result<PlayListApplicationResponse>.NotFound();
+            return playList is null
+                ? Result<PlayListApplicationResponse>.NotFound()
+                : Result.Success(playList);
         }
     }
 }

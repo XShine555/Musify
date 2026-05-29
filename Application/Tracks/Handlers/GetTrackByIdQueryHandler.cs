@@ -13,10 +13,13 @@ namespace Musify.Application.Tracks.Handlers
         public async ValueTask<Result<TrackApplicationResponse>> Handle(GetTrackByIdQuery request, CancellationToken cancellationToken)
         {
             var track = await database.Tracks.AsNoTracking()
+                .Where(t => t.Id == request.TrackId)
                 .Select(t => TrackApplicationResponse.FromEntity(t))
-                .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
+                .SingleOrDefaultAsync(cancellationToken);
 
-            return track ?? Result<TrackApplicationResponse>.NotFound();
+            return track is null
+                ? Result<TrackApplicationResponse>.NotFound()
+                : Result.Success(track);
         }
     }
 }
