@@ -12,7 +12,8 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
         IsAuthenticated = isAuthenticated.HasValue && isAuthenticated.Value;
 
         var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        Id = Guid.TryParse(rawId, out var id)? id : null;
+        if (Guid.TryParse(rawId, out var id) && id != Guid.Empty)
+            Id = id;
 
         Username = principal.FindFirstValue(ClaimTypes.Name);
         FirstName = principal.FindFirstValue(ClaimTypes.GivenName);
