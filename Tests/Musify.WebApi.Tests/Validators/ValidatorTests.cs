@@ -142,7 +142,6 @@ public sealed class UpdatePlayListRequestValidatorTests
     [Fact]
     public void Empty_string_name_is_allowed_by_length_rule()
     {
-        // Only a MaximumLength rule applies, so an empty (non-null) string passes.
         var model = new UpdatePlayListRequest("", null, null);
         _validator.TestValidate(model).ShouldNotHaveValidationErrorFor(x => x.NewName);
     }

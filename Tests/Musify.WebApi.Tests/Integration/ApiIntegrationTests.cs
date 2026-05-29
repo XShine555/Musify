@@ -38,8 +38,9 @@ public sealed class ApiIntegrationTests(MusifyApiFactory factory)
 
         var get = await _client.GetAsync($"/users/{id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
-        var user = await get.Content.ReadFromJsonAsync<UserApplicationResponse>();
-        user!.Id.Should().Be(id);
+        UserApplicationResponse user = await get.Content.ReadFromJsonAsync<UserApplicationResponse>()
+            ?? throw new InvalidOperationException("The response body was null.");
+        user.Id.Should().Be(id);
         user.Name.Should().Be("Alice");
     }
 
@@ -49,8 +50,9 @@ public sealed class ApiIntegrationTests(MusifyApiFactory factory)
         var response = await _client.PostAsJsonAsync("/users/", new CreateUserRequest(Guid.Empty, "", null, null));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>();
-        problem!.Errors.Should().ContainKey(nameof(CreateUserRequest.Name));
+        ValidationProblemResponse problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>()
+            ?? throw new InvalidOperationException("The response body was null.");
+        problem.Errors.Should().ContainKey(nameof(CreateUserRequest.Name));
     }
 
     [Fact]
@@ -80,8 +82,9 @@ public sealed class ApiIntegrationTests(MusifyApiFactory factory)
             new CreatePlayListRequest("My Mix", "A description", null));
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        var playList = await response.Content.ReadFromJsonAsync<PlayListApplicationResponse>();
-        playList!.Name.Should().Be("My Mix");
+        PlayListApplicationResponse playList = await response.Content.ReadFromJsonAsync<PlayListApplicationResponse>()
+            ?? throw new InvalidOperationException("The response body was null.");
+        playList.Name.Should().Be("My Mix");
 
         var get = await _client.GetAsync($"/playLists/{playList.Id}");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -129,8 +132,9 @@ public sealed class ApiIntegrationTests(MusifyApiFactory factory)
             new RequestTrackUploadUrlsRequest("png", "image/png", "mp3", "audio/mpeg"));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await response.Content.ReadFromJsonAsync<TrackUploadUrlsLikeResponse>();
-        body!.PictureUploadUrl.Should().Be("https://signed.example/put");
+        TrackUploadUrlsLikeResponse body = await response.Content.ReadFromJsonAsync<TrackUploadUrlsLikeResponse>()
+            ?? throw new InvalidOperationException("The response body was null.");
+        body.PictureUploadUrl.Should().Be("https://signed.example/put");
         body.AudioUploadUrl.Should().Be("https://signed.example/put");
     }
 }

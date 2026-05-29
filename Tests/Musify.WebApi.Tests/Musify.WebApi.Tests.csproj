@@ -8,8 +8,6 @@
     <RootNamespace>Musify.WebApi.Tests</RootNamespace>
   </PropertyGroup>
 
-  <!-- ResultHttpExtensions returns Microsoft.AspNetCore.Http.IResult, so the test project
-       needs the ASP.NET Core shared framework to inspect the produced result types. -->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
@@ -30,7 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\WebApi\WebApi.csproj" />
-    <!-- Reuse TestDatabase / TestData helpers from the Application test project. -->
     <ProjectReference Include="..\..\..\MusifyBackend\Tests\Musify.Application.Tests\Musify.Application.Tests.csproj" />
   </ItemGroup>
 

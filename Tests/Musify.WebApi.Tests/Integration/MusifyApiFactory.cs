@@ -47,12 +47,10 @@ public sealed class MusifyApiFactory : WebApplicationFactory<Program>
 
         builder.ConfigureTestServices(services =>
         {
-            // Never start the RabbitMQ bus, EF outbox delivery or OTLP exporter in tests.
             services.RemoveAll<IHostedService>();
 
             _connection.Open();
 
-            // Replace the Npgsql-backed IDatabase with a shared SQLite TestDatabase.
             services.RemoveAll<IDatabase>();
             services.AddScoped<IDatabase>(_ =>
             {
@@ -64,7 +62,6 @@ public sealed class MusifyApiFactory : WebApplicationFactory<Program>
                 return db;
             });
 
-            // Replace S3 and MassTransit with controllable test doubles.
             services.RemoveAll<IStorageService>();
             services.AddScoped(_ => Storage);
 
