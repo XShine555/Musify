@@ -12,7 +12,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
         IsAuthenticated = isAuthenticated.HasValue && isAuthenticated.Value;
 
         var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        Id = Guid.TryParse(rawId, out var id)? id : Guid.Empty;
+        Id = Guid.TryParse(rawId, out var id)? id : null;
 
         Username = principal.FindFirstValue(ClaimTypes.Name);
         FirstName = principal.FindFirstValue(ClaimTypes.GivenName);
@@ -31,8 +31,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
 
     public string? LastName { get; }
 
-    public Guid RequiredId => Id
-        ?? throw new InvalidOperationException("The current request does not contain an authenticated user id.");
+    public Guid RequiredId => Id.HasValue? Id.Value : throw new InvalidOperationException("User ID is required but not present.");
 
     public bool HasClaim(string type) => Principal.HasClaim(c => c.Type == type);
 

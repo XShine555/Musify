@@ -1,6 +1,7 @@
 using Mediator;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Queries;
+using WebApi.Authentication;
 using WebApi.DataTransferObjects.PlayLists;
 using WebApi.Extensions;
 using WebApi.Filters;
@@ -26,24 +27,28 @@ public static class PlayListEndpoints
             .WithName("GetPlayListsByUserId")
             .WithSummary("Get Paginated PlayLists For A User.");
 
-        group.MapPost("/users/{userId}", CreatePlayList)
+        group.MapPost("/", CreatePlayList)
             .WithName("CreatePlayList")
             .WithSummary("Create A New PlayList.")
-            .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>();
+            .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>()
+            .RequireAuthorization();
 
-        group.MapPut("/{playlistId}/users/{userId}", UpdatePlayList)
+        group.MapPut("/{playlistId}", UpdatePlayList)
             .WithName("UpdatePlayList")
             .WithSummary("Update An Existing PlayList.")
-            .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>();
+            .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>()
+            .RequireAuthorization();
 
-        group.MapDelete("/{playlistId}/users/{userId}", DeletePlayList)
+        group.MapDelete("/{playlistId}", DeletePlayList)
             .WithName("DeletePlayList")
-            .WithSummary("Delete A PlayList.");
+            .WithSummary("Delete A PlayList.")
+            .RequireAuthorization();
 
-        group.MapPost("/upload-picture/users/{userId}", RequestPlayListPictureUpload)
+        group.MapPost("/upload-picture", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
             .WithSummary("Request A Pre-Signed URL To Upload A PlayList Picture.")
-            .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>();
+            .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>()
+            .RequireAuthorization();
 
         return app;
     }
@@ -81,12 +86,12 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> CreatePlayList(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         CreatePlayListRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new CreatePlayListCommand(userId, request.Name, request.Description, request.PictureIntentId),
+            new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId),
             cancellationToken);
 
         if (!result.IsSuccess)
@@ -97,13 +102,13 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> UpdatePlayList(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         Guid playlistId,
         UpdatePlayListRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new UpdatePlayListCommand(userId, playlistId, request.NewName, request.NewDescription, request.NewPictureIntentId),
+            new UpdatePlayListCommand(currentUser.RequiredId, playlistId, request.NewName, request.NewDescription, request.NewPictureIntentId),
             cancellationToken);
 
         return result.ToHttpResult();
@@ -111,22 +116,22 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> DeletePlayList(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         Guid playlistId,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeletePlayListCommand(userId, playlistId), cancellationToken);
+        var result = await mediator.Send(new DeletePlayListCommand(currentUser.RequiredId, playlistId), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> RequestPlayListPictureUpload(
         IMediator mediator,
-        Guid userId,
+        CurrentUser currentUser,
         RequestPlayListPictureUploadRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new RequestPlayListPictureUploadCommand(userId, request.FileType, request.ContentType, request.ExpectedSizeBytes),
+            new RequestPlayListPictureUploadCommand(currentUser.RequiredId, request.FileType, request.ContentType, request.ExpectedSizeBytes),
             cancellationToken);
 
         return result.ToHttpResult();
