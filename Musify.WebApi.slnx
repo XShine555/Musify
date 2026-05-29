@@ -1,6 +1,3 @@
 <Solution>
-  <Folder Name="/Tests/">
-    <Project Path="Tests/Musify.WebApi.Tests/Musify.WebApi.Tests.csproj" />
-  </Folder>
   <Project Path="WebApi/WebApi.csproj" />
 </Solution>
