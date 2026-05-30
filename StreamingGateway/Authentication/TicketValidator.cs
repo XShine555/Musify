@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
+using Ardalis.Result;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -8,45 +10,52 @@ namespace Musify.StreamingGateway.Authentication;
 
 public sealed class TicketValidator : IDisposable
 {
-    private readonly StreamTicketValidationOptions options;
-    private readonly RSA rsa;
-    private readonly TokenValidationParameters validationParameters;
-    private readonly JsonWebTokenHandler handler = new();
+    private readonly StreamTicketValidationOptions _options;
+    private readonly RSA _rsa;
+    private readonly TokenValidationParameters _validationParameters;
+    private readonly JsonWebTokenHandler _handler = new();
 
     public TicketValidator(IOptions<StreamTicketValidationOptions> options)
     {
-        this.options = options.Value;
+        _options = options.Value;
 
-        rsa = RSA.Create();
-        rsa.ImportFromPem(File.ReadAllText(this.options.PublicKeyPath));
+        _rsa = RSA.Create();
+        _rsa.ImportFromPem(File.ReadAllText(_options.PublicKeyPath));
 
-        validationParameters = new TokenValidationParameters
+        _validationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = this.options.Issuer,
+            ValidIssuer = _options.Issuer,
             ValidateAudience = true,
-            ValidAudience = this.options.Audience,
+            ValidAudience = _options.Audience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new RsaSecurityKey(rsa),
+            IssuerSigningKey = new RsaSecurityKey(_rsa),
             ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
             ClockSkew = TimeSpan.FromSeconds(30),
         };
     }
 
-    public async Task<string?> TryGetPrefixAsync(string? token)
+    public async Task<Result<string>> ValidateTicketAsync(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
-            return null;
+            return Result.Unauthorized();
 
-        var result = await handler.ValidateTokenAsync(token, validationParameters);
-        if (!result.IsValid)
-            return null;
+        var result = await _handler.ValidateTokenAsync(token, _validationParameters);
+        if (result.IsValid)
+            return Result.Unauthorized();
 
-        return result.Claims.TryGetValue("prefix", out var prefix)
-            ? prefix as string
-            : null;
+        if (!result.Claims.TryGetValue("prefix", out var claim))
+            return Result.Unauthorized();
+
+        if (claim is not string prefix)
+            return Result.Unauthorized();
+
+        if (string.IsNullOrEmpty(prefix))
+            return Result.Unauthorized();
+
+        return Result.Success(prefix);
     }
 
-    public void Dispose() => rsa.Dispose();
+    public void Dispose() => _rsa.Dispose();
 }

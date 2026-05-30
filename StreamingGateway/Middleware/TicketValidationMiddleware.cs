@@ -23,14 +23,16 @@ public sealed class TicketValidationMiddleware(
         }
 
         var token = context.Request.Query[options.QueryParameterName].ToString();
-        var prefix = await ticketValidator.TryGetPrefixAsync(token);
+        var validation = await ticketValidator.ValidateTicketAsync(token);
 
-        if (prefix is null)
+        if (!validation.IsSuccess)
         {
             logger.LogWarning("Rejected media request {Path}: missing or invalid ticket", path);
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
+
+        var prefix = validation.Value;
 
         var objectKey = remaining.Value?.TrimStart('/') ?? string.Empty;
         if (!objectKey.StartsWith(prefix, StringComparison.Ordinal))
