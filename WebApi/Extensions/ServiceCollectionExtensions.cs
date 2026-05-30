@@ -18,7 +18,9 @@ public static class ServiceCollectionExtensions
         services.AddApplicationStorageConfiguration(configuration);
         services.AddPlayListConfiguration(configuration);
         services.AddTrackConfiguration(configuration);
+        services.AddStreamGatewayConfiguration(configuration);
         services.AddStorageService(configuration);
+        services.AddStreamTicketService(configuration);
         services.AddUploadIntentConfiguration(configuration);
         services.AddMassTransitClient(configuration);
         services.AddMediator();

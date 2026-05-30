@@ -23,6 +23,11 @@ public static class TrackEndpoints
             .WithName("GetTrackById")
             .WithSummary("Get A Track By Id.");
 
+        group.MapGet("/{id}/stream", GetTrackStream)
+            .WithName("GetTrackStream")
+            .WithSummary("Get A Streaming Manifest URL And Ticket For A Track.")
+            .RequireAuthorization();
+
         group.MapGet("/users/{userId}", GetTracksByUserId)
             .WithName("GetTracksByUserId")
             .WithSummary("Get Paginated Tracks For A User.");
@@ -63,6 +68,16 @@ public static class TrackEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetTrackByIdQuery(id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetTrackStream(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.RequiredId), cancellationToken);
         return result.ToHttpResult();
     }
 
