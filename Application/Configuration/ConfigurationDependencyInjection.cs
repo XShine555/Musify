@@ -41,5 +41,17 @@ namespace Musify.Application.Configuration
 
             return serviceDescriptors;
         }
+
+        public static IServiceCollection AddStreamGatewayConfiguration(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors
+                .AddOptionsWithValidateOnStart<StreamGatewayConfiguration>()
+                .Bind(configuration.GetRequiredSection(StreamGatewayConfiguration.SectionName))
+                .ValidateDataAnnotations();
+            serviceDescriptors.AddSingleton(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<StreamGatewayConfiguration>>().Value);
+
+            return serviceDescriptors;
+        }
     }
 }

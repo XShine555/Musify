@@ -71,6 +71,20 @@ namespace Musify.Infrastructure.Services
             return serviceDescriptors;
         }
 
+        public static IServiceCollection AddStreamTicketService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors
+                .AddOptionsWithValidateOnStart<StreamTicketConfiguration>()
+                .Bind(configuration.GetRequiredSection(StreamTicketConfiguration.SectionName))
+                .ValidateDataAnnotations();
+
+            serviceDescriptors.AddSingleton(serviceProvider =>
+                serviceProvider.GetRequiredService<IOptions<StreamTicketConfiguration>>().Value);
+
+            serviceDescriptors.AddSingleton<IStreamTicketService, StreamTicketService>();
+            return serviceDescriptors;
+        }
+
         public static IServiceCollection AddAudioTranscoder(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors
