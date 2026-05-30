@@ -42,7 +42,7 @@ public sealed class TicketValidator : IDisposable
             return Result.Unauthorized();
 
         var result = await _handler.ValidateTokenAsync(token, _validationParameters);
-        if (result.IsValid)
+        if (!result.IsValid)
             return Result.Unauthorized();
 
         if (!result.Claims.TryGetValue("prefix", out var claim))
