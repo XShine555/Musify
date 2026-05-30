@@ -24,7 +24,8 @@ public sealed class ScalarOptionsSetup(IOptions<AuthenticationConfiguration> opt
                 flow.TokenUrl = _configuration.TokenEndpoint;
                 flow.Pkce = Pkce.Sha256;
                 flow.SelectedScopes = _configuration.Scopes;
-            })
+                flow.RedirectUri = _configuration.ScalarRedirectUri;
+            } )
             .HideModels();
     }
 }
