@@ -7,6 +7,7 @@ namespace Musify.Application.Users.Responses
         string Name,
         string? FirstName,
         string? SecondName,
+        string? ProfilePictureUrl,
         DateTime CreatedAt,
         DateTime UpdatedAt)
     {
@@ -17,6 +18,7 @@ namespace Musify.Application.Users.Responses
                 user.Name,
                 user.FirstName,
                 user.SecondName,
+                user.ProfilePictureUrl,
                 user.CreatedAt,
                 user.UpdatedAt);
         }

@@ -24,6 +24,9 @@ namespace Musify.Domain.Entities
         [MaxLength(48)]
         public string? SecondName { get; set; }
 
+        [MaxLength(2048)]
+        public string? ProfilePictureUrl { get; set; }
+
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
