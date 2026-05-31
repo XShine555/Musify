@@ -25,16 +25,17 @@ public sealed class JwtBearerEventsHandler(IMediator mediator, ILogger<JwtBearer
 
         var firstName = principal.FindFirstValue(ClaimTypes.GivenName);
         var lastName = principal.FindFirstValue(ClaimTypes.Surname);
+        var profilePictureUrl = principal.FindFirstValue("picture");
 
         try
         {
             await mediator.Send(
-                new CreateUserCommand(userId, username, firstName, lastName),
+                new SyncUserCommand(userId, username, firstName, lastName, profilePictureUrl),
                 tokenValidatedContext.HttpContext.RequestAborted);
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Failed to provision user {UserId} during token validation", userId);
+            logger.LogError(exception, "Failed to sync user {UserId} during token validation", userId);
         }
     }
 
