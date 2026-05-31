@@ -5,7 +5,7 @@ using Musify.Application.PlayLists.Responses;
 namespace Musify.Application.PlayLists.Commands
 {
     public record UpdatePlayListCommand(
-        Guid UserId,
+        long UserId,
         Guid PlayListId,
         string? NewName,
         string? NewDescription,

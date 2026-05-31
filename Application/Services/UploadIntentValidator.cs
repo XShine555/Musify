@@ -13,7 +13,7 @@ public sealed class UploadIntentValidator(
 {
     public async Task<Result> CheckQuotaAsync(
         UploadIntentConfiguration config,
-        Guid userId,
+        long userId,
         long requiredBytes,
         int requiredIntentCount,
         CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ public sealed class UploadIntentValidator(
     public async Task<Result<UploadIntent>> ValidateAndLoadAsync(
         UploadIntentConfiguration config,
         Guid intentId,
-        Guid userId,
+        long userId,
         CancellationToken cancellationToken)
     {
         var intent = await database.UploadIntents

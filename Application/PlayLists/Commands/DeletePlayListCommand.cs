@@ -3,6 +3,6 @@ using Mediator;
 
 namespace Musify.Application.PlayLists.Commands
 {
-    public record DeletePlayListCommand(Guid UserId, Guid PlayListId)
+    public record DeletePlayListCommand(long UserId, Guid PlayListId)
         : ICommand<Result>;
 }

@@ -17,7 +17,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
     {
         public async Task<RoutingSlipBuilder> BuildAsync(
             Guid playListId,
-            Guid userId,
+            long userId,
             Guid? correlationId,
             CancellationToken cancellationToken)
         {

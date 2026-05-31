@@ -24,7 +24,7 @@ namespace Musify.Infrastructure.Services
             signingCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
         }
 
-        public StreamTicket IssueTicket(Guid userId, string keyPrefix)
+        public StreamTicket IssueTicket(long userId, string keyPrefix)
         {
             var now = DateTimeOffset.UtcNow;
 

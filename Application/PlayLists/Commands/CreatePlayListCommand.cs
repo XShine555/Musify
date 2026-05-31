@@ -5,7 +5,7 @@ using Musify.Application.PlayLists.Responses;
 namespace Musify.Application.PlayLists.Commands
 {
     public record CreatePlayListCommand(
-        Guid UserId,
+        long UserId,
         string Name,
         string Description,
         Guid? PictureIntentId)

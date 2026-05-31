@@ -7,7 +7,8 @@ namespace Musify.Domain.Entities
     public class User
     {
         [Key]
-        public required Guid Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public required long Id { get; set; }
 
         [Required]
         [MaxLength(48)]

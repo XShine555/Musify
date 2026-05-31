@@ -4,6 +4,6 @@ using Musify.Application.Tracks.Responses;
 
 namespace Musify.Application.Tracks.Queries
 {
-    public record GetTrackStreamQuery(Guid TrackId, Guid UserId)
+    public record GetTrackStreamQuery(Guid TrackId, long UserId)
         : IQuery<Result<TrackStreamResponse>>;
 }

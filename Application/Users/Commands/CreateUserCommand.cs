@@ -5,7 +5,7 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.Users.Commands
 {
-    public record CreateUserCommand(Guid Id,
+    public record CreateUserCommand(long Id,
         string Name,
         string? FirstName,
         string? SecondName)

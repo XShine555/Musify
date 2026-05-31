@@ -5,7 +5,7 @@ using Musify.Application.Tracks.Responses;
 namespace Musify.Application.Tracks.Commands
 {
     public record RequestTrackUploadUrlsCommand(
-        Guid UserId,
+        long UserId,
         string PictureFileType,
         string PictureContentType,
         string AudioFileType,

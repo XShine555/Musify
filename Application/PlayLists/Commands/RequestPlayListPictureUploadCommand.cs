@@ -5,7 +5,7 @@ using Musify.Application.PlayLists.Responses;
 namespace Musify.Application.PlayLists.Commands
 {
     public record RequestPlayListPictureUploadCommand(
-        Guid UserId,
+        long UserId,
         string FileType,
         string ContentType,
         long? ExpectedSizeBytes = null)

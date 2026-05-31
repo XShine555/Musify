@@ -10,7 +10,7 @@ namespace Musify.Domain.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        public required Guid UserId { get; set; }
+        public required long UserId { get; set; }
 
         [Required]
         public required Guid TrackId { get; set; }

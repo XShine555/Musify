@@ -3,7 +3,7 @@
 namespace Musify.Application.Users.Responses
 {
     public record UserApplicationResponse(
-        Guid Id,
+        long Id,
         string Name,
         string? FirstName,
         string? SecondName,
