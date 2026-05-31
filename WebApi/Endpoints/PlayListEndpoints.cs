@@ -50,6 +50,16 @@ public static class PlayListEndpoints
             .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>()
             .RequireAuthorization();
 
+        group.MapPost("/{playlistId}/tracks/{trackId}", AddTrackToPlayList)
+            .WithName("AddTrackToPlayList")
+            .WithSummary("Add A Track To A PlayList.")
+            .RequireAuthorization();
+
+        group.MapDelete("/{playlistId}/tracks/{trackId}", RemoveTrackFromPlayList)
+            .WithName("RemoveTrackFromPlayList")
+            .WithSummary("Remove A Track From A PlayList.")
+            .RequireAuthorization();
+
         return app;
     }
 
@@ -132,6 +142,34 @@ public static class PlayListEndpoints
     {
         var result = await mediator.Send(
             new RequestPlayListPictureUploadCommand(currentUser.RequiredId, request.FileType, request.ContentType, request.ExpectedSizeBytes),
+            cancellationToken);
+
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AddTrackToPlayList(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid playlistId,
+        Guid trackId,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new AddTrackToPlayListCommand(currentUser.RequiredId, playlistId, trackId),
+            cancellationToken);
+
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> RemoveTrackFromPlayList(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid playlistId,
+        Guid trackId,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new RemoveTrackFromPlayListCommand(currentUser.RequiredId, playlistId, trackId),
             cancellationToken);
 
         return result.ToHttpResult();
