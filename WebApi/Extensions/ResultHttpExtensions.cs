@@ -31,6 +31,6 @@ public static class ResultHttpExtensions
 
     private static Dictionary<string, string[]> ToValidationDictionary(IEnumerable<ValidationError> errors) =>
         errors
-            .GroupBy(e => e.Identifier)
+            .GroupBy(e => string.IsNullOrEmpty(e.Identifier) ? "general" : e.Identifier)
             .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 }
