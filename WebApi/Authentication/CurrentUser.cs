@@ -12,7 +12,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
         IsAuthenticated = isAuthenticated.HasValue && isAuthenticated.Value;
 
         var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (Guid.TryParse(rawId, out var id) && id != Guid.Empty)
+        if (long.TryParse(rawId, out var id) && id != 0)
             Id = id;
 
         Username = principal.FindFirstValue(ClaimTypes.Name);
@@ -24,7 +24,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
 
     public bool IsAuthenticated { get; }
 
-    public Guid? Id { get; }
+    public long? Id { get; }
 
     public string? Username { get; }
 
@@ -32,7 +32,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
 
     public string? LastName { get; }
 
-    public Guid RequiredId => Id ?? throw new InvalidOperationException("User Id claim is missing or invalid.");
+    public long RequiredId => Id ?? throw new InvalidOperationException("User Id claim is missing or invalid.");
 
     public bool HasClaim(string type) => Principal.HasClaim(c => c.Type == type);
 

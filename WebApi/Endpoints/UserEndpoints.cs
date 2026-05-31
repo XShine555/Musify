@@ -43,7 +43,7 @@ public static class UserEndpoints
 
     private static async Task<IResult> GetUserById(
         IMediator mediator,
-        Guid id,
+        long id,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetUserByIdQuery(id), cancellationToken);

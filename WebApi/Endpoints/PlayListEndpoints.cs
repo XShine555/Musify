@@ -74,7 +74,7 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> GetPlayListsByUserId(
         IMediator mediator,
-        Guid userId,
+        long userId,
         CancellationToken cancellationToken,
         string? name,
         int pageNumber = 1,

@@ -83,7 +83,7 @@ public static class TrackEndpoints
 
     private static async Task<IResult> GetTracksByUserId(
         IMediator mediator,
-        Guid userId,
+        long userId,
         CancellationToken cancellationToken,
         string? name,
         int pageNumber = 1,

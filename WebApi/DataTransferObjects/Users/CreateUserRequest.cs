@@ -1,7 +1,7 @@
 namespace WebApi.DataTransferObjects.Users;
 
 public record CreateUserRequest(
-    Guid Id,
+    long Id,
     string Name,
     string? FirstName,
     string? SecondName);
