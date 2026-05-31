@@ -17,11 +17,9 @@ namespace Musify.Domain.Entities
         [Required, MaxLength(128)]
         public required string Bucket { get; set; }
 
-        // Full S3 key (including prefix and object name)
         [Required, MaxLength(512)]
         public required string Key { get; set; }
 
-        // Just the filename portion stored in Track/PlayList entities (e.g. "{guid}.webp")
         [Required, MaxLength(128)]
         public required string ObjectName { get; set; }
 

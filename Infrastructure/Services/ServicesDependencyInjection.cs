@@ -44,7 +44,6 @@ namespace Musify.Infrastructure.Services
             return serviceDescriptors;
         }
 
-        // Called by both the web API host and the worker
         public static IServiceCollection AddUploadIntentConfiguration(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors
@@ -60,7 +59,6 @@ namespace Musify.Infrastructure.Services
             return serviceDescriptors;
         }
 
-        // Called only by the worker host (registers background jobs)
         public static IServiceCollection AddUploadIntentJobs(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddUploadIntentConfiguration(configuration);

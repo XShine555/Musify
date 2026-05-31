@@ -40,7 +40,6 @@ namespace Musify.Infrastructure.Jobs
 
             var now = DateTime.UtcNow;
 
-            // Mark expired intents
             var expiredIntents = await database.UploadIntents
                 .Where(i => i.Status == UploadIntentStatus.Issued && i.ExpiresAt < now)
                 .ToListAsync(cancellationToken);
@@ -54,7 +53,6 @@ namespace Musify.Infrastructure.Jobs
                 logger.LogInformation("Marked {Count} upload intents as Expired", expiredIntents.Count);
             }
 
-            // Delete old Expired intents past retention window
             if (uploadIntentConfiguration.ExpiredIntentsRetentionDays >= 0)
             {
                 var retentionCutoff = now.AddDays(-uploadIntentConfiguration.ExpiredIntentsRetentionDays);

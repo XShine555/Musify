@@ -42,9 +42,9 @@ namespace Musify.Application.Tracks.Handlers
             var audioObjectName = $"{Guid.NewGuid()}.{request.AudioFileType.TrimStart('.').ToLowerInvariant()}";
 
             var tempPictureKey = trackConfiguration.Routes.BuildTempPicturePath(
-                uploadIntentConfiguration.TempRootPrefix, request.UserId, pictureObjectName);
+                uploadIntentConfiguration.TemporalRootPrefix, request.UserId, pictureObjectName);
             var tempAudioKey = trackConfiguration.Routes.BuildTempAudioPath(
-                uploadIntentConfiguration.TempRootPrefix, request.UserId, audioObjectName);
+                uploadIntentConfiguration.TemporalRootPrefix, request.UserId, audioObjectName);
 
             try
             {

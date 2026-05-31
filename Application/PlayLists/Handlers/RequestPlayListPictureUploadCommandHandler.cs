@@ -39,7 +39,7 @@ namespace Musify.Application.PlayLists.Handlers
             var objectName = $"{Guid.NewGuid() }.{request.FileType.TrimStart('.').ToLowerInvariant() }";
 
             var tempKey = playListConfiguration.Routes.BuildTempPicturePath(
-                uploadIntentConfiguration.TempRootPrefix, request.UserId, objectName);
+                uploadIntentConfiguration.TemporalRootPrefix, request.UserId, objectName);
 
             try
             {

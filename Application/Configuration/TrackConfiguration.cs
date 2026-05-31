@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration
 {
@@ -85,7 +85,6 @@ namespace Musify.Application.Configuration
 
         public string BuildProcessedAudioPath(string audioName) => CombineKey(ProcessedAudiosPath, audioName);
 
-        // Temp paths used in Phase 2 for pre-signed upload keys (moved to final on consumption)
         public string BuildTempPicturePath(string tempRootPrefix, long userId, string objectName) =>
             CombineKey(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
 

@@ -16,8 +16,8 @@ namespace Musify.Infrastructure.Jobs
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("TemporalUploadsCleanUpJob started (interval: {Interval}s, prefix: {Prefix})",
-                uploadIntentConfiguration.TempCleanupJobIntervalSeconds,
-                uploadIntentConfiguration.TempRootPrefix);
+                uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds,
+                uploadIntentConfiguration.TemporalRootPrefix);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -30,7 +30,7 @@ namespace Musify.Infrastructure.Jobs
                     logger.LogError(exception, "Error in TemporalUploadsCleanUpJob");
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(uploadIntentConfiguration.TempCleanupJobIntervalSeconds), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds), stoppingToken);
             }
         }
 
@@ -39,13 +39,13 @@ namespace Musify.Infrastructure.Jobs
             await using var scope = scopeFactory.CreateAsyncScope();
             var storageService = scope.ServiceProvider.GetRequiredService<IStorageService>();
 
-            var cutOff = DateTime.UtcNow.AddDays(-uploadIntentConfiguration.TempUploadsRetentionDays);
+            var cutOff = DateTime.UtcNow.AddDays(-uploadIntentConfiguration.TemporalUploadsRetentionDays);
             var deleted = 0;
             var errors = 0;
 
             await foreach (var (key, lastModified) in storageService.ListObjectsAsync(
                 storageConfiguration.Bucket,
-                uploadIntentConfiguration.TempRootPrefix,
+                uploadIntentConfiguration.TemporalRootPrefix,
                 cancellationToken))
             {
                 if (lastModified >= cutOff)
