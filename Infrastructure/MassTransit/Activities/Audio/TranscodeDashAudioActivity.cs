@@ -38,11 +38,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
             try
             {
-                await using var fileStream = File.OpenRead(sourceFilePath);
-                await audioTranscoder.TranscodeToDashAsync(
-                    fileStream,
-                    workingDirectory,
-                    executeContext.CancellationToken);
+                await using (var fileStream = File.OpenRead(sourceFilePath))
+                {
+                    await audioTranscoder.TranscodeToDashAsync(
+                        fileStream,
+                        workingDirectory,
+                        executeContext.CancellationToken);
+                }
 
                 File.Delete(sourceFilePath);
                 return executeContext.Completed();

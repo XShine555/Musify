@@ -2,5 +2,5 @@
 {
     public record UpdateTrackAudioArguments(
         Guid TrackId,
-        string AudioFolderKeyVariable);
+        string AudioFolderKey);
 }

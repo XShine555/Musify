@@ -31,17 +31,8 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                 throw;
             }
 
-            string? audioFolderKey;
-            try
-            {
-                audioFolderKey = executeContext.GetVariable<string>(executeContext.Arguments.AudioFolderKeyVariable);
-                logger.LogDebug("Resolved audio folder key: {AudioFolderKey}", audioFolderKey);
-            }
-            catch (Exception exception)
-            {
-                logger.LogWarning(exception, "Audio folder key variable could not be resolved for track {TrackId}", track.Id);
-                return executeContext.Completed();
-            }
+            var audioFolderKey = executeContext.Arguments.AudioFolderKey;
+            logger.LogDebug("Resolved audio folder key: {AudioFolderKey}", audioFolderKey);
 
             if (string.IsNullOrWhiteSpace(audioFolderKey))
             {

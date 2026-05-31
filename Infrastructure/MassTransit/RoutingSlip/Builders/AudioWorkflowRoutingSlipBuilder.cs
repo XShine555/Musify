@@ -58,7 +58,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
                 new UpdateTrackAudioArguments(
                     message.TrackId,
-                   RoutingSlipVariableNames.Audio.TranscodedDirectory));
+                    message.DestinationFolderKey));
 
             return routingSlipBuilder;
         }
