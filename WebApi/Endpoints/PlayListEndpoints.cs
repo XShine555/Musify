@@ -27,6 +27,10 @@ public static class PlayListEndpoints
             .WithName("GetPlayListsByUserId")
             .WithSummary("Get Paginated PlayLists For A User.");
 
+        group.MapGet("/{playlistId}/tracks", GetPlayListTracks)
+            .WithName("GetPlayListTracks")
+            .WithSummary("Get Paginated Tracks Of A PlayList.");
+
         group.MapPost("/", CreatePlayList)
             .WithName("CreatePlayList")
             .WithSummary("Create A New PlayList.")
@@ -91,6 +95,17 @@ public static class PlayListEndpoints
         int pageSize = 10)
     {
         var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetPlayListTracks(
+        IMediator mediator,
+        Guid playlistId,
+        CancellationToken cancellationToken,
+        int pageNumber = 1,
+        int pageSize = 10)
+    {
+        var result = await mediator.Send(new GetPlayListTracksQuery(playlistId, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
