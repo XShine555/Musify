@@ -69,6 +69,12 @@ namespace Musify.Application.Tracks.Handlers
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
 
+            await database.UserHasTracks.AddAsync(new UserHasTrack
+            {
+                UserId = request.UserId,
+                TrackId = trackEntity.Id
+            }, cancellationToken);
+
             try
             {
                 await eventBus.PublishAsync(
