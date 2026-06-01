@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Musify.Domain.Abstractions;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Domain.Entities
 {
 #pragma warning disable CS8618
     [Table("PlayLists")]
-    public class PlayList
+    public class PlayList : IAuditable
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -47,10 +48,10 @@ namespace Musify.Domain.Entities
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
 
         [Required]
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey(nameof(UserId)) ]
         public User User { get; set; }

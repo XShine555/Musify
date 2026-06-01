@@ -63,7 +63,6 @@ namespace Musify.Application.Users.Handlers
 
             if (hasChanges)
             {
-                user.UpdatedAt = DateTime.UtcNow;
                 await database.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("Synced profile for user {UserId}", request.Id);
             }

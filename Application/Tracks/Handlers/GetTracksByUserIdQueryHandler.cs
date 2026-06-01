@@ -31,7 +31,7 @@ namespace Musify.Application.Tracks.Handlers
             var totalCount = await tracksQuery.CountAsync(cancellationToken);
 
             var pagedTracks = await tracksQuery
-                .OrderBy(t => t.Track.CreatedDate)
+                .OrderBy(t => t.Track.CreatedAt)
                 .Select(t => TrackApplicationResponse.FromEntity(t.Track))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 

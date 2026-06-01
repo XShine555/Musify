@@ -27,7 +27,7 @@ namespace Musify.Application.PlayLists.Handlers
             var totalCount = await playListsQuery.CountAsync(cancellationToken);
 
             var pagedPlayLists = await playListsQuery
-                .OrderBy(p => p.CreatedDate)
+                .OrderBy(p => p.CreatedAt)
                 .Select(p => PlayListApplicationResponse.FromEntity(p))
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 

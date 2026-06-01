@@ -2,12 +2,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
+using Musify.Domain.Abstractions;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Domain.Entities
 {
 #pragma warning disable CS8618
-    public class Track
+    public class Track : IAuditable
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -55,10 +56,10 @@ namespace Musify.Domain.Entities
         public DateTime? LastRetryAt { get; set; }
 
         [Required]
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
