@@ -14,9 +14,6 @@ namespace Musify.Application.PlayLists.Handlers
     {
         public async ValueTask<Result<PaginatedResponse<PlayListApplicationResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
         {
-            var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
-            var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-
             var playListsQuery = database.PlayLists
                 .AsNoTracking()
                 .Where(p => p.UserId == request.UserId);
@@ -32,7 +29,7 @@ namespace Musify.Application.PlayLists.Handlers
             var pagedPlayLists = await playListsQuery
                 .OrderBy(p => p.CreatedDate)
                 .Select(p => PlayListApplicationResponse.FromEntity(p))
-                .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
+                .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             return Result.Success(PaginatedResponse<PlayListApplicationResponse>.FromPagedList(pagedPlayLists));
         }

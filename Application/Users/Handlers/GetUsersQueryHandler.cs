@@ -14,9 +14,6 @@ namespace Musify.Application.Users.Handlers
     {
         public async ValueTask<Result<PaginatedResponse<UserApplicationResponse> >> Handle(GetUsersQuery request, CancellationToken cancellationToken)
         {
-            var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
-            var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-
             var user = database.Users
                 .AsNoTracking()
                 .AsQueryable();
@@ -30,7 +27,7 @@ namespace Musify.Application.Users.Handlers
             var totalCount = await user.CountAsync(cancellationToken);
             var pagedUser = await user
                 .Select(u => UserApplicationResponse.FromEntity(u))
-                .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
+                .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             return Result.Success(PaginatedResponse<UserApplicationResponse>.FromPagedList(pagedUser));
         }
