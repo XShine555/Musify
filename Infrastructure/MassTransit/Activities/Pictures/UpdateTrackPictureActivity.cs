@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
@@ -46,6 +47,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
                 track.SmallPictureName = Path.GetFileName(smallResizedVariable);
                 track.MediumPictureName = Path.GetFileName(mediumResizedVariable);
                 track.LargePictureName = Path.GetFileName(largeResizedVariable);
+                track.PicturesProcessingStatus = ProcessingStatus.Completed;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
@@ -72,14 +74,13 @@ namespace Musify.Infrastructure.MassTransit.Activities
                     cancellationToken: compensateContext.CancellationToken);
 
                 if (track is null)
-                {
                     return compensateContext.Compensated();
-                }
 
                 track.OriginalPictureName = compensateContext.Log.PreviousOriginalPictureKey;
                 track.SmallPictureName = compensateContext.Log.PreviousSmallPictureKey;
                 track.MediumPictureName = compensateContext.Log.PreviousMediumPictureKey;
                 track.LargePictureName = compensateContext.Log.PreviousLargePictureKey;
+                track.PicturesProcessingStatus = ProcessingStatus.Failed;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);

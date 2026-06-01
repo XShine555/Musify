@@ -241,8 +241,8 @@ namespace Musify.Infrastructure.Services
             do
             {
                 listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
-                foreach (var obj in listResponse.S3Objects)
-                    yield return new StorageObject(obj.Key, (obj.LastModified ?? DateTime.UtcNow).ToUniversalTime());
+                foreach (var s3Object in listResponse.S3Objects ?? [] )
+                    yield return new StorageObject(s3Object.Key, (s3Object.LastModified ?? DateTime.UtcNow).ToUniversalTime());
 
                 listRequest.ContinuationToken = listResponse.NextContinuationToken;
             }
@@ -263,7 +263,7 @@ namespace Musify.Infrastructure.Services
             {
                 listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
 
-                if (listResponse.S3Objects.Count == 0)
+                if (listResponse.S3Objects is null or { Count: 0 })
                     break;
 
                 var deleteRequest = new DeleteObjectsRequest
