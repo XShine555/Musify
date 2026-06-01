@@ -25,6 +25,6 @@ namespace Musify.Domain.Entities
         public PlayList PlayList { get; set; }
 
         [ForeignKey(nameof(TrackId)) ]
-        public Track? Track { get; set; }
+        public Track Track { get; set; }
     }
 }
