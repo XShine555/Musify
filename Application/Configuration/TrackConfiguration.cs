@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Configuration
 {
@@ -51,52 +52,45 @@ namespace Musify.Application.Configuration
         [Required]
         public string ProcessedAudioFolder { get; set; } = "ProcessedAudios";
 
-        public string SmallPicturesPath => CombineKey(ParentFolder, SmallPicturesFolder);
+        public string SmallPicturesPath => StorageKey.Combine(ParentFolder, SmallPicturesFolder);
 
-        public string MediumPicturesPath => CombineKey(ParentFolder, MediumPicturesFolder);
+        public string MediumPicturesPath => StorageKey.Combine(ParentFolder, MediumPicturesFolder);
 
-        public string LargePicturesPath => CombineKey(ParentFolder, LargePicturesFolder);
+        public string LargePicturesPath => StorageKey.Combine(ParentFolder, LargePicturesFolder);
 
-        public string PresetSmallPicturePath => CombineKey(ParentFolder, PresetSmallPicture);
+        public string PresetSmallPicturePath => StorageKey.Combine(ParentFolder, PresetSmallPicture);
 
-        public string PresetMediumPicturePath => CombineKey(ParentFolder, PresetMediumPicture);
+        public string PresetMediumPicturePath => StorageKey.Combine(ParentFolder, PresetMediumPicture);
 
-        public string PresetLargePicturePath => CombineKey(ParentFolder, PresetLargePicture);
+        public string PresetLargePicturePath => StorageKey.Combine(ParentFolder, PresetLargePicture);
 
-        public string OriginalPicturesPath => CombineKey(ParentFolder, OriginalPicturesFolder);
+        public string OriginalPicturesPath => StorageKey.Combine(ParentFolder, OriginalPicturesFolder);
 
-        public string OriginalAudiosPath => CombineKey(ParentFolder, OriginalAudiosFolder);
+        public string OriginalAudiosPath => StorageKey.Combine(ParentFolder, OriginalAudiosFolder);
 
-        public string ProcessedAudiosPath => CombineKey(ParentFolder, ProcessedAudioFolder);
+        public string ProcessedAudiosPath => StorageKey.Combine(ParentFolder, ProcessedAudioFolder);
 
-        public string BuildOriginalPicturePath(string pictureName) => CombineKey(OriginalPicturesPath, pictureName);
+        public string BuildOriginalPicturePath(string pictureName) => StorageKey.Combine(OriginalPicturesPath, pictureName);
 
-        public string BuildOriginalPicturePath(long userId, string pictureName) => CombineKey(UploadsFolder, userId.ToString(), OriginalPicturesPath, pictureName);
+        public string BuildOriginalPicturePath(long userId, string pictureName) => StorageKey.Combine(UploadsFolder, userId.ToString(), OriginalPicturesPath, pictureName);
 
-        public string BuildSmallPicturePath(string pictureName) => CombineKey(SmallPicturesPath, pictureName);
+        public string BuildSmallPicturePath(string pictureName) => StorageKey.Combine(SmallPicturesPath, pictureName);
 
-        public string BuildMediumPicturePath(string pictureName) => CombineKey(MediumPicturesPath, pictureName);
+        public string BuildMediumPicturePath(string pictureName) => StorageKey.Combine(MediumPicturesPath, pictureName);
 
-        public string BuildLargePicturePath(string pictureName) => CombineKey(LargePicturesPath, pictureName);
+        public string BuildLargePicturePath(string pictureName) => StorageKey.Combine(LargePicturesPath, pictureName);
 
-        public string BuildOriginalAudioPath(string audioName) => CombineKey(OriginalAudiosPath, audioName);
+        public string BuildOriginalAudioPath(string audioName) => StorageKey.Combine(OriginalAudiosPath, audioName);
 
-        public string BuildOriginalAudioPath(long userId, string audioName) => CombineKey(UploadsFolder, userId.ToString(), OriginalAudiosPath, audioName);
+        public string BuildOriginalAudioPath(long userId, string audioName) => StorageKey.Combine(UploadsFolder, userId.ToString(), OriginalAudiosPath, audioName);
 
-        public string BuildProcessedAudioPath(string audioName) => CombineKey(ProcessedAudiosPath, audioName);
+        public string BuildProcessedAudioPath(string audioName) => StorageKey.Combine(ProcessedAudiosPath, audioName);
 
         public string BuildTempPicturePath(string tempRootPrefix, long userId, string objectName) =>
-            CombineKey(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
+            StorageKey.Combine(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
 
         public string BuildTempAudioPath(string tempRootPrefix, long userId, string objectName) =>
-            CombineKey(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
-
-        static string CombineKey(params string[] segments)
-        {
-            return string.Join('/', segments
-                .Where(static s => !string.IsNullOrWhiteSpace(s))
-                .Select(static s => s.Trim().Trim('/', '\\')));
-        }
+            StorageKey.Combine(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
     }
 
     public class TrackPicturesSizes

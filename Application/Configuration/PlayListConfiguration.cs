@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Configuration
 {
@@ -45,39 +46,32 @@ namespace Musify.Application.Configuration
         [Required]
         public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
 
-        public string SmallPicturesPath => CombineKey(ParentFolders, SmallPicturesFolder);
+        public string SmallPicturesPath => StorageKey.Combine(ParentFolders, SmallPicturesFolder);
 
-        public string MediumPicturesPath => CombineKey(ParentFolders, MediumPicturesFolder);
+        public string MediumPicturesPath => StorageKey.Combine(ParentFolders, MediumPicturesFolder);
 
-        public string LargePicturesPath => CombineKey(ParentFolders, LargePicturesFolder);
+        public string LargePicturesPath => StorageKey.Combine(ParentFolders, LargePicturesFolder);
 
-        public string PresetSmallPicturePath => CombineKey(ParentFolders, PresetSmallPicture);
+        public string PresetSmallPicturePath => StorageKey.Combine(ParentFolders, PresetSmallPicture);
 
-        public string PresetMediumPicturePath => CombineKey(ParentFolders, PresetMediumPicture);
+        public string PresetMediumPicturePath => StorageKey.Combine(ParentFolders, PresetMediumPicture);
 
-        public string PresetLargePicturePath => CombineKey(ParentFolders, PresetLargePicture);
+        public string PresetLargePicturePath => StorageKey.Combine(ParentFolders, PresetLargePicture);
 
-        public string OriginalPicturesPath => CombineKey(ParentFolders, OriginalPicturesFolder);
+        public string OriginalPicturesPath => StorageKey.Combine(ParentFolders, OriginalPicturesFolder);
 
-        public string BuildOriginalPicturePath(string pictureName) => CombineKey(ParentFolders, OriginalPicturesFolder, pictureName);
+        public string BuildOriginalPicturePath(string pictureName) => StorageKey.Combine(ParentFolders, OriginalPicturesFolder, pictureName);
 
-        public string BuildOriginalPicturePath(long userId, string pictureName) => CombineKey(UploadsFolder, userId.ToString(), ParentFolders, OriginalPicturesFolder, pictureName);
+        public string BuildOriginalPicturePath(long userId, string pictureName) => StorageKey.Combine(UploadsFolder, userId.ToString(), ParentFolders, OriginalPicturesFolder, pictureName);
 
-        public string BuildSmallPicturePath(string pictureName) => CombineKey(ParentFolders, SmallPicturesFolder, pictureName);
+        public string BuildSmallPicturePath(string pictureName) => StorageKey.Combine(ParentFolders, SmallPicturesFolder, pictureName);
 
-        public string BuildMediumPicturePath(string pictureName) => CombineKey(ParentFolders, MediumPicturesFolder, pictureName);
+        public string BuildMediumPicturePath(string pictureName) => StorageKey.Combine(ParentFolders, MediumPicturesFolder, pictureName);
 
-        public string BuildLargePicturePath(string pictureName) => CombineKey(ParentFolders, LargePicturesFolder, pictureName);
+        public string BuildLargePicturePath(string pictureName) => StorageKey.Combine(ParentFolders, LargePicturesFolder, pictureName);
 
         public string BuildTempPicturePath(string tempRootPrefix, long userId, string objectName) =>
-            CombineKey(tempRootPrefix, userId.ToString(), ParentFolders, objectName);
-
-        static string CombineKey(params string[] segments)
-        {
-            return string.Join('/', segments
-                .Where(static s => !string.IsNullOrWhiteSpace(s))
-                .Select(static s => s.Trim().Trim('/', '\\')));
-        }
+            StorageKey.Combine(tempRootPrefix, userId.ToString(), ParentFolders, objectName);
     }
 
     public class PlayListPicturesSizes
