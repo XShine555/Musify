@@ -34,38 +34,15 @@ namespace Musify.Application.Users.Handlers
                 return Result.Success();
             }
 
-            var hasChanges = false;
+            user.Name = request.Name;
+            user.NormalizedName = request.Name.ToUpperInvariant();
+            user.FirstName = request.FirstName;
+            user.SecondName = request.SecondName;
+            user.ProfilePictureUrl = request.ProfilePictureUrl;
 
-            if (user.Name != request.Name)
-            {
-                user.Name = request.Name;
-                user.NormalizedName = request.Name.ToUpperInvariant();
-                hasChanges = true;
-            }
-
-            if (user.FirstName != request.FirstName)
-            {
-                user.FirstName = request.FirstName;
-                hasChanges = true;
-            }
-
-            if (user.SecondName != request.SecondName)
-            {
-                user.SecondName = request.SecondName;
-                hasChanges = true;
-            }
-
-            if (user.ProfilePictureUrl != request.ProfilePictureUrl)
-            {
-                user.ProfilePictureUrl = request.ProfilePictureUrl;
-                hasChanges = true;
-            }
-
-            if (hasChanges)
-            {
-                await database.SaveChangesAsync(cancellationToken);
+            var written = await database.SaveChangesAsync(cancellationToken);
+            if (written > 0)
                 logger.LogInformation("Synced profile for user {UserId}", request.Id);
-            }
 
             return Result.Success();
         }
