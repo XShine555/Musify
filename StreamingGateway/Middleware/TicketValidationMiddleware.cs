@@ -43,7 +43,6 @@ public sealed class TicketValidationMiddleware(
         }
 
         StripQueryParameter(context, options.QueryParameterName);
-
         await next(context);
     }
 

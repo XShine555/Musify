@@ -2,7 +2,7 @@ using Musify.StreamingGateway.Authentication;
 using Musify.StreamingGateway.Configuration;
 using Musify.StreamingGateway.Middleware;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder();
 
 builder.Services
     .AddOptions<StreamTicketValidationOptions>()
@@ -24,7 +24,7 @@ builder.Services.AddCors(options => options.AddPolicy(corsPolicy, policy =>
     policy.AllowAnyHeader()
         .WithMethods("GET", "HEAD")
         .WithExposedHeaders("Content-Range", "Accept-Ranges", "Content-Length");
-}));
+} ));
 
 builder.Services
     .AddReverseProxy()
@@ -32,7 +32,8 @@ builder.Services
 
 var app = builder.Build();
 
-app.MapGet("/health", () => Results.Ok("healthy"));
+app.MapGet("/health", () => Results.Ok("healthy"))
+    .WithSummary("Health Check Endpoint");
 
 app.UseCors(corsPolicy);
 app.UseMiddleware<TicketValidationMiddleware>();
