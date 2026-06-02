@@ -44,7 +44,7 @@ namespace Musify.Application.Tracks.Handlers
                 streamGatewayConfiguration.PublicBaseUrl.TrimEnd('/'),
                 "media",
                 folderPath,
-                streamGatewayConfiguration.ManifestFileName);
+                streamGatewayConfiguration.AudioFileName);
 
             logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId);
 

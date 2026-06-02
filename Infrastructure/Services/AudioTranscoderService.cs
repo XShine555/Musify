@@ -11,29 +11,29 @@ namespace Musify.Infrastructure.Services
     {
         record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
 
-        public async Task<int> TranscodeToDashAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
+        public async Task<int> TranscodeToAudioFileAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
         {
             try
             {
                 Directory.CreateDirectory(destinationPath);
 
-                logger.LogInformation("Starting audio transcoding to DASH for {DestinationPath}", destinationPath);
+                logger.LogInformation("Starting audio transcoding for {DestinationPath}", destinationPath);
 
                 var executionResult = await ExecuteFfmpegWithInputAsync(
-                    BuildDashArguments(destinationPath, audioTranscoderConfiguration.Ffmpeg),
+                    BuildAudioFileArguments(destinationPath, audioTranscoderConfiguration.Ffmpeg),
                     destinationPath,
                     audioStream,
-                    "TranscodeToDash",
+                    "TranscodeToAudioFile",
                     cancellationToken);
 
                 if (executionResult.ExitCode != 0)
                 {
-                    logger.LogError("Audio transcoding to DASH failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
+                    logger.LogError("Audio transcoding failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
                         executionResult.ExitCode, executionResult.StandardOutput, executionResult.StandardError);
                 }
                 else
                 {
-                    logger.LogInformation("Audio transcoding to DASH completed for {DestinationPath}", destinationPath);
+                    logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
                 }
 
                 return executionResult.ExitCode;
@@ -45,7 +45,7 @@ namespace Musify.Infrastructure.Services
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to transcode audio to DASH for {DestinationPath}", destinationPath);
+                logger.LogError(exception, "Failed to transcode audio for {DestinationPath}", destinationPath);
                 throw;
             }
         }
@@ -188,9 +188,9 @@ namespace Musify.Infrastructure.Services
             }
         }
 
-        static string BuildDashArguments(string outputDirectory, FfmpegConfiguration ffmpegConfiguration)
+        static string BuildAudioFileArguments(string outputDirectory, FfmpegConfiguration ffmpegConfiguration)
         {
-            var manifestPath = Path.Combine(outputDirectory, ffmpegConfiguration.ManifestFileName);
+            var outputPath = Path.Combine(outputDirectory, ffmpegConfiguration.OutputFileName);
             var additionalArguments = string.IsNullOrWhiteSpace(ffmpegConfiguration.AdditionalArguments)
                 ? string.Empty
                 : $" {ffmpegConfiguration.AdditionalArguments.Trim()}";
@@ -204,15 +204,9 @@ namespace Musify.Infrastructure.Services
                    $"-ac {ffmpegConfiguration.AudioChannels} " +
                    $"-ar {ffmpegConfiguration.AudioSampleRate} " +
                    $"-profile:a {ffmpegConfiguration.AudioProfile} " +
-                   "-f dash " +
-                   $"-seg_duration {ffmpegConfiguration.SegmentDurationSeconds} " +
-                   "-streaming 1 " +
-                   "-use_template 1 " +
-                   "-use_timeline 0 " +
-                   $"-init_seg_name \"{ffmpegConfiguration.InitSegmentName}\" " +
-                   $"-media_seg_name \"{ffmpegConfiguration.MediaSegmentName}\"" +
+                   "-movflags +faststart" +
                    additionalArguments +
-                   $" \"{manifestPath}\"";
+                   $" \"{outputPath}\"";
         }
 
         static string BuildValidateAudioArguments(string filePath)

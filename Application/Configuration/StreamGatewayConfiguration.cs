@@ -11,6 +11,6 @@ namespace Musify.Application.Configuration
         public required string PublicBaseUrl { get; set; }
 
         [Required]
-        public string ManifestFileName { get; set; } = "manifest.mpd";
+        public string AudioFileName { get; set; } = "audio.m4a";
     }
 }

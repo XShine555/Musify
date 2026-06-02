@@ -19,7 +19,7 @@ namespace Musify.Infrastructure.Configuration
         public string ExecutableName { get; set; } = "ffmpeg";
 
         [Required]
-        public string ManifestFileName { get; set; } = "manifest.mpd";
+        public string OutputFileName { get; set; } = "audio.m4a";
 
         [Required]
         public string AudioCodec { get; set; } = "aac";
@@ -35,15 +35,6 @@ namespace Musify.Infrastructure.Configuration
 
         [Required]
         public string AudioProfile { get; set; } = "aac_low";
-
-        [Range(1, 60)]
-        public int SegmentDurationSeconds { get; set; } = 4;
-
-        [Required]
-        public string InitSegmentName { get; set; } = "init-stream$RepresentationID$.m4s";
-
-        [Required]
-        public string MediaSegmentName { get; set; } = "chunk-stream$RepresentationID$-$Number$.m4s";
 
         public string AdditionalArguments { get; set; } = string.Empty;
     }

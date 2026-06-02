@@ -39,8 +39,8 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 
             routingSlipBuilder.AddActivity(
                 ActivityNames.TranscodeAudio,
-                EndpointHelper.BuildExecuteActivityUri(TranscodeDashAudioActivity.ExecuteEndpointName),
-                new TranscodeDashAudioArguments(
+                EndpointHelper.BuildExecuteActivityUri(TranscodeAudioActivity.ExecuteEndpointName),
+                new TranscodeAudioArguments(
                     message.TrackId,
                     RoutingSlipVariableNames.Audio.SourceFilePath,
                     RoutingSlipVariableNames.Workflow.TemporalDirectory));

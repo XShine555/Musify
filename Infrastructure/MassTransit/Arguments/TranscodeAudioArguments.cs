@@ -1,6 +1,6 @@
-﻿namespace Musify.Infrastructure.MassTransit.Arguments
+namespace Musify.Infrastructure.MassTransit.Arguments
 {
-    public record TranscodeDashAudioArguments(
+    public record TranscodeAudioArguments(
         Guid TrackId,
         string SourceFilePathVariable,
         string WorkingDirectoryVariable);

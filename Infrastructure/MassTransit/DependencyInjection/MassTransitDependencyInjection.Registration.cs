@@ -52,7 +52,7 @@ namespace Musify.Infrastructure.MassTransit
             options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();
             options.AddActivity<UpdateTrackPictureActivity, UpdateTrackPictureArguments, UpdateTrackPictureLog>();
             options.AddActivity<DownloadFileFromBucketActivity, DownloadFileFromBucketArguments, DownloadFileFromBucketLog>();
-            options.AddActivity<TranscodeDashAudioActivity, TranscodeDashAudioArguments, TranscodeDashAudioLog>();
+            options.AddActivity<TranscodeAudioActivity, TranscodeAudioArguments, TranscodeAudioLog>();
             options.AddActivity<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
             options.AddActivity<UpdateTrackAudioActivity, UpdateTrackAudioArguments, UpdateTrackAudioLog>();
             options.AddActivity<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>();
@@ -178,10 +178,10 @@ namespace Musify.Infrastructure.MassTransit
                 busRegistrationContext,
                 DownloadFileFromBucketActivity.ExecuteEndpointName);
 
-            ConfigureActivityEndpoint<TranscodeDashAudioActivity, TranscodeDashAudioArguments, TranscodeDashAudioLog>(
+            ConfigureActivityEndpoint<TranscodeAudioActivity, TranscodeAudioArguments, TranscodeAudioLog>(
                 busFactoryConfigurator,
                 busRegistrationContext,
-                TranscodeDashAudioActivity.ExecuteEndpointName);
+                TranscodeAudioActivity.ExecuteEndpointName);
 
             ConfigureActivityEndpoint<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>(
                 busFactoryConfigurator,

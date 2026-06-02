@@ -9,15 +9,15 @@ using Musify.Infrastructure.MassTransit.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities
 {
-    internal class TranscodeDashAudioActivity(
+    internal class TranscodeAudioActivity(
         IDatabase database,
         IAudioTranscoderService audioTranscoder,
-        ILogger<TranscodeDashAudioActivity> logger)
-        : IActivity<TranscodeDashAudioArguments, TranscodeDashAudioLog>
+        ILogger<TranscodeAudioActivity> logger)
+        : IActivity<TranscodeAudioArguments, TranscodeAudioLog>
     {
-        public const string ExecuteEndpointName = "transcode-dash-audio";
+        public const string ExecuteEndpointName = "transcode-audio";
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<TranscodeDashAudioArguments> executeContext)
+        public async Task<ExecutionResult> Execute(ExecuteContext<TranscodeAudioArguments> executeContext)
         {
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariable);
             ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
@@ -40,7 +40,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             {
                 await using (var fileStream = File.OpenRead(sourceFilePath))
                 {
-                    await audioTranscoder.TranscodeToDashAsync(
+                    await audioTranscoder.TranscodeToAudioFileAsync(
                         fileStream,
                         workingDirectory,
                         executeContext.CancellationToken);
@@ -68,7 +68,7 @@ namespace Musify.Infrastructure.MassTransit.Activities
             }
         }
 
-        public Task<CompensationResult> Compensate(CompensateContext<TranscodeDashAudioLog> compensateContext)
+        public Task<CompensationResult> Compensate(CompensateContext<TranscodeAudioLog> compensateContext)
         {
             try
             {
