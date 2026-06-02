@@ -122,18 +122,27 @@ namespace Musify.Infrastructure.Services
                 var key = string.Join('/', new[] { route, fileName }
                     .Where(static s => !string.IsNullOrWhiteSpace(s))
                     .Select(static s => s.Trim().Trim('/', '\\')));
+                var contentType = MimeUtility.GetMimeMapping(filePath);
                 var upload = new Upload
                 {
                     Id = Guid.NewGuid(),
                     Bucket = bucket,
                     Key = key,
-                    ContentType = MimeUtility.GetMimeMapping(filePath)
+                    ContentType = contentType
                 };
                 await database.Uploads.AddAsync(upload, cancellationToken);
 
                 try
                 {
-                    await trasnsferUtility.UploadAsync(filePath, bucket, key, cancellationToken);
+                    await trasnsferUtility.UploadAsync(
+                        new TransferUtilityUploadRequest
+                        {
+                            FilePath = filePath,
+                            BucketName = bucket,
+                            Key = key,
+                            ContentType = contentType
+                        },
+                        cancellationToken);
                     upload.State = UploadState.Successful;
                     successCount++;
                     logger.LogDebug("Transferred file to S3 {Bucket}/{Key}", bucket, key);
