@@ -23,6 +23,11 @@ public sealed class TicketValidationMiddleware(
         }
 
         var token = context.Request.Query[options.QueryParameterName].ToString();
+        if (string.IsNullOrEmpty(token))
+        {
+            token = context.Request.Headers[options.HeaderName].ToString();
+        }
+
         var validation = await ticketValidator.ValidateTicketAsync(token);
 
         if (!validation.IsSuccess)

@@ -17,5 +17,7 @@ public sealed class StreamTicketValidationOptions
 
     public string QueryParameterName { get; set; } = "t";
 
+    public string HeaderName { get; set; } = "X-Stream-Ticket";
+
     public string MediaPathPrefix { get; set; } = "/media";
 }
