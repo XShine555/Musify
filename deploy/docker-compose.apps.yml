@@ -1,0 +1,96 @@
+name: musify-dev
+
+# Optional overlay: runs the .NET apps in Docker. Merges with docker-compose.yml.
+#
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.apps.yml up -d --build
+#
+# For active development prefer infra in Docker + apps from the IDE (easier to
+# debug). Auth works in both modes: ZITADEL_EXTERNAL_DOMAIN=host.docker.internal
+# resolves the same from the browser, local apps and containers, so the token
+# issuer matches everywhere (containers reach the host via extra_hosts).
+
+x-backend-depends: &backend-depends
+  postgres:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+  seaweedfs:
+    condition: service_healthy
+
+x-backend-env: &backend-env
+  Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+  MassTransit__Address: "rabbitmq://rabbitmq:5672"
+  MassTransit__Username: ${RABBITMQ_DEFAULT_USER}
+  MassTransit__Password: ${RABBITMQ_DEFAULT_PASS}
+  InfrastructureStorage__Address: "http://seaweedfs:8333"
+  InfrastructureStorage__AccessKey: ${S3_ACCESS_KEY}
+  InfrastructureStorage__SecretAccessKey: ${S3_SECRET_KEY}
+  InfrastructureStorage__ForcePathStyle: "true"
+  InfrastructureStorage__UseHttp: "true"
+  ApplicationStorage__Bucket: ${S3_BUCKET}
+  OpenTelemetry__OtlpEndpoint: "http://jaeger:4317"
+
+services:
+  api:
+    build:
+      context: ../backend
+      dockerfile: Musify.Api.Dockerfile
+    container_name: musify-api
+    depends_on: *backend-depends
+    environment:
+      <<: *backend-env
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5111
+      StreamGateway__PublicBaseUrl: "http://localhost:8081"
+      StreamTicket__PrivateKeyPath: "/keys/stream_private.pem"
+      # Auth values provisioned by zitadel/provision.ps1 (AUTH_CLIENT_ID in .env).
+      Authentication__MetadataAddress: "http://${ZITADEL_EXTERNAL_DOMAIN}:${ZITADEL_EXTERNAL_PORT}/.well-known/openid-configuration"
+      Authentication__IssuerAddress: "http://${ZITADEL_EXTERNAL_DOMAIN}:${ZITADEL_EXTERNAL_PORT}"
+      Authentication__ClientId: "${AUTH_CLIENT_ID}"
+      Authentication__AudienceAddress: "${AUTH_CLIENT_ID}"
+      Authentication__AuthorizationEndpoint: "http://${ZITADEL_EXTERNAL_DOMAIN}:${ZITADEL_EXTERNAL_PORT}/oauth/v2/authorize?prompt=login"
+      Authentication__TokenEndpoint: "http://${ZITADEL_EXTERNAL_DOMAIN}:${ZITADEL_EXTERNAL_PORT}/oauth/v2/token"
+      Authentication__ScalarRedirectUri: "http://localhost:5111/scalar/"
+      Authentication__Scopes__0: "openid"
+      Authentication__Scopes__1: "profile"
+      Authentication__Scopes__2: "email"
+      Authentication__RequireHttpsMetadata: "false"
+    extra_hosts:
+      - "${ZITADEL_EXTERNAL_DOMAIN}:host-gateway"
+    volumes:
+      - "${STREAM_KEYS_DIR:-D:/weed}:/keys:ro"
+    ports:
+      - "5111:5111"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../backend
+      dockerfile: Musify.Worker.Dockerfile
+    container_name: musify-worker
+    depends_on: *backend-depends
+    environment:
+      <<: *backend-env
+      DOTNET_ENVIRONMENT: Development
+      AudioTranscoder__Routes__WorkingDirectory: "/tmp/musify"
+      Workers__Routes__TemporaryFilesDirectory: "/tmp/musify"
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ../backend
+      dockerfile: Musify.StreamingGateway.Dockerfile
+    container_name: musify-gateway
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8081
+      StreamTicket__PublicKeyPath: "/keys/stream_public.pem"
+      ReverseProxy__Clusters__seaweed-filer__Destinations__filer__Address: "http://seaweedfs:8888/"
+    volumes:
+      - "${STREAM_KEYS_DIR:-D:/weed}:/keys:ro"
+    ports:
+      - "8081:8081"
+    restart: unless-stopped

@@ -4,21 +4,21 @@ Cómo levantar todo en local y probarlo.
 
 ## Dependencias (Docker)
 
+Todo (PostgreSQL, Zitadel, RabbitMQ, SeaweedFS, Jaeger) vive en un solo stack en
+[`deploy/`](../deploy/README.md). Bootstrap completo (levanta + bucket + claves + migraciones):
+
 ```powershell
-# SeaweedFS (almacenamiento)
-docker compose -f deploy\seaweedfs\docker-compose.yml up -d
-
-# PostgreSQL + pgAdmin
-docker compose -f "C:\Users\XShin\OneDrive\Desktop\postgresql\docker-compose.yml" up -d
-
-# Zitadel (auth)
-docker compose -f "C:\Users\XShin\OneDrive\Pictures\zitadel-compose\docker-compose.yml" up -d
-
-# RabbitMQ (contenedor suelto)
-docker start rabbitmq
+./deploy/up.ps1
 ```
 
-> Nota: usa `docker compose up` (no `docker start`) para Postgres/Zitadel: si sus redes se borraron, compose las recrea.
+O solo la infraestructura:
+
+```powershell
+docker compose -f deploy\docker-compose.yml up -d
+```
+
+Config (usuarios/claves/puertos) en `deploy/.env`. Ver [deploy/README.md](../deploy/README.md)
+para el detalle y el paso de configuración de Zitadel (crear la app OIDC y copiar el ClientId).
 
 ## Aplicaciones (.NET)
 
@@ -44,14 +44,15 @@ DB: `musify_db`, usuario `postgres`/`postgres`. Bucket S3: `webapi-storage` (cre
 
 ## Migraciones
 
-No hay migración automática al arrancar. Para aplicar cambios de esquema:
+No hay migración automática al arrancar. `deploy/up.ps1` las aplica en el bootstrap;
+para hacerlo a mano tras cambios de esquema:
 
 ```powershell
-cd MusifyBackend\Infrastructure
-dotnet ef database update --context Database
+dotnet ef database update --project backend\Musify.Infrastructure --startup-project backend\Musify.Infrastructure --context Database
 ```
 
-La cadena de conexión para `dotnet ef` se lee de `DesignSettings.json` / user-secrets del proyecto Infrastructure.
+La cadena de conexión para `dotnet ef` se lee de `DesignSettings.json` / user-secrets del proyecto Infrastructure
+(`up.ps1` la deja en user-secrets automáticamente).
 
 ## Stream-tickets (claves RS256)
 
