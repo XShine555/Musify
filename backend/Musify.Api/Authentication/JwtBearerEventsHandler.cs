@@ -1,12 +1,18 @@
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Caching.Memory;
 using Musify.Application.Users;
 using System.Security.Claims;
 
 namespace Musify.Api.Authentication;
 
-public sealed class JwtBearerEventsHandler(IMediator mediator, ILogger<JwtBearerEventsHandler> logger) : JwtBearerEvents
+public sealed class JwtBearerEventsHandler(
+    IMediator mediator,
+    IMemoryCache cache,
+    ILogger<JwtBearerEventsHandler> logger) : JwtBearerEvents
 {
+    private static readonly TimeSpan UserSyncCacheTtl = TimeSpan.FromMinutes(15);
+
     public override async Task TokenValidated(TokenValidatedContext tokenValidatedContext)
     {
         var principal = tokenValidatedContext.Principal!;
@@ -17,6 +23,10 @@ public sealed class JwtBearerEventsHandler(IMediator mediator, ILogger<JwtBearer
             logger.LogWarning("Token subject '{Subject}' is not a numeric id; skipping user provisioning", rawId);
             return;
         }
+
+        var cacheKey = $"user-synced:{userId}";
+        if (cache.TryGetValue(cacheKey, out _))
+            return;
 
         var username = principal.FindFirstValue(ClaimTypes.Name)
             ?? principal.FindFirstValue("preferred_username")
@@ -32,6 +42,8 @@ public sealed class JwtBearerEventsHandler(IMediator mediator, ILogger<JwtBearer
             await mediator.Send(
                 new SyncUserCommand(userId, username, firstName, lastName, profilePictureUrl),
                 tokenValidatedContext.HttpContext.RequestAborted);
+
+            cache.Set(cacheKey, true, UserSyncCacheTtl);
         }
         catch (Exception exception)
         {

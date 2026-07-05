@@ -11,6 +11,8 @@ builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddObservability(builder.Configuration);
 
+builder.Services.AddProblemDetails();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddCors(options => options.AddPolicy(devCorsPolicy, policy =>
@@ -18,6 +20,8 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

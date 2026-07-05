@@ -1,5 +1,7 @@
 using Mediator;
 using Musify.Application.Users;
+using Musify.Application.Users.Responses;
+using Musify.Application.Shared;
 using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
@@ -15,16 +17,22 @@ public static class UserEndpoints
 
         group.MapGet("/", GetUsers)
             .WithName("GetUsers")
-            .WithSummary("Get Paginated Users.");
+            .WithSummary("Get Paginated Users.")
+            .Produces<PaginatedResponse<UserApplicationResponse>>();
 
         group.MapGet("/{id}", GetUserById)
             .WithName("GetUserById")
-            .WithSummary("Get A User By Id.");
+            .WithSummary("Get A User By Id.")
+            .Produces<UserApplicationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreateUser)
             .WithName("CreateUser")
             .WithSummary("Create A New User.")
-            .AddEndpointFilter<ValidationFilter<CreateUserRequest>>();
+            .AddEndpointFilter<ValidationFilter<CreateUserRequest>>()
+            .Produces<UserApplicationResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status409Conflict);
 
         return app;
     }
@@ -58,9 +66,6 @@ public static class UserEndpoints
             new CreateUserCommand(request.Id, request.Name, request.FirstName, request.SecondName),
             cancellationToken);
 
-        if (result.IsError)
-            return result.ToHttpResult();
-
-        return Results.Created($"/users/{result.Value.Id}", result.Value);
+        return result.ToCreatedResult(user => $"/users/{user.Id}");
     }
 }

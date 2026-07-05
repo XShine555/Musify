@@ -15,6 +15,11 @@ public static class ErrorOrHttpExtensions
             : Results.Ok(result.Value);
     }
 
+    public static IResult ToCreatedResult<T>(this ErrorOr<T> result, Func<T, string> locationFactory) =>
+        result.IsError
+            ? Problem(result.Errors)
+            : Results.Created(locationFactory(result.Value), result.Value);
+
     private static IResult Problem(List<Error> errors)
     {
         if (errors.All(e => e.Type == ErrorType.Validation))

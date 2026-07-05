@@ -1,5 +1,8 @@
 using Mediator;
 using Musify.Application.PlayLists;
+using Musify.Application.PlayLists.Responses;
+using Musify.Application.Tracks.Responses;
+using Musify.Application.Shared;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;
@@ -11,57 +14,85 @@ public static class PlayListEndpoints
 {
     public static IEndpointRouteBuilder MapPlayListEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/playLists")
+        var group = app.MapGroup("/playlists")
             .WithTags("PlayLists");
 
         group.MapGet("/", GetPlayLists)
             .WithName("GetPlayLists")
-            .WithSummary("Get Paginated PlayLists.");
+            .WithSummary("Get Paginated PlayLists.")
+            .Produces<PaginatedResponse<PlayListApplicationResponse>>();
 
         group.MapGet("/{id}", GetPlayListById)
             .WithName("GetPlayListById")
-            .WithSummary("Get A PlayList By Id.");
+            .WithSummary("Get A PlayList By Id.")
+            .Produces<PlayListApplicationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/users/{userId}", GetPlayListsByUserId)
             .WithName("GetPlayListsByUserId")
-            .WithSummary("Get Paginated PlayLists For A User.");
+            .WithSummary("Get Paginated PlayLists For A User.")
+            .Produces<PaginatedResponse<PlayListApplicationResponse>>();
 
         group.MapGet("/{playlistId}/tracks", GetPlayListTracks)
             .WithName("GetPlayListTracks")
-            .WithSummary("Get Paginated Tracks Of A PlayList.");
+            .WithSummary("Get Paginated Tracks Of A PlayList.")
+            .Produces<PaginatedResponse<TrackApplicationResponse>>()
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreatePlayList)
             .WithName("CreatePlayList")
             .WithSummary("Create A New PlayList.")
             .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<PlayListApplicationResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapPut("/{playlistId}", UpdatePlayList)
             .WithName("UpdatePlayList")
             .WithSummary("Update An Existing PlayList.")
             .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<PlayListApplicationResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{playlistId}", DeletePlayList)
             .WithName("DeletePlayList")
             .WithSummary("Delete A PlayList.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/upload-picture", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
             .WithSummary("Request A Pre-Signed URL To Upload A PlayList Picture.")
             .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<PlayListPictureUploadResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{playlistId}/tracks/{trackId}", AddTrackToPlayList)
             .WithName("AddTrackToPlayList")
             .WithSummary("Add A Track To A PlayList.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{playlistId}/tracks/{trackId}", RemoveTrackFromPlayList)
             .WithName("RemoveTrackFromPlayList")
             .WithSummary("Remove A Track From A PlayList.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
 
         return app;
     }
@@ -118,10 +149,7 @@ public static class PlayListEndpoints
             new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId),
             cancellationToken);
 
-        if (result.IsError)
-            return result.ToHttpResult();
-
-        return Results.Created($"/playlists/{result.Value.Id}", result.Value);
+        return result.ToCreatedResult(playList => $"/playlists/{playList.Id}");
     }
 
     private static async Task<IResult> UpdatePlayList(

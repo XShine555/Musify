@@ -1,5 +1,7 @@
 using Mediator;
 using Musify.Application.Tracks;
+using Musify.Application.Tracks.Responses;
+using Musify.Application.Shared;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
@@ -16,37 +18,58 @@ public static class TrackEndpoints
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
-            .WithSummary("Get Paginated Tracks.");
+            .WithSummary("Get Paginated Tracks.")
+            .Produces<PaginatedResponse<TrackApplicationResponse>>();
 
         group.MapGet("/{id}", GetTrackById)
             .WithName("GetTrackById")
-            .WithSummary("Get A Track By Id.");
+            .WithSummary("Get A Track By Id.")
+            .Produces<TrackApplicationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/stream", GetTrackStream)
             .WithName("GetTrackStream")
             .WithSummary("Get A Streaming Manifest URL And Ticket For A Track.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<TrackStreamResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/users/{userId}", GetTracksByUserId)
             .WithName("GetTracksByUserId")
-            .WithSummary("Get Paginated Tracks For A User.");
+            .WithSummary("Get Paginated Tracks For A User.")
+            .Produces<PaginatedResponse<TrackApplicationResponse>>();
 
         group.MapPost("/", CreateTrack)
             .WithName("CreateTrack")
             .WithSummary("Create A New Track.")
             .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<TrackApplicationResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{trackId}", DeleteTrack)
             .WithName("DeleteTrack")
             .WithSummary("Delete A Track.")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
 
         group.MapPost("/upload-urls", RequestTrackUploadUrls)
             .WithName("RequestTrackUploadUrls")
             .WithSummary("Request Pre-Signed URLs To Upload Track Picture And Audio.")
             .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Produces<TrackUploadUrlsResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
 
         return app;
     }
@@ -102,10 +125,7 @@ public static class TrackEndpoints
             new CreateTrackCommand(currentUser.RequiredId, request.Title, request.PictureIntentId, request.AudioIntentId),
             cancellationToken);
 
-        if (result.IsError)
-            return result.ToHttpResult();
-
-        return Results.Created($"/tracks/{result.Value.Id}", result.Value);
+        return result.ToCreatedResult(track => $"/tracks/{track.Id}");
     }
 
     private static async Task<IResult> DeleteTrack(
