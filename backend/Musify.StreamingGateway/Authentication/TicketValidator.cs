@@ -34,10 +34,6 @@ public sealed class TicketValidator : IDisposable
         };
     }
 
-    /// <summary>
-    /// Validates the stream ticket and returns the authorized object-key prefix,
-    /// or <see langword="null"/> if the ticket is missing, invalid, or carries no prefix.
-    /// </summary>
     public async Task<string?> ValidateTicketAsync(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -47,11 +43,8 @@ public sealed class TicketValidator : IDisposable
         if (!result.IsValid)
             return null;
 
-        return result.Claims.TryGetValue("prefix", out var claim)
-               && claim is string prefix
-               && !string.IsNullOrEmpty(prefix)
-            ? prefix
-            : null;
+        var prefix = result.ClaimsIdentity?.FindFirst("prefix")?.Value;
+        return string.IsNullOrEmpty(prefix) ? null : prefix;
     }
 
     public void Dispose() => _rsa.Dispose();
