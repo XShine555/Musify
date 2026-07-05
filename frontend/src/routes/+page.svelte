@@ -45,7 +45,8 @@
 
 		<div class="mt-10 flex flex-wrap items-center justify-center gap-4">
 			<a
-				href="/login"
+				href="/login?mode=register"
+				data-sveltekit-reload
 				class="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400"
 			>
 				Empezar gratis

@@ -20,7 +20,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const nonce = client.randomNonce();
 
 	const register = url.searchParams.get('mode') === 'register';
-	const returnTo = url.searchParams.get('returnTo') ?? '/explore';
+	const returnTo = url.searchParams.get('returnTo') ?? '/';
 
 	const parameters: Record<string, string> = {
 		redirect_uri: authConfig.redirectUri,

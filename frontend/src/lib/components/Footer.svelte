@@ -5,7 +5,7 @@
 		<p>© {new Date().getFullYear()} Musify · Streaming de música.</p>
 		<div class="flex gap-6">
 			<a href="/explore" class="transition hover:text-neutral-300">Explorar</a>
-			<a href="/login" class="transition hover:text-neutral-300">Entrar</a>
+			<a href="/login" data-sveltekit-reload class="transition hover:text-neutral-300">Entrar</a>
 		</div>
 	</div>
 </footer>

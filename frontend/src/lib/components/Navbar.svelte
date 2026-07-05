@@ -48,11 +48,16 @@
 					</button>
 				</form>
 			{:else}
-				<a href="/login" class="text-sm font-medium text-neutral-300 transition hover:text-white">
+				<a
+					href="/login"
+					data-sveltekit-reload
+					class="text-sm font-medium text-neutral-300 transition hover:text-white"
+				>
 					Iniciar sesión
 				</a>
 				<a
 					href="/login?mode=register"
+					data-sveltekit-reload
 					class="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400"
 				>
 					Registrarse
