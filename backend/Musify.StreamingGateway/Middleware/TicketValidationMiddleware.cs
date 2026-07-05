@@ -30,7 +30,7 @@ public sealed class TicketValidationMiddleware(
 
         var prefix = await ticketValidator.ValidateTicketAsync(token);
 
-        if (prefix is null)
+        if (string.IsNullOrEmpty(prefix))
         {
             logger.LogWarning("Rejected media request {Path}: missing or invalid ticket", path);
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;

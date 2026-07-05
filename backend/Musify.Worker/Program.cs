@@ -2,7 +2,6 @@ using Musify.Application.Configuration;
 using Musify.Infrastructure.MassTransit;
 using Musify.Infrastructure.Persistence;
 using Musify.Infrastructure.Services;
-using Musify.Worker;
 
 var builder = Host.CreateApplicationBuilder();
 
@@ -19,8 +18,6 @@ services.AddPictureService(configuration);
 services.AddDatabase(configuration);
 services.AddMassTransitConsumers(configuration);
 services.AddUploadIntentJobs(configuration);
-
-services.AddHostedService<Worker>();
 
 var host = builder.Build();
 
