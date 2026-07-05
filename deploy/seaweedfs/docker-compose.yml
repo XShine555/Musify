@@ -1,0 +1,32 @@
+services:
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: seaweedfs
+    # All-in-one dev server: master + volume + filer + S3 gateway.
+    command: >
+      server
+      -ip.bind=0.0.0.0
+      -dir=/data
+      -master.volumeSizeLimitMB=1024
+      -volume.max=0
+      -filer
+      -s3
+      -s3.config=/etc/seaweedfs/s3.conf
+    ports:
+      - "9333:9333"   # master (admin/UI)
+      - "8888:8888"   # filer HTTP  -> used by the Media Gateway
+      - "8333:8333"   # S3 API      -> used by the WebApi (InfrastructureStorage:Address)
+      # Volume server (8080) is left unpublished on purpose: it only needs to be
+      # reachable internally, and 8080 clashes with Zitadel on the host.
+    volumes:
+      - seaweedfs_data:/data
+      - ./s3.conf:/etc/seaweedfs/s3.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9333/cluster/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  seaweedfs_data:
