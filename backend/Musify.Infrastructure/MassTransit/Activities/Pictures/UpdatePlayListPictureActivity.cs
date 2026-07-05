@@ -11,7 +11,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
         ILogger<UpdatePlayListPictureActivity> logger)
         : IActivity<UpdatePlayListPictureArguments, UpdatePlayListPictureLog>
     {
-        public const string ExecuteEndpointName = "update-playlist-picture";
+        public const string ExecuteEndpointName = "update-play-list-picture";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<UpdatePlayListPictureArguments> executeContext)
         {

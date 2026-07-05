@@ -11,7 +11,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
         ILogger<DeletePlayListFromDbActivity> logger)
         : IExecuteActivity<DeletePlayListFromDbArguments>
     {
-        public const string ExecuteEndpointName = "delete-playList-from-db";
+        public const string ExecuteEndpointName = "delete-play-list-from-db";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<DeletePlayListFromDbArguments> executeContext)
         {

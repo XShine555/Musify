@@ -62,14 +62,36 @@ namespace Musify.Infrastructure.MassTransit
                     outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
                 });
 
+                options.SetKebabCaseEndpointNameFormatter();
+
                 RegisterConsumersAndActivities(options);
 
+                options.AddConfigureEndpointsCallback((registrationContext, _, endpointConfigurator) =>
+                {
+                    UseStandardRetry(endpointConfigurator);
+                    endpointConfigurator.UseEntityFrameworkOutbox<Database>(registrationContext);
+                });
+
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
-                    ConfigureRabbitMqWorkerEndpoints(busRegistrationContext, busFactoryConfigurator));
+                {
+                    ConfigureRabbitMqHost(
+                        busFactoryConfigurator,
+                        busRegistrationContext.GetRequiredService<MassTransitConfiguration>());
+
+                    busFactoryConfigurator.ConfigureEndpoints(busRegistrationContext);
+                });
             } );
 
             return serviceDescriptors;
         }
+
+        static void UseStandardRetry(IReceiveEndpointConfigurator endpointConfigurator) =>
+            endpointConfigurator.UseMessageRetry(retryConfigurator =>
+                retryConfigurator.Exponential(
+                    retryLimit: 5,
+                    minInterval: TimeSpan.FromSeconds(1),
+                    maxInterval: TimeSpan.FromSeconds(30),
+                    intervalDelta: TimeSpan.FromSeconds(2)));
 
         static void ConfigureRabbitMqHost(
             IRabbitMqBusFactoryConfigurator busFactoryConfigurator,

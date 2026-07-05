@@ -9,7 +9,6 @@ namespace Musify.Infrastructure.MassTransit.Consumers
         CreateTrackRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<CreateTrackResourcesEvent>
     {
-        public const string QueueName = "create-track";
 
         public async Task Consume(ConsumeContext<CreateTrackResourcesEvent> consumeContext)
         {

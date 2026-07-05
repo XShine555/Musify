@@ -12,7 +12,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
         ILogger<MarkPlayListAsRemovingActivity> logger)
         : IExecuteActivity<MarkPlayListAsRemovingArguments>
     {
-        public const string ExecuteEndpointName = "mark-playList-as-removing";
+        public const string ExecuteEndpointName = "mark-play-list-as-removing";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<MarkPlayListAsRemovingArguments> executeContext)
         {

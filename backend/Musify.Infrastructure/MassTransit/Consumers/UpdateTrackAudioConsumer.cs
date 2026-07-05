@@ -9,7 +9,6 @@ namespace Musify.Infrastructure.MassTransit.Consumers
         AudioWorkflowRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<UpdateTrackAudioEvent>
     {
-        public const string QueueName = "update-track-audio";
 
         public async Task Consume(ConsumeContext<UpdateTrackAudioEvent> consumeContext)
         {

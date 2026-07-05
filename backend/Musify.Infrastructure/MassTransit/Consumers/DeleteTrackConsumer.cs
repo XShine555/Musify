@@ -9,7 +9,6 @@ namespace Musify.Infrastructure.MassTransit.Consumers
         DeleteTrackRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<DeleteTrackEvent>
     {
-        public const string QueueName = "delete-track";
 
         public async Task Consume(ConsumeContext<DeleteTrackEvent> consumeContext)
         {

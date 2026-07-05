@@ -10,7 +10,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
         ILogger<PublishPlayListPictureProcessingEventActivity> logger)
         : IExecuteActivity<PublishPlayListPictureProcessingEventArguments>
     {
-        public const string ExecuteEndpointName = "publish-playList-picture-processing-event";
+        public const string ExecuteEndpointName = "publish-play-list-picture-processing-event";
 
         public async Task<ExecutionResult> Execute(ExecuteContext<PublishPlayListPictureProcessingEventArguments> executeContext)
         {

@@ -9,7 +9,6 @@ namespace Musify.Infrastructure.MassTransit.Consumers
         PlayListPictureSourceRoutingSlipBuilder routingSlipBuilder)
         : IConsumer<UpdatePlayListPictureSourceEvent>
     {
-        public const string QueueName = "update-playList-picture-source";
 
         public async Task Consume(ConsumeContext<UpdatePlayListPictureSourceEvent> consumeContext)
         {

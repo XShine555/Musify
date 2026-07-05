@@ -9,7 +9,7 @@ namespace Musify.Infrastructure.MassTransit.Consumers
         IConsumer<RoutingSlipCompleted>,
         IConsumer<RoutingSlipFaulted>
     {
-        public const string QueueName = "routing-slip-events";
+        public const string QueueName = "routing-slip-clean-up";
 
         public Task Consume(ConsumeContext<RoutingSlipCompleted> consumeContext)
             => DeleteFolder(consumeContext.Message.Variables);
