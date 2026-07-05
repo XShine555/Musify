@@ -6,6 +6,14 @@ namespace Musify.Infrastructure.MassTransit
         {
             internal const string TemporalDirectory = "Workflow.TemporalDirectory";
             internal const string CorrelationId = "Workflow.CorrelationId";
+            internal const string TrackId = "Workflow.TrackId";
+            internal const string ProcessKind = "Workflow.ProcessKind";
+        }
+
+        internal static class ProcessKinds
+        {
+            internal const string TrackPicture = "TrackPicture";
+            internal const string TrackAudio = "TrackAudio";
         }
 
         internal static class Audio

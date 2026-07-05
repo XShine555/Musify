@@ -3,6 +3,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
     internal static class ActivityNames
     {
         internal const string MarkTrackAsRemoving = "MarkTrackAsRemoving";
+        internal const string MarkTrackAsFailed = "MarkTrackAsFailed";
         internal const string DeleteTrackFromDb = "DeleteTrackFromDb";
         internal const string MarkPlayListAsRemoving = "MarkPlayListAsRemoving";
         internal const string DeletePlayListFromDb = "DeletePlayListFromDb";

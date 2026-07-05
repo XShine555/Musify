@@ -36,6 +36,8 @@ namespace Musify.Infrastructure.MassTransit
             options.AddConsumer<CreateTrackConsumer>();
             options.AddConsumer<CreatePlayListConsumer>();
             options.AddConsumer<UpdatePlayListPictureSourceConsumer>();
+            options.AddConsumer<TrackProcessingSlipFaultConsumer>();
+            options.AddConsumer<TrackProcessingFailedConsumer>();
 
             options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
             options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
@@ -46,6 +48,7 @@ namespace Musify.Infrastructure.MassTransit
             options.AddExecuteActivity<DeletePlayListFromDbActivity, DeletePlayListFromDbArguments>();
             options.AddExecuteActivity<PublishTrackProcessingEventsActivity, PublishTrackProcessingEventsArguments>();
             options.AddExecuteActivity<PublishPlayListPictureProcessingEventActivity, PublishPlayListPictureProcessingEventArguments>();
+            options.AddExecuteActivity<MarkTrackAsFailedActivity, MarkTrackAsFailedArguments>();
 
             options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
             options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();

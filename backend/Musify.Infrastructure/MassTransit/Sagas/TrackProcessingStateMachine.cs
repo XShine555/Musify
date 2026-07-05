@@ -30,6 +30,9 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                     {
                         context.Saga.CreatedAt = DateTime.UtcNow;
                         context.Saga.UpdatedAt = DateTime.UtcNow;
+                        context.Saga.Bucket = context.Message.Bucket;
+                        context.Saga.PictureKey = context.Message.PictureDestinationKey;
+                        context.Saga.AudioKey = context.Message.AudioDestinationKey;
                     })
                     .TransitionTo(Processing));
 
@@ -50,10 +53,20 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                     .If(context => context.Saga.PictureProcessed, binder => binder.Finalize()),
                 When(PictureFailed)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
-                    .TransitionTo(Failed),
+                    .TransitionTo(Failed)
+                    .Publish(context => new TrackProcessingFailed(
+                        context.Saga.CorrelationId,
+                        context.Saga.Bucket,
+                        context.Saga.PictureKey,
+                        context.Saga.AudioKey)),
                 When(AudioFailed)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
-                    .TransitionTo(Failed));
+                    .TransitionTo(Failed)
+                    .Publish(context => new TrackProcessingFailed(
+                        context.Saga.CorrelationId,
+                        context.Saga.Bucket,
+                        context.Saga.PictureKey,
+                        context.Saga.AudioKey)));
 
             During(Failed,
                 Ignore(PictureProcessed),

@@ -32,6 +32,12 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                     RoutingSlipVariableNames.Picture.MediumResizedFilePath,
                     RoutingSlipVariableNames.Picture.LargeResizedFilePath));
 
+            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.TrackId, message.TrackId);
+            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackPicture);
+            routingSlipBuilder.AddSubscription(
+                EndpointHelper.BuildConsumerUri(TrackProcessingSlipFaultConsumer.QueueName),
+                RoutingSlipEvents.Faulted);
+
             return routingSlipBuilder;
         }
 
