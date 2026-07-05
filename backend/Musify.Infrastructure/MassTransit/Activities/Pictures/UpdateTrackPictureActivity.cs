@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Events;
 using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
@@ -9,6 +10,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
     internal class UpdateTrackPictureActivity(
         IDatabase database,
+        IPublishEndpoint publishEndpoint,
         ILogger<UpdateTrackPictureActivity> logger)
         : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>
     {
@@ -54,6 +56,10 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 
                 logger.LogInformation("Updated track {TrackId} pictures",
                     executeContext.Arguments.TrackId);
+
+                await publishEndpoint.Publish(
+                    new TrackPictureProcessed(executeContext.Arguments.TrackId),
+                    executeContext.CancellationToken);
 
                 return executeContext.Completed();
             }

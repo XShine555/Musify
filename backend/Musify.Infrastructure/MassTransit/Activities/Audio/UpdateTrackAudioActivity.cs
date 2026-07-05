@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Events;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
@@ -11,6 +12,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
     internal class UpdateTrackAudioActivity(
         IDatabase database,
+        IPublishEndpoint publishEndpoint,
         ILogger<UpdateTrackAudioActivity> logger)
         : IActivity<UpdateTrackAudioArguments, UpdateTrackAudioLog>
     {
@@ -37,6 +39,9 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
             if (string.IsNullOrWhiteSpace(audioFolderKey))
             {
                 logger.LogWarning("Audio folder key is empty for track {TrackId}; skipping update", track.Id);
+                await publishEndpoint.Publish(
+                    new TrackAudioProcessed(executeContext.Arguments.TrackId),
+                    executeContext.CancellationToken);
                 return executeContext.Completed();
             }
 
@@ -51,6 +56,10 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
                 logger.LogInformation("Updated track {TrackId} audio", executeContext.Arguments.TrackId);
+
+                await publishEndpoint.Publish(
+                    new TrackAudioProcessed(executeContext.Arguments.TrackId),
+                    executeContext.CancellationToken);
 
                 return executeContext.Completed(log);
             }

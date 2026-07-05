@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.MassTransit.Sagas;
 using Musify.Infrastructure.Persistence;
 
 namespace Musify.Infrastructure.MassTransit
@@ -65,6 +66,14 @@ namespace Musify.Infrastructure.MassTransit
                 options.SetKebabCaseEndpointNameFormatter();
 
                 RegisterConsumersAndActivities(options);
+
+                options.AddSagaStateMachine<TrackProcessingStateMachine, TrackProcessingState>()
+                    .EntityFrameworkRepository(repository =>
+                    {
+                        repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+                        repository.ExistingDbContext<Database>();
+                        repository.UsePostgres();
+                    });
 
                 options.AddConfigureEndpointsCallback((registrationContext, _, endpointConfigurator) =>
                 {
