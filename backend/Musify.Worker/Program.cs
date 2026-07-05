@@ -10,9 +10,9 @@ var configuration = builder.Configuration;
 
 var services = builder.Services;
 
-services.AddApplicationStorageConfiguration(configuration);
-services.AddPlayListConfiguration(configuration);
-services.AddTrackConfiguration(configuration);
+services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
+services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
+services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
 services.AddStorageService(configuration);
 services.AddAudioTranscoder(configuration);
 services.AddPictureService(configuration);

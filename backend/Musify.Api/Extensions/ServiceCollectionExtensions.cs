@@ -1,7 +1,7 @@
 using FluentValidation;
 using Musify.Infrastructure.MassTransit;
 using Musify.Infrastructure.Persistence;
-using Musify.Application.Configuration;
+using Musify.Application;
 using Musify.Infrastructure.Services;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
@@ -14,16 +14,11 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddApplication(configuration);
         services.AddDatabase(configuration);
-        services.AddApplicationStorageConfiguration(configuration);
-        services.AddPlayListConfiguration(configuration);
-        services.AddTrackConfiguration(configuration);
-        services.AddStreamGatewayConfiguration(configuration);
         services.AddStorageService(configuration);
         services.AddStreamTicketService(configuration);
-        services.AddUploadIntentConfiguration(configuration);
         services.AddMassTransitClient(configuration);
-        services.AddMediator();
         services.AddAuthenticationConfiguration(configuration);
         services.AddOpenApiConfiguration();
         services.AddScalarConfiguration();

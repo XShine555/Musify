@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Jobs;
-using Musify.Application.Services;
 using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.Services
@@ -46,15 +45,7 @@ namespace Musify.Infrastructure.Services
 
         public static IServiceCollection AddUploadIntentConfiguration(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
-            serviceDescriptors
-                .AddOptionsWithValidateOnStart<UploadIntentConfiguration>()
-                .Bind(configuration.GetRequiredSection(UploadIntentConfiguration.SectionName))
-                .ValidateDataAnnotations();
-
-            serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<UploadIntentConfiguration>>().Value);
-
-            serviceDescriptors.AddScoped<UploadIntentValidator>();
+            serviceDescriptors.AddValidatedOptions<UploadIntentConfiguration>(configuration, UploadIntentConfiguration.SectionName);
 
             return serviceDescriptors;
         }
