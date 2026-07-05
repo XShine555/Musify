@@ -1,6 +1,5 @@
 using Mediator;
-using Musify.Application.PlayLists.Commands;
-using Musify.Application.PlayLists.Queries;
+using Musify.Application.PlayLists;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;

@@ -1,6 +1,5 @@
 using Mediator;
-using Musify.Application.Users.Commands;
-using Musify.Application.Users.Queries;
+using Musify.Application.Users;
 using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;

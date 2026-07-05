@@ -1,6 +1,5 @@
 using Mediator;
-using Musify.Application.Tracks.Commands;
-using Musify.Application.Tracks.Queries;
+using Musify.Application.Tracks;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;

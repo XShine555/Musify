@@ -1,6 +1,6 @@
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Musify.Application.Users.Commands;
+using Musify.Application.Users;
 using System.Security.Claims;
 
 namespace Musify.Api.Authentication;
