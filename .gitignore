@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+.vs/
+artifacts/
+
+# Rider / VS
+.idea/
+
+# Flutter / Dart
+musify_flutter/.dart_tool/
+musify_flutter/build/
+musify_flutter/.flutter-plugins
+musify_flutter/.flutter-plugins-dependencies
+musify_flutter/**/generated_plugin_registrant.*
+*.g.dart
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Secrets / local
+*.env
