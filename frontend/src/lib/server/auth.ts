@@ -70,17 +70,32 @@ export async function decodeSession(token: string | undefined): Promise<Session 
 	}
 }
 
+function claimString(value: unknown): string | undefined {
+	return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+export function toSessionUser(claims: Record<string, unknown>, fallback?: SessionUser): SessionUser {
+	const sub = claimString(claims.sub) ?? fallback?.sub ?? '';
+	return {
+		sub,
+		name:
+			claimString(claims.name) ??
+			claimString(claims.preferred_username) ??
+			fallback?.name ??
+			claimString(claims.email) ??
+			sub,
+		email: claimString(claims.email) ?? fallback?.email ?? '',
+		picture: claimString(claims.picture) ?? fallback?.picture ?? ''
+	};
+}
+
 export async function refreshSession(session: Session): Promise<Session | null> {
 	if (!session.refreshToken) return null;
 	try {
 		const config = await getOidcConfig();
 		const tokens = await client.refreshTokenGrant(config, session.refreshToken);
-		const claims = tokens.claims();
 		return {
-			sub: session.sub,
-			name: (claims?.name as string | undefined) ?? session.name,
-			email: (claims?.email as string | undefined) ?? session.email,
-			picture: (claims?.picture as string | undefined) ?? session.picture,
+			...toSessionUser(tokens.claims() ?? {}, session),
 			accessToken: tokens.access_token,
 			refreshToken: tokens.refresh_token ?? session.refreshToken,
 			idToken: tokens.id_token ?? session.idToken,

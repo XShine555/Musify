@@ -5,6 +5,7 @@ import {
 	getOidcConfig,
 	encodeSession,
 	sessionCookieOptions,
+	toSessionUser,
 	type Session,
 	SESSION_COOKIE,
 	STATE_COOKIE,
@@ -44,10 +45,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	}
 
 	const session: Session = {
-		sub: String(claims.sub),
-		name: claims.name as string | undefined,
-		email: claims.email as string | undefined,
-		picture: claims.picture as string | undefined,
+		...toSessionUser(claims),
 		accessToken: tokens.access_token,
 		refreshToken: tokens.refresh_token,
 		idToken: tokens.id_token,

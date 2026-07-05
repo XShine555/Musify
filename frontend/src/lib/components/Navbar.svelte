@@ -35,10 +35,10 @@
 						<span
 							class="grid h-7 w-7 place-items-center rounded-full bg-neutral-700 text-xs font-semibold uppercase"
 						>
-							{(user.name ?? user.email ?? '?').charAt(0)}
+							{user.name.charAt(0)}
 						</span>
 					{/if}
-					<span class="hidden sm:inline">{user.name ?? user.email}</span>
+					<span class="hidden sm:inline">{user.name}</span>
 				</a>
 				<form method="POST" action="/logout">
 					<button
