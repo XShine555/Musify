@@ -34,17 +34,17 @@ public sealed class TicketValidator : IDisposable
         };
     }
 
-    public async Task<string?> ValidateTicketAsync(string? token)
+    public async Task<string> ValidateTicketAsync(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
-            return null;
+            return string.Empty;
 
         var result = await _handler.ValidateTokenAsync(token, _validationParameters);
         if (!result.IsValid)
-            return null;
+            return string.Empty;
 
         var prefix = result.ClaimsIdentity?.FindFirst("prefix")?.Value;
-        return string.IsNullOrEmpty(prefix) ? null : prefix;
+        return string.IsNullOrEmpty(prefix) ?string.Empty : prefix;
     }
 
     public void Dispose() => _rsa.Dispose();
