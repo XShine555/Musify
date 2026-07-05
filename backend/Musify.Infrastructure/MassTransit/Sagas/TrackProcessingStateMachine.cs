@@ -33,7 +33,7 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                         context.Saga.Bucket = context.Message.Bucket;
                         context.Saga.PictureKey = context.Message.PictureDestinationKey;
                         context.Saga.AudioKey = context.Message.AudioDestinationKey;
-                    })
+                    } )
                     .TransitionTo(Processing));
 
             During(Processing,
@@ -42,14 +42,14 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                     {
                         context.Saga.PictureProcessed = true;
                         context.Saga.UpdatedAt = DateTime.UtcNow;
-                    })
+                    } )
                     .If(context => context.Saga.AudioProcessed, binder => binder.Finalize()),
                 When(AudioProcessed)
                     .Then(context =>
                     {
                         context.Saga.AudioProcessed = true;
                         context.Saga.UpdatedAt = DateTime.UtcNow;
-                    })
+                    } )
                     .If(context => context.Saga.PictureProcessed, binder => binder.Finalize()),
                 When(PictureFailed)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)

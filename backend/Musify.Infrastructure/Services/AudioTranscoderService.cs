@@ -101,7 +101,7 @@ namespace Musify.Infrastructure.Services
             using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: true);
             process.Start();
 
-            logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId}) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
+            logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId} ) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
 
             var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
             var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
@@ -124,7 +124,7 @@ namespace Musify.Infrastructure.Services
             using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: false);
             process.Start();
 
-            logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId}) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
+            logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId} ) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
 
             var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
             var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
@@ -164,7 +164,7 @@ namespace Musify.Infrastructure.Services
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                logger.LogError("[{Operation}] ffmpeg timed out after {Timeout} (PID: {ProcessId})",
+                logger.LogError("[{Operation}] ffmpeg timed out after {Timeout} (PID: {ProcessId} )",
                     operationName, audioTranscoderConfiguration.TranscodingTimeout, process.Id);
 
                 TryKillProcess(process);
@@ -174,7 +174,7 @@ namespace Musify.Infrastructure.Services
             var standardError = await errorTask;
             var standardOutput = await outputTask;
 
-            logger.LogDebug("[{Operation}] ffmpeg finished (PID: {ProcessId}). Exit code: {ExitCode}, Output: {OutputLength}B, Error: {ErrorLength}B",
+            logger.LogDebug("[{Operation}] ffmpeg finished (PID: {ProcessId} ). Exit code: {ExitCode}, Output: {OutputLength}B, Error: {ErrorLength}B",
                 operationName, process.Id, process.ExitCode, standardOutput.Length, standardError.Length);
 
             return new FfmpegExecutionResult(process.ExitCode, standardOutput, standardError);
@@ -189,7 +189,7 @@ namespace Musify.Infrastructure.Services
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Failed to kill ffmpeg process (PID: {ProcessId})", process.Id);
+                logger.LogError(exception, "Failed to kill ffmpeg process (PID: {ProcessId} )", process.Id);
             }
         }
 

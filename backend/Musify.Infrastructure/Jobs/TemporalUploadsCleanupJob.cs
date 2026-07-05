@@ -15,7 +15,7 @@ namespace Musify.Infrastructure.Jobs
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("TemporalUploadsCleanUpJob started (interval: {Interval}s, prefix: {Prefix})",
+            logger.LogInformation("TemporalUploadsCleanUpJob started (interval: {Interval}s, prefix: {Prefix} )",
                 uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds,
                 uploadIntentConfiguration.TemporalRootPrefix);
 

@@ -276,7 +276,7 @@ namespace Musify.Infrastructure.Services
             {
                 listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
 
-                if (listResponse.S3Objects is null or { Count: 0 })
+                if (listResponse.S3Objects is null or { Count: 0 } )
                     break;
 
                 var deleteRequest = new DeleteObjectsRequest

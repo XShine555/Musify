@@ -27,7 +27,7 @@ namespace Musify.Infrastructure.MassTransit
 
                     outbox.QueryDelay = TimeSpan.FromSeconds(1);
                     outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
-                });
+                } );
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                     ConfigureRabbitMqHost(
@@ -61,7 +61,7 @@ namespace Musify.Infrastructure.MassTransit
 
                     outbox.QueryDelay = TimeSpan.FromSeconds(1);
                     outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
-                });
+                } );
 
                 options.SetKebabCaseEndpointNameFormatter();
 
@@ -73,7 +73,7 @@ namespace Musify.Infrastructure.MassTransit
                         repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
                         repository.ExistingDbContext<Database>();
                         repository.UsePostgres();
-                    });
+                    } );
 
                 options.AddSagaStateMachine<PlayListProcessingStateMachine, PlayListProcessingState>()
                     .EntityFrameworkRepository(repository =>
@@ -81,13 +81,13 @@ namespace Musify.Infrastructure.MassTransit
                         repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
                         repository.ExistingDbContext<Database>();
                         repository.UsePostgres();
-                    });
+                    } );
 
                 options.AddConfigureEndpointsCallback((registrationContext, _, endpointConfigurator) =>
                 {
                     UseStandardRetry(endpointConfigurator);
                     endpointConfigurator.UseEntityFrameworkOutbox<Database>(registrationContext);
-                });
+                } );
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -96,7 +96,7 @@ namespace Musify.Infrastructure.MassTransit
                         busRegistrationContext.GetRequiredService<MassTransitConfiguration>());
 
                     busFactoryConfigurator.ConfigureEndpoints(busRegistrationContext);
-                });
+                } );
             } );
 
             return serviceDescriptors;

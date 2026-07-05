@@ -28,7 +28,7 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                         context.Saga.UpdatedAt = DateTime.UtcNow;
                         context.Saga.Bucket = context.Message.Bucket;
                         context.Saga.PictureKey = context.Message.PictureDestinationKey;
-                    })
+                    } )
                     .TransitionTo(Processing));
 
             During(Processing,

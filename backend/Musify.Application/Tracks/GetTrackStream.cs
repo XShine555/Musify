@@ -24,7 +24,7 @@ namespace Musify.Application.Tracks
         {
             var track = await database.Tracks.AsNoTracking()
                 .Where(t => t.Id == request.TrackId)
-                .Select(t => new { t.Id, t.AudioTranscodeProcessingStatus, t.AudioFolderName })
+                .Select(t => new { t.Id, t.AudioTranscodeProcessingStatus, t.AudioFolderName } )
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (track is null)

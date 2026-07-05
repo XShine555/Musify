@@ -36,7 +36,7 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
             };
 
             return Task.CompletedTask;
-        });
+        } );
 
         options.AddOperationTransformer((operation, context, _) =>
         {
@@ -58,9 +58,9 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
             {
                 [new OpenApiSecuritySchemeReference(SecuritySchemeId, context.Document)] =
                     _configuration.Scopes.ToList(),
-            });
+            } );
 
             return Task.CompletedTask;
-        });
+        } );
     }
 }
