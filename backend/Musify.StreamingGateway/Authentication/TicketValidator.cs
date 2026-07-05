@@ -44,7 +44,7 @@ public sealed class TicketValidator : IDisposable
             return string.Empty;
 
         var prefix = result.ClaimsIdentity?.FindFirst("prefix")?.Value;
-        return string.IsNullOrEmpty(prefix) ?string.Empty : prefix;
+        return string.IsNullOrEmpty(prefix)? string.Empty : prefix;
     }
 
     public void Dispose() => _rsa.Dispose();
