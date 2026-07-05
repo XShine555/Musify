@@ -49,6 +49,19 @@ do {
 } until ($ready -or (Get-Date) -gt $deadline)
 if (-not $ready) { throw "Zitadel did not respond in time." }
 
+# Login UI (idempotent) ------------------------------------------------------
+# The 'latest' Zitadel image requires the Login UI v2 (a separate 'login'
+# container that this stack does not run), so OIDC would redirect to
+# /ui/v2/login and 404. Disable the requirement to use the built-in v1 login.
+Write-Step "Disabling required Login UI v2 (use built-in /ui/login)"
+try {
+    Invoke-RestMethod -Method PUT -Uri "$issuer/v2/features/instance" -Headers $headers `
+        -ContentType "application/json" -Body (@{ loginV2 = @{ required = $false } } | ConvertTo-Json) -TimeoutSec 20 | Out-Null
+    Write-Host "  loginV2.required = false"
+} catch {
+    Write-Host "  warning: could not update loginV2 feature: $($_.Exception.Message)"
+}
+
 # Project (idempotent) -------------------------------------------------------
 Write-Step "Project '$ProjectName'"
 $project = (Invoke-Zitadel POST "/projects/_search" @{
