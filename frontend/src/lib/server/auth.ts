@@ -25,13 +25,13 @@ export function getOidcConfig(): Promise<client.Configuration> {
 		const issuer = new URL(env.ZITADEL_ISSUER);
 		const options =
 			issuer.protocol === 'http:' ? { execute: [client.allowInsecureRequests] } : undefined;
-		return client.discovery(
-			issuer,
-			env.ZITADEL_CLIENT_ID,
-			env.ZITADEL_CLIENT_SECRET,
-			undefined,
-			options
-		);
+
+		const secret = env.ZITADEL_CLIENT_SECRET;
+		const hasSecret = !!secret && !secret.startsWith('REPLACE_');
+
+		return hasSecret
+			? client.discovery(issuer, env.ZITADEL_CLIENT_ID, secret, undefined, options)
+			: client.discovery(issuer, env.ZITADEL_CLIENT_ID, undefined, client.None(), options);
 	})();
 	return configPromise;
 }
