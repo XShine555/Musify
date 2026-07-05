@@ -6,6 +6,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
         internal const string MarkTrackAsFailed = "MarkTrackAsFailed";
         internal const string DeleteTrackFromDb = "DeleteTrackFromDb";
         internal const string MarkPlayListAsRemoving = "MarkPlayListAsRemoving";
+        internal const string MarkPlayListAsFailed = "MarkPlayListAsFailed";
         internal const string DeletePlayListFromDb = "DeletePlayListFromDb";
 
         internal const string GenerateAudioWorkflowPaths = "GenerateAudioWorkflowPaths";

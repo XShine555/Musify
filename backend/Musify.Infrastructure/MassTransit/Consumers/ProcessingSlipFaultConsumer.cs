@@ -4,9 +4,9 @@ using Musify.Application.Events;
 
 namespace Musify.Infrastructure.MassTransit.Consumers
 {
-    public class TrackProcessingSlipFaultConsumer : IConsumer<RoutingSlipFaulted>
+    public class ProcessingSlipFaultConsumer : IConsumer<RoutingSlipFaulted>
     {
-        public const string QueueName = "track-processing-slip-fault";
+        public const string QueueName = "processing-slip-fault";
 
         public async Task Consume(ConsumeContext<RoutingSlipFaulted> context)
         {
@@ -15,17 +15,20 @@ namespace Musify.Infrastructure.MassTransit.Consumers
             if (!variables.TryGetValue(RoutingSlipVariableNames.Workflow.ProcessKind, out var kindObject))
                 return;
 
-            if (!variables.TryGetValue(RoutingSlipVariableNames.Workflow.TrackId, out var trackObject)
-                || !Guid.TryParse(trackObject?.ToString(), out var trackId))
+            if (!variables.TryGetValue(RoutingSlipVariableNames.Workflow.SubjectId, out var subjectObject)
+                || !Guid.TryParse(subjectObject?.ToString(), out var subjectId))
                 return;
 
             switch (kindObject?.ToString())
             {
                 case RoutingSlipVariableNames.ProcessKinds.TrackPicture:
-                    await context.Publish(new TrackPictureProcessingFailed(trackId));
+                    await context.Publish(new TrackPictureProcessingFailed(subjectId));
                     break;
                 case RoutingSlipVariableNames.ProcessKinds.TrackAudio:
-                    await context.Publish(new TrackAudioProcessingFailed(trackId));
+                    await context.Publish(new TrackAudioProcessingFailed(subjectId));
+                    break;
+                case RoutingSlipVariableNames.ProcessKinds.PlayListPicture:
+                    await context.Publish(new PlayListPictureProcessingFailed(subjectId));
                     break;
             }
         }

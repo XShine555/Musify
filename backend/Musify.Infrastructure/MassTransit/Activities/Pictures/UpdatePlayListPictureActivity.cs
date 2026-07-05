@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Events;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
@@ -8,6 +9,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
     internal class UpdatePlayListPictureActivity(
         IDatabase database,
+        IPublishEndpoint publishEndpoint,
         ILogger<UpdatePlayListPictureActivity> logger)
         : IActivity<UpdatePlayListPictureArguments, UpdatePlayListPictureLog>
     {
@@ -52,6 +54,11 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 
                 logger.LogInformation("Updated playlist {PlayListId} pictures",
                     executeContext.Arguments.PlayListId);
+
+                await publishEndpoint.Publish(
+                    new PlayListPictureProcessed(executeContext.Arguments.PlayListId),
+                    executeContext.CancellationToken);
+
                 return executeContext.Completed();
             }
             catch (Exception exception)

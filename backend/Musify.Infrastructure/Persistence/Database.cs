@@ -30,6 +30,11 @@ namespace Musify.Infrastructure.Persistence
             trackProcessing.HasKey(state => state.CorrelationId);
             trackProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();
             trackProcessing.Property(state => state.CurrentState).HasMaxLength(64);
+
+            var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
+            playListProcessing.HasKey(state => state.CorrelationId);
+            playListProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();
+            playListProcessing.Property(state => state.CurrentState).HasMaxLength(64);
         }
 
         public DbSet<User> Users => Set<User>();

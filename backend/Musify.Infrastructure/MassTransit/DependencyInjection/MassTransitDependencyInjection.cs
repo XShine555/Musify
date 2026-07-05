@@ -75,6 +75,14 @@ namespace Musify.Infrastructure.MassTransit
                         repository.UsePostgres();
                     });
 
+                options.AddSagaStateMachine<PlayListProcessingStateMachine, PlayListProcessingState>()
+                    .EntityFrameworkRepository(repository =>
+                    {
+                        repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+                        repository.ExistingDbContext<Database>();
+                        repository.UsePostgres();
+                    });
+
                 options.AddConfigureEndpointsCallback((registrationContext, _, endpointConfigurator) =>
                 {
                     UseStandardRetry(endpointConfigurator);

@@ -60,10 +60,10 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                     message.TrackId,
                     message.DestinationFolderKey));
 
-            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.TrackId, message.TrackId);
+            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.TrackId);
             routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackAudio);
             routingSlipBuilder.AddSubscription(
-                EndpointHelper.BuildConsumerUri(TrackProcessingSlipFaultConsumer.QueueName),
+                EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
                 RoutingSlipEvents.Faulted);
 
             return routingSlipBuilder;
