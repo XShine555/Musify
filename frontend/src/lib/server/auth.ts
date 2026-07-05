@@ -12,8 +12,8 @@ export const RETURN_COOKIE = 'mf_oidc_return';
 
 export interface Session extends SessionUser {
 	accessToken: string;
-	refreshToken?: string;
-	idToken?: string;
+	refreshToken: string;
+	idToken: string;
 	expiresAt: number;
 }
 
@@ -89,7 +89,6 @@ export function toSessionUser(claims: Record<string, unknown>, fallback?: Sessio
 }
 
 export async function refreshSession(session: Session): Promise<Session | null> {
-	if (!session.refreshToken) return null;
 	try {
 		const config = await getOidcConfig();
 		const tokens = await client.refreshTokenGrant(config, session.refreshToken);

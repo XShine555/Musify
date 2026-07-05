@@ -40,8 +40,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	}
 
 	const claims = tokens.claims();
-	if (!claims) {
+	if (!claims || !tokens.id_token) {
 		error(401, 'El proveedor no devolvió el token de identidad.');
+	}
+	if (!tokens.refresh_token) {
+		error(401, 'El proveedor no devolvió un refresh token; revisa el scope offline_access.');
 	}
 
 	const session: Session = {
