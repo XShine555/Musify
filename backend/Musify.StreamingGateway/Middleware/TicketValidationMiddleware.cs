@@ -28,19 +28,27 @@ public sealed class TicketValidationMiddleware(
             token = context.Request.Headers[options.HeaderName].ToString();
         }
 
-        var validation = await ticketValidator.ValidateTicketAsync(token);
+        var prefix = await ticketValidator.ValidateTicketAsync(token);
 
-        if (validation.IsError)
+        if (prefix is null)
         {
             logger.LogWarning("Rejected media request {Path}: missing or invalid ticket", path);
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
 
-        var prefix = validation.Value;
-
         var objectKey = remaining.Value?.TrimStart('/') ?? string.Empty;
-        if (!objectKey.StartsWith(prefix, StringComparison.Ordinal))
+
+        if (HasTraversalSegment(objectKey))
+        {
+            logger.LogWarning("Rejected media request {ObjectKey}: contains a path traversal segment", objectKey);
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return;
+        }
+
+        var prefixBoundary = prefix.EndsWith('/') ? prefix : prefix + "/";
+        if (!string.Equals(objectKey, prefix, StringComparison.Ordinal)
+            && !objectKey.StartsWith(prefixBoundary, StringComparison.Ordinal))
         {
             logger.LogWarning("Rejected media request {ObjectKey}: outside authorized prefix {Prefix}", objectKey, prefix);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -50,6 +58,9 @@ public sealed class TicketValidationMiddleware(
         StripQueryParameter(context, options.QueryParameterName);
         await next(context);
     }
+
+    private static bool HasTraversalSegment(string objectKey) =>
+        objectKey.Split('/').Any(segment => segment is ".." or ".");
 
     private static void StripQueryParameter(HttpContext context, string name)
     {

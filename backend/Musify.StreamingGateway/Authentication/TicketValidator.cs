@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using ErrorOr;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -35,25 +34,24 @@ public sealed class TicketValidator : IDisposable
         };
     }
 
-    public async Task<ErrorOr<string>> ValidateTicketAsync(string? token)
+    /// <summary>
+    /// Validates the stream ticket and returns the authorized object-key prefix,
+    /// or <see langword="null"/> if the ticket is missing, invalid, or carries no prefix.
+    /// </summary>
+    public async Task<string?> ValidateTicketAsync(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
-            return Error.Unauthorized();
+            return null;
 
         var result = await _handler.ValidateTokenAsync(token, _validationParameters);
         if (!result.IsValid)
-            return Error.Unauthorized();
+            return null;
 
-        if (!result.Claims.TryGetValue("prefix", out var claim))
-            return Error.Unauthorized();
-
-        if (claim is not string prefix)
-            return Error.Unauthorized();
-
-        if (string.IsNullOrEmpty(prefix))
-            return Error.Unauthorized();
-
-        return prefix;
+        return result.Claims.TryGetValue("prefix", out var claim)
+               && claim is string prefix
+               && !string.IsNullOrEmpty(prefix)
+            ? prefix
+            : null;
     }
 
     public void Dispose() => _rsa.Dispose();
