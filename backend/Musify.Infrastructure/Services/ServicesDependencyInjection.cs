@@ -21,7 +21,7 @@ namespace Musify.Infrastructure.Services
             serviceDescriptors.AddSingleton(serviceProvider =>
                 serviceProvider.GetRequiredService<IOptions<InfrastructureStorageConfiguration>>().Value);
 
-            serviceDescriptors.AddScoped<IAmazonS3>(serviceProvider =>
+            serviceDescriptors.AddSingleton<IAmazonS3>(serviceProvider =>
             {
                 var configuration = serviceProvider.GetRequiredService<InfrastructureStorageConfiguration>();
                 var s3Configuration = new AmazonS3Config

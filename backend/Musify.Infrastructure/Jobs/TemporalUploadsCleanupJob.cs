@@ -19,7 +19,9 @@ namespace Musify.Infrastructure.Jobs
                 uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds,
                 uploadIntentConfiguration.TemporalRootPrefix);
 
-            while (!stoppingToken.IsCancellationRequested)
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds));
+
+            do
             {
                 try
                 {
@@ -29,9 +31,8 @@ namespace Musify.Infrastructure.Jobs
                 {
                     logger.LogError(exception, "Error in TemporalUploadsCleanUpJob");
                 }
-
-                await Task.Delay(TimeSpan.FromSeconds(uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds), stoppingToken);
             }
+            while (await timer.WaitForNextTickAsync(stoppingToken));
         }
 
         async Task RunAsync(CancellationToken cancellationToken)

@@ -103,13 +103,16 @@ namespace Musify.Infrastructure.Services
 
             logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId}) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
 
+            var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
             if (inputStream.CanSeek)
                 inputStream.Position = 0;
 
             await inputStream.CopyToAsync(process.StandardInput.BaseStream, cancellationToken);
             process.StandardInput.Close();
 
-            return await WaitForProcessResultAsync(process, operationName, cancellationToken);
+            return await WaitForProcessResultAsync(process, outputTask, errorTask, operationName, cancellationToken);
         }
 
         async Task<FfmpegExecutionResult> ExecuteFfmpegAsync(
@@ -123,7 +126,10 @@ namespace Musify.Infrastructure.Services
 
             logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId}) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
 
-            return await WaitForProcessResultAsync(process, operationName, cancellationToken);
+            var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
+            return await WaitForProcessResultAsync(process, outputTask, errorTask, operationName, cancellationToken);
         }
 
         Process BuildProcess(string arguments, string workingDirectory, bool redirectStandardInput)
@@ -144,12 +150,11 @@ namespace Musify.Infrastructure.Services
 
         async Task<FfmpegExecutionResult> WaitForProcessResultAsync(
             Process process,
+            Task<string> outputTask,
+            Task<string> errorTask,
             string operationName,
             CancellationToken cancellationToken)
         {
-            var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-            var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-
             using var linkedCancellationTokens = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             linkedCancellationTokens.CancelAfter(audioTranscoderConfiguration.TranscodingTimeout);
 

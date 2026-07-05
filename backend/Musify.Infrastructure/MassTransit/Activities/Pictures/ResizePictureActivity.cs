@@ -30,7 +30,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 
                 await using var fileStream = File.OpenRead(sourceFilePath);
 
-                var resizedPicture = await pictureHandler.ResizePictureAsWebpAsync(
+                await using var resizedPicture = await pictureHandler.ResizePictureAsWebpAsync(
                     fileStream,
                     executeContext.Arguments.Width,
                     executeContext.Arguments.Height,

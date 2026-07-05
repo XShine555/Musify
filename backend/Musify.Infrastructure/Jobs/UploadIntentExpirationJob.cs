@@ -18,7 +18,9 @@ namespace Musify.Infrastructure.Jobs
         {
             logger.LogInformation("UploadIntentExpirationJob started (interval: {Interval}s)", uploadIntentConfiguration.ExpirationJobIntervalSeconds);
 
-            while (!stoppingToken.IsCancellationRequested)
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(uploadIntentConfiguration.ExpirationJobIntervalSeconds));
+
+            do
             {
                 try
                 {
@@ -28,9 +30,8 @@ namespace Musify.Infrastructure.Jobs
                 {
                     logger.LogError(exception, "Error in UploadIntentExpirationJob");
                 }
-
-                await Task.Delay(TimeSpan.FromSeconds(uploadIntentConfiguration.ExpirationJobIntervalSeconds), stoppingToken);
             }
+            while (await timer.WaitForNextTickAsync(stoppingToken));
         }
 
         async Task RunAsync(CancellationToken cancellationToken)
