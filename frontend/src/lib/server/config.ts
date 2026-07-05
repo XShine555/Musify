@@ -40,5 +40,8 @@ export const authConfig = {
 	},
 	get flowTtlSeconds() {
 		return positiveInt(env.AUTH_FLOW_TTL_SECONDS, 600);
+	},
+	get allowInsecureHttp() {
+		return env.AUTH_ALLOW_INSECURE_HTTP === 'true';
 	}
 };

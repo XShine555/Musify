@@ -1,5 +1,6 @@
 import * as client from 'openid-client';
 import { EncryptJWT, jwtDecrypt } from 'jose';
+import { dev } from '$app/environment';
 import { authConfig } from '$lib/server/config';
 import type { SessionUser } from '$lib/types';
 
@@ -16,13 +17,12 @@ export interface Session extends SessionUser {
 	expiresAt: number;
 }
 
-let configPromise: Promise<client.Configuration> | null = null;
-
+let configPromise: Promise<client.Configuration>;
 export function getOidcConfig(): Promise<client.Configuration> {
 	configPromise ??= (async () => {
 		const issuer = new URL(authConfig.issuer);
-		const options =
-			issuer.protocol === 'http:' ? { execute: [client.allowInsecureRequests] } : undefined;
+		const insecureAllowed = (dev || authConfig.allowInsecureHttp) && issuer.protocol === 'http:';
+		const options = insecureAllowed ? { execute: [client.allowInsecureRequests] } : undefined;
 
 		const secret = authConfig.clientSecret;
 		return secret
@@ -32,8 +32,7 @@ export function getOidcConfig(): Promise<client.Configuration> {
 	return configPromise;
 }
 
-let keyPromise: Promise<Uint8Array> | null = null;
-
+let keyPromise: Promise<Uint8Array>;
 function sessionKey(): Promise<Uint8Array> {
 	keyPromise ??= crypto.subtle
 		.digest('SHA-256', new TextEncoder().encode(authConfig.sessionSecret))
