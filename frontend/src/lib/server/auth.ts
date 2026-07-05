@@ -1,6 +1,6 @@
 import * as client from 'openid-client';
 import { EncryptJWT, jwtDecrypt } from 'jose';
-import { env } from '$env/dynamic/private';
+import { authConfig } from '$lib/server/config';
 import type { SessionUser } from '$lib/types';
 
 export const SESSION_COOKIE = 'mf_session';
@@ -16,40 +16,27 @@ export interface Session extends SessionUser {
 	expiresAt: number;
 }
 
-export const OIDC_SCOPE = 'openid profile email offline_access';
-
 let configPromise: Promise<client.Configuration> | null = null;
 
 export function getOidcConfig(): Promise<client.Configuration> {
 	configPromise ??= (async () => {
-		const issuer = new URL(env.ZITADEL_ISSUER);
+		const issuer = new URL(authConfig.issuer);
 		const options =
 			issuer.protocol === 'http:' ? { execute: [client.allowInsecureRequests] } : undefined;
 
-		const secret = env.ZITADEL_CLIENT_SECRET;
-		const hasSecret = !!secret && !secret.startsWith('REPLACE_');
-
-		return hasSecret
-			? client.discovery(issuer, env.ZITADEL_CLIENT_ID, secret, undefined, options)
-			: client.discovery(issuer, env.ZITADEL_CLIENT_ID, undefined, client.None(), options);
+		const secret = authConfig.clientSecret;
+		return secret
+			? client.discovery(issuer, authConfig.clientId, secret, undefined, options)
+			: client.discovery(issuer, authConfig.clientId, undefined, client.None(), options);
 	})();
 	return configPromise;
 }
-
-export const authConfig = {
-	get redirectUri() {
-		return env.AUTH_REDIRECT_URI;
-	},
-	get postLogoutUri() {
-		return env.AUTH_POST_LOGOUT_URI;
-	}
-};
 
 let keyPromise: Promise<Uint8Array> | null = null;
 
 function sessionKey(): Promise<Uint8Array> {
 	keyPromise ??= crypto.subtle
-		.digest('SHA-256', new TextEncoder().encode(env.SESSION_SECRET))
+		.digest('SHA-256', new TextEncoder().encode(authConfig.sessionSecret))
 		.then((digest) => new Uint8Array(digest));
 	return keyPromise;
 }
@@ -60,15 +47,16 @@ export function sessionCookieOptions(url: URL) {
 		sameSite: 'lax' as const,
 		secure: url.protocol === 'https:',
 		path: '/',
-		maxAge: 60 * 60 * 24 * 7
+		maxAge: authConfig.sessionTtlSeconds
 	};
 }
 
 export async function encodeSession(session: Session): Promise<string> {
+	const now = Math.floor(Date.now() / 1000);
 	return new EncryptJWT({ ...session })
 		.setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
-		.setIssuedAt()
-		.setExpirationTime('7d')
+		.setIssuedAt(now)
+		.setExpirationTime(now + authConfig.sessionTtlSeconds)
 		.encrypt(await sessionKey());
 }
 

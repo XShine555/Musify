@@ -6,13 +6,12 @@ import {
 	sessionCookieOptions,
 	SESSION_COOKIE
 } from '$lib/server/auth';
-
-const REFRESH_THRESHOLD_SECONDS = 30;
+import { authConfig } from '$lib/server/config';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	let session = await decodeSession(event.cookies.get(SESSION_COOKIE));
 
-	if (session && session.expiresAt - REFRESH_THRESHOLD_SECONDS <= Math.floor(Date.now() / 1000)) {
+	if (session && session.expiresAt - authConfig.refreshThresholdSeconds <= Math.floor(Date.now() / 1000)) {
 		session = await refreshSession(session);
 		if (session) {
 			event.cookies.set(SESSION_COOKIE, await encodeSession(session), sessionCookieOptions(event.url));

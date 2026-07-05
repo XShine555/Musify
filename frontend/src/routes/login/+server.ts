@@ -3,13 +3,12 @@ import * as client from 'openid-client';
 import type { RequestHandler } from './$types';
 import {
 	getOidcConfig,
-	authConfig,
-	OIDC_SCOPE,
 	STATE_COOKIE,
 	VERIFIER_COOKIE,
 	NONCE_COOKIE,
 	RETURN_COOKIE
 } from '$lib/server/auth';
+import { authConfig } from '$lib/server/config';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const config = await getOidcConfig();
@@ -24,7 +23,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
 	const parameters: Record<string, string> = {
 		redirect_uri: authConfig.redirectUri,
-		scope: OIDC_SCOPE,
+		scope: authConfig.scope,
 		code_challenge: codeChallenge,
 		code_challenge_method: 'S256',
 		state,
@@ -39,7 +38,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		sameSite: 'lax' as const,
 		secure: url.protocol === 'https:',
 		path: '/',
-		maxAge: 600
+		maxAge: authConfig.flowTtlSeconds
 	};
 	cookies.set(VERIFIER_COOKIE, codeVerifier, cookieOptions);
 	cookies.set(STATE_COOKIE, state, cookieOptions);
