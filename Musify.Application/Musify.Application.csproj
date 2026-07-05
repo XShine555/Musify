@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<RootNamespace>Musify.Application</RootNamespace>
+	<PackageId>Musify.Application</PackageId>
+    <Version>0.1.2</Version>
+    <Authors>NotS1mp</Authors>
+    <RepositoryUrl>https://github.com/XShine555/MusifyBackend</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ardalis.Result" Version="10.1.0" />
+    <PackageReference Include="MassTransit" Version="8.5.9" />
+    <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.8" />
+    <PackageReference Include="X.PagedList" Version="10.5.9" />
+    <PackageReference Include="X.PagedList.EF" Version="10.5.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Musify.Domain\Musify.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

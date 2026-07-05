@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<RootNamespace>Musify.Infrastructure</RootNamespace>
+	<UserSecretsId>07d419fc-9ade-471a-bc0e-aebece785b30</UserSecretsId>
+	<PackageId>Musify.Infrastructure</PackageId>
+	<Version>0.1.1</Version>
+	<Authors>NotS1mp</Authors>
+	<RepositoryUrl>https://github.com/XShine555/MusifyBackend</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.0.23.4" />
+    <PackageReference Include="MassTransit" Version="8.5.9" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.9" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.8" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.14.0" />
+    <PackageReference Include="MimeMapping" Version="4.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.1-beta.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.15.1-beta.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Musify.Application\Musify.Application.csproj" />
+    <ProjectReference Include="..\Musify.Domain\Musify.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Persistence\Migrations\" />
+  </ItemGroup>
+
+</Project>

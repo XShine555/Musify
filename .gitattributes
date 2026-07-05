@@ -1,0 +1,13 @@
+# Normalize line endings automatically for text files
+* text=auto
+
+# Force LF for shell scripts
+*.sh text eol=lf
+
+# Treat common binaries as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.dll binary

@@ -1,12 +1,12 @@
 <Solution>
   <Folder Name="/Core/">
-    <Project Path="MusifyBackend/Domain/Domain.csproj" />
-    <Project Path="MusifyBackend/Application/Application.csproj" />
-    <Project Path="MusifyBackend/Infrastructure/Infrastructure.csproj" />
+    <Project Path="Musify.Domain/Musify.Domain.csproj" />
+    <Project Path="Musify.Application/Musify.Application.csproj" />
+    <Project Path="Musify.Infrastructure/Musify.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/Hosts/">
-    <Project Path="Musify.WebApi/WebApi/WebApi.csproj" />
-    <Project Path="Musify.Worker/Worker/Worker.csproj" />
-    <Project Path="Musify.StreamingGateway/StreamingGateway/StreamingGateway.csproj" />
+    <Project Path="Musify.Api/Musify.Api.csproj" />
+    <Project Path="Musify.Worker/Musify.Worker.csproj" />
+    <Project Path="Musify.StreamingGateway/Musify.StreamingGateway.csproj" />
   </Folder>
 </Solution>
