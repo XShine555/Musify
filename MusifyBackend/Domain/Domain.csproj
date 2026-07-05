@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<RootNamespace>Musify.Domain</RootNamespace>
+	<PackageId>Musify.Domain</PackageId>
+    <Version>0.1.2</Version>
+    <Authors>NotS1mp</Authors>
+	<RepositoryUrl>https://github.com/XShine555/MusifyBackend</RepositoryUrl>
+  </PropertyGroup>
+
+
+</Project>
