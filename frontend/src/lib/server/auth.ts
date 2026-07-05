@@ -1,5 +1,5 @@
 import * as client from 'openid-client';
-import { SignJWT, jwtVerify } from 'jose';
+import { EncryptJWT, jwtDecrypt } from 'jose';
 import { env } from '$env/dynamic/private';
 import type { SessionUser } from '$lib/types';
 
@@ -45,22 +45,61 @@ export const authConfig = {
 	}
 };
 
-const sessionKey = () => new TextEncoder().encode(env.SESSION_SECRET);
+let keyPromise: Promise<Uint8Array> | null = null;
+
+function sessionKey(): Promise<Uint8Array> {
+	keyPromise ??= crypto.subtle
+		.digest('SHA-256', new TextEncoder().encode(env.SESSION_SECRET))
+		.then((digest) => new Uint8Array(digest));
+	return keyPromise;
+}
+
+export function sessionCookieOptions(url: URL) {
+	return {
+		httpOnly: true,
+		sameSite: 'lax' as const,
+		secure: url.protocol === 'https:',
+		path: '/',
+		maxAge: 60 * 60 * 24 * 7
+	};
+}
 
 export async function encodeSession(session: Session): Promise<string> {
-	return new SignJWT({ ...session })
-		.setProtectedHeader({ alg: 'HS256' })
+	return new EncryptJWT({ ...session })
+		.setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
 		.setIssuedAt()
 		.setExpirationTime('7d')
-		.sign(sessionKey());
+		.encrypt(await sessionKey());
 }
 
 export async function decodeSession(token: string | undefined): Promise<Session | null> {
 	if (!token) return null;
 	try {
-		const { payload } = await jwtVerify(token, sessionKey());
+		const { payload } = await jwtDecrypt(token, await sessionKey());
 		return payload as unknown as Session;
 	} catch {
+		return null;
+	}
+}
+
+export async function refreshSession(session: Session): Promise<Session | null> {
+	if (!session.refreshToken) return null;
+	try {
+		const config = await getOidcConfig();
+		const tokens = await client.refreshTokenGrant(config, session.refreshToken);
+		const claims = tokens.claims();
+		return {
+			sub: session.sub,
+			name: (claims?.name as string | undefined) ?? session.name,
+			email: (claims?.email as string | undefined) ?? session.email,
+			picture: (claims?.picture as string | undefined) ?? session.picture,
+			accessToken: tokens.access_token,
+			refreshToken: tokens.refresh_token ?? session.refreshToken,
+			idToken: tokens.id_token ?? session.idToken,
+			expiresAt: Math.floor(Date.now() / 1000) + (tokens.expires_in ?? 3600)
+		};
+	} catch (exception) {
+		console.error('Token refresh failed', exception);
 		return null;
 	}
 }

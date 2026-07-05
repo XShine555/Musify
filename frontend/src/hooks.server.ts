@@ -1,10 +1,27 @@
 import type { Handle } from '@sveltejs/kit';
-import { decodeSession, SESSION_COOKIE } from '$lib/server/auth';
+import {
+	decodeSession,
+	encodeSession,
+	refreshSession,
+	sessionCookieOptions,
+	SESSION_COOKIE
+} from '$lib/server/auth';
+
+const REFRESH_THRESHOLD_SECONDS = 30;
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const session = await decodeSession(event.cookies.get(SESSION_COOKIE));
+	let session = await decodeSession(event.cookies.get(SESSION_COOKIE));
 
-	if (session && session.expiresAt * 1000 > Date.now()) {
+	if (session && session.expiresAt - REFRESH_THRESHOLD_SECONDS <= Math.floor(Date.now() / 1000)) {
+		session = await refreshSession(session);
+		if (session) {
+			event.cookies.set(SESSION_COOKIE, await encodeSession(session), sessionCookieOptions(event.url));
+		} else {
+			event.cookies.delete(SESSION_COOKIE, { path: '/' });
+		}
+	}
+
+	if (session) {
 		event.locals.user = {
 			sub: session.sub,
 			name: session.name,

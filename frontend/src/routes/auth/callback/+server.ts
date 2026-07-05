@@ -4,6 +4,7 @@ import type { RequestHandler } from './$types';
 import {
 	getOidcConfig,
 	encodeSession,
+	sessionCookieOptions,
 	type Session,
 	SESSION_COOKIE,
 	STATE_COOKIE,
@@ -53,13 +54,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		expiresAt: Math.floor(Date.now() / 1000) + (tokens.expires_in ?? 3600)
 	};
 
-	cookies.set(SESSION_COOKIE, await encodeSession(session), {
-		httpOnly: true,
-		sameSite: 'lax',
-		secure: url.protocol === 'https:',
-		path: '/',
-		maxAge: 60 * 60 * 24 * 7
-	});
+	cookies.set(SESSION_COOKIE, await encodeSession(session), sessionCookieOptions(url));
 
 	for (const name of [STATE_COOKIE, VERIFIER_COOKIE, NONCE_COOKIE, RETURN_COOKIE]) {
 		cookies.delete(name, { path: '/' });
