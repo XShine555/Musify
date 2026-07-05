@@ -15,7 +15,6 @@ namespace Musify.Infrastructure.Persistence
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(configuration.ConnectionString);
-            optionsBuilder.AddInterceptors(new AuditableEntityInterceptor());
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

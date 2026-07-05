@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -18,7 +19,11 @@ namespace Musify.Infrastructure.Persistence
             serviceDescriptors.AddSingleton(serviceProvider =>
                 serviceProvider.GetRequiredService<IOptions<DatabaseConfiguration>>().Value);
 
-            serviceDescriptors.AddDbContext<Database>();
+            serviceDescriptors.AddSingleton<AuditableEntityInterceptor>();
+
+            serviceDescriptors.AddDbContext<Database>((serviceProvider, options) =>
+                options.AddInterceptors(serviceProvider.GetRequiredService<AuditableEntityInterceptor>()));
+
             serviceDescriptors.AddScoped<IDatabase>(serviceProvider => serviceProvider.GetRequiredService<Database>());
 
             return serviceDescriptors;
