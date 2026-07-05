@@ -1,6 +1,21 @@
 {
   "version": 1,
   "skills": {
+    "aspnet-core": {
+      "source": "openai/skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "72fda9e92872cc972eb09648c84258c0cb2143874928c80b087ceddbf8171cb5"
+    },
+    "aspnet-minimal-api-openapi": {
+      "source": "github/awesome-copilot",
+      "sourceType": "autoskills-registry",
+      "computedHash": "50a7413d2fd148aea2a733bcd26ee57939b792c016824821f73816319fea0a28"
+    },
+    "containerize-aspnetcore": {
+      "source": "github/awesome-copilot",
+      "sourceType": "autoskills-registry",
+      "computedHash": "6d065b998b00174b1600c51496e67d4917ba8b853d9965d1c2b0c0e05767d459"
+    },
     "csharp-async": {
       "source": "github/awesome-copilot",
       "sourceType": "autoskills-registry",
@@ -45,6 +60,11 @@
       "source": "github/awesome-copilot",
       "sourceType": "autoskills-registry",
       "computedHash": "77925fe0898ceeab04c574390815e7500a2426a26036a357325ce751f23cce71"
+    },
+    "minimal-api-file-upload": {
+      "source": "dotnet/skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "0bf3dff70a452328f77f4b6217d5e7437700fc55a70ccff26fb577306e9e9eeb"
     }
   }
 }
