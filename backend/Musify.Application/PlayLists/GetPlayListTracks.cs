@@ -2,7 +2,7 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
-using Musify.Application.Pagination;
+using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using X.PagedList.EF;
 

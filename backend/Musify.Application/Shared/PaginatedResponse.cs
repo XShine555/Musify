@@ -1,6 +1,6 @@
 using X.PagedList;
 
-namespace Musify.Application.Pagination
+namespace Musify.Application.Shared
 {
     public record PaginatedResponse<T>(
         IReadOnlyCollection<T> Items,

@@ -1,6 +1,6 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Pagination;
+using Musify.Application.Shared;
 using Musify.Application.PlayLists.Responses;
 using X.PagedList.EF;
 using Mediator;
