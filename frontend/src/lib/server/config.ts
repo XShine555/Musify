@@ -45,3 +45,9 @@ export const authConfig = {
 		return env.AUTH_ALLOW_INSECURE_HTTP === 'true';
 	}
 };
+
+export const apiConfig = {
+	get baseUrl() {
+		return (env.API_BASE_URL ?? '').replace(/\/+$/, '');
+	}
+};

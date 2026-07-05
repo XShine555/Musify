@@ -30,3 +30,15 @@ npm run check    # svelte-check — debe salir 0 errores antes de cerrar un camb
 `hooks.server.ts` valida la cookie de sesión cifrada (`mf_session`), refresca el `access_token` y puebla `locals.user` / `locals.accessToken`. Para proteger una ruta, comprueba `locals.user` en su `load` y redirige a `/login?returnTo=…`. Para el backend, envía `locals.accessToken` como Bearer hacia `API_BASE_URL`.
 
 Variables de entorno en `.env` (ver `.env.example`): `ZITADEL_*`, `AUTH_REDIRECT_URI`, `AUTH_POST_LOGOUT_URI`, `SESSION_SECRET`, `API_BASE_URL`.
+
+## Backend API
+
+Cliente tipado con `openapi-fetch` sobre el OpenAPI de `Musify.Api`. En un `load`/action server:
+
+```ts
+import { createApiClient } from '$lib/server/api';
+const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+const { data, error: err } = await api.GET('/tracks');
+```
+
+Devuelve `{ data, error }` (estilo ErrorOr), no lanza. Los tipos viven en `src/lib/api/schema.d.ts` y se regeneran con `npm run gen:api` (requiere la API dev levantada en `API_BASE_URL`, que expone `/openapi/v1.json` solo en Development).

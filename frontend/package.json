@@ -9,7 +9,8 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"gen:api": "npx -y openapi-typescript@7 http://localhost:5111/openapi/v1.json -o src/lib/api/schema.d.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
@@ -25,6 +26,7 @@
 	"dependencies": {
 		"@sveltejs/adapter-node": "^5.5.7",
 		"jose": "^6.2.3",
+		"openapi-fetch": "^0.17.0",
 		"openid-client": "^6.8.4"
 	}
 }
