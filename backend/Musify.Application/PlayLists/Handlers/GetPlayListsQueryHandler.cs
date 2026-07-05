@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Pagination;
 using Musify.Application.PlayLists.Responses;
@@ -10,9 +10,9 @@ using Musify.Application.Contracts;
 namespace Musify.Application.PlayLists.Handlers
 {
     public class GetPlayListsQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListsQuery, Result<PaginatedResponse<PlayListApplicationResponse> >>
+        : IQueryHandler<GetPlayListsQuery, ErrorOr<PaginatedResponse<PlayListApplicationResponse> >>
     {
-        public async ValueTask<Result<PaginatedResponse<PlayListApplicationResponse> >> Handle(GetPlayListsQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<PlayListApplicationResponse> >> Handle(GetPlayListsQuery request, CancellationToken cancellationToken)
         {
             var totalCount = await database.PlayLists.CountAsync(cancellationToken);
 
@@ -22,7 +22,7 @@ namespace Musify.Application.PlayLists.Handlers
                 .Select(p => PlayListApplicationResponse.FromEntity(p))
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
-            return Result.Success(PaginatedResponse<PlayListApplicationResponse>.FromPagedList(pagedPlayLists));
+            return PaginatedResponse<PlayListApplicationResponse>.FromPagedList(pagedPlayLists);
         }
     }
 }

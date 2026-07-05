@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,9 +20,9 @@ namespace Musify.Application.Tracks.Handlers
         ApplicationStorageConfiguration storageConfiguration,
         TrackConfiguration trackConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<RequestTrackUploadUrlsCommand, Result<TrackUploadUrlsResponse>>
+        : ICommandHandler<RequestTrackUploadUrlsCommand, ErrorOr<TrackUploadUrlsResponse>>
     {
-        public async ValueTask<Result<TrackUploadUrlsResponse>> Handle(RequestTrackUploadUrlsCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<TrackUploadUrlsResponse>> Handle(RequestTrackUploadUrlsCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
                 .AsNoTracking()
@@ -30,7 +30,7 @@ namespace Musify.Application.Tracks.Handlers
             if (!userExists)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
-                return Result.NotFound($"User {request.UserId} not found");
+                return Error.NotFound(description: $"User {request.UserId} not found");
             }
 
             var effectivePictureSize = request.ExpectedPictureSizeBytes
@@ -72,10 +72,10 @@ namespace Musify.Application.Tracks.Handlers
                 var quotaCheck = await uploadIntentValidator.CheckQuotaAsync(
                     uploadIntentConfiguration,
                     request.UserId, effectivePictureSize + effectiveAudioSize, 2, cancellationToken);
-                if (!quotaCheck.IsSuccess)
+                if (quotaCheck.IsError)
                 {
                     logger.LogWarning("User {UserId} failed upload intent quota check", request.UserId);
-                    return quotaCheck;
+                    return quotaCheck.Errors;
                 }
 
                 var pictureIntent = new UploadIntent
@@ -110,7 +110,7 @@ namespace Musify.Application.Tracks.Handlers
                 logger.LogInformation("Issued upload intents {PictureIntentId}/{AudioIntentId} for user {UserId} (TrackPicture/TrackAudio)",
                     pictureIntent.Id, audioIntent.Id, request.UserId);
 
-                return Result.Success(new TrackUploadUrlsResponse(
+                return new TrackUploadUrlsResponse(
                     pictureIntent.Id,
                     audioIntent.Id,
                     storageConfiguration.Bucket,
@@ -122,12 +122,12 @@ namespace Musify.Application.Tracks.Handlers
                     audioObjectName,
                     request.AudioContentType,
                     audioUploadUrl,
-                    uploadIntentConfiguration.UploadUrlExpiresInSeconds));
+                    uploadIntentConfiguration.UploadUrlExpiresInSeconds);
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to generate track upload URLs for user {UserId}", request.UserId);
-                return Result.Error("Failed to generate upload URLs");
+                return Error.Failure(description: "Failed to generate upload URLs");
             }
         }
     }

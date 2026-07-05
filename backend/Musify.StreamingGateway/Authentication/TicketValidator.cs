@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Ardalis.Result;
+using ErrorOr;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -35,25 +35,25 @@ public sealed class TicketValidator : IDisposable
         };
     }
 
-    public async Task<Result<string>> ValidateTicketAsync(string? token)
+    public async Task<ErrorOr<string>> ValidateTicketAsync(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
-            return Result.Unauthorized();
+            return Error.Unauthorized();
 
         var result = await _handler.ValidateTokenAsync(token, _validationParameters);
         if (!result.IsValid)
-            return Result.Unauthorized();
+            return Error.Unauthorized();
 
         if (!result.Claims.TryGetValue("prefix", out var claim))
-            return Result.Unauthorized();
+            return Error.Unauthorized();
 
         if (claim is not string prefix)
-            return Result.Unauthorized();
+            return Error.Unauthorized();
 
         if (string.IsNullOrEmpty(prefix))
-            return Result.Unauthorized();
+            return Error.Unauthorized();
 
-        return Result.Success(prefix);
+        return prefix;
     }
 
     public void Dispose() => _rsa.Dispose();

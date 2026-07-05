@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Pagination;
@@ -10,9 +10,9 @@ using Musify.Application.Contracts;
 namespace Musify.Application.Tracks.Handlers
 {
     public class GetTracksByUserIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetTracksByUserIdQuery, Result<PaginatedResponse<TrackApplicationResponse>> >
+        : IQueryHandler<GetTracksByUserIdQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>> >
     {
-        public async ValueTask<Result<PaginatedResponse<TrackApplicationResponse> >> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse> >> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
@@ -35,7 +35,7 @@ namespace Musify.Application.Tracks.Handlers
                 .Select(t => TrackApplicationResponse.FromEntity(t.Track))
                 .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
 
-            return Result.Success(PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks));
+            return PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks);
         }
     }
 }

@@ -103,7 +103,7 @@ public static class TrackEndpoints
             new CreateTrackCommand(currentUser.RequiredId, request.Title, request.PictureIntentId, request.AudioIntentId),
             cancellationToken);
 
-        if (!result.IsSuccess)
+        if (result.IsError)
             return result.ToHttpResult();
 
         return Results.Created($"/tracks/{result.Value.Id}", result.Value);

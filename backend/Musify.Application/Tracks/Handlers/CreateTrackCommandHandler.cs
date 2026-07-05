@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,6 @@ using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Application.Tracks.Commands;
 using Musify.Application.Tracks.Responses;
-using Musify.Application.Extensions;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
@@ -23,29 +22,29 @@ namespace Musify.Application.Tracks.Handlers
         ApplicationStorageConfiguration storageConfiguration,
         TrackConfiguration trackConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<CreateTrackCommand, Result<TrackApplicationResponse>>
+        : ICommandHandler<CreateTrackCommand, ErrorOr<TrackApplicationResponse>>
     {
-        public async ValueTask<Result<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.AsNoTracking()
                 .AnyAsync(u => u.Id == request.UserId, cancellationToken);
             if (!userExists)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
-                return Result.NotFound($"User {request.UserId} not found");
+                return Error.NotFound(description: $"User {request.UserId} not found");
             }
 
             var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
                 uploadIntentConfiguration,
                 request.PictureIntentId, request.UserId, cancellationToken);
-            if (!pictureValidation.IsSuccess)
-                return pictureValidation.As<UploadIntent, TrackApplicationResponse>();
+            if (pictureValidation.IsError)
+                return pictureValidation.Errors;
 
             var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
                 uploadIntentConfiguration,
                 request.AudioIntentId, request.UserId, cancellationToken);
-            if (!audioValidation.IsSuccess)
-                return audioValidation.As<UploadIntent, TrackApplicationResponse>();
+            if (audioValidation.IsError)
+                return audioValidation.Errors;
 
             var pictureIntent = pictureValidation.Value;
             var audioIntent = audioValidation.Value;
@@ -105,7 +104,7 @@ namespace Musify.Application.Tracks.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish create track event for track {TrackId}", trackEntity.Id);
-                return Result.Error($"Failed to create track for {request.Title}");
+                return Error.Failure(description: $"Failed to create track for {request.Title}");
             }
 
             try
@@ -115,10 +114,10 @@ namespace Musify.Application.Tracks.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to save track {Title}", request.Title);
-                return Result.Error($"Failed to create track for {request.Title}");
+                return Error.Failure(description: $"Failed to create track for {request.Title}");
             }
 
-            return Result.Created(TrackApplicationResponse.FromEntity(trackEntity));
+            return TrackApplicationResponse.FromEntity(trackEntity);
         }
     }
 }

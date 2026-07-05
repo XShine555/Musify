@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+﻿using ErrorOr;
 using Mediator;
 using Musify.Application.Users.Responses;
 using Musify.Domain.Entities;
@@ -9,7 +9,7 @@ namespace Musify.Application.Users.Commands
         string Name,
         string? FirstName,
         string? SecondName)
-        : ICommand<Result<UserApplicationResponse>>
+        : ICommand<ErrorOr<UserApplicationResponse>>
     {
         public static User ToEntity(CreateUserCommand command)
         {

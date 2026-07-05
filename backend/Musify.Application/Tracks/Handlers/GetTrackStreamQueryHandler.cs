@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,9 +16,9 @@ namespace Musify.Application.Tracks.Handlers
         TrackConfiguration trackConfiguration,
         StreamGatewayConfiguration streamGatewayConfiguration,
         ILogger<GetTrackStreamQueryHandler> logger)
-        : IQueryHandler<GetTrackStreamQuery, Result<TrackStreamResponse>>
+        : IQueryHandler<GetTrackStreamQuery, ErrorOr<TrackStreamResponse>>
     {
-        public async ValueTask<Result<TrackStreamResponse>> Handle(GetTrackStreamQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<TrackStreamResponse>> Handle(GetTrackStreamQuery request, CancellationToken cancellationToken)
         {
             var track = await database.Tracks.AsNoTracking()
                 .Where(t => t.Id == request.TrackId)
@@ -26,13 +26,13 @@ namespace Musify.Application.Tracks.Handlers
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (track is null)
-                return Result<TrackStreamResponse>.NotFound();
+                return Error.NotFound();
 
             if (string.IsNullOrWhiteSpace(track.AudioFolderName)
                 || track.AudioTranscodeProcessingStatus != ProcessingStatus.Completed)
             {
                 logger.LogInformation("Stream requested for track {TrackId} but audio is not ready", request.TrackId);
-                return Result<TrackStreamResponse>.Conflict("Track audio is not available for streaming yet.");
+                return Error.Conflict(description: "Track audio is not available for streaming yet.");
             }
 
             var folderPath = trackConfiguration.Routes.BuildProcessedAudioPath(track.AudioFolderName);
@@ -48,7 +48,7 @@ namespace Musify.Application.Tracks.Handlers
 
             logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId);
 
-            return Result.Success(new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds));
+            return new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds);
         }
     }
 }

@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
@@ -10,15 +10,15 @@ using X.PagedList.EF;
 namespace Musify.Application.PlayLists.Handlers
 {
     public class GetPlayListTracksQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListTracksQuery, Result<PaginatedResponse<TrackApplicationResponse>> >
+        : IQueryHandler<GetPlayListTracksQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>> >
     {
-        public async ValueTask<Result<PaginatedResponse<TrackApplicationResponse> >> Handle(GetPlayListTracksQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse> >> Handle(GetPlayListTracksQuery request, CancellationToken cancellationToken)
         {
             var playListExists = await database.PlayLists
                 .AsNoTracking()
                 .AnyAsync(p => p.Id == request.PlayListId, cancellationToken);
             if (!playListExists)
-                return Result<PaginatedResponse<TrackApplicationResponse>>.NotFound();
+                return Error.NotFound();
 
             var tracksQuery = database.PlayListHasTracks
                 .AsNoTracking()
@@ -32,7 +32,7 @@ namespace Musify.Application.PlayLists.Handlers
                 .Select(plt => TrackApplicationResponse.FromEntity(plt.Track))
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
-            return Result.Success(PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks));
+            return PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks);
         }
     }
 }

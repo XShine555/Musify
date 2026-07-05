@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -9,15 +9,15 @@ using Musify.Application.Users.Responses;
 namespace Musify.Application.Users.Handlers
 {
     public class CreateUserCommandHandler(IDatabase database, ILogger<CreateUserCommandHandler> logger)
-        : ICommandHandler<CreateUserCommand, Result<UserApplicationResponse> >
+        : ICommandHandler<CreateUserCommand, ErrorOr<UserApplicationResponse> >
     {
-        public async ValueTask<Result<UserApplicationResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<UserApplicationResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users.AnyAsync(u => u.Id == request.Id, cancellationToken);
             if (userExists)
             {
                 logger.LogInformation("User {UserId} already exists", request.Id);
-                return Result<UserApplicationResponse>.Conflict($"User {request.Id} already exists");
+                return Error.Conflict(description: $"User {request.Id} already exists");
             }
 
             var newUser = CreateUserCommand.ToEntity(request);
@@ -30,11 +30,11 @@ namespace Musify.Application.Users.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to create user {UserId}", request.Id);
-                return Result.Error($"Failed to create user {request.Id}");
+                return Error.Failure(description: $"Failed to create user {request.Id}");
             }
 
             logger.LogInformation("Created user {UserId}", newUser.Id);
-            return Result.Created(UserApplicationResponse.FromEntity(newUser));
+            return UserApplicationResponse.FromEntity(newUser);
         }
     }
 }

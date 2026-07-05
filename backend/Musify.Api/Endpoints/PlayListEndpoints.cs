@@ -119,7 +119,7 @@ public static class PlayListEndpoints
             new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId),
             cancellationToken);
 
-        if (!result.IsSuccess)
+        if (result.IsError)
             return result.ToHttpResult();
 
         return Results.Created($"/playlists/{result.Value.Id}", result.Value);

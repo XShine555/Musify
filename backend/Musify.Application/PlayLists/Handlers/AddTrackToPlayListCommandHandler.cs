@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,22 +11,22 @@ namespace Musify.Application.PlayLists.Handlers
     public class AddTrackToPlayListCommandHandler(
         IDatabase database,
         ILogger<AddTrackToPlayListCommandHandler> logger)
-        : ICommandHandler<AddTrackToPlayListCommand, Result>
+        : ICommandHandler<AddTrackToPlayListCommand, ErrorOr<Success>>
     {
-        public async ValueTask<Result> Handle(AddTrackToPlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<Success>> Handle(AddTrackToPlayListCommand request, CancellationToken cancellationToken)
         {
             var playList = await database.PlayLists
                 .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
             if (playList is null)
             {
                 logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
-                return Result.NotFound();
+                return Error.NotFound();
             }
 
             if (playList.UserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-                return Result.Unauthorized();
+                return Error.Unauthorized();
             }
 
             var trackExists = await database.Tracks
@@ -35,7 +35,7 @@ namespace Musify.Application.PlayLists.Handlers
             if (!trackExists)
             {
                 logger.LogInformation("Track {TrackId} not found", request.TrackId);
-                return Result.NotFound($"Track {request.TrackId} not found");
+                return Error.NotFound(description: $"Track {request.TrackId} not found");
             }
 
             var alreadyAdded = await database.PlayListHasTracks
@@ -44,7 +44,7 @@ namespace Musify.Application.PlayLists.Handlers
             if (alreadyAdded)
             {
                 logger.LogInformation("Track {TrackId} already in playlist {PlayListId}", request.TrackId, request.PlayListId);
-                return Result.Conflict("Track is already in the playlist.");
+                return Error.Conflict(description: "Track is already in the playlist.");
             }
 
             var nextPosition = await database.PlayListHasTracks
@@ -64,7 +64,7 @@ namespace Musify.Application.PlayLists.Handlers
             logger.LogInformation("Added track {TrackId} to playlist {PlayListId} at position {Position}",
                 request.TrackId, request.PlayListId, nextPosition);
 
-            return Result.Success();
+            return new Success();
         }
     }
 }

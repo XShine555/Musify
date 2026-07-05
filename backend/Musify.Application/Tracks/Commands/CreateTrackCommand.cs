@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Musify.Application.Tracks.Responses;
 
@@ -9,5 +9,5 @@ namespace Musify.Application.Tracks.Commands
         string Title,
         Guid PictureIntentId,
         Guid AudioIntentId)
-        : ICommand<Result<TrackApplicationResponse>>;
+        : ICommand<ErrorOr<TrackApplicationResponse>>;
 }

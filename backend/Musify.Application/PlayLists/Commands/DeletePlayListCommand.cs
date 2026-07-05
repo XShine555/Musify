@@ -1,8 +1,8 @@
-﻿using Ardalis.Result;
+﻿using ErrorOr;
 using Mediator;
 
 namespace Musify.Application.PlayLists.Commands
 {
     public record DeletePlayListCommand(long UserId, Guid PlayListId)
-        : ICommand<Result>;
+        : ICommand<ErrorOr<Success>>;
 }

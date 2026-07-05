@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,15 +13,15 @@ namespace Musify.Application.Tracks.Handlers
         IDatabase database,
         IEventBus eventBus,
         ILogger<DeleteTrackCommandHandler> logger)
-        : ICommandHandler<DeleteTrackCommand, Result>
+        : ICommandHandler<DeleteTrackCommand, ErrorOr<Success>>
     {
-        public async ValueTask<Result> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<Success>> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
         {
             var track = await database.Tracks.SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
             if (track is null)
             {
                 logger.LogInformation("Track {TrackId} not found", request.TrackId);
-                return Result.NotFound();
+                return Error.NotFound();
             }
 
             var isOwner = await database.UserHasTracks
@@ -30,14 +30,14 @@ namespace Musify.Application.Tracks.Handlers
             if (!isOwner)
             {
                 logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
-                return Result.Unauthorized();
+                return Error.Unauthorized();
             }
 
             if (track.AudioTranscodeProcessingStatus == ProcessingStatus.Processing
                 || track.AudioTranscodeProcessingStatus == ProcessingStatus.Pending)
             {
                 logger.LogWarning("Track {TrackId} is currently being processed and cannot be deleted", request.TrackId);
-                return Result.Conflict("Track is currently being processed and cannot be deleted");
+                return Error.Conflict(description: "Track is currently being processed and cannot be deleted");
             }
 
             track.LifeCycleStatus = LifeCycleStatus.Removing;
@@ -51,7 +51,7 @@ namespace Musify.Application.Tracks.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish delete track event for track {TrackId}", request.TrackId);
-                return Result.Error($"Failed to delete track {request.TrackId}");
+                return Error.Failure(description: $"Failed to delete track {request.TrackId}");
             }
 
             try
@@ -61,10 +61,10 @@ namespace Musify.Application.Tracks.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to mark track {TrackId} as processing before deletion", request.TrackId);
-                return Result.Error($"Failed to delete track {request.TrackId}");
+                return Error.Failure(description: $"Failed to delete track {request.TrackId}");
             }
 
-            return Result.NoContent();
+            return new Success();
         }
     }
 }

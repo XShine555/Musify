@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Musify.Application.Tracks.Responses;
 
@@ -12,5 +12,5 @@ namespace Musify.Application.Tracks.Commands
         string AudioContentType,
         long? ExpectedPictureSizeBytes = null,
         long? ExpectedAudioSizeBytes = null)
-        : ICommand<Result<TrackUploadUrlsResponse>>;
+        : ICommand<ErrorOr<TrackUploadUrlsResponse>>;
 }

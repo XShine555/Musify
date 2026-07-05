@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Musify.Application.PlayLists.Responses;
 
@@ -9,5 +9,5 @@ namespace Musify.Application.PlayLists.Commands
         string FileType,
         string ContentType,
         long? ExpectedSizeBytes = null)
-        : ICommand<Result<PlayListPictureUploadResponse>>;
+        : ICommand<ErrorOr<PlayListPictureUploadResponse>>;
 }

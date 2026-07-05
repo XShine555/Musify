@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Ardalis.Result" Version="10.1.0" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.23.4" />
     <PackageVersion Include="DispatchR.Mediator" Version="2.2.0" />
+    <PackageVersion Include="ErrorOr" Version="2.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="MassTransit" Version="8.5.9" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.9" />

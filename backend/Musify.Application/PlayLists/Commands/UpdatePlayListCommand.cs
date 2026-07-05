@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Musify.Application.PlayLists.Responses;
 
@@ -10,5 +10,5 @@ namespace Musify.Application.PlayLists.Commands
         string? NewName,
         string? NewDescription,
         Guid? NewPictureIntentId)
-        : ICommand<Result<PlayListApplicationResponse>>;
+        : ICommand<ErrorOr<PlayListApplicationResponse>>;
 }

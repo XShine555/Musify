@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
@@ -8,9 +8,9 @@ using Musify.Application.Users.Responses;
 namespace Musify.Application.Users.Handlers
 {
     public class GetUserByIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetUserByIdQuery, Result<UserApplicationResponse> >
+        : IQueryHandler<GetUserByIdQuery, ErrorOr<UserApplicationResponse> >
     {
-        public async ValueTask<Result<UserApplicationResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<UserApplicationResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
             var user = await database.Users
                 .AsNoTracking()
@@ -18,9 +18,10 @@ namespace Musify.Application.Users.Handlers
                 .Select(u => UserApplicationResponse.FromEntity(u))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            return user is null
-                ? Result<UserApplicationResponse>.NotFound()
-                : Result.Success(user);
+            if (user is null)
+                return Error.NotFound();
+
+            return user;
         }
     }
 }

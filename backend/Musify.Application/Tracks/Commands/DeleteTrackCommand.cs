@@ -1,4 +1,4 @@
-﻿using Ardalis.Result;
+﻿using ErrorOr;
 using Mediator;
 
 namespace Musify.Application.Tracks.Commands
@@ -6,5 +6,5 @@ namespace Musify.Application.Tracks.Commands
     public record DeleteTrackCommand(
         long UserId,
         Guid TrackId)
-        : ICommand<Result>;
+        : ICommand<ErrorOr<Success>>;
 }

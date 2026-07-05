@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,22 +10,22 @@ namespace Musify.Application.PlayLists.Handlers
     public class RemoveTrackFromPlayListCommandHandler(
         IDatabase database,
         ILogger<RemoveTrackFromPlayListCommandHandler> logger)
-        : ICommandHandler<RemoveTrackFromPlayListCommand, Result>
+        : ICommandHandler<RemoveTrackFromPlayListCommand, ErrorOr<Success>>
     {
-        public async ValueTask<Result> Handle(RemoveTrackFromPlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<Success>> Handle(RemoveTrackFromPlayListCommand request, CancellationToken cancellationToken)
         {
             var playList = await database.PlayLists
                 .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
             if (playList is null)
             {
                 logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
-                return Result.NotFound();
+                return Error.NotFound();
             }
 
             if (playList.UserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-                return Result.Unauthorized();
+                return Error.Unauthorized();
             }
 
             var link = await database.PlayListHasTracks
@@ -33,7 +33,7 @@ namespace Musify.Application.PlayLists.Handlers
             if (link is null)
             {
                 logger.LogInformation("Track {TrackId} not in playlist {PlayListId}", request.TrackId, request.PlayListId);
-                return Result.NotFound("Track is not in the playlist.");
+                return Error.NotFound(description: "Track is not in the playlist.");
             }
 
             database.PlayListHasTracks.Remove(link);
@@ -41,7 +41,7 @@ namespace Musify.Application.PlayLists.Handlers
 
             logger.LogInformation("Removed track {TrackId} from playlist {PlayListId}", request.TrackId, request.PlayListId);
 
-            return Result.Success();
+            return new Success();
         }
     }
 }

@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -9,9 +9,9 @@ using Musify.Domain.Entities;
 namespace Musify.Application.Users.Handlers
 {
     public class SyncUserCommandHandler(IDatabase database, ILogger<SyncUserCommandHandler> logger)
-        : ICommandHandler<SyncUserCommand, Result>
+        : ICommandHandler<SyncUserCommand, ErrorOr<Success>>
     {
-        public async ValueTask<Result> Handle(SyncUserCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<Success>> Handle(SyncUserCommand request, CancellationToken cancellationToken)
         {
             var user = await database.Users
                 .SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
@@ -31,7 +31,7 @@ namespace Musify.Application.Users.Handlers
                 await database.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("Provisioned user {UserId}", request.Id);
 
-                return Result.Success();
+                return new Success();
             }
 
             user.Name = request.Name;
@@ -44,7 +44,7 @@ namespace Musify.Application.Users.Handlers
             if (written > 0)
                 logger.LogInformation("Synced profile for user {UserId}", request.Id);
 
-            return Result.Success();
+            return new Success();
         }
     }
 }

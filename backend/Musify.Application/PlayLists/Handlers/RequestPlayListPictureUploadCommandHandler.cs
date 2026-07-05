@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,9 +20,9 @@ namespace Musify.Application.PlayLists.Handlers
         ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<RequestPlayListPictureUploadCommand, Result<PlayListPictureUploadResponse>>
+        : ICommandHandler<RequestPlayListPictureUploadCommand, ErrorOr<PlayListPictureUploadResponse>>
     {
-        public async ValueTask<Result<PlayListPictureUploadResponse>> Handle(RequestPlayListPictureUploadCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PlayListPictureUploadResponse>> Handle(RequestPlayListPictureUploadCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
                 .AsNoTracking()
@@ -30,7 +30,7 @@ namespace Musify.Application.PlayLists.Handlers
             if (!userExists)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
-                return Result.NotFound($"User {request.UserId} not found");
+                return Error.NotFound(description: $"User {request.UserId} not found");
             }
 
             var effectiveSizeBytes = request.ExpectedSizeBytes
@@ -56,10 +56,10 @@ namespace Musify.Application.PlayLists.Handlers
                 var quotaCheck = await uploadIntentValidator.CheckQuotaAsync(
                     uploadIntentConfiguration,
                     request.UserId, effectiveSizeBytes, 1, cancellationToken);
-                if (!quotaCheck.IsSuccess)
+                if (quotaCheck.IsError)
                 {
                     logger.LogWarning("User {UserId} failed upload intent quota check", request.UserId);
-                    return quotaCheck;
+                    return quotaCheck.Errors;
                 }
 
                 var intent = new UploadIntent
@@ -80,19 +80,19 @@ namespace Musify.Application.PlayLists.Handlers
 
                 logger.LogInformation("Issued upload intent {IntentId} for user {UserId} (PlayListPicture, temp key: {Key})", intent.Id, request.UserId, tempKey);
 
-                return Result.Success(new PlayListPictureUploadResponse(
+                return new PlayListPictureUploadResponse(
                     intent.Id,
                     storageConfiguration.Bucket,
                     tempKey,
                     objectName,
                     request.ContentType,
                     uploadIntentConfiguration.UploadUrlExpiresInSeconds,
-                    uploadUrl));
+                    uploadUrl);
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to generate playlist picture upload URL for user {UserId}", request.UserId);
-                return Result.Error("Failed to generate upload URL");
+                return Error.Failure(description: "Failed to generate upload URL");
             }
         }
     }

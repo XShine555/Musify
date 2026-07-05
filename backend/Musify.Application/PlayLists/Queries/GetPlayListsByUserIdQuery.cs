@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Musify.Application.Pagination;
 using Musify.Application.PlayLists.Responses;
@@ -10,5 +10,5 @@ namespace Musify.Application.PlayLists.Queries
         string? Name,
         int PageNumber = 1,
         int PageSize = 10)
-        : IQuery<Result<PaginatedResponse<PlayListApplicationResponse>> >;
+        : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>> >;
 }

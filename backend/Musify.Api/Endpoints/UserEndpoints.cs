@@ -59,7 +59,7 @@ public static class UserEndpoints
             new CreateUserCommand(request.Id, request.Name, request.FirstName, request.SecondName),
             cancellationToken);
 
-        if (!result.IsSuccess)
+        if (result.IsError)
             return result.ToHttpResult();
 
         return Results.Created($"/users/{result.Value.Id}", result.Value);

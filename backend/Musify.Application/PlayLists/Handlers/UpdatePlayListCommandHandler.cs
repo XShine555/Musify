@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,6 @@ using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
-using Musify.Application.Extensions;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
 using Musify.Application.Contracts;
@@ -22,21 +21,21 @@ namespace Musify.Application.PlayLists.Handlers
         ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<UpdatePlayListCommand, Result<PlayListApplicationResponse>>
+        : ICommandHandler<UpdatePlayListCommand, ErrorOr<PlayListApplicationResponse>>
     {
-        public async ValueTask<Result<PlayListApplicationResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
         {
             var playListEntity = await database.PlayLists.SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
             if (playListEntity is null)
             {
                 logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
-                return Result.NotFound();
+                return Error.NotFound();
             }
 
             if (playListEntity.UserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-                return Result.Unauthorized();
+                return Error.Unauthorized();
             }
 
             if (request.NewName is not null)
@@ -58,8 +57,8 @@ namespace Musify.Application.PlayLists.Handlers
                 var validation = await uploadIntentValidator.ValidateAndLoadAsync(
                     uploadIntentConfiguration,
                     request.NewPictureIntentId.Value, request.UserId, cancellationToken);
-                if (!validation.IsSuccess)
-                    return validation.As<UploadIntent, PlayListApplicationResponse>();
+                if (validation.IsError)
+                    return validation.Errors;
 
                 pictureIntent = validation.Value;
                 playListEntity.OriginalPictureName = pictureIntent.ObjectName;
@@ -72,8 +71,8 @@ namespace Musify.Application.PlayLists.Handlers
             {
                 var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(
                     playListEntity.Id, pictureIntent, finalPictureKey, cancellationToken);
-                if (!publishResult.IsSuccess)
-                    return publishResult;
+                if (publishResult.IsError)
+                    return publishResult.Errors;
             }
 
             try
@@ -83,14 +82,14 @@ namespace Musify.Application.PlayLists.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to update playlist {PlayListId}", playListEntity.Id);
-                return Result.Error($"Failed to update playlist {playListEntity.Id}");
+                return Error.Failure(description: $"Failed to update playlist {playListEntity.Id}");
             }
 
             logger.LogInformation("Updated playlist {PlayListId}", playListEntity.Id);
-            return Result.Success(PlayListApplicationResponse.FromEntity(playListEntity));
+            return PlayListApplicationResponse.FromEntity(playListEntity);
         }
 
-        async Task<Result<PlayListApplicationResponse>> PublishUpdatePlayListPictureSourceEventAsync(
+        async Task<ErrorOr<Success>> PublishUpdatePlayListPictureSourceEventAsync(
             Guid playListId,
             UploadIntent pictureIntent,
             string finalPictureKey,
@@ -118,12 +117,12 @@ namespace Musify.Application.PlayLists.Handlers
                             playListConfiguration.PicturesSizes.LargePictureWidth,
                             playListConfiguration.PicturesSizes.LargePictureHeight)),
                     cancellationToken);
-                return Result.Success();
+                return new Success();
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish update playlist picture source event for playlist {PlayListId}", playListId);
-                return Result.Error($"Failed to publish update playlist picture source event for playlist {playListId}");
+                return Error.Failure(description: $"Failed to publish update playlist picture source event for playlist {playListId}");
             }
         }
     }

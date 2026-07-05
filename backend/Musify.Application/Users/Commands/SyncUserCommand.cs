@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 
 namespace Musify.Application.Users.Commands
@@ -9,5 +9,5 @@ namespace Musify.Application.Users.Commands
         string? FirstName,
         string? SecondName,
         string? ProfilePictureUrl)
-        : ICommand<Result>;
+        : ICommand<ErrorOr<Success>>;
 }

@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.PlayLists.Queries;
@@ -8,9 +8,9 @@ using Musify.Application.Contracts;
 namespace Musify.Application.PlayLists.Handlers
 {
     public class GetPlayListByIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListByIdQuery, Result<PlayListApplicationResponse>>
+        : IQueryHandler<GetPlayListByIdQuery, ErrorOr<PlayListApplicationResponse>>
     {
-        public async ValueTask<Result<PlayListApplicationResponse>> Handle(GetPlayListByIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(GetPlayListByIdQuery request, CancellationToken cancellationToken)
         {
             var playList = await database.PlayLists
                 .AsNoTracking()
@@ -18,9 +18,10 @@ namespace Musify.Application.PlayLists.Handlers
                 .Select(p => PlayListApplicationResponse.FromEntity(p))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            return playList is null
-                ? Result<PlayListApplicationResponse>.NotFound()
-                : Result.Success(playList);
+            if (playList is null)
+                return Error.NotFound();
+
+            return playList;
         }
     }
 }

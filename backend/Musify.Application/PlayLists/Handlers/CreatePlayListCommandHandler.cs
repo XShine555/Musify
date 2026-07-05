@@ -1,4 +1,4 @@
-using Ardalis.Result;
+using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,6 @@ using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Commands;
 using Musify.Application.PlayLists.Responses;
-using Musify.Application.Extensions;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
 using Musify.Application.Contracts;
@@ -22,9 +21,9 @@ namespace Musify.Application.PlayLists.Handlers
         ApplicationStorageConfiguration storageConfiguration,
         PlayListConfiguration playListConfiguration,
         UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<CreatePlayListCommand, Result<PlayListApplicationResponse>>
+        : ICommandHandler<CreatePlayListCommand, ErrorOr<PlayListApplicationResponse>>
     {
-        public async ValueTask<Result<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
                 .AsNoTracking()
@@ -32,7 +31,7 @@ namespace Musify.Application.PlayLists.Handlers
             if (!userExists)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
-                return Result.NotFound($"User {request.UserId} not found");
+                return Error.NotFound(description: $"User {request.UserId} not found");
             }
 
             UploadIntent? pictureIntent = null;
@@ -43,8 +42,8 @@ namespace Musify.Application.PlayLists.Handlers
                 var validation = await uploadIntentValidator.ValidateAndLoadAsync(
                     uploadIntentConfiguration,
                     request.PictureIntentId.Value, request.UserId, cancellationToken);
-                if (!validation.IsSuccess)
-                    return validation.As<UploadIntent, PlayListApplicationResponse>();
+                if (validation.IsError)
+                    return validation.Errors;
 
                 pictureIntent = validation.Value;
                 originalPictureName = pictureIntent.ObjectName;
@@ -73,8 +72,8 @@ namespace Musify.Application.PlayLists.Handlers
                 var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, originalPictureName);
                 var publishResult = await PublishCreatePlayListEventAsync(
                     playList.Id, pictureIntent, finalPictureKey, cancellationToken);
-                if (!publishResult.IsSuccess)
-                    return publishResult;
+                if (publishResult.IsError)
+                    return publishResult.Errors;
             }
 
             try
@@ -84,14 +83,14 @@ namespace Musify.Application.PlayLists.Handlers
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to save playlist for user {UserId}", request.UserId);
-                return Result.Error($"Failed to create playlist for user {request.UserId}");
+                return Error.Failure(description: $"Failed to create playlist for user {request.UserId}");
             }
 
             logger.LogInformation("Created playlist {PlayListId} for user {UserId}", playList.Id, request.UserId);
-            return Result.Created(PlayListApplicationResponse.FromEntity(playList));
+            return PlayListApplicationResponse.FromEntity(playList);
         }
 
-        async Task<Result<PlayListApplicationResponse>> PublishCreatePlayListEventAsync(
+        async Task<ErrorOr<Success>> PublishCreatePlayListEventAsync(
             Guid playListId,
             UploadIntent pictureIntent,
             string finalPictureKey,
@@ -119,12 +118,12 @@ namespace Musify.Application.PlayLists.Handlers
                             playListConfiguration.PicturesSizes.LargePictureWidth,
                             playListConfiguration.PicturesSizes.LargePictureHeight)),
                     cancellationToken);
-                return Result.Success();
+                return new Success();
             }
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to publish create playlist event for playlist {PlayListId}", playListId);
-                return Result.Error($"Failed to publish create playlist event for playlist {playListId}");
+                return Error.Failure(description: $"Failed to publish create playlist event for playlist {playListId}");
             }
         }
     }
