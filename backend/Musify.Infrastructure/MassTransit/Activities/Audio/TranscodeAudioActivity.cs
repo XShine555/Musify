@@ -7,7 +7,7 @@ using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
     internal class TranscodeAudioActivity(
         IDatabase database,

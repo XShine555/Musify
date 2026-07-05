@@ -105,12 +105,13 @@ namespace Musify.Infrastructure.Services
             await amazonS3.DeleteObjectAsync(request, cancellationToken);
         }
 
-        public async Task TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<string>> TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken)
         {
             var trasnsferUtility = new TransferUtility(amazonS3);
 
             var files = Directory.GetFiles(sourceDirectory, "*");
 
+            var uploadedKeys = new List<string>();
             var successCount = 0;
             var failedCount = 0;
 
@@ -144,6 +145,7 @@ namespace Musify.Infrastructure.Services
                         },
                         cancellationToken);
                     upload.State = UploadState.Successful;
+                    uploadedKeys.Add(key);
                     successCount++;
                     logger.LogDebug("Transferred file to S3 {Bucket}/{Key}", bucket, key);
                 }
@@ -158,6 +160,8 @@ namespace Musify.Infrastructure.Services
 
             await database.SaveChangesAsync(cancellationToken);
             logger.LogInformation("File transfer completed to {Bucket}/{Route}. Success: {SuccessCount}, Failed: {FailedCount}", bucket, route, successCount, failedCount);
+
+            return uploadedKeys;
         }
 
         public async Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken)

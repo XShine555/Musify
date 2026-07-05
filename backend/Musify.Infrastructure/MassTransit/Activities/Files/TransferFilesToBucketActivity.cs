@@ -4,9 +4,9 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
-    public class TransferFilesToBucketActivity(
+    internal class TransferFilesToBucketActivity(
         IStorageService storageHandler,
         ILogger<TransferFilesToBucketActivity> logger)
         : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
@@ -22,16 +22,15 @@ namespace Musify.Infrastructure.MassTransit.Activities
 
             try
             {
-                var uploadedKeys = Directory.GetFiles(folderPath)
-                    .Select(file => Path.Combine(destinationKey, Path.GetFileName(file)))
-                    .ToArray();
-
-                await storageHandler.TransferFilesAsync(
+                var uploadedKeys = await storageHandler.TransferFilesAsync(
                     folderPath,
                     executeContext.Arguments.DestinationBucket,
                     destinationKey,
                     executeContext.CancellationToken);
-                return executeContext.Completed();
+
+                return executeContext.Completed(new TransferFilesToBucketLog(
+                    executeContext.Arguments.DestinationBucket,
+                    uploadedKeys.ToArray()));
             }
             catch (Exception exception)
             {

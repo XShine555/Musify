@@ -5,9 +5,9 @@ using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
-    public class UpdateTrackPictureActivity(
+    internal class UpdateTrackPictureActivity(
         IDatabase database,
         ILogger<UpdateTrackPictureActivity> logger)
         : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>

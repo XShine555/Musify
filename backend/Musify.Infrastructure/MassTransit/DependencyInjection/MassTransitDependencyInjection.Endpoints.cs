@@ -6,6 +6,14 @@ namespace Musify.Infrastructure.MassTransit
 {
     public static partial class MassTransitDependencyInjection
     {
+        static void UseStandardRetry(IReceiveEndpointConfigurator endpointConfigurator) =>
+            endpointConfigurator.UseMessageRetry(retryConfigurator =>
+                retryConfigurator.Exponential(
+                    retryLimit: 5,
+                    minInterval: TimeSpan.FromSeconds(1),
+                    maxInterval: TimeSpan.FromSeconds(30),
+                    intervalDelta: TimeSpan.FromSeconds(2)));
+
         static void ConfigureConsumerEndpoint<TConsumer>(
             IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
             IBusRegistrationContext busRegistrationContext,
@@ -14,15 +22,8 @@ namespace Musify.Infrastructure.MassTransit
         {
             busFactoryConfigurator.ReceiveEndpoint(queueName, endpointConfigurator =>
             {
-                endpointConfigurator.UseMessageRetry(retryConfigurator =>
-                    retryConfigurator.Exponential(
-                        retryLimit: 5,
-                        minInterval: TimeSpan.FromSeconds(1),
-                        maxInterval: TimeSpan.FromSeconds(30),
-                        intervalDelta: TimeSpan.FromSeconds(2)));
-
+                UseStandardRetry(endpointConfigurator);
                 endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
-
                 endpointConfigurator.ConfigureConsumer<TConsumer>(busRegistrationContext);
             });
         }
@@ -34,17 +35,10 @@ namespace Musify.Infrastructure.MassTransit
             where TActivity : class, IExecuteActivity<TArguments>
             where TArguments : class
         {
-            busFactoryConfigurator.ReceiveEndpoint(MassTransitEndpointNames.ExecuteQueue(endpointName), endpointConfigurator =>
+            busFactoryConfigurator.ReceiveEndpoint(EndpointHelper.ExecuteQueueName(endpointName), endpointConfigurator =>
             {
-                endpointConfigurator.UseMessageRetry(retryConfigurator =>
-                    retryConfigurator.Exponential(
-                        retryLimit: 5,
-                        minInterval: TimeSpan.FromSeconds(1),
-                        maxInterval: TimeSpan.FromSeconds(30),
-                        intervalDelta: TimeSpan.FromSeconds(2)));
-
+                UseStandardRetry(endpointConfigurator);
                 endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
-
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(busRegistrationContext);
             });
         }
@@ -57,33 +51,19 @@ namespace Musify.Infrastructure.MassTransit
             where TArguments : class
             where TLog : class
         {
-            busFactoryConfigurator.ReceiveEndpoint(MassTransitEndpointNames.ExecuteQueue(endpointName), endpointConfigurator =>
+            busFactoryConfigurator.ReceiveEndpoint(EndpointHelper.ExecuteQueueName(endpointName), endpointConfigurator =>
             {
-                endpointConfigurator.UseMessageRetry(retryConfigurator =>
-                    retryConfigurator.Exponential(
-                        retryLimit: 5,
-                        minInterval: TimeSpan.FromSeconds(1),
-                        maxInterval: TimeSpan.FromSeconds(30),
-                        intervalDelta: TimeSpan.FromSeconds(2)));
-
+                UseStandardRetry(endpointConfigurator);
                 endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
-
                 endpointConfigurator.ExecuteActivityHost<TActivity, TArguments>(
                     EndpointHelper.BuildCompensateActivityUri(endpointName),
                     busRegistrationContext);
             });
 
-            busFactoryConfigurator.ReceiveEndpoint(MassTransitEndpointNames.CompensateQueue(endpointName), endpointConfigurator =>
+            busFactoryConfigurator.ReceiveEndpoint(EndpointHelper.CompensateQueueName(endpointName), endpointConfigurator =>
             {
-                endpointConfigurator.UseMessageRetry(retryConfigurator =>
-                    retryConfigurator.Exponential(
-                        retryLimit: 5,
-                        minInterval: TimeSpan.FromSeconds(1),
-                        maxInterval: TimeSpan.FromSeconds(30),
-                        intervalDelta: TimeSpan.FromSeconds(2)));
-
+                UseStandardRetry(endpointConfigurator);
                 endpointConfigurator.UseEntityFrameworkOutbox<Database>(busRegistrationContext);
-
                 endpointConfigurator.CompensateActivityHost<TActivity, TLog>(busRegistrationContext);
             });
         }

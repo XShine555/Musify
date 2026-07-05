@@ -4,9 +4,9 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
-    public class UpdatePlayListPictureActivity(
+    internal class UpdatePlayListPictureActivity(
         IDatabase database,
         ILogger<UpdatePlayListPictureActivity> logger)
         : IActivity<UpdatePlayListPictureArguments, UpdatePlayListPictureLog>

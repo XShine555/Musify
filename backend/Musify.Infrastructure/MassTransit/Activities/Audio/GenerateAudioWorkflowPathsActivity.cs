@@ -6,7 +6,7 @@ using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
     internal class GenerateAudioWorkflowPathsActivity(
         IDatabase database,

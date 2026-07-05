@@ -14,7 +14,7 @@ namespace Musify.Application.Contracts
 
         Task UploadFileAsync(Stream sourceStream, string contentType, string bucket, string key, CancellationToken cancellationToken);
 
-        Task TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken);
+        Task<IReadOnlyList<string>> TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken);
 
         Task RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken);
 

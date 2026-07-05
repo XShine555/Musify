@@ -1,7 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.Configuration;
-using Musify.Infrastructure.MassTransit.Activities;
+using Musify.Infrastructure.MassTransit.Activities.Pictures;
 using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.PlayLists;

@@ -2,9 +2,9 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Infrastructure.MassTransit.Arguments;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
-    public class GeneratePictureWorkflowPathsActivity(
+    internal class GeneratePictureWorkflowPathsActivity(
         ILogger<GeneratePictureWorkflowPathsActivity> logger)
         : IExecuteActivity<GeneratePictureWorkflowPathsArguments>
     {

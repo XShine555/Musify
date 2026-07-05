@@ -4,9 +4,9 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities
+namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
-    public class ResizePictureActivity(
+    internal class ResizePictureActivity(
         IPictureService pictureHandler,
         ILogger<ResizePictureActivity> logger)
         : IActivity<ResizePictureLocalArguments, ResizePictureLog>

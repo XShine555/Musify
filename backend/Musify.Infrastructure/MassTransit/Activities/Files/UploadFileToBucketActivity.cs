@@ -6,7 +6,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
-    public class UploadFileToBucketActivity(IStorageService storageHandler,
+    internal class UploadFileToBucketActivity(IStorageService storageHandler,
         ILogger<UploadFileToBucketActivity> logger)
         : IActivity<UploadFileToBucketArguments, UploadFileToBucketLog>
     {
