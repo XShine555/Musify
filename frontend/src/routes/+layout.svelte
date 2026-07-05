@@ -4,13 +4,13 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <div class="flex min-h-screen flex-col bg-neutral-950 text-neutral-100 antialiased">
-	<Navbar />
+	<Navbar user={data.user} />
 	<main class="flex-1">{@render children()}</main>
 	<Footer />
 </div>
