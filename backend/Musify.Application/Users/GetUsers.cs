@@ -20,7 +20,7 @@ namespace Musify.Application.Users
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (request.UsernameSearch is not null)
+            if (!string.IsNullOrEmpty(request.UsernameSearch))
             {
                 var normalizedUsername = request.UsernameSearch.Trim().ToUpperInvariant();
                 user = user.Where(u => u.NormalizedName.Contains(normalizedUsername));

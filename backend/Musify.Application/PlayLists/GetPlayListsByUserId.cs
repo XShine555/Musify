@@ -24,7 +24,7 @@ namespace Musify.Application.PlayLists
                 .AsNoTracking()
                 .Where(p => p.UserId == request.UserId);
 
-            if (request.Name is not null)
+            if (!string.IsNullOrEmpty(request.Name))
             {
                 var normalizedName = request.Name.Trim().ToUpperInvariant();
                 playListsQuery = playListsQuery.Where(p => p.NormalizedName.Contains(normalizedName));

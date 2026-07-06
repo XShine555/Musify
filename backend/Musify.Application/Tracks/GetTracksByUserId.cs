@@ -28,7 +28,7 @@ namespace Musify.Application.Tracks
                 .Include(ut => ut.Track)
                 .Where(p => p.UserId == request.UserId);
 
-            if (request.Name is not null)
+            if (!string.IsNullOrEmpty(request.Name))
             {
                 var normalizedName = request.Name.Trim().ToUpperInvariant();
                 tracksQuery = tracksQuery.Where(t => t.Track.NormalizedTitle.Contains(normalizedName));
