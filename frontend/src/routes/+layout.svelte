@@ -3,6 +3,8 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import PlayerBar from '$lib/components/player/PlayerBar.svelte';
+	import { player } from '$lib/player/player.svelte';
 
 	let { children, data } = $props();
 </script>
@@ -13,4 +15,6 @@
 	<Navbar user={data.user} />
 	<main class="flex-1">{@render children()}</main>
 	<Footer />
+	<div class:pb-20={player.current}></div>
+	<PlayerBar />
 </div>
