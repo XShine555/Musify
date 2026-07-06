@@ -8,7 +8,7 @@ using Musify.Application.Contracts;
 
 namespace Musify.Application.PlayLists
 {
-    public record GetPlayListsQuery(int PageNumber = 1, int PageSize = 10)
+    public record GetPlayListsQuery(int PageNumber, int PageSize)
         : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>> >;
 
     public class GetPlayListsQueryHandler(IDatabase database)

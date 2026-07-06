@@ -8,7 +8,7 @@ using Musify.Application.Contracts;
 
 namespace Musify.Application.Users
 {
-    public record GetUsersQuery(int PageNumber, int PageSize, string? UsernameSearch = null)
+    public record GetUsersQuery(int PageNumber, int PageSize, string? UsernameSearch)
         : IQuery<ErrorOr<PaginatedResponse<UserApplicationResponse> >>;
 
     public class GetUsersQueryHandler(IDatabase database)

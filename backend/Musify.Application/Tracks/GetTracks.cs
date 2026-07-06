@@ -8,7 +8,7 @@ using Musify.Application.Contracts;
 
 namespace Musify.Application.Tracks
 {
-    public record GetTracksQuery(string? Name = null, int PageNumber = 1, int PageSize = 10)
+    public record GetTracksQuery(string? Name, int PageNumber, int PageSize)
         : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse> >>;
 
     public class GetTracksQueryHandler(IDatabase database)

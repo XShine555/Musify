@@ -11,8 +11,8 @@ namespace Musify.Application.PlayLists
     public record GetPlayListsByUserIdQuery(
         long UserId,
         string? Name,
-        int PageNumber = 1,
-        int PageSize = 10)
+        int PageNumber,
+        int PageSize)
         : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>> >;
 
     public class GetPlayListsByUserIdQueryHandler(IDatabase database)

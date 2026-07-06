@@ -10,8 +10,8 @@ namespace Musify.Application.PlayLists
 {
     public record GetPlayListTracksQuery(
         Guid PlayListId,
-        int PageNumber = 1,
-        int PageSize = 10)
+        int PageNumber,
+        int PageSize)
         : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse>>>;
 
     public class GetPlayListTracksQueryHandler(IDatabase database)

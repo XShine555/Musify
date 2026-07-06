@@ -10,9 +10,9 @@ namespace Musify.Application.Tracks
 {
     public record GetTracksByUserIdQuery(
         long UserId,
-    string? Name = null,
-        int PageNumber = 1,
-        int PageSize = 10)
+        string? Name,
+        int PageNumber,
+        int PageSize)
         : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse> > >;
 
     public class GetTracksByUserIdQueryHandler(IDatabase database)
