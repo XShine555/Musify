@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { player } from '$lib/player/player.svelte';
+
 	let { data } = $props();
 
 	const tracks = $derived(data.tracks);
@@ -6,6 +8,12 @@
 	const total = $derived(Number(tracks.totalItemCount));
 
 	const dateFormatter = new Intl.DateTimeFormat('es', { dateStyle: 'medium' });
+
+	function togglePlay(index: number) {
+		const track = tracks.items[index];
+		if (player.current?.id === track.id) player.toggle();
+		else player.playQueue(tracks.items, index);
+	}
 
 	function pageHref(page: number) {
 		const params = new URLSearchParams();
@@ -70,14 +78,37 @@
 		</div>
 	{:else}
 		<ul class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-			{#each tracks.items as track (track.id)}
+			{#each tracks.items as track, i (track.id)}
 				<li
 					class="group rounded-2xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-emerald-500/30 hover:bg-white/[0.05]"
 				>
 					<div
-						class="grid aspect-square place-items-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 text-4xl"
+						class="relative grid aspect-square place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 text-4xl"
 					>
 						🎵
+						<button
+							type="button"
+							onclick={() => togglePlay(i)}
+							aria-label={player.current?.id === track.id && player.isPlaying
+								? 'Pausar'
+								: 'Reproducir'}
+							class="absolute inset-0 grid place-items-center bg-neutral-950/40 opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100"
+							class:opacity-100={player.current?.id === track.id}
+						>
+							<span
+								class="grid h-12 w-12 place-items-center rounded-full bg-emerald-500 text-neutral-950 shadow-lg"
+							>
+								{#if player.current?.id === track.id && player.isPlaying}
+									<svg viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+										<path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+									</svg>
+								{:else}
+									<svg viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+										<path d="M8 5v14l11-7z" />
+									</svg>
+								{/if}
+							</span>
+						</button>
 					</div>
 					<h3 class="mt-3 truncate font-semibold" title={track.title}>{track.title}</h3>
 					<p class="mt-1 text-xs text-neutral-500">
