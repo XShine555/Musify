@@ -45,13 +45,13 @@ namespace Musify.Application.PlayLists
                 return Error.Unauthorized();
             }
 
-            if (request.NewName is not null)
+            if (!string.IsNullOrWhiteSpace(request.NewName))
             {
                 playListEntity.Name = request.NewName;
                 playListEntity.NormalizedName = request.NewName.Trim().ToUpperInvariant();
             }
 
-            if (request.NewDescription is not null)
+            if (!string.IsNullOrWhiteSpace(request.NewDescription))
             {
                 playListEntity.Description = request.NewDescription;
             }
