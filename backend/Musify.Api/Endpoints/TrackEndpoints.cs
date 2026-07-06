@@ -77,10 +77,11 @@ public static class TrackEndpoints
     private static async Task<IResult> GetTracks(
         IMediator mediator,
         CancellationToken cancellationToken,
+        string? name,
         int pageNumber = 1,
         int pageSize = 10)
     {
-        var result = await mediator.Send(new GetTracksQuery(pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
