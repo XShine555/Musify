@@ -47,11 +47,16 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
             try
             {
+                var durationSeconds = executeContext.GetVariable<int>(executeContext.Arguments.DurationSecondsVariable)
+                    ?? throw new InvalidOperationException($"Missing routing slip variable {executeContext.Arguments.DurationSecondsVariable}");
+
                 var log = new UpdateTrackAudioLog(
                     track.Id,
-                    track.AudioFolderName);
+                    track.AudioFolderName,
+                    track.Duration);
 
                 track.AudioFolderName = Path.GetFileName(audioFolderKey);
+                track.Duration = durationSeconds;
                 track.AudioTranscodeProcessingStatus = ProcessingStatus.Completed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
@@ -92,6 +97,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                     throw new InvalidOperationException($"Track with id {compensateContext.Log.TrackId} not found");
 
                 track.AudioFolderName = compensateContext.Log.PreviousAudioFolderName;
+                track.Duration = compensateContext.Log.PreviousDuration;
                 track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
 

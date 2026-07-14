@@ -2,16 +2,21 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 using System.Diagnostics;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Musify.Infrastructure.Services
 {
-    public class AudioTranscoderService(ILogger<AudioTranscoderService> logger,
+    public partial class AudioTranscoderService(ILogger<AudioTranscoderService> logger,
         AudioTranscoderConfiguration audioTranscoderConfiguration)
         : IAudioTranscoderService
     {
         record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
 
-        public async Task<int> TranscodeToAudioFileAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
+        [GeneratedRegex(@"Duration:\s*(\d+):(\d{2}):(\d{2}(?:\.\d+)?)", RegexOptions.IgnoreCase)]
+        private static partial Regex DurationRegex();
+
+        public async Task<TimeSpan> TranscodeToAudioFileAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
         {
             try
             {
@@ -30,13 +35,13 @@ namespace Musify.Infrastructure.Services
                 {
                     logger.LogError("Audio transcoding failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
                         executionResult.ExitCode, executionResult.StandardOutput, executionResult.StandardError);
-                }
-                else
-                {
-                    logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
+                    throw new InvalidOperationException($"ffmpeg transcoding failed with exit code {executionResult.ExitCode}.");
                 }
 
-                return executionResult.ExitCode;
+                logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
+
+                var outputPath = Path.Combine(destinationPath, audioTranscoderConfiguration.Ffmpeg.OutputFileName);
+                return await GetAudioDurationAsync(outputPath, cancellationToken);
             }
             catch (TimeoutException timeoutException)
             {
@@ -48,6 +53,25 @@ namespace Musify.Infrastructure.Services
                 logger.LogError(exception, "Failed to transcode audio for {DestinationPath}", destinationPath);
                 throw;
             }
+        }
+
+        async Task<TimeSpan> GetAudioDurationAsync(string filePath, CancellationToken cancellationToken)
+        {
+            var executionResult = await ExecuteFfmpegAsync(
+                BuildProbeDurationArguments(filePath),
+                Path.GetDirectoryName(filePath) ?? Environment.CurrentDirectory,
+                "ProbeAudioDuration",
+                cancellationToken);
+
+            var match = DurationRegex().Match(executionResult.StandardError);
+            if (!match.Success)
+                throw new InvalidOperationException($"Could not determine audio duration for {filePath}.");
+
+            var hours = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            var minutes = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+            var seconds = double.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
+
+            return new TimeSpan(hours, minutes, 0) + TimeSpan.FromSeconds(seconds);
         }
 
         public async Task<bool> IsValidAudioFileAsync(string filePath, CancellationToken cancellationToken)
@@ -216,5 +240,8 @@ namespace Musify.Infrastructure.Services
 
         static string BuildValidateAudioArguments(string filePath)
             => $"-v error -i \"{filePath}\" -map 0:a:0 -f null -";
+
+        static string BuildProbeDurationArguments(string filePath)
+            => $"-hide_banner -i \"{filePath}\" -f null -";
     }
 }

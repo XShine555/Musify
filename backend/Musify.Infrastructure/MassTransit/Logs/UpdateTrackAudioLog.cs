@@ -2,5 +2,6 @@
 {
     public record UpdateTrackAudioLog(
         Guid TrackId,
-        string? PreviousAudioFolderName);
+        string? PreviousAudioFolderName,
+        int PreviousDuration);
 }

@@ -38,16 +38,22 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
             try
             {
+                TimeSpan duration;
                 await using (var fileStream = File.OpenRead(sourceFilePath))
                 {
-                    await audioTranscoder.TranscodeToAudioFileAsync(
+                    duration = await audioTranscoder.TranscodeToAudioFileAsync(
                         fileStream,
                         workingDirectory,
                         executeContext.CancellationToken);
                 }
 
                 File.Delete(sourceFilePath);
-                return executeContext.Completed();
+
+                var log = new TranscodeAudioLog(workingDirectory);
+                return executeContext.CompletedWithVariables(log, new Dictionary<string, object>
+                {
+                    [RoutingSlipVariableNames.Audio.DurationSeconds] = (int)Math.Round(duration.TotalSeconds)
+                } );
             }
             catch (Exception exception)
             {
