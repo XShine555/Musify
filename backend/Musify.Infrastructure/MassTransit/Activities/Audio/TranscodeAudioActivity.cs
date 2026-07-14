@@ -38,21 +38,24 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
             try
             {
-                TimeSpan duration;
+                AudioTranscodeResult transcodeResult;
                 await using (var fileStream = File.OpenRead(sourceFilePath))
                 {
-                    duration = await audioTranscoder.TranscodeToAudioFileAsync(
+                    transcodeResult = await audioTranscoder.TranscodeToAudioFileAsync(
                         fileStream,
                         workingDirectory,
                         executeContext.CancellationToken);
                 }
+
+                if (transcodeResult.StatusCode != 0)
+                    throw new InvalidOperationException($"ffmpeg transcoding failed with exit code {transcodeResult.StatusCode}.");
 
                 File.Delete(sourceFilePath);
 
                 var log = new TranscodeAudioLog(workingDirectory);
                 return executeContext.CompletedWithVariables(log, new Dictionary<string, object>
                 {
-                    [RoutingSlipVariableNames.Audio.DurationSeconds] = (int)Math.Round(duration.TotalSeconds)
+                    [RoutingSlipVariableNames.Audio.DurationSeconds] = (int)Math.Round(transcodeResult.Duration.TotalSeconds)
                 } );
             }
             catch (Exception exception)

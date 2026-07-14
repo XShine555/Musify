@@ -16,7 +16,7 @@ namespace Musify.Infrastructure.Services
         [GeneratedRegex(@"Duration:\s*(\d+):(\d{2}):(\d{2}(?:\.\d+)?)", RegexOptions.IgnoreCase)]
         private static partial Regex DurationRegex();
 
-        public async Task<TimeSpan> TranscodeToAudioFileAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
+        public async Task<AudioTranscodeResult> TranscodeToAudioFileAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
         {
             try
             {
@@ -35,13 +35,14 @@ namespace Musify.Infrastructure.Services
                 {
                     logger.LogError("Audio transcoding failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
                         executionResult.ExitCode, executionResult.StandardOutput, executionResult.StandardError);
-                    throw new InvalidOperationException($"ffmpeg transcoding failed with exit code {executionResult.ExitCode}.");
+                    return new AudioTranscodeResult(executionResult.ExitCode, TimeSpan.Zero);
                 }
 
                 logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
 
                 var outputPath = Path.Combine(destinationPath, audioTranscoderConfiguration.Ffmpeg.OutputFileName);
-                return await GetAudioDurationAsync(outputPath, cancellationToken);
+                var duration = await GetAudioDurationAsync(outputPath, cancellationToken);
+                return new AudioTranscodeResult(executionResult.ExitCode, duration);
             }
             catch (TimeoutException timeoutException)
             {
