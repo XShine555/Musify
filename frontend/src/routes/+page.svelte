@@ -113,7 +113,31 @@
 	</section>
 {/if}
 
-<section class="px-8 pb-3 pt-3">
+{#if playlists.length > 0}
+	<section class="px-8 pb-3 pt-3">
+	<h2 class="mb-4 font-display text-xl font-bold">Mis listas</h2>
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
+			{#each playlists as playlist, i (playlist.id)}
+				<a
+					href="/playlists/{playlist.id}"
+					class="group animate-enter text-left"
+					style="animation-delay:{i * 45}ms"
+				>
+					<PlaylistArt
+						trackIds={trackIds[playlist.id] ?? []}
+						hue={hueFor(playlist.id)}
+						class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)] transition group-hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.75)]"
+					/>
+					<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]">
+						{playlist.name}
+					</div>
+				</a>
+			{/each}
+		</div>
+</section>
+{/if}
+
+<section class="px-8 pb-16 pt-3">
 	<h2 class="mb-4 font-display text-xl font-bold">Novedades</h2>
 	{#if latest.length > 0}
 		<div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
@@ -158,39 +182,6 @@
 			<p class="mt-2 text-sm text-[var(--mf-text-2)]">
 				<a href="/upload" class="text-emerald-400 underline underline-offset-2">Sube una canción</a>
 				y empieza a escuchar.
-			</p>
-		</div>
-	{/if}
-</section>
-
-<section class="px-8 pb-16 pt-3">
-	<h2 class="mb-4 font-display text-xl font-bold">Mis listas</h2>
-	{#if playlists.length > 0}
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
-			{#each playlists as playlist, i (playlist.id)}
-				<a
-					href="/playlists/{playlist.id}"
-					class="group animate-enter text-left"
-					style="animation-delay:{i * 45}ms"
-				>
-					<PlaylistArt
-						trackIds={trackIds[playlist.id] ?? []}
-						hue={hueFor(playlist.id)}
-						class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)] transition group-hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.75)]"
-					/>
-					<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]">
-						{playlist.name}
-					</div>
-				</a>
-			{/each}
-		</div>
-	{:else}
-		<div
-			class="max-w-[560px] rounded-xl border border-[var(--mf-border)] bg-[var(--mf-surface)] px-6 py-10 text-center"
-		>
-			<p class="text-sm text-[var(--mf-text-2)]">Todavía no tienes listas</p>
-			<p class="mt-1.5 text-xs text-[var(--mf-text-4)]">
-				Cuando crees listas, tus últimas aparecerán aquí.
 			</p>
 		</div>
 	{/if}
