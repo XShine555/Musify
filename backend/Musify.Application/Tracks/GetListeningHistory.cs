@@ -10,19 +10,19 @@ namespace Musify.Application.Tracks
         IDatabase database)
         : IQueryHandler<GetListeningHistoryQuery, IEnumerable<TrackApplicationResponse>>
     {
+        public const int ListSize = 15;
+
         public ValueTask<IEnumerable<TrackApplicationResponse>> Handle(GetListeningHistoryQuery query, CancellationToken cancellationToken)
         {
             var listeningHistory = database.ListeningHistories
                 .Where(l => l.UserId == query.UserId)
-                .Select(l => l.TrackId)
-                .ToList();
-
-            var tracks = database.Tracks
-                .Where(t => listeningHistory.Contains(t.Id))
-                .Select(TrackApplicationResponse.FromEntity)
+                .OrderByDescending(l => l.ListenedAt)
+                .Select(t => TrackApplicationResponse.FromEntity(t.Track))
+                .Take(ListSize)
+                .DistinctBy(t => t.Id)
                 .AsEnumerable();
 
-            return ValueTask.FromResult(tracks);
+            return ValueTask.FromResult(listeningHistory);
         }
     }
 }
