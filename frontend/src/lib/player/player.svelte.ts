@@ -61,6 +61,7 @@ class PlayerState {
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
 	#accentCache = new Map<string, Accent>();
+	#rafId: number | null = null;
 
 	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? EMPTY);
 	accent = $derived(this.accentColor ?? accentForHue(this.current.hue));
@@ -79,21 +80,46 @@ class PlayerState {
 		const audio = new Audio();
 		audio.preload = 'auto';
 		audio.volume = this.volume / 100;
-		audio.addEventListener('timeupdate', () => {
-			this.progress = audio.currentTime;
-		});
 		audio.addEventListener('durationchange', () => this.#syncDuration(audio.duration));
 		audio.addEventListener('loadedmetadata', () => this.#syncDuration(audio.duration));
-		audio.addEventListener('play', () => (this.playing = true));
-		audio.addEventListener('pause', () => (this.playing = false));
-		audio.addEventListener('ended', () => this.next());
+		audio.addEventListener('play', () => {
+			this.playing = true;
+			this.#startProgressLoop();
+		});
+		audio.addEventListener('pause', () => {
+			this.playing = false;
+			this.#stopProgressLoop();
+		});
+		audio.addEventListener('ended', () => {
+			this.#stopProgressLoop();
+			this.next();
+		});
 		audio.addEventListener('error', () => {
+			this.#stopProgressLoop();
 			this.loading = false;
 			this.playing = false;
 			this.error = 'No se pudo reproducir la pista.';
 		});
 		this.#audio = audio;
 		return audio;
+	}
+
+	#tickProgress = () => {
+		const audio = this.#audio;
+		if (!audio) return;
+		this.progress = audio.currentTime;
+		this.#rafId = requestAnimationFrame(this.#tickProgress);
+	};
+
+	#startProgressLoop() {
+		if (this.#rafId !== null) return;
+		this.#rafId = requestAnimationFrame(this.#tickProgress);
+	}
+
+	#stopProgressLoop() {
+		if (this.#rafId === null) return;
+		cancelAnimationFrame(this.#rafId);
+		this.#rafId = null;
 	}
 
 	#syncDuration(value: number) {

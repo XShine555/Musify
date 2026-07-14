@@ -19,11 +19,11 @@
 		class="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-[var(--mf-track)] transition-[height] hover:h-2"
 	>
 		<div
-			class="absolute inset-y-0 left-0 rounded-full bg-[var(--mf-accent)] transition-[width] duration-75 ease-linear group-hover:brightness-110"
+			class="absolute inset-y-0 left-0 rounded-full bg-[var(--mf-accent)] group-hover:brightness-110"
 			style="width:{player.progressPercent}%"
 		></div>
 		<span
-			class="pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-[0_1px_4px_rgba(0,0,0,0.5)] transition-[left,opacity] duration-75 ease-linear group-hover:opacity-100"
+			class="pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-[0_1px_4px_rgba(0,0,0,0.5)] transition-opacity duration-75 group-hover:opacity-100"
 			style="left:{player.progressPercent}%"
 		></span>
 	</button>
