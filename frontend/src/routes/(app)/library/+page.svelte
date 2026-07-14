@@ -26,17 +26,17 @@
 </script>
 
 <svelte:head>
-	<title>Tu biblioteca · Musify</title>
-	<meta name="description" content="Todas tus canciones en Musify." />
+	<title>Tus canciones subidas · Musify</title>
+	<meta name="description" content="Todas tus canciones subidas a Musify." />
 </svelte:head>
 
 <section class="px-8 py-11">
 	<div class="flex items-end justify-between gap-4">
 		<div>
-			<h1 class="font-display text-[28px] font-extrabold tracking-tight">Tu biblioteca</h1>
+			<h1 class="font-display text-[28px] font-extrabold tracking-tight">Tus canciones subidas</h1>
 			<p class="mt-1.5 text-sm text-[var(--mf-text-2)]">
 				{total}
-				{total === 1 ? 'canción' : 'canciones'} en tu biblioteca.
+				{total === 1 ? 'canción' : 'canciones'} subida{total === 1 ? '' : 's'}.
 			</p>
 		</div>
 		<a

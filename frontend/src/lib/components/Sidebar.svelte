@@ -6,8 +6,6 @@
 	import Library from '@lucide/svelte/icons/library-big';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Upload from '@lucide/svelte/icons/upload';
-	import Infinity_ from '@lucide/svelte/icons/infinity';
-	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import LogOut from '@lucide/svelte/icons/log-out';
 
 	interface Props {
@@ -32,14 +30,12 @@
 	const mainLinks = [
 		{ href: '/', label: 'Inicio', icon: Home },
 		{ href: '/explore', label: 'Buscar', icon: Search },
-		{ href: '/library', label: 'Tu biblioteca', icon: Library },
-		{ href: '/playlists', label: 'Tus listas', icon: ListMusic }
+		{ href: '/playlists', label: 'Mis listas', icon: ListMusic }
 	];
 
 	const secondaryLinks = [
-		{ href: '/upload', label: 'Subir música', icon: Upload },
-		{ href: '/import', label: 'Importar', icon: Infinity_ },
-		{ href: '/downloads', label: 'Descargas', icon: ArrowDown }
+		{ href: '/library', label: 'Tus canciones subidas', icon: Library },
+		{ href: '/upload', label: 'Subir música', icon: Upload }
 	];
 
 	function isActive(href: string) {
