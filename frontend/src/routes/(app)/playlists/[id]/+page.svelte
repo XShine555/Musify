@@ -136,7 +136,7 @@
 							type="button"
 							onclick={() => playFrom(i)}
 							aria-label={player.current.id === track.id && player.playing ? 'Pausar' : 'Reproducir'}
-							class="grid h-8 w-8 place-items-center text-sm text-neutral-500"
+							class="relative grid h-8 w-8 place-items-center overflow-hidden rounded text-sm text-neutral-500"
 						>
 							{#if player.current.id === track.id}
 								<NowPlaying paused={!player.playing} />
