@@ -1,0 +1,22 @@
+/* Paleta de Musify — cambia los colores aquí y afecta a toda la app.
+   El acento (--mf-accent) es dinámico: lo fija el player según la pista sonando. */
+:root {
+	--mf-bg: #08080a;
+	--mf-elevated: #0b0b0d;
+
+	--mf-text: #f5f4f2;
+	--mf-text-2: rgba(245, 244, 242, 0.7);
+	--mf-text-3: rgba(245, 244, 242, 0.5);
+	--mf-text-4: rgba(245, 244, 242, 0.4);
+
+	--mf-surface: rgba(255, 255, 255, 0.045);
+	--mf-surface-2: rgba(255, 255, 255, 0.06);
+	--mf-surface-hover: rgba(255, 255, 255, 0.09);
+
+	--mf-border: rgba(255, 255, 255, 0.08);
+	--mf-border-strong: rgba(255, 255, 255, 0.12);
+	--mf-track: rgba(255, 255, 255, 0.12);
+
+	--mf-accent: oklch(72% 0.17 145);
+	--mf-radius: 12px;
+}

@@ -1,9 +1,150 @@
 @import 'tailwindcss';
 
+@theme {
+	--font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+	--color-neutral-950: #08080a;
+}
+
+@utility scrollbar-stable {
+	scrollbar-gutter: stable;
+}
+
 :root {
 	color-scheme: dark;
 }
 
+button:not(:disabled),
+[role='button'],
+label:has(input[type='file']),
+summary {
+	cursor: pointer;
+}
+
+button:disabled {
+	cursor: not-allowed;
+}
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(0.75rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes pop-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96) translateY(0.5rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes slide-in-left {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes equalize {
+	0%,
+	100% {
+		transform: scaleY(0.35);
+	}
+	50% {
+		transform: scaleY(1);
+	}
+}
+
+@keyframes breathe {
+	0%,
+	100% {
+		opacity: 0.55;
+		transform: scale(1.2);
+	}
+	50% {
+		opacity: 0.78;
+		transform: scale(1.32);
+	}
+}
+
+@keyframes sheen {
+	from {
+		background-position: 200% 0;
+	}
+	to {
+		background-position: -200% 0;
+	}
+}
+
+.animate-enter {
+	animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-pop {
+	animation: pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade {
+	animation: fade-in 0.4s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-delay: 0ms !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
 html {
 	scroll-behavior: smooth;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+	background-color: var(--mf-bg);
+}
+
+html.home {
+	background-image: linear-gradient(to bottom, var(--mf-accent), transparent 340px);
+	background-repeat: no-repeat;
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: rgba(255, 255, 255, 0.18);
+	border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(255, 255, 255, 0.32);
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
 }
