@@ -86,7 +86,7 @@
 {#if recentlyPlayed.length > 0}
 	<section class="px-8 pb-3 pt-6">
 		<h2 class="mb-4 font-display text-2xl font-bold">Escuchado recientemente</h2>
-		<div class="grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
