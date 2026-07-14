@@ -159,6 +159,7 @@
 							{dateFormatter.format(new Date(track.createdAt))}
 						</div>
 						<div class="flex items-center justify-end gap-2">
+							<span class="text-[12.5px] tabular-nums text-neutral-500">{fmtTime(Number(track.duration))}</span>
 							<form method="POST" action="?/removeTrack" use:enhance={() => async ({ update }) => update()}>
 								<input type="hidden" name="trackId" value={track.id} />
 								<button
@@ -169,7 +170,6 @@
 									<X class="h-3.5 w-3.5" />
 								</button>
 							</form>
-							<span class="text-[12.5px] tabular-nums text-neutral-500">{fmtTime(Number(track.duration))}</span>
 						</div>
 					</div>
 				{/each}
