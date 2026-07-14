@@ -19,6 +19,8 @@ namespace Musify.Application.Contracts
 
         DbSet<UploadIntent> UploadIntents { get; }
 
+        DbSet<ListeningHistory> ListeningHistories { get; }
+
         Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);

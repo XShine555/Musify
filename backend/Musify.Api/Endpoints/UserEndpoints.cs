@@ -1,10 +1,12 @@
 using Mediator;
-using Musify.Application.Users;
-using Musify.Application.Users.Responses;
-using Musify.Application.Shared;
 using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
+using Musify.Application.Shared;
+using Musify.Application.Tracks;
+using Musify.Application.Tracks.Responses;
+using Musify.Application.Users;
+using Musify.Application.Users.Responses;
 
 namespace Musify.Api.Endpoints;
 
@@ -24,6 +26,12 @@ public static class UserEndpoints
             .WithName("GetUserById")
             .WithSummary("Get A User By Id.")
             .Produces<UserApplicationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/listening-history", GetListeningHistory)
+            .WithName("GetListeningHistory")
+            .WithSummary("Get A User'S Listening History.")
+            .Produces<IEnumerable<TrackApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreateUser)
@@ -55,6 +63,14 @@ public static class UserEndpoints
     {
         var result = await mediator.Send(new GetUserByIdQuery(id), cancellationToken);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IEnumerable<TrackApplicationResponse>> GetListeningHistory(
+        IMediator mediator,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(new GetListeningHistoryQuery(id), cancellationToken);
     }
 
     private static async Task<IResult> CreateUser(

@@ -50,6 +50,8 @@ namespace Musify.Infrastructure.Persistence
 
         public DbSet<UploadIntent> UploadIntents => Set<UploadIntent>();
 
+        public DbSet<ListeningHistory> ListeningHistories => Set<ListeningHistory>();
+
         public async Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken)
         {
             var transaction = await Database.BeginTransactionAsync(isolationLevel, cancellationToken);
@@ -58,7 +60,7 @@ namespace Musify.Infrastructure.Persistence
 
         private sealed class DatabaseTransaction(IDbContextTransaction inner) : IDatabaseTransaction
         {
-            public Task CommitAsync(CancellationToken cancellationToken = default) =>
+            public Task CommitAsync(CancellationToken cancellationToken) =>
                 inner.CommitAsync(cancellationToken);
 
             public ValueTask DisposeAsync() => inner.DisposeAsync();

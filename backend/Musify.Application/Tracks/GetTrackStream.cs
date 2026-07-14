@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks
@@ -27,7 +28,7 @@ namespace Musify.Application.Tracks
                 .Select(t => new { t.Id, t.AudioTranscodeProcessingStatus, t.AudioFolderName } )
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (track is null)
+            if (track == null)
                 return Error.NotFound();
 
             if (string.IsNullOrWhiteSpace(track.AudioFolderName)
@@ -49,6 +50,16 @@ namespace Musify.Application.Tracks
                 streamGatewayConfiguration.AudioFileName);
 
             logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId);
+
+            var newListeningHistory = new ListeningHistory
+            {
+                UserId = request.UserId,
+                TrackId = request.TrackId,
+            };
+            await database.ListeningHistories.AddAsync(newListeningHistory, cancellationToken);
+            await database.SaveChangesAsync(cancellationToken);
+
+            logger.LogDebug("Listening history added for track {TrackId} by user {UserId}", request.TrackId, request.UserId);
 
             return new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds);
         }
