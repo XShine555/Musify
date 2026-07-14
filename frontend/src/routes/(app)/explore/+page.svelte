@@ -57,7 +57,7 @@
 	<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Explorar</h1>
 	<p class="mt-2 text-neutral-400">Descubre canciones o busca por nombre.</p>
 
-	<div class="relative mt-8 max-w-xl">
+	<div class="relative mt-8">
 		<span class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-neutral-500">
 			<Search class="h-4 w-4" />
 		</span>
