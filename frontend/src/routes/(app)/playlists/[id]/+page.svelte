@@ -120,17 +120,18 @@
 	{#if tracks.length > 0}
 		<div class="mt-8">
 			<div
-				class="grid grid-cols-[32px_1fr_140px_100px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+				class="grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500"
 			>
 				<span class="text-center">#</span>
 				<span>Título</span>
 				<span>Añadida</span>
-				<span class="flex justify-end pr-1"><Clock class="h-3.5 w-3.5" /></span>
+				<span class="flex justify-end"><Clock class="h-3.5 w-3.5" /></span>
+				<span></span>
 			</div>
 			<div class="mt-1 flex flex-col">
 				{#each tracks as track, i (track.id)}
 					<div
-						class="group grid grid-cols-[32px_1fr_140px_100px] items-center gap-4 rounded-[10px] px-3 py-[9px] transition hover:bg-neutral-900/60"
+						class="group grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 rounded-[10px] px-3 py-[9px] transition hover:bg-neutral-900/60"
 					>
 						<button
 							type="button"
@@ -158,19 +159,19 @@
 						<div class="truncate text-[12.5px] text-neutral-500">
 							{dateFormatter.format(new Date(track.createdAt))}
 						</div>
-						<div class="flex items-center justify-end gap-2">
-							<span class="text-[12.5px] tabular-nums text-neutral-500">{fmtTime(Number(track.duration))}</span>
-							<form method="POST" action="?/removeTrack" use:enhance={() => async ({ update }) => update()}>
-								<input type="hidden" name="trackId" value={track.id} />
-								<button
-									type="submit"
-									aria-label="Quitar de la playlist"
-									class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 opacity-0 transition hover:bg-white/5 hover:text-white group-hover:opacity-100"
-								>
-									<X class="h-3.5 w-3.5" />
-								</button>
-							</form>
-						</div>
+						<span class="text-right text-[12.5px] tabular-nums text-neutral-500">
+							{fmtTime(Number(track.duration))}
+						</span>
+						<form method="POST" action="?/removeTrack" use:enhance={() => async ({ update }) => update()}>
+							<input type="hidden" name="trackId" value={track.id} />
+							<button
+								type="submit"
+								aria-label="Quitar de la playlist"
+								class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 opacity-0 transition hover:bg-white/5 hover:text-white group-hover:opacity-100"
+							>
+								<X class="h-3.5 w-3.5" />
+							</button>
+						</form>
 					</div>
 				{/each}
 			</div>
