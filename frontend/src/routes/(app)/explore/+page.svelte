@@ -95,46 +95,38 @@
 	{:else}
 		<ul class="mt-8 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
 			{#each tracks.items as track, i (track.id)}
-				<li
-					class="group animate-enter rounded-2xl bg-neutral-900/40 p-3 transition duration-150 hover:bg-neutral-900/70"
-					style="animation-delay:{i * 40}ms"
-				>
-					<Cover
-						trackId={track.id}
-						hue={hueFor(track.id)}
-						size="large"
-						alt={track.title}
-						class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-12px_rgba(0,0,0,0.7)]"
-					>
-						<button
-							type="button"
-							onclick={() => togglePlay(i)}
-							aria-label={player.current?.id === track.id && player.isPlaying
-								? 'Pausar'
-								: 'Reproducir'}
-							class="absolute inset-0 grid place-items-center bg-gradient-to-t from-black/50 to-transparent opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100"
-							class:opacity-100={player.current?.id === track.id}
+				<li class="group animate-enter" style="animation-delay:{i * 40}ms">
+					<button type="button" onclick={() => togglePlay(i)} class="block w-full text-left">
+						<Cover
+							trackId={track.id}
+							hue={hueFor(track.id)}
+							size="large"
+							alt={track.title}
+							class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
 						>
 							<span
-								class="grid h-12 w-12 translate-y-2 place-items-center rounded-full bg-[var(--mf-accent)] text-neutral-950 shadow-lg transition-transform group-hover:translate-y-0"
+								class="absolute right-2.5 bottom-2.5 grid h-11 w-11 translate-y-2 place-items-center rounded-full bg-[var(--mf-accent)] text-neutral-950 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100"
+								class:!opacity-100={player.current?.id === track.id}
 								class:!translate-y-0={player.current?.id === track.id}
 							>
 								{#if player.current?.id === track.id && player.isPlaying}
-									<svg viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+									<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
 										<path d="M6 5h4v14H6zM14 5h4v14h-4z" />
 									</svg>
 								{:else}
-									<svg viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+									<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
 										<path d="M8 5v14l11-7z" />
 									</svg>
 								{/if}
 							</span>
-						</button>
-					</Cover>
-					<h3 class="mt-3 truncate px-1 font-semibold" title={track.title}>{track.title}</h3>
-					<p class="mt-0.5 px-1 text-xs text-neutral-500">
-						{dateFormatter.format(new Date(track.createdAt))}
-					</p>
+						</Cover>
+						<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]" title={track.title}>
+							{track.title}
+						</div>
+						<div class="mt-0.5 truncate text-xs text-neutral-500">
+							{dateFormatter.format(new Date(track.createdAt))}
+						</div>
+					</button>
 				</li>
 			{/each}
 		</ul>
