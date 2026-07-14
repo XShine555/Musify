@@ -85,27 +85,27 @@
 
 {#if recentlyPlayed.length > 0}
 	<section class="px-8 pb-3 pt-6">
-		<h2 class="mb-4 font-display text-xl font-bold">Escuchado recientemente</h2>
-		<div class="grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3.5">
+		<h2 class="mb-4 font-display text-2xl font-bold">Escuchado recientemente</h2>
+		<div class="grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
 			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
 					onclick={() => playRecent(i)}
-					class="flex items-center gap-3.5 rounded-xl bg-[var(--mf-surface)] p-2 text-left transition hover:bg-[var(--mf-surface-hover)]"
+					class="flex items-center gap-4 rounded-xl bg-[var(--mf-surface)] p-2.5 text-left transition hover:bg-[var(--mf-surface-hover)]"
 				>
 					<Cover
 						trackId={track.id}
 						hue={hueFor(track.id)}
-						size="small"
+						size="medium"
 						alt={track.title}
-						class="h-14 w-14 flex-shrink-0 rounded-lg"
+						class="h-16 w-16 flex-shrink-0 rounded-lg"
 					>
 						{#if player.current.id === track.id}
 							<NowPlaying paused={!player.playing} />
 						{/if}
 					</Cover>
 					<div class="min-w-0">
-						<div class="truncate text-sm font-semibold text-[var(--mf-text)]">{track.title}</div>
+						<div class="truncate text-base font-semibold text-[var(--mf-text)]">{track.title}</div>
 					</div>
 				</button>
 			{/each}
