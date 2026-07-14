@@ -8,8 +8,9 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
+	import Clock from '@lucide/svelte/icons/clock';
 	import { player } from '$lib/player/player.svelte';
-	import { HUES } from '$lib/theme/color';
+	import { HUES, fmtTime } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
@@ -117,42 +118,62 @@
 	</div>
 
 	{#if tracks.length > 0}
-		<div class="mt-8 flex max-w-[900px] flex-col">
-			{#each tracks as track, i (track.id)}
-				<div
-					class="group flex items-center gap-3.5 rounded-[10px] px-3 py-[11px] transition hover:bg-neutral-900/60"
-				>
-					<button type="button" onclick={() => playFrom(i)} class="flex min-w-0 flex-1 items-center gap-3.5 text-left">
-						<Cover
-							trackId={track.id}
-							hue={hueFor(track.id)}
-							size="small"
-							alt={track.title}
-							class="h-[46px] w-[46px] flex-shrink-0 rounded-md"
+		<div class="mt-8">
+			<div
+				class="grid grid-cols-[32px_1fr_140px_100px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+			>
+				<span class="text-center">#</span>
+				<span>Título</span>
+				<span>Añadida</span>
+				<span class="flex justify-end pr-1"><Clock class="h-3.5 w-3.5" /></span>
+			</div>
+			<div class="mt-1 flex flex-col">
+				{#each tracks as track, i (track.id)}
+					<div
+						class="group grid grid-cols-[32px_1fr_140px_100px] items-center gap-4 rounded-[10px] px-3 py-[9px] transition hover:bg-neutral-900/60"
+					>
+						<button
+							type="button"
+							onclick={() => playFrom(i)}
+							aria-label={player.current.id === track.id && player.playing ? 'Pausar' : 'Reproducir'}
+							class="grid h-8 w-8 place-items-center text-sm text-neutral-500"
 						>
 							{#if player.current.id === track.id}
 								<NowPlaying paused={!player.playing} />
+							{:else}
+								<span class="group-hover:hidden">{i + 1}</span>
+								<Play class="hidden h-3.5 w-3.5 text-white group-hover:block" fill="currentColor" />
 							{/if}
-						</Cover>
-						<div class="min-w-0 flex-1">
-							<div class="truncate text-[14.5px] font-semibold text-neutral-100">{track.title}</div>
-							<div class="truncate text-[12.5px] text-neutral-500">
-								{dateFormatter.format(new Date(track.createdAt))}
-							</div>
-						</div>
-					</button>
-					<form method="POST" action="?/removeTrack" use:enhance={() => async ({ update }) => update()}>
-						<input type="hidden" name="trackId" value={track.id} />
-						<button
-							type="submit"
-							aria-label="Quitar de la playlist"
-							class="grid h-8 w-8 place-items-center rounded-full text-neutral-500 opacity-0 transition hover:bg-white/5 hover:text-white group-hover:opacity-100"
-						>
-							<X class="h-4 w-4" />
 						</button>
-					</form>
-				</div>
-			{/each}
+						<button type="button" onclick={() => playFrom(i)} class="flex min-w-0 items-center gap-3.5 text-left">
+							<Cover
+								trackId={track.id}
+								hue={hueFor(track.id)}
+								size="small"
+								alt={track.title}
+								class="h-[42px] w-[42px] flex-shrink-0 rounded-md"
+							/>
+							<div class="min-w-0 truncate text-[14.5px] font-semibold text-neutral-100">{track.title}</div>
+						</button>
+						<div class="truncate text-[12.5px] text-neutral-500">
+							{dateFormatter.format(new Date(track.createdAt))}
+						</div>
+						<div class="flex items-center justify-end gap-2">
+							<form method="POST" action="?/removeTrack" use:enhance={() => async ({ update }) => update()}>
+								<input type="hidden" name="trackId" value={track.id} />
+								<button
+									type="submit"
+									aria-label="Quitar de la playlist"
+									class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 opacity-0 transition hover:bg-white/5 hover:text-white group-hover:opacity-100"
+								>
+									<X class="h-3.5 w-3.5" />
+								</button>
+							</form>
+							<span class="text-[12.5px] tabular-nums text-neutral-500">{fmtTime(Number(track.duration))}</span>
+						</div>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{:else}
 		<div class="mt-8 max-w-[900px] rounded-2xl border border-white/10 bg-neutral-900/40 p-10 text-center">

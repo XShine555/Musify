@@ -416,6 +416,10 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
+            /** Format: int32 */
+            duration: number | string;
+            /** Format: int32 */
+            listensCount: number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
