@@ -7,8 +7,8 @@ using System.Text.RegularExpressions;
 
 namespace Musify.Infrastructure.Services
 {
-    public partial class AudioTranscoderService(ILogger<AudioTranscoderService> logger,
-        AudioTranscoderConfiguration audioTranscoderConfiguration)
+    public partial class AudioService(ILogger<AudioService> logger,
+        AudioConfiguration audioConfiguration)
         : IAudioTranscoderService
     {
         record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
@@ -25,7 +25,7 @@ namespace Musify.Infrastructure.Services
                 logger.LogInformation("Starting audio transcoding for {DestinationPath}", destinationPath);
 
                 var executionResult = await ExecuteFfmpegWithInputAsync(
-                    BuildAudioFileArguments(destinationPath, audioTranscoderConfiguration.Ffmpeg),
+                    BuildAudioFileArguments(destinationPath, audioConfiguration.Ffmpeg),
                     destinationPath,
                     audioStream,
                     "TranscodeToAudioFile",
@@ -40,13 +40,13 @@ namespace Musify.Infrastructure.Services
 
                 logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
 
-                var outputPath = Path.Combine(destinationPath, audioTranscoderConfiguration.Ffmpeg.OutputFileName);
+                var outputPath = Path.Combine(destinationPath, audioConfiguration.Ffmpeg.OutputFileName);
                 var duration = await GetAudioDurationAsync(outputPath, cancellationToken);
                 return new AudioTranscodeResult(executionResult.ExitCode, duration);
             }
             catch (TimeoutException timeoutException)
             {
-                logger.LogError(timeoutException, "Audio transcoding timed out after {Timeout} for {DestinationPath}", audioTranscoderConfiguration.TranscodingTimeout, destinationPath);
+                logger.LogError(timeoutException, "Audio transcoding timed out after {Timeout} for {DestinationPath}", audioConfiguration.TranscodingTimeout, destinationPath);
                 throw;
             }
             catch (Exception exception)
@@ -162,7 +162,7 @@ namespace Musify.Infrastructure.Services
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = audioTranscoderConfiguration.Ffmpeg.ExecutableName,
+                    FileName = audioConfiguration.Ffmpeg.ExecutableName,
                     WorkingDirectory = workingDirectory,
                     Arguments = arguments,
                     RedirectStandardInput = redirectStandardInput,
@@ -181,7 +181,7 @@ namespace Musify.Infrastructure.Services
             CancellationToken cancellationToken)
         {
             using var linkedCancellationTokens = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            linkedCancellationTokens.CancelAfter(audioTranscoderConfiguration.TranscodingTimeout);
+            linkedCancellationTokens.CancelAfter(audioConfiguration.TranscodingTimeout);
 
             try
             {
@@ -190,10 +190,10 @@ namespace Musify.Infrastructure.Services
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 logger.LogError("[{Operation}] ffmpeg timed out after {Timeout} (PID: {ProcessId} )",
-                    operationName, audioTranscoderConfiguration.TranscodingTimeout, process.Id);
+                    operationName, audioConfiguration.TranscodingTimeout, process.Id);
 
                 TryKillProcess(process);
-                throw new TimeoutException($"ffmpeg execution exceeded timeout {audioTranscoderConfiguration.TranscodingTimeout}.");
+                throw new TimeoutException($"ffmpeg execution exceeded timeout {audioConfiguration.TranscodingTimeout}.");
             }
 
             var standardError = await errorTask;

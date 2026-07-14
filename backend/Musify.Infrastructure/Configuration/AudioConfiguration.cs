@@ -2,7 +2,7 @@
 
 namespace Musify.Infrastructure.Configuration
 {
-    public class AudioTranscoderConfiguration
+    public class AudioConfiguration
     {
         public const string SectionName = "AudioTranscoder";
 

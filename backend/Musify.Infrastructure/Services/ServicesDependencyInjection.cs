@@ -77,14 +77,14 @@ namespace Musify.Infrastructure.Services
         public static IServiceCollection AddAudioTranscoder(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors
-                .AddOptionsWithValidateOnStart<AudioTranscoderConfiguration>()
-                .Bind(configuration.GetRequiredSection(AudioTranscoderConfiguration.SectionName))
+                .AddOptionsWithValidateOnStart<AudioConfiguration>()
+                .Bind(configuration.GetRequiredSection(AudioConfiguration.SectionName))
                 .ValidateDataAnnotations();
 
             serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<AudioTranscoderConfiguration>>().Value);
+                serviceProvider.GetRequiredService<IOptions<AudioConfiguration>>().Value);
 
-            serviceDescriptors.AddScoped<IAudioTranscoderService, AudioTranscoderService>();
+            serviceDescriptors.AddScoped<IAudioTranscoderService, AudioService>();
             return serviceDescriptors;
         }
     }
