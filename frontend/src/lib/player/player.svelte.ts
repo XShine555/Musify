@@ -48,10 +48,11 @@ class PlayerState {
 	currentId = $state<string | number | null>(null);
 	playing = $state(false);
 	progress = $state(0);
-	volume = $state(70);
+	volume = $state(
+		browser ? Number(localStorage.getItem("player.volume") ?? 100) : 100
+	);
 	loading = $state(false);
 	error = $state('');
-
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
 
@@ -274,7 +275,10 @@ class PlayerState {
 	setVolume(value: number) {
 		this.volume = Math.min(100, Math.max(0, Math.round(value)));
 		const audio = this.#audioEl();
-		if (audio) audio.volume = this.volume / 100;
+		if (audio) {
+			audio.volume = this.volume / 100;
+			localStorage.setItem("player.volume", String(this.volume));
+		}
 	}
 }
 

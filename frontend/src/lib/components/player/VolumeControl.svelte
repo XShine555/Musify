@@ -1,5 +1,11 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
+
+	function handleVolumeChange(event: Event) {
+		const target = event.currentTarget as HTMLInputElement;
+		const newVolume = Number(target.value);
+		player.setVolume(newVolume);
+	}
 </script>
 
 <div class="flex items-center justify-end gap-3.5">
@@ -8,7 +14,7 @@
 		min="0"
 		max="100"
 		value={player.volume}
-		oninput={(event) => player.setVolume(Number(event.currentTarget.value))}
+		oninput={handleVolumeChange}
 		aria-label="Volumen"
 		class="mf-volume"
 		style="background:linear-gradient(to right, var(--mf-accent) {player.volume}%, var(--mf-track) {player.volume}%)"
