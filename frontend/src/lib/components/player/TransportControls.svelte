@@ -2,39 +2,33 @@
 	import { player } from '$lib/player/player.svelte';
 </script>
 
-<div class="flex items-center gap-2">
+<div class="flex items-center gap-5">
 	<button
 		type="button"
 		onclick={() => player.previous()}
-		disabled={!player.current}
 		aria-label="Anterior"
-		class="grid h-9 w-9 place-items-center rounded-full text-neutral-300 transition hover:text-white disabled:opacity-30"
+		class="flex text-[var(--mf-text)] opacity-70 transition hover:opacity-100 active:scale-90"
 	>
-		<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-			<path d="M7 6h2v12H7z" />
-			<path d="M20 6v12l-9-6z" />
+		<svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
+			<rect x="0" y="0" width="2.5" height="14" rx="1" />
+			<path d="M15 0 5 7l10 7z" />
 		</svg>
 	</button>
 
 	<button
 		type="button"
 		onclick={() => player.toggle()}
-		disabled={!player.current}
-		aria-label={player.isPlaying ? 'Pausar' : 'Reproducir'}
-		class="grid h-11 w-11 place-items-center rounded-full bg-emerald-500 text-neutral-950 transition hover:bg-emerald-400 disabled:opacity-40"
+		aria-label={player.playing ? 'Pausar' : 'Reproducir'}
+		class="grid h-[36px] w-[36px] place-items-center rounded-full bg-[var(--mf-text)] text-[var(--mf-bg)] shadow-lg transition duration-100 active:scale-95"
 	>
-		{#if player.loading}
-			<svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-				<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" stroke-opacity="0.25" />
-				<path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-			</svg>
-		{:else if player.isPlaying}
-			<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-				<path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+		{#if player.playing}
+			<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+				<rect x="1.5" y="0" width="3.5" height="12" rx="1" />
+				<rect x="7" y="0" width="3.5" height="12" rx="1" />
 			</svg>
 		{:else}
-			<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-				<path d="M8 5v14l11-7z" />
+			<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+				<path d="M2.5 0 12 6l-9.5 6z" />
 			</svg>
 		{/if}
 	</button>
@@ -42,13 +36,12 @@
 	<button
 		type="button"
 		onclick={() => player.next()}
-		disabled={!player.hasNext}
 		aria-label="Siguiente"
-		class="grid h-9 w-9 place-items-center rounded-full text-neutral-300 transition hover:text-white disabled:opacity-30"
+		class="flex text-[var(--mf-text)] opacity-70 transition hover:opacity-100 active:scale-90"
 	>
-		<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-			<path d="M15 6h2v12h-2z" />
-			<path d="M4 6v12l9-6z" />
+		<svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
+			<path d="M1 0 11 7 1 14z" />
+			<rect x="13.5" y="0" width="2.5" height="14" rx="1" />
 		</svg>
 	</button>
 </div>
