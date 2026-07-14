@@ -22,7 +22,7 @@ export interface QueueItem {
 	artist?: string;
 }
 
-const RECENT_LIMIT = 12;
+const RECENT_LIMIT = 15;
 
 const EMPTY: PlayerTrack = { id: '', title: '', artist: '', duration: 0, hue: HUES[0] };
 
