@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-
 using Musify.Domain.Abstractions;
 using Musify.Domain.ValueObjects;
 
@@ -20,6 +19,9 @@ namespace Musify.Domain.Entities
         [Required]
         [MaxLength(50)]
         public required string NormalizedTitle { get; set; }
+
+        [Required]
+        public int Duration { get; set; }
 
         [Required]
         [MaxLength(64)]
@@ -64,6 +66,8 @@ namespace Musify.Domain.Entities
         public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
         public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
+
+        public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
 
         [NotMapped]
         [MemberNotNullWhen(true, nameof(SmallPictureName)) ]

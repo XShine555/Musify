@@ -37,5 +37,7 @@ namespace Musify.Domain.Entities
         public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
         public ICollection<PlayList> PlayLists { get; set; } = new List<PlayList>();
+
+        public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
     }
 }
