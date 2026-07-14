@@ -6,27 +6,15 @@
 	}
 
 	let { user }: Props = $props();
-
-	const links = [
-		{ href: '/', label: 'Inicio' },
-		{ href: '/explore', label: 'Explorar' }
-	];
 </script>
 
-<header class="sticky top-0 z-50 border-b border-white/5 bg-neutral-950/80 backdrop-blur">
-	<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-		<a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight">
-			<span class="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-neutral-950">♪</span>
+<header class="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
+	<nav class="flex items-center justify-between gap-4 px-8 py-4">
+		<a href="/" class="text-lg tracking-tight text-neutral-100 transition hover:text-white">
 			Musify
 		</a>
 
-		<div class="hidden items-center gap-8 md:flex">
-			{#each links as link (link.href)}
-				<a href={link.href} class="text-sm text-neutral-300 transition hover:text-white">{link.label}</a>
-			{/each}
-		</div>
-
-		<div class="flex items-center gap-3">
+		<div class="flex items-center gap-6">
 			{#if user}
 				<a href="/explore" class="flex items-center gap-2 text-sm text-neutral-200">
 					{#if user.picture}
@@ -42,7 +30,7 @@
 				</a>
 				<form method="POST" action="/logout">
 					<button
-						class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/5"
+						class="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/5"
 					>
 						Salir
 					</button>
@@ -58,7 +46,7 @@
 				<a
 					href="/login?mode=register"
 					data-sveltekit-reload
-					class="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400"
+					class="rounded-full bg-[var(--mf-accent)] px-4 py-2 text-sm font-semibold text-neutral-950 backdrop-blur-md transition hover:brightness-110"
 				>
 					Registrarse
 				</a>
