@@ -65,9 +65,9 @@
 			type="search"
 			value={data.query}
 			oninput={onSearchInput}
-			placeholder="Buscar por nombre…"
+			placeholder="Buscar por nombre..."
 			autocomplete="off"
-			class="w-full rounded-lg border border-white/15 bg-neutral-950 py-3 pl-11 pr-4 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-emerald-500/60 focus:outline-none"
+			class="w-full rounded-lg border border-white/15 bg-neutral-950 py-3 pl-11 pr-4 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-[var(--mf-accent)]/50 focus:outline-none"
 		/>
 	</div>
 

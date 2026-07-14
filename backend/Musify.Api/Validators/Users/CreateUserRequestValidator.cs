@@ -16,10 +16,10 @@ public sealed class CreateUserRequestValidator : AbstractValidator<CreateUserReq
 
         RuleFor(x => x.FirstName)
             .MaximumLength(48)
-            .When(x => x.FirstName is not null);
+            .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
 
         RuleFor(x => x.SecondName)
             .MaximumLength(48)
-            .When(x => x.SecondName is not null);
+            .When(x => !string.IsNullOrWhiteSpace(x.SecondName));
     }
 }

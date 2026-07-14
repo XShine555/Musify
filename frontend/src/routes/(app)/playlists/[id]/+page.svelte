@@ -55,10 +55,10 @@
 <section class="px-8 py-8">
 	<a
 		href="/playlists"
-		class="group inline-flex items-center gap-2 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
+		class="group inline-flex items-center font-medium text-neutral-400 transition-colors hover:text-[var(--mf-accent)]"
 	>
 		<span
-			class="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-neutral-400 transition-colors duration-150 group-hover:border-[var(--mf-accent)]/50 group-hover:bg-[var(--mf-accent)]/10 group-hover:text-[var(--mf-accent)]"
+			class="grid h-8 w-8 place-items-center rounded-lg border-white/15 text-neutral-400 transition-colors duration-150 group-hover:text-[var(--mf-accent)]"
 		>
 			<ArrowLeft class="h-4 w-4" />
 		</span>
@@ -73,7 +73,7 @@
 		/>
 		<div class="min-w-0 flex-1">
 			<p class="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Lista</p>
-			<h1 class="mt-1.5 font-display text-5xl font-bold tracking-tight sm:text-6xl">{playlist.name}</h1>
+			<h1 class="mt-1.5 font-display text-5xl font-bold tracking-tight sm:text-7xl">{playlist.name}</h1>
 			{#if playlist.description}
 				<p class="mt-3 max-w-2xl text-neutral-300">{playlist.description}</p>
 			{/if}
@@ -111,7 +111,7 @@
 			type="button"
 			onclick={() => (confirmingDelete = true)}
 			aria-label="Eliminar playlist"
-			class="grid h-12 w-12 place-items-center rounded-lg border border-white/15 text-neutral-300 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-200"
+			class="grid h-12 w-12 place-items-center rounded-lg border border-white/15 text-neutral-300 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
 		>
 			<Trash2 class="h-4 w-4" />
 		</button>
@@ -310,7 +310,7 @@
 		<div class="animate-pop w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-2xl">
 			<h2 class="font-display text-lg font-bold tracking-tight">¿Eliminar «{playlist.name}»?</h2>
 			<p class="mt-2 text-sm text-neutral-400">
-				Esta acción no se puede deshacer. Las canciones seguirán en tu biblioteca.
+				Esta acción no se puede deshacer, la playlist se eliminará de tu biblioteca y de todos los dispositivos donde la tengas guardada.
 			</p>
 			<div class="mt-6 flex items-center justify-end gap-3">
 				<button
