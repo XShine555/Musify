@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
+	import { goto } from '$app/navigation';
 	import { player } from '$lib/player/player.svelte';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import { HUES } from '$lib/theme/color';
@@ -12,6 +13,19 @@
 	const total = $derived(Number(tracks.totalItemCount));
 
 	const dateFormatter = new Intl.DateTimeFormat('es', { dateStyle: 'medium' });
+
+	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	function onSearchInput(event: Event) {
+		const value = (event.currentTarget as HTMLInputElement).value;
+		clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(() => {
+			const params = new URLSearchParams();
+			if (value.trim()) params.set('q', value.trim());
+			const qs = params.toString();
+			goto(qs ? `/explore?${qs}` : '/explore', { keepFocus: true, replaceState: true, noScroll: true });
+		}, 350);
+	}
 
 	function hueFor(id: string) {
 		let hash = 0;
@@ -43,29 +57,19 @@
 	<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Explorar</h1>
 	<p class="mt-2 text-neutral-400">Descubre canciones o busca por nombre.</p>
 
-	<form method="GET" class="mt-8 flex gap-3">
-		<div class="relative flex-1">
-			<span
-				class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-neutral-500"
-			>
-				<Search class="h-4 w-4" />
-			</span>
-			<input
-				type="search"
-				name="q"
-				value={data.query}
-				placeholder="Buscar por nombre…"
-				autocomplete="off"
-				class="w-full rounded-lg border border-white/15 bg-neutral-950 py-3 pl-11 pr-4 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-emerald-500/60 focus:outline-none"
-			/>
-		</div>
-		<button
-			type="submit"
-			class="rounded-lg bg-[var(--mf-accent)] px-6 py-3 text-sm font-semibold text-neutral-950 backdrop-blur-md transition hover:brightness-110 hover:shadow-[0_8px_24px_-8px] active:scale-[0.97]"
-		>
-			Buscar
-		</button>
-	</form>
+	<div class="relative mt-8 max-w-xl">
+		<span class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-neutral-500">
+			<Search class="h-4 w-4" />
+		</span>
+		<input
+			type="search"
+			value={data.query}
+			oninput={onSearchInput}
+			placeholder="Buscar por nombre…"
+			autocomplete="off"
+			class="w-full rounded-lg border border-white/15 bg-neutral-950 py-3 pl-11 pr-4 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-emerald-500/60 focus:outline-none"
+		/>
+	</div>
 
 	<p class="mt-6 text-sm text-neutral-500">
 		{#if data.query}
