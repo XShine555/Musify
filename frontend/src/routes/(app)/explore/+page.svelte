@@ -40,7 +40,7 @@
 </svelte:head>
 
 <section class="px-8 py-12">
-	<h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Explorar</h1>
+	<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Explorar</h1>
 	<p class="mt-2 text-neutral-400">Descubre canciones o busca por nombre.</p>
 
 	<form method="GET" class="mt-8 flex gap-3">

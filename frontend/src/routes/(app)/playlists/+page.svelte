@@ -28,14 +28,14 @@
 </script>
 
 <svelte:head>
-	<title>Tus listas · Musify</title>
-	<meta name="description" content="Tus listas en Musify." />
+	<title>Mis listas · Musify</title>
+	<meta name="description" content="Mis listas en Musify." />
 </svelte:head>
 
 <section class="px-8 py-12">
 	<div class="flex items-end justify-between gap-4">
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Tus listas</h1>
+			<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Mis listas</h1>
 			<p class="mt-2 text-neutral-400">Crea y organiza tus colecciones.</p>
 		</div>
 		<button
@@ -74,7 +74,7 @@
 			<span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--mf-accent)] text-neutral-950">
 				<ListMusic class="h-7 w-7" />
 			</span>
-			<h3 class="mt-5 text-xl font-bold tracking-tight">Todavía no tienes listas</h3>
+			<h3 class="mt-5 font-display text-xl font-bold tracking-tight">Todavía no tienes listas</h3>
 			<p class="mt-2 text-sm text-neutral-400">Crea la primera y añádele canciones de tu biblioteca.</p>
 			<button
 				type="button"
@@ -102,7 +102,7 @@
 	>
 		<div class="animate-pop w-full max-w-md rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-2xl">
 			<div class="flex items-center justify-between">
-				<h2 class="text-lg font-bold tracking-tight">Nueva lista</h2>
+				<h2 class="font-display text-lg font-bold tracking-tight">Nueva lista</h2>
 				<button
 					type="button"
 					onclick={() => (creating = false)}

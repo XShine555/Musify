@@ -61,7 +61,7 @@
 		>
 			<ArrowLeft class="h-4 w-4" />
 		</span>
-		Tus listas
+		Mis listas
 	</a>
 
 	<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end">
@@ -72,7 +72,7 @@
 		/>
 		<div class="min-w-0 flex-1">
 			<p class="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Lista</p>
-			<h1 class="mt-1.5 text-4xl font-bold tracking-tight sm:text-5xl">{playlist.name}</h1>
+			<h1 class="mt-1.5 font-display text-4xl font-bold tracking-tight sm:text-5xl">{playlist.name}</h1>
 			{#if playlist.description}
 				<p class="mt-3 max-w-2xl text-neutral-300">{playlist.description}</p>
 			{/if}
@@ -163,7 +163,7 @@
 
 	{#if library.length > 0}
 		<div class="mt-12 max-w-[900px]">
-			<h2 class="text-lg font-bold tracking-tight">Añadir de tu biblioteca</h2>
+			<h2 class="font-display text-lg font-bold tracking-tight">Añadir de tu biblioteca</h2>
 			<div class="mt-4 flex flex-col">
 				{#each library as track (track.id)}
 					<div class="flex items-center gap-3.5 rounded-[10px] px-3 py-[10px] transition hover:bg-neutral-900/60">
@@ -206,7 +206,7 @@
 	>
 		<div class="animate-pop w-full max-w-md rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-2xl">
 			<div class="flex items-center justify-between">
-				<h2 class="text-lg font-bold tracking-tight">Editar playlist</h2>
+				<h2 class="font-display text-lg font-bold tracking-tight">Editar playlist</h2>
 				<button
 					type="button"
 					onclick={() => (editing = false)}
@@ -286,7 +286,7 @@
 		}}
 	>
 		<div class="animate-pop w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-2xl">
-			<h2 class="text-lg font-bold tracking-tight">¿Eliminar «{playlist.name}»?</h2>
+			<h2 class="font-display text-lg font-bold tracking-tight">¿Eliminar «{playlist.name}»?</h2>
 			<p class="mt-2 text-sm text-neutral-400">
 				Esta acción no se puede deshacer. Las canciones seguirán en tu biblioteca.
 			</p>

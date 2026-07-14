@@ -113,7 +113,7 @@
 		</span>
 		Volver a la biblioteca
 	</a>
-	<h1 class="mt-6 text-4xl font-bold tracking-tight sm:text-5xl">Subir música</h1>
+	<h1 class="mt-6 font-display text-4xl font-bold tracking-tight sm:text-5xl">Subir música</h1>
 	<p class="mt-4 text-lg text-neutral-400">
 		Añade una canción con su portada y título. Nosotros la procesamos para streaming.
 	</p>
@@ -145,7 +145,7 @@
 			>
 				<Check class="h-8 w-8" strokeWidth={2.5} />
 			</span>
-			<h2 class="mt-6 text-2xl font-bold tracking-tight">¡Subida!</h2>
+			<h2 class="mt-6 font-display text-2xl font-bold tracking-tight">¡Subida!</h2>
 			<p class="mt-3 text-lg text-neutral-300">
 				«{publishedTitle}» se está procesando. Aparecerá lista para reproducir en tu biblioteca en
 				unos momentos.
