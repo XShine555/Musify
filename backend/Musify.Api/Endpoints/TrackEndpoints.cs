@@ -2,6 +2,7 @@ using Mediator;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Shared;
+using Musify.Application.Contracts;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
@@ -25,6 +26,12 @@ public static class TrackEndpoints
             .WithName("GetTrackById")
             .WithSummary("Get A Track By Id.")
             .Produces<TrackApplicationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/cover", GetTrackCover)
+            .WithName("GetTrackCover")
+            .WithSummary("Get A Track Cover Image.")
+            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/stream", GetTrackStream)
@@ -92,6 +99,24 @@ public static class TrackEndpoints
     {
         var result = await mediator.Send(new GetTrackByIdQuery(id), cancellationToken);
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetTrackCover(
+        IMediator mediator,
+        IStorageService storageService,
+        HttpResponse response,
+        Guid id,
+        CancellationToken cancellationToken,
+        string size = "medium")
+    {
+        var result = await mediator.Send(new GetTrackCoverQuery(id, size), cancellationToken);
+        if (result.IsError)
+            return Results.NotFound();
+
+        var location = result.Value;
+        var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
+        response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        return Results.Stream(stream, location.ContentType);
     }
 
     private static async Task<IResult> GetTrackStream(
