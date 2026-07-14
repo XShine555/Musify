@@ -161,6 +161,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tracks/{id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get A Track Cover Image. */
+        get: operations["GetTrackCover"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tracks/{id}/stream": {
         parameters: {
             query?: never;
@@ -256,6 +273,23 @@ export interface paths {
         };
         /** Get A User By Id. */
         get: operations["GetUserById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/listening-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get A User'S Listening History. */
+        get: operations["GetListeningHistory"];
         put?: never;
         post?: never;
         delete?: never;
@@ -908,6 +942,35 @@ export interface operations {
             };
         };
     };
+    GetTrackCover: {
+        parameters: {
+            query?: {
+                size?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetTrackStream: {
         parameters: {
             query?: never;
@@ -1147,6 +1210,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserApplicationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetListeningHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackApplicationResponse"][];
                 };
             };
             /** @description Not Found */

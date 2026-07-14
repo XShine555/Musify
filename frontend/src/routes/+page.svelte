@@ -11,6 +11,22 @@
 	const latest = $derived(data.latest);
 	const playlists = $derived(data.playlists);
 	const trackIds = $derived(data.trackIds);
+	const recentlyPlayed = $derived.by(() => {
+		const seen = new Set<string>();
+		const merged: { id: string; title: string }[] = [];
+		for (const t of player.recentlyPlayed) {
+			const id = String(t.id);
+			if (seen.has(id)) continue;
+			seen.add(id);
+			merged.push({ id, title: t.title });
+		}
+		for (const t of data.recentlyPlayed) {
+			if (seen.has(t.id)) continue;
+			seen.add(t.id);
+			merged.push({ id: t.id, title: t.title });
+		}
+		return merged.slice(0, 15);
+	});
 
 	const greeting = (() => {
 		const h = new Date().getHours();
@@ -41,6 +57,12 @@
 		if (player.current.id === track.id) player.toggle();
 		else player.playQueue(latest, index);
 	}
+
+	function playRecent(index: number) {
+		const track = recentlyPlayed[index];
+		if (player.current.id === track.id) player.toggle();
+		else player.playQueue(recentlyPlayed, index);
+	}
 </script>
 
 <svelte:head>
@@ -61,19 +83,19 @@
 	</div>
 </section>
 
-{#if player.recentlyPlayed.length > 0}
-	<section class="px-8 pb-7 pt-4">
+{#if recentlyPlayed.length > 0}
+	<section class="px-8 pb-3 pt-6">
 		<h2 class="mb-4 font-display text-xl font-bold">Escuchado recientemente</h2>
 		<div class="grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3.5">
-			{#each player.recentlyPlayed as track (track.id)}
+			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
-					onclick={() => player.playTrack(track.id)}
+					onclick={() => playRecent(i)}
 					class="flex items-center gap-3.5 rounded-xl bg-[var(--mf-surface)] p-2 text-left transition hover:bg-[var(--mf-surface-hover)]"
 				>
 					<Cover
 						trackId={track.id}
-						hue={track.hue}
+						hue={hueFor(track.id)}
 						size="small"
 						alt={track.title}
 						class="h-14 w-14 flex-shrink-0 rounded-lg"
@@ -84,7 +106,6 @@
 					</Cover>
 					<div class="min-w-0">
 						<div class="truncate text-sm font-semibold text-[var(--mf-text)]">{track.title}</div>
-						<div class="truncate text-[12.5px] text-[var(--mf-text-3)]">{track.artist || '—'}</div>
 					</div>
 				</button>
 			{/each}
@@ -92,7 +113,7 @@
 	</section>
 {/if}
 
-<section class="px-8 pb-10 pt-6">
+<section class="px-8 pb-3 pt-3">
 	<h2 class="mb-4 font-display text-xl font-bold">Novedades</h2>
 	{#if latest.length > 0}
 		<div class="grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
@@ -142,8 +163,8 @@
 	{/if}
 </section>
 
-<section class="px-8 pb-16 pt-2">
-	<h2 class="mb-4 font-display text-xl font-bold">Tus listas</h2>
+<section class="px-8 pb-16 pt-3">
+	<h2 class="mb-4 font-display text-xl font-bold">Mis listas</h2>
 	{#if playlists.length > 0}
 		<div class="grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
 			{#each playlists as playlist, i (playlist.id)}

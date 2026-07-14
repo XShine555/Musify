@@ -12,8 +12,15 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 				params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 8 } }
 			})
 		: Promise.resolve({ data: undefined });
+	const recentlyPlayedPromise = locals.user
+		? api.GET('/users/{id}/listening-history', { params: { path: { id: locals.user.sub } } })
+		: Promise.resolve({ data: undefined });
 
-	const [latest, playlists] = await Promise.all([latestPromise, playlistsPromise]);
+	const [latest, playlists, recentlyPlayed] = await Promise.all([
+		latestPromise,
+		playlistsPromise,
+		recentlyPlayedPromise
+	]);
 	const playlistItems = playlists.data?.items ?? [];
 
 	const covers = await Promise.all(
@@ -28,6 +35,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 	return {
 		latest: latest.data?.items ?? [],
 		playlists: playlistItems,
-		trackIds: Object.fromEntries(covers) as Record<string, string[]>
+		trackIds: Object.fromEntries(covers) as Record<string, string[]>,
+		recentlyPlayed: recentlyPlayed.data ?? []
 	};
 };
