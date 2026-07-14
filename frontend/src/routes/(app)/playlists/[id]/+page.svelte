@@ -58,11 +58,11 @@
 		class="group inline-flex items-center gap-2 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
 	>
 		<span
-			class="grid h-8 w-8 place-items-center rounded-lg border border-white/15 transition-all duration-200 group-hover:-translate-x-0.5 group-hover:border-emerald-500/60 group-hover:text-emerald-400"
+			class="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-neutral-400 transition-colors duration-150 group-hover:border-[var(--mf-accent)]/50 group-hover:bg-[var(--mf-accent)]/10 group-hover:text-[var(--mf-accent)]"
 		>
 			<ArrowLeft class="h-4 w-4" />
 		</span>
-		Mis listas
+		Volver a tus listas
 	</a>
 
 	<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end">
@@ -73,7 +73,7 @@
 		/>
 		<div class="min-w-0 flex-1">
 			<p class="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Lista</p>
-			<h1 class="mt-1.5 font-display text-4xl font-bold tracking-tight sm:text-5xl">{playlist.name}</h1>
+			<h1 class="mt-1.5 font-display text-5xl font-bold tracking-tight sm:text-6xl">{playlist.name}</h1>
 			{#if playlist.description}
 				<p class="mt-3 max-w-2xl text-neutral-300">{playlist.description}</p>
 			{/if}
@@ -89,7 +89,7 @@
 			type="button"
 			onclick={playAll}
 			disabled={tracks.length === 0}
-			class="inline-flex items-center gap-2 rounded-lg bg-[var(--mf-accent)] px-7 py-3 text-sm font-semibold text-neutral-950 transition hover:brightness-110 hover:shadow-[0_10px_28px_-8px] active:scale-95 disabled:opacity-40"
+			class="inline-flex h-12 items-center gap-2 rounded-lg bg-[var(--mf-accent)] px-7 text-sm font-semibold text-neutral-950 transition hover:brightness-110 hover:shadow-[0_10px_28px_-8px] active:scale-95 disabled:opacity-40"
 		>
 			{#if isCurrentQueue && player.playing}
 				<Pause class="h-4 w-4" fill="currentColor" />
@@ -102,7 +102,7 @@
 		<button
 			type="button"
 			onclick={() => (editing = true)}
-			class="inline-flex items-center gap-2 rounded-lg border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/5"
+			class="inline-flex h-12 items-center gap-2 rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/5"
 		>
 			<Pencil class="h-4 w-4" />
 			Editar
@@ -111,7 +111,7 @@
 			type="button"
 			onclick={() => (confirmingDelete = true)}
 			aria-label="Eliminar playlist"
-			class="inline-flex items-center gap-2 rounded-lg border border-white/15 px-5 py-3 text-sm font-semibold text-neutral-300 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-200"
+			class="grid h-12 w-12 place-items-center rounded-lg border border-white/15 text-neutral-300 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-200"
 		>
 			<Trash2 class="h-4 w-4" />
 		</button>
