@@ -13,6 +13,8 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
         internal const string GeneratePictureWorkflowPaths = "GeneratePictureWorkflowPaths";
 
         internal const string DownloadFile = "DownloadFile";
+        internal const string DownloadYouTubeAudio = "DownloadYouTubeAudio";
+        internal const string DownloadThumbnail = "DownloadThumbnail";
 
         internal const string TranscodeAudio = "TranscodeAudio";
 

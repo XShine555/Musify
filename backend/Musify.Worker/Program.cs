@@ -14,6 +14,8 @@ services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfi
 services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
 services.AddStorageService(configuration);
 services.AddAudioTranscoder(configuration);
+services.AddYouTubeDownloader(configuration);
+services.AddHttpClient();
 services.AddPictureService(configuration);
 services.AddDatabase(configuration);
 services.AddMassTransitConsumers(configuration);

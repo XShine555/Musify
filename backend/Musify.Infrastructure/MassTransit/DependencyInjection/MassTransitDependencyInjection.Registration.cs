@@ -23,6 +23,7 @@ namespace Musify.Infrastructure.MassTransit
             services.AddScoped<DeletePlayListRoutingSlipBuilder>();
             services.AddScoped<CreateTrackRoutingSlipBuilder>();
             services.AddScoped<PlayListPictureSourceRoutingSlipBuilder>();
+            services.AddScoped<YouTubeTrackRoutingSlipBuilder>();
         }
 
         static void RegisterConsumersAndActivities(IBusRegistrationConfigurator options)
@@ -39,6 +40,7 @@ namespace Musify.Infrastructure.MassTransit
             options.AddConsumer<ProcessingSlipFaultConsumer>();
             options.AddConsumer<TrackProcessingFailedConsumer>();
             options.AddConsumer<PlayListProcessingFailedConsumer>();
+            options.AddConsumer<DownloadYouTubeTrackConsumer>();
 
             options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
             options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
@@ -62,6 +64,8 @@ namespace Musify.Infrastructure.MassTransit
             options.AddActivity<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>();
             options.AddActivity<CopyFileInBucketActivity, CopyFileInBucketArguments, CopyFileInBucketLog>();
             options.AddActivity<ConsumeUploadIntentsActivity, ConsumeUploadIntentsArguments, ConsumeUploadIntentsLog>();
+            options.AddActivity<DownloadYouTubeAudioActivity, DownloadYouTubeAudioArguments, DownloadYouTubeAudioLog>();
+            options.AddActivity<DownloadFileFromUrlActivity, DownloadFileFromUrlArguments, DownloadFileFromUrlLog>();
         }
     }
 }

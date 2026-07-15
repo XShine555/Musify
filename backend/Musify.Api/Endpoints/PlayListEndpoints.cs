@@ -93,6 +93,17 @@ public static class PlayListEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{playlistId}/youtube-tracks", AddYouTubeTrackToPlayList)
+            .WithName("AddYouTubeTrackToPlayList")
+            .WithSummary("Add A YouTube Track To A PlayList, Downloading It In The Background If Needed.")
+            .AddEndpointFilter<ValidationFilter<AddYouTubeTrackRequest>>()
+            .RequireAuthorization()
+            .Produces<TrackApplicationResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
+
         group.MapDelete("/{playlistId}/tracks/{trackId}", RemoveTrackFromPlayList)
             .WithName("RemoveTrackFromPlayList")
             .WithSummary("Remove A Track From A PlayList.")
@@ -230,6 +241,27 @@ public static class PlayListEndpoints
             cancellationToken);
 
         return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> AddYouTubeTrackToPlayList(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid playlistId,
+        AddYouTubeTrackRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new AddYouTubeTrackToPlayListCommand(
+                currentUser.RequiredId,
+                playlistId,
+                request.VideoId,
+                request.Title,
+                request.Artist,
+                request.DurationSeconds,
+                request.ThumbnailUrl),
+            cancellationToken);
+
+        return result.ToCreatedResult(track => $"/tracks/{track.Id}");
     }
 
     private static async Task<IResult> RemoveTrackFromPlayList(
