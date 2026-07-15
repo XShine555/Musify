@@ -24,6 +24,17 @@ namespace Musify.Domain.Entities
         public int Duration { get; set; }
 
         [Required]
+        [MaxLength(200)]
+        public string Artist { get; set; } = string.Empty;
+
+        [Required]
+        public TrackSource Source { get; set; } = TrackSource.Local;
+
+        [Required]
+        [MaxLength(16)]
+        public string ExternalId { get; set; } = string.Empty;
+
+        [Required]
         [MaxLength(64)]
         public required string OriginalPictureName { get; set; }
 
