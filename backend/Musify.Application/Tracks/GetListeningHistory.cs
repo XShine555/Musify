@@ -25,11 +25,11 @@ namespace Musify.Application.Tracks
 
             var tracksById = await database.Tracks
                 .Where(t => recentTrackIds.Contains(t.Id))
-                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count })
+                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count } )
                 .ToDictionaryAsync(t => t.Id, cancellationToken);
 
             return recentTrackIds
-                .Select(id => tracksById[id])
+                .Select(id => tracksById[id] )
                 .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.ListensCount));
         }
     }
