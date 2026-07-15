@@ -11,19 +11,34 @@
 	const latest = $derived(data.latest);
 	const playlists = $derived(data.playlists);
 	const trackIds = $derived(data.trackIds);
+	interface RecentItem {
+		id: string;
+		title: string;
+		artist?: string;
+		source: 'local' | 'youtube';
+		coverUrl?: string;
+	}
+
 	const recentlyPlayed = $derived.by(() => {
 		const seen = new Set<string>();
-		const merged: { id: string; title: string }[] = [];
+		const merged: RecentItem[] = [];
 		for (const t of player.recentlyPlayed) {
 			const id = String(t.id);
 			if (seen.has(id)) continue;
 			seen.add(id);
-			merged.push({ id, title: t.title });
+			merged.push({ id, title: t.title, artist: t.artist, source: t.source, coverUrl: t.coverUrl });
 		}
-		for (const t of data.recentlyPlayed) {
-			if (seen.has(t.id)) continue;
-			seen.add(t.id);
-			merged.push({ id: t.id, title: t.title });
+		for (const item of toQueueItems(data.recentlyPlayed)) {
+			const id = String(item.id);
+			if (seen.has(id)) continue;
+			seen.add(id);
+			merged.push({
+				id,
+				title: item.title,
+				artist: item.artist,
+				source: item.source ?? 'local',
+				coverUrl: item.coverUrl
+			});
 		}
 		return merged.slice(0, 15);
 	});
@@ -98,6 +113,7 @@
 				>
 					<Cover
 						trackId={track.id}
+						src={track.coverUrl}
 						hue={hueFor(track.id)}
 						size="small"
 						alt={track.title}
@@ -109,6 +125,9 @@
 					</Cover>
 					<div class="min-w-0">
 						<div class="truncate text-sm font-semibold text-[var(--mf-text)]">{track.title}</div>
+						{#if track.artist}
+							<div class="truncate text-xs text-neutral-500">{track.artist}</div>
+						{/if}
 					</div>
 				</button>
 			{/each}

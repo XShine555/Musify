@@ -16,7 +16,8 @@
 		player,
 		isPendingYouTubeTrack,
 		queueIdForTrack,
-		toQueueItems
+		toQueueItems,
+		youTubeThumbnailUrl
 	} from '$lib/player/player.svelte';
 	import { HUES, fmtTime } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
@@ -179,6 +180,7 @@
 						<button type="button" onclick={() => playFrom(i)} class="flex min-w-0 items-center gap-3.5 text-left">
 							<Cover
 								trackId={track.id}
+								src={isPendingYouTubeTrack(track) ? youTubeThumbnailUrl(track.externalId) : undefined}
 								hue={hueFor(track.id)}
 								size="small"
 								alt={track.title}

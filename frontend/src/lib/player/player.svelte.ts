@@ -45,6 +45,10 @@ export function queueIdForTrack(track: ApiTrackLike): string | number {
 	return isPendingYouTubeTrack(track) && track.externalId ? track.externalId : track.id;
 }
 
+export function youTubeThumbnailUrl(videoId: string): string {
+	return `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+}
+
 export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 	return tracks.map((track) => {
 		const pendingYouTube = isPendingYouTubeTrack(track);
@@ -53,7 +57,7 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 			title: track.title,
 			artist: track.artist,
 			source: pendingYouTube ? 'youtube' : 'local',
-			coverUrl: pendingYouTube ? `/api/tracks/${track.id}/cover?size=small` : undefined
+			coverUrl: pendingYouTube && track.externalId ? youTubeThumbnailUrl(track.externalId) : undefined
 		};
 	});
 }
