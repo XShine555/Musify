@@ -107,6 +107,29 @@ namespace Musify.Infrastructure.Services
             return new YouTubeStreamInfo(audioStream.Url, expiresInSeconds);
         }
 
+        public async Task<ErrorOr<YouTubeSongResult>> GetSongAsync(string videoId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var info = await client.GetSongVideoInfoAsync(videoId, cancellationToken);
+
+                return new YouTubeSongResult(
+                    videoId,
+                    info.Name,
+                    string.Join(", ", info.Artists.Select(artist => artist.Name)),
+                    string.Empty,
+                    (int)info.Duration.TotalSeconds,
+                    info.Thumbnails
+                        .OrderByDescending(thumbnail => thumbnail.Width)
+                        .Select(thumbnail => thumbnail.Url)
+                        .FirstOrDefault() ?? string.Empty);
+            }
+            catch (Exception exception)
+            {
+                return Error.Failure(description: $"Failed to load YouTube song info for '{videoId}': {exception.Message}");
+            }
+        }
+
         private static string SearchCacheKey(string token) => $"yt-search:{token}";
 
         private static string StreamCacheKey(string videoId) => $"yt-stream:{videoId}";

@@ -35,6 +35,9 @@ namespace Musify.Domain.Entities
         public string ExternalId { get; set; } = string.Empty;
 
         [Required]
+        public bool DownloadRequested { get; set; } = false;
+
+        [Required]
         [MaxLength(64)]
         public required string OriginalPictureName { get; set; }
 

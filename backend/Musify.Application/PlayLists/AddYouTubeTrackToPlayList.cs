@@ -90,16 +90,22 @@ namespace Musify.Application.PlayLists
 
             if (track is not null)
             {
-                if (track.AudioTranscodeProcessingStatus == ProcessingStatus.Failed)
+                var failed = track.AudioTranscodeProcessingStatus == ProcessingStatus.Failed;
+                var neverQueued = !track.DownloadRequested && !track.IsAudioProcessed;
+                if (failed || neverQueued)
                 {
-                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Pending;
-                    track.PicturesProcessingStatus = ProcessingStatus.Pending;
-                    track.LifeCycleStatus = LifeCycleStatus.Active;
-                    track.RetryCount += 1;
-                    track.LastRetryAt = DateTime.UtcNow;
+                    if (failed)
+                    {
+                        track.AudioTranscodeProcessingStatus = ProcessingStatus.Pending;
+                        track.PicturesProcessingStatus = ProcessingStatus.Pending;
+                        track.LifeCycleStatus = LifeCycleStatus.Active;
+                        track.RetryCount += 1;
+                        track.LastRetryAt = DateTime.UtcNow;
+                    }
+                    track.DownloadRequested = true;
                     await PublishDownloadEventAsync(track.Id, request, cancellationToken);
                     await database.SaveChangesAsync(cancellationToken);
-                    logger.LogInformation("Re-queued failed YouTube track {VideoId} for download", request.VideoId);
+                    logger.LogInformation("Queued YouTube track {VideoId} for download", request.VideoId);
                 }
                 return track;
             }
@@ -112,6 +118,7 @@ namespace Musify.Application.PlayLists
                 Artist = Truncate(request.Artist, 200),
                 Source = TrackSource.YouTube,
                 ExternalId = request.VideoId,
+                DownloadRequested = true,
                 Duration = request.DurationSeconds,
                 OriginalPictureName = string.Empty,
                 OriginalAudioName = string.Empty,
