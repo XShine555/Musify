@@ -14,15 +14,15 @@ namespace Musify.Application.Tracks
     {
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(GetTrackByIdQuery request, CancellationToken cancellationToken)
         {
-            var track = await database.Tracks.AsNoTracking()
+            var entity = await database.Tracks.AsNoTracking()
                 .Where(t => t.Id == request.TrackId)
-                .Select(t => TrackApplicationResponse.FromEntity(t))
+                .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (track is null)
+            if (entity is null)
                 return Error.NotFound();
 
-            return track;
+            return TrackApplicationResponse.FromEntity(entity.Track, entity.ListensCount);
         }
     }
 }

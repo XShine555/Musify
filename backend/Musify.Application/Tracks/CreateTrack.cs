@@ -123,7 +123,7 @@ namespace Musify.Application.Tracks
                 return Error.Failure(description: $"Failed to create track for {request.Title}");
             }
 
-            return TrackApplicationResponse.FromEntity(trackEntity);
+            return TrackApplicationResponse.FromEntity(trackEntity, listensCount: 0);
         }
     }
 }

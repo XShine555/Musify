@@ -10,17 +10,13 @@ namespace Musify.Application.Tracks.Responses
         DateTime CreatedAt,
         DateTime UpdatedAt)
     {
-        public static TrackApplicationResponse FromEntity(Track track)
-        {
-            var count = track.ListeningHistories.Count(x => x.TrackId == track.Id);
-
-            return new TrackApplicationResponse(
+        public static TrackApplicationResponse FromEntity(Track track, int listensCount) =>
+            new(
                 track.Id,
                 track.Title,
                 track.Duration,
-                count,
+                listensCount,
                 track.CreatedAt,
                 track.UpdatedAt);
-        }
     }
 }

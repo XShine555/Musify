@@ -17,10 +17,11 @@ namespace Musify.Application.Tracks
             var listeningHistory = database.ListeningHistories
                 .Where(l => l.UserId == query.UserId)
                 .OrderByDescending(l => l.ListenedAt)
-                .Select(t => TrackApplicationResponse.FromEntity(t.Track))
+                .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count })
+                .AsEnumerable()
+                .DistinctBy(t => t.Track.Id)
                 .Take(ListSize)
-                .DistinctBy(t => t.Id)
-                .AsEnumerable();
+                .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.ListensCount));
 
             return ValueTask.FromResult(listeningHistory);
         }

@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
+using X.PagedList;
 using X.PagedList.EF;
 using Musify.Application.Contracts;
 
@@ -29,10 +30,14 @@ namespace Musify.Application.Tracks
 
             var totalCount = await tracksQuery.CountAsync(cancellationToken);
 
-            var pagedTracks = await tracksQuery
+            var pagedEntities = await tracksQuery
                 .OrderBy(t => t.Id)
-                .Select(t => TrackApplicationResponse.FromEntity(t.Track))
+                .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count })
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
+
+            var pagedTracks = new StaticPagedList<TrackApplicationResponse>(
+                pagedEntities.Select(x => TrackApplicationResponse.FromEntity(x.Track, x.ListensCount)),
+                pagedEntities.PageNumber, pagedEntities.PageSize, pagedEntities.TotalItemCount);
 
             return PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks);
         }
