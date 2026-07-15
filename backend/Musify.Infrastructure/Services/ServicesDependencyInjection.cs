@@ -74,6 +74,23 @@ namespace Musify.Infrastructure.Services
             return serviceDescriptors;
         }
 
+        public static IServiceCollection AddYouTubeMusicService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors.AddValidatedOptions<YouTubeConfiguration>(configuration, YouTubeConfiguration.SectionName);
+
+            serviceDescriptors.AddMemoryCache();
+            serviceDescriptors.AddSingleton<IYouTubeMusicService, YouTubeMusicService>();
+            return serviceDescriptors;
+        }
+
+        public static IServiceCollection AddYouTubeDownloader(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors.AddValidatedOptions<YtDlpConfiguration>(configuration, YtDlpConfiguration.SectionName);
+
+            serviceDescriptors.AddScoped<IYouTubeDownloaderService, YouTubeDownloaderService>();
+            return serviceDescriptors;
+        }
+
         public static IServiceCollection AddAudioTranscoder(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors

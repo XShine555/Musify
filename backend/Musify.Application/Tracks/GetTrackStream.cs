@@ -2,10 +2,9 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Configuration;
 using Musify.Application.Contracts;
+using Musify.Application.Services;
 using Musify.Application.Tracks.Responses;
-using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks
@@ -15,9 +14,7 @@ namespace Musify.Application.Tracks
 
     public class GetTrackStreamQueryHandler(
         IDatabase database,
-        IStreamTicketService ticketService,
-        TrackConfiguration trackConfiguration,
-        StreamGatewayConfiguration streamGatewayConfiguration,
+        TrackStreamIssuer streamIssuer,
         ILogger<GetTrackStreamQueryHandler> logger)
         : IQueryHandler<GetTrackStreamQuery, ErrorOr<TrackStreamResponse>>
     {
@@ -38,30 +35,11 @@ namespace Musify.Application.Tracks
                 return Error.Conflict(description: "Track audio is not available for streaming yet.");
             }
 
-            var folderPath = trackConfiguration.Routes.BuildProcessedAudioPath(track.AudioFolderName);
-            var keyPrefix = $"{folderPath}/";
-
-            var ticket = ticketService.IssueTicket(request.UserId, keyPrefix);
-
-            var manifestUrl = string.Join('/',
-                streamGatewayConfiguration.PublicBaseUrl.TrimEnd('/'),
-                "media",
-                folderPath,
-                streamGatewayConfiguration.AudioFileName);
+            var response = await streamIssuer.IssueAsync(track.Id, track.AudioFolderName, request.UserId, cancellationToken);
 
             logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId);
 
-            var newListeningHistory = new ListeningHistory
-            {
-                UserId = request.UserId,
-                TrackId = request.TrackId,
-            };
-            await database.ListeningHistories.AddAsync(newListeningHistory, cancellationToken);
-            await database.SaveChangesAsync(cancellationToken);
-
-            logger.LogDebug("Listening history added for track {TrackId} by user {UserId}", request.TrackId, request.UserId);
-
-            return new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds);
+            return response;
         }
     }
 }

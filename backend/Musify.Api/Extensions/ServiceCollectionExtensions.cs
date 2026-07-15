@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddDatabase(configuration);
         services.AddStorageService(configuration);
         services.AddStreamTicketService(configuration);
+        services.AddYouTubeMusicService(configuration);
         services.AddMassTransitClient(configuration);
         services.AddAuthenticationConfiguration(configuration);
         services.AddOpenApiConfiguration();

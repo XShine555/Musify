@@ -1,9 +1,13 @@
+using System.Text.Json.Serialization;
 using Musify.Infrastructure.Observability;
 using Scalar.AspNetCore;
 using Musify.Api.Endpoints;
 using Musify.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 const string devCorsPolicy = "dev-cors";
 
@@ -36,6 +40,7 @@ app.UseAuthorization();
 app
     .MapPlayListEndpoints()
     .MapTrackEndpoints()
-    .MapUserEndpoints();
+    .MapUserEndpoints()
+    .MapYouTubeEndpoints();
 
 app.Run();
