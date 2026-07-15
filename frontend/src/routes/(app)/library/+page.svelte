@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Upload from '@lucide/svelte/icons/upload';
+	import Headphones from '@lucide/svelte/icons/headphones';
 	import { player } from '$lib/player/player.svelte';
-	import { HUES } from '$lib/theme/color';
+	import { HUES, fmtTime } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 
@@ -30,7 +31,7 @@
 	<meta name="description" content="Todas tus canciones subidas a Musify." />
 </svelte:head>
 
-<section class="px-8 py-11">
+<section class="px-8 pt-11 pb-8">
 	<div class="flex items-end justify-between gap-4">
 		<div>
 			<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Tus canciones subidas</h1>
@@ -49,34 +50,45 @@
 	</div>
 
 	{#if items.length > 0}
-		<div class="mt-7 flex max-w-[900px] flex-col">
+		<div class="mt-7 flex flex-col">
 			{#each items as track, i (track.id)}
-				<button
-					type="button"
-					onclick={() => togglePlay(i)}
-					class="animate-enter flex items-center gap-3.5 rounded-[10px] px-3 py-[11px] text-left transition duration-100 hover:bg-[var(--mf-surface-hover)] active:scale-[0.99]"
+				<div
+					class="group grid animate-enter grid-cols-[1fr_90px_140px] items-center gap-4 rounded-[10px] px-3 py-[11px] transition duration-100 hover:bg-[var(--mf-surface-hover)]"
 					style="animation-delay:{i * 35}ms"
 				>
-					<Cover
-						trackId={track.id}
-						hue={hueFor(track.id)}
-						size="small"
-						alt={track.title}
-						class="h-[46px] w-[46px] flex-shrink-0 rounded-md"
+					<button
+						type="button"
+						onclick={() => togglePlay(i)}
+						class="flex min-w-0 items-center gap-3.5 text-left active:scale-[0.99]"
 					>
-						{#if player.current.id === track.id}
-							<NowPlaying paused={!player.playing} />
-						{/if}
-					</Cover>
-					<div class="min-w-0 flex-1">
-						<div class="truncate text-[14.5px] font-semibold text-[var(--mf-text)]">
-							{track.title}
+						<Cover
+							trackId={track.id}
+							hue={hueFor(track.id)}
+							size="small"
+							alt={track.title}
+							class="h-[46px] w-[46px] flex-shrink-0 rounded-md"
+						>
+							{#if player.current.id === track.id}
+								<NowPlaying paused={!player.playing} />
+							{/if}
+						</Cover>
+						<div class="min-w-0 flex-1">
+							<div class="truncate text-[14.5px] font-semibold text-[var(--mf-text)]">
+								{track.title}
+							</div>
+							<div class="truncate text-[12.5px] text-[var(--mf-text-3)]">
+								{dateFormatter.format(new Date(track.createdAt))}
+							</div>
 						</div>
-						<div class="truncate text-[12.5px] text-[var(--mf-text-3)]">
-							{dateFormatter.format(new Date(track.createdAt))}
-						</div>
+					</button>
+					<span class="text-right text-[12.5px] tabular-nums text-[var(--mf-text-3)]">
+						{fmtTime(Number(track.duration))}
+					</span>
+					<div class="flex items-center justify-start gap-1.5 text-[12.5px] tabular-nums text-[var(--mf-text-3)]">
+						<Headphones class="h-3.5 w-3.5" />
+						{Number(track.listensCount)}
 					</div>
-				</button>
+				</div>
 			{/each}
 		</div>
 	{:else}
