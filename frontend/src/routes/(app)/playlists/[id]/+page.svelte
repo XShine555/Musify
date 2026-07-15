@@ -3,14 +3,21 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
+	import SquarePause from '@lucide/svelte/icons/square-pause';
 	import Pencil from '@lucide/svelte/icons/pencil';
-	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import SquarePencil from '@lucide/svelte/icons/square-pen';
+	import Trash from '@lucide/svelte/icons/trash';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
 	import Clock from '@lucide/svelte/icons/clock';
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import Headphones from '@lucide/svelte/icons/headphones';
-	import { player } from '$lib/player/player.svelte';
+	import {
+		player,
+		isPendingYouTubeTrack,
+		queueIdForTrack,
+		toQueueItems
+	} from '$lib/player/player.svelte';
 	import { HUES, fmtTime } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
@@ -47,24 +54,24 @@
 		return HUES[hash % HUES.length];
 	}
 
-	const isCurrentQueue = $derived(tracks.some((t) => t.id === player.current.id));
+	const isCurrentQueue = $derived(tracks.some((t) => queueIdForTrack(t) === player.current.id));
 
 	function playAll() {
 		if (tracks.length === 0) return;
 		if (isCurrentQueue) player.toggle();
-		else player.playQueue(tracks, 0);
+		else player.playQueue(toQueueItems(tracks), 0);
 	}
 
 	function playFrom(index: number) {
 		const track = tracks[index];
-		if (player.current.id === track.id) player.toggle();
-		else player.playQueue(tracks, index);
+		if (player.current.id === queueIdForTrack(track)) player.toggle();
+		else player.playQueue(toQueueItems(tracks), index);
 	}
 
 	function playFromLibrary(index: number) {
 		const track = library[index];
-		if (player.current.id === track.id) player.toggle();
-		else player.playQueue(library, index);
+		if (player.current.id === queueIdForTrack(track)) player.toggle();
+		else player.playQueue(toQueueItems(library), index);
 	}
 </script>
 
@@ -107,62 +114,62 @@
 		</div>
 	</div>
 
-	<div class="mt-7 flex items-center gap-3">
+	<div class="mt-7 flex items-center gap-2.5">
 		<button
 			type="button"
 			onclick={playAll}
 			disabled={tracks.length === 0}
-			class="inline-flex h-12 items-center gap-2 rounded-lg bg-[var(--mf-accent)] px-7 text-sm font-semibold text-neutral-950 transition hover:brightness-110 hover:shadow-[0_10px_28px_-8px] active:scale-95 disabled:opacity-40"
+			class="inline-flex items-center gap-1.5 rounded-lg bg-[var(--mf-accent)] px-4 py-2 text-neutral-900 transition hover:brightness-110 active:scale-95 disabled:opacity-40"
 		>
 			{#if isCurrentQueue && player.playing}
-				<Pause class="h-4 w-4" fill="currentColor" />
+				<Pause class="h-4 w-4" fill="currentColor" strokeWidth={1.5} />
 				Pausar
 			{:else}
-				<Play class="h-4 w-4" fill="currentColor" />
+				<Play class="h-4 w-4" fill="currentColor" strokeWidth={1.5} />
 				Reproducir
 			{/if}
 		</button>
 		<button
 			type="button"
 			onclick={openEdit}
-			class="inline-flex h-12 items-center gap-2 rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/5"
+			class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-4 py-2 text-white/65 transition hover:bg-white/2.5"
 		>
-			<Pencil class="h-4 w-4" />
+			<SquarePencil class="h-4 w-4" strokeWidth={1.5} />
 			Editar
 		</button>
 		<button
 			type="button"
 			onclick={() => (confirmingDelete = true)}
-			aria-label="Eliminar playlist"
-			class="grid h-12 w-12 place-items-center rounded-lg border border-white/15 text-neutral-300 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
+			class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-4 py-2 text-white/65 transition hover:bg-white/2.5"
 		>
-			<Trash2 class="h-4 w-4" />
+			<Trash class="h-4 w-4" strokeWidth={1.5} />
+			Eliminar
 		</button>
 	</div>
 
 	{#if tracks.length > 0}
 		<div class="mt-8">
 			<div
-				class="grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs uppercase tracking-wide text-neutral-500"
+				class="text-center grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs uppercase tracking-wide text-neutral-500"
 			>
-				<span class="text-center">#</span>
-				<span>Título</span>
+				<span>#</span>
+				<span class="text-left">Título</span>
 				<span>Añadida</span>
-				<span class="flex justify-end"><Clock class="h-3.5 w-3.5" /></span>
+				<span>Duración</span>
 				<span></span>
 			</div>
 			<div class="mt-1 flex flex-col">
 				{#each tracks as track, i (track.id)}
 					<div
-						class="group grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 rounded-[10px] px-3 py-[9px] transition hover:bg-neutral-900/60"
+						class="text-center group grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 rounded-[10px] px-3 py-[9px] transition hover:bg-neutral-900/60"
 					>
 						<button
 							type="button"
 							onclick={() => playFrom(i)}
-							aria-label={player.current.id === track.id && player.playing ? 'Pausar' : 'Reproducir'}
+							aria-label={player.current.id === queueIdForTrack(track) && player.playing ? 'Pausar' : 'Reproducir'}
 							class="relative grid h-8 w-8 place-items-center overflow-hidden rounded text-sm text-neutral-500"
 						>
-							{#if player.current.id === track.id}
+							{#if player.current.id === queueIdForTrack(track)}
 								<NowPlaying paused={!player.playing} />
 							{:else}
 								<span class="group-hover:hidden">{i + 1}</span>
@@ -177,12 +184,30 @@
 								alt={track.title}
 								class="h-[42px] w-[42px] flex-shrink-0 rounded-md"
 							/>
-							<div class="min-w-0 truncate text-[14.5px] font-semibold text-neutral-100">{track.title}</div>
+							<div class="min-w-0 flex-1">
+								<div class="flex min-w-0 items-center gap-2">
+									<span class="min-w-0 truncate text-[14.5px] font-semibold text-neutral-100">{track.title}</span>
+									{#if track.source === 'YouTube' && track.audioStatus === 'Failed'}
+										<span class="shrink-0 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">
+											Error
+										</span>
+									{:else if isPendingYouTubeTrack(track)}
+										<span
+											class="shrink-0 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400"
+										>
+											Descargando
+										</span>
+									{/if}
+								</div>
+								{#if track.artist}
+									<div class="truncate text-left text-xs text-neutral-500">{track.artist}</div>
+								{/if}
+							</div>
 						</button>
 						<div class="truncate text-[12.5px] text-neutral-500">
 							{dateFormatter.format(new Date(track.createdAt))}
 						</div>
-						<span class="text-right text-[12.5px] tabular-nums text-neutral-500">
+						<span class="text-center text-[12.5px] tabular-nums text-neutral-500">
 							{fmtTime(Number(track.duration))}
 						</span>
 						<form method="POST" action="?/removeTrack" use:enhance={() => async ({ update }) => update()}>
@@ -190,7 +215,7 @@
 							<button
 								type="submit"
 								aria-label="Quitar de la playlist"
-								class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 opacity-0 transition hover:bg-white/5 hover:text-white group-hover:opacity-100"
+								class="grid h-7 w-7 place-items-center rounded-lg text-neutral-500 opacity-0 transition hover:bg-white/5 hover:text-white group-hover:opacity-100"
 							>
 								<X class="h-3.5 w-3.5" />
 							</button>
@@ -204,10 +229,18 @@
 	{#if library.length > 0}
 		<div class="mt-12">
 			<h2 class="font-display text-lg font-bold tracking-tight">Añadir de tu biblioteca</h2>
-			<div class="mt-4 flex flex-col">
+			<div
+				class="mt-4 grid grid-cols-[1fr_100px_64px_110px] items-center gap-12 border-b border-white/10 px-3 pb-2 text-xs uppercase tracking-wide text-neutral-500"
+			>
+				<span>Título</span>
+				<span class="text-center">Escuchas</span>
+				<span class="text-center">Duración</span>
+				<span></span>
+			</div>
+			<div class="mt-1 flex flex-col">
 				{#each library as track, i (track.id)}
 					<div
-						class="group grid grid-cols-[1fr_140px_110px] items-center gap-4 rounded-[10px] px-3 py-[10px] transition hover:bg-neutral-900/60"
+						class="group grid grid-cols-[1fr_100px_64px_110px] items-center gap-12 rounded-[10px] px-3 py-[10px] transition hover:bg-neutral-900/60"
 					>
 						<button
 							type="button"
@@ -227,10 +260,13 @@
 							</Cover>
 							<div class="min-w-0 flex-1 truncate text-sm font-medium text-neutral-200">{track.title}</div>
 						</button>
-						<div class="flex items-center justify-start gap-1.5 text-[12.5px] tabular-nums text-neutral-500">
+						<div class="flex items-center justify-center gap-1.5 text-[12.5px] tabular-nums text-neutral-500">
 							<Headphones class="h-3.5 w-3.5" />
 							{Number(track.listensCount)}
 						</div>
+						<span class="text-center text-[12.5px] tabular-nums text-neutral-500">
+							{fmtTime(Number(track.duration))}
+						</span>
 						<form
 							method="POST"
 							action="?/addTrack"
@@ -240,10 +276,10 @@
 							<input type="hidden" name="trackId" value={track.id} />
 							<button
 								type="submit"
-								class="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-xs text-white transition hover:border-[var(--mf-accent)]/50 hover:text-[var(--mf-accent)]"
+								class="inline-flex items-center gap-1.5 rounded-lg border-2 border-white/20 px-2 py-2 text-xs text-white/80 transition hover:border-[var(--mf-accent)]/50 hover:text-[var(--mf-accent)]"
 							>
-								<Plus class="h-3.5 w-3.5" />
-								Añadir
+								
+								<Plus class="h-4 w-4" />
 							</button>
 						</form>
 					</div>
@@ -272,7 +308,7 @@
 					type="button"
 					onclick={() => (editing = false)}
 					aria-label="Cerrar"
-					class="grid h-8 w-8 place-items-center rounded-full text-neutral-400 transition hover:bg-white/5 hover:text-white"
+					class="grid h-8 w-8 place-items-center rounded-lg text-neutral-400 transition hover:bg-white/5 hover:text-white"
 				>
 					<X class="h-4 w-4" />
 				</button>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
-	import { player } from '$lib/player/player.svelte';
+	import { player, queueIdForTrack, toQueueItems } from '$lib/player/player.svelte';
 	import { HUES } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
@@ -57,8 +57,8 @@
 
 	function playLatest(index: number) {
 		const track = latest[index];
-		if (player.current.id === track.id) player.toggle();
-		else player.playQueue(latest, index);
+		if (player.current.id === queueIdForTrack(track)) player.toggle();
+		else player.playQueue(toQueueItems(latest), index);
 	}
 
 	function playRecent(index: number) {

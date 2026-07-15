@@ -2,12 +2,16 @@ import { browser } from '$app/environment';
 import { HUES, accentForHue, gradientForHue } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
 
+export type TrackSourceKind = 'local' | 'youtube';
+
 export interface PlayerTrack {
 	id: string | number;
 	title: string;
 	artist: string;
 	duration: number;
 	hue: number;
+	source: TrackSourceKind;
+	coverUrl?: string;
 }
 
 export interface Playlist {
@@ -20,11 +24,43 @@ export interface QueueItem {
 	id: string | number;
 	title: string;
 	artist?: string;
+	source?: TrackSourceKind;
+	coverUrl?: string;
+}
+
+export interface ApiTrackLike {
+	id: string | number;
+	title: string;
+	artist?: string;
+	source?: 'Local' | 'YouTube';
+	externalId?: string;
+	audioStatus?: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+}
+
+export function isPendingYouTubeTrack(track: ApiTrackLike): boolean {
+	return track.source === 'YouTube' && track.audioStatus !== 'Completed';
+}
+
+export function queueIdForTrack(track: ApiTrackLike): string | number {
+	return isPendingYouTubeTrack(track) && track.externalId ? track.externalId : track.id;
+}
+
+export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
+	return tracks.map((track) => {
+		const pendingYouTube = isPendingYouTubeTrack(track);
+		return {
+			id: queueIdForTrack(track),
+			title: track.title,
+			artist: track.artist,
+			source: pendingYouTube ? 'youtube' : 'local',
+			coverUrl: pendingYouTube ? `/api/tracks/${track.id}/cover?size=small` : undefined
+		};
+	});
 }
 
 const RECENT_LIMIT = 15;
 
-const EMPTY: PlayerTrack = { id: '', title: '', artist: '', duration: 0, hue: HUES[0] };
+const EMPTY: PlayerTrack = { id: '', title: '', artist: '', duration: 0, hue: HUES[0], source: 'local' };
 
 function hueFor(id: string | number): number {
 	const text = String(id);
@@ -39,7 +75,9 @@ function toTrack(item: QueueItem): PlayerTrack {
 		title: item.title,
 		artist: item.artist ?? '',
 		duration: 0,
-		hue: hueFor(item.id)
+		hue: hueFor(item.id),
+		source: item.source ?? 'local',
+		coverUrl: item.coverUrl
 	};
 }
 
@@ -61,6 +99,7 @@ class PlayerState {
 
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
+	#retriedId: string | number | null = null;
 	#accentCache = new Map<string, Accent>();
 	#rafId: number | null = null;
 
@@ -97,6 +136,15 @@ class PlayerState {
 		});
 		audio.addEventListener('error', () => {
 			this.#stopProgressLoop();
+			if (
+				this.currentId !== null &&
+				this.current.source === 'youtube' &&
+				this.#retriedId !== this.currentId
+			) {
+				this.#retriedId = this.currentId;
+				this.#loadCurrent();
+				return;
+			}
 			this.loading = false;
 			this.playing = false;
 			this.error = 'No se pudo reproducir la pista.';
@@ -143,7 +191,7 @@ class PlayerState {
 		);
 	}
 
-	async #applyAccent(id: string | number) {
+	async #applyAccent(id: string | number, coverUrl?: string) {
 		const key = String(id);
 		const cached = this.#accentCache.get(key);
 		if (cached) {
@@ -151,7 +199,7 @@ class PlayerState {
 			this.gradientColor = cached.gradient;
 			return;
 		}
-		const result = await extractAccent(`/api/tracks/${id}/cover?size=small`);
+		const result = await extractAccent(coverUrl ?? `/api/tracks/${id}/cover?size=small`);
 		if (this.currentId !== id) return;
 		if (result) {
 			this.#accentCache.set(key, result);
@@ -167,24 +215,23 @@ class PlayerState {
 		const audio = this.#audioEl();
 		if (!audio || this.currentId === null) return;
 		const id = this.currentId;
-		this.#applyAccent(id);
+		const track = this.tracks.find((t) => t.id === id);
+		this.#applyAccent(id, track?.coverUrl);
 		const token = ++this.#loadToken;
 		this.loading = true;
 		this.error = '';
 		this.progress = 0;
 		try {
-			const res = await fetch(`/api/tracks/${id}/stream`);
-			if (!res.ok) throw new Error(String(res.status));
-			const { manifestUrl, ticket } = (await res.json()) as {
-				manifestUrl: string;
-				ticket: string;
-			};
+			const src =
+				track?.source === 'youtube'
+					? await this.#resolveYouTubeSrc(String(id))
+					: await this.#resolveLocalSrc(String(id));
 			if (token !== this.#loadToken) return;
-			const sep = manifestUrl.includes('?') ? '&' : '?';
-			audio.src = ticket ? `${manifestUrl}${sep}t=${encodeURIComponent(ticket)}` : manifestUrl;
+			audio.src = src;
 			audio.volume = this.volume / 100;
 			await audio.play();
 			this.loading = false;
+			this.#retriedId = null;
 			this.#pushRecent(this.current);
 		} catch {
 			if (token !== this.#loadToken) return;
@@ -192,6 +239,33 @@ class PlayerState {
 			this.playing = false;
 			this.error = 'No se pudo reproducir la pista.';
 		}
+	}
+
+	async #resolveLocalSrc(id: string): Promise<string> {
+		const res = await fetch(`/api/tracks/${id}/stream`);
+		if (!res.ok) throw new Error(String(res.status));
+		const { manifestUrl, ticket } = (await res.json()) as {
+			manifestUrl: string;
+			ticket: string;
+		};
+		return this.#withTicket(manifestUrl, ticket);
+	}
+
+	async #resolveYouTubeSrc(videoId: string): Promise<string> {
+		const res = await fetch(`/api/youtube/tracks/${videoId}/stream`);
+		if (!res.ok) throw new Error(String(res.status));
+		const { mode, streamUrl, ticket } = (await res.json()) as {
+			mode: string;
+			streamUrl: string;
+			ticket: string;
+		};
+		return mode === 'Server' ? this.#withTicket(streamUrl, ticket) : streamUrl;
+	}
+
+	#withTicket(url: string, ticket: string): string {
+		if (!ticket) return url;
+		const sep = url.includes('?') ? '&' : '?';
+		return `${url}${sep}t=${encodeURIComponent(ticket)}`;
 	}
 
 	playlistTracks(ids: (string | number)[]): PlayerTrack[] {
