@@ -6,15 +6,24 @@
 		trackId: string | number;
 		hue: number;
 		size?: 'small' | 'medium' | 'large';
+		src?: string;
 		alt?: string;
 		class?: string;
 		children?: Snippet;
 	}
 
-	let { trackId, hue, size = 'medium', alt = '', class: klass = '', children }: Props = $props();
+	let { trackId, hue, size = 'medium', src, alt = '', class: klass = '', children }: Props = $props();
 
 	let failed = $state(false);
 	let loaded = $state(false);
+
+	const imageSrc = $derived(src ?? `/api/tracks/${trackId}/cover?size=${size}`);
+
+	$effect(() => {
+		imageSrc;
+		failed = false;
+		loaded = false;
+	});
 </script>
 
 <div
@@ -23,7 +32,7 @@
 >
 	{#if !failed}
 		<img
-			src="/api/tracks/{trackId}/cover?size={size}"
+			src={imageSrc}
 			{alt}
 			loading="lazy"
 			onload={() => (loaded = true)}

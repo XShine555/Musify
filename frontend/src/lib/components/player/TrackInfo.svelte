@@ -7,6 +7,7 @@
 	{#if player.current.id}
 		<Cover
 			trackId={player.current.id}
+			src={player.current.coverUrl}
 			hue={player.current.hue}
 			size="small"
 			alt={player.current.title}
