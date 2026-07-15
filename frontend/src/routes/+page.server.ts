@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 	});
 	const playlistsPromise = locals.user
 		? api.GET('/playlists/users/{userId}', {
-				params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 8 } }
+				params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 12 } }
 			})
 		: Promise.resolve({ data: undefined });
 	const recentlyPlayedPromise = locals.user

@@ -33,8 +33,8 @@
 <section class="px-8 py-11">
 	<div class="flex items-end justify-between gap-4">
 		<div>
-			<h1 class="font-display text-[28px] font-extrabold tracking-tight">Tus canciones subidas</h1>
-			<p class="mt-1.5 text-sm text-[var(--mf-text-2)]">
+			<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Tus canciones subidas</h1>
+			<p class="mt-2 text-[var(--mf-text-2)]">
 				{total}
 				{total === 1 ? 'canción' : 'canciones'} subida{total === 1 ? '' : 's'}.
 			</p>

@@ -53,7 +53,7 @@
 	<meta name="description" content="Explora y busca canciones en Musify." />
 </svelte:head>
 
-<section class="px-8 py-12">
+<section class="px-8 pt-12 pb-8">
 	<h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Explorar</h1>
 	<p class="mt-2 text-neutral-400">Descubre canciones o busca por nombre.</p>
 

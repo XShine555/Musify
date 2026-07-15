@@ -46,6 +46,9 @@
 		return /[.!?]$/.test(pick) ? pick : `${pick}.`;
 	})();
 
+	const listasIsFirstSection = $derived(recentlyPlayed.length === 0 && playlists.length > 0);
+	const novedadesIsFirstSection = $derived(recentlyPlayed.length === 0 && playlists.length === 0);
+
 	function hueFor(id: string) {
 		let hash = 0;
 		for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
@@ -114,9 +117,9 @@
 {/if}
 
 {#if playlists.length > 0}
-	<section class="px-8 pb-3 pt-3">
+	<section class="px-8 pb-3 {listasIsFirstSection ? 'pt-6' : 'pt-3'}">
 	<h2 class="mb-4 font-display text-xl font-bold">Mis listas</h2>
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
 			{#each playlists as playlist, i (playlist.id)}
 				<a
 					href="/playlists/{playlist.id}"
@@ -124,6 +127,7 @@
 					style="animation-delay:{i * 45}ms"
 				>
 					<PlaylistArt
+						playlistId={playlist.id}
 						trackIds={trackIds[playlist.id] ?? []}
 						hue={hueFor(playlist.id)}
 						class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)] transition group-hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.75)]"
@@ -137,7 +141,7 @@
 </section>
 {/if}
 
-<section class="px-8 pb-16 pt-3">
+<section class="px-8 pb-8 {novedadesIsFirstSection ? 'pt-6' : 'pt-3'}">
 	<h2 class="mb-4 font-display text-xl font-bold">Novedades</h2>
 	{#if latest.length > 0}
 		<div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
