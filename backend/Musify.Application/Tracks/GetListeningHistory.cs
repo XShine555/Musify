@@ -1,4 +1,5 @@
 ﻿using Mediator;
+using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Tracks.Responses;
 
@@ -12,18 +13,24 @@ namespace Musify.Application.Tracks
     {
         public const int ListSize = 15;
 
-        public ValueTask<IEnumerable<TrackApplicationResponse>> Handle(GetListeningHistoryQuery query, CancellationToken cancellationToken)
+        public async ValueTask<IEnumerable<TrackApplicationResponse>> Handle(GetListeningHistoryQuery query, CancellationToken cancellationToken)
         {
-            var listeningHistory = database.ListeningHistories
+            var recentTrackIds = await database.ListeningHistories
                 .Where(l => l.UserId == query.UserId)
-                .OrderByDescending(l => l.ListenedAt)
-                .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count })
-                .AsEnumerable()
-                .DistinctBy(t => t.Track.Id)
+                .GroupBy(l => l.TrackId)
+                .OrderByDescending(g => g.Max(l => l.ListenedAt))
+                .Select(g => g.Key)
                 .Take(ListSize)
-                .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.ListensCount));
+                .ToListAsync(cancellationToken);
 
-            return ValueTask.FromResult(listeningHistory);
+            var tracksById = await database.Tracks
+                .Where(t => recentTrackIds.Contains(t.Id))
+                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count })
+                .ToDictionaryAsync(t => t.Id, cancellationToken);
+
+            return recentTrackIds
+                .Select(id => tracksById[id])
+                .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.ListensCount));
         }
     }
 }
