@@ -25,6 +25,22 @@ services:
       retries: 10
     restart: unless-stopped
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: musify-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${PGADMIN_HOST_PORT}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+
   zitadel:
     image: ghcr.io/zitadel/zitadel:latest
     container_name: musify-zitadel
@@ -142,5 +158,6 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
   rabbitmq_data:
   seaweedfs_data:

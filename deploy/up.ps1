@@ -102,6 +102,7 @@ Write-Host @"
   Service             URL / port
   ------------------  --------------------------------------
   PostgreSQL          localhost:$($cfg['POSTGRES_HOST_PORT'])  (db: $($cfg['POSTGRES_DB']))
+  pgAdmin             http://localhost:$($cfg['PGADMIN_HOST_PORT'])  ($($cfg['PGADMIN_DEFAULT_EMAIL'])/$($cfg['PGADMIN_DEFAULT_PASSWORD']))
   Zitadel console     http://$zDomain`:$zPort/ui/console
   RabbitMQ mgmt       http://localhost:15672  ($($cfg['RABBITMQ_DEFAULT_USER'])/$($cfg['RABBITMQ_DEFAULT_PASS']))
   SeaweedFS S3        http://localhost:8333   (bucket: $($cfg['S3_BUCKET']))
