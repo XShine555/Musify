@@ -12,7 +12,6 @@ public sealed class CreatePlayListRequestValidator : AbstractValidator<CreatePla
             .MaximumLength(50);
 
         RuleFor(x => x.Description)
-            .NotEmpty()
             .MaximumLength(256);
     }
 }

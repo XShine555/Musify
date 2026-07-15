@@ -3,6 +3,7 @@ using Musify.Application.PlayLists;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Shared;
+using Musify.Application.Contracts;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;
@@ -37,6 +38,12 @@ public static class PlayListEndpoints
             .WithName("GetPlayListTracks")
             .WithSummary("Get Paginated Tracks Of A PlayList.")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/cover", GetPlayListCover)
+            .WithName("GetPlayListCover")
+            .WithSummary("Get A PlayList Cover Image.")
+            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreatePlayList)
@@ -139,14 +146,36 @@ public static class PlayListEndpoints
         return result.ToHttpResult();
     }
 
+    private static async Task<IResult> GetPlayListCover(
+        IMediator mediator,
+        IStorageService storageService,
+        HttpResponse response,
+        Guid id,
+        CancellationToken cancellationToken,
+        string size = "medium")
+    {
+        var result = await mediator.Send(new GetPlayListCoverQuery(id, size), cancellationToken);
+        if (result.IsError)
+            return Results.NotFound();
+
+        var location = result.Value;
+        var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
+        response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        return Results.Stream(stream, location.ContentType);
+    }
+
     private static async Task<IResult> CreatePlayList(
         IMediator mediator,
         CurrentUser currentUser,
         CreatePlayListRequest request,
         CancellationToken cancellationToken)
     {
+        var description = string.IsNullOrWhiteSpace(request.Description)
+            ? "No description was provided."
+            : request.Description;
+
         var result = await mediator.Send(
-            new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId),
+            new CreatePlayListCommand(currentUser.RequiredId, request.Name, description, request.PictureIntentId),
             cancellationToken);
 
         return result.ToCreatedResult(playList => $"/playlists/{playList.Id}");
