@@ -7,8 +7,9 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
-	import Music from '@lucide/svelte/icons/music';
 	import Clock from '@lucide/svelte/icons/clock';
+	import ImageIcon from '@lucide/svelte/icons/image';
+	import Headphones from '@lucide/svelte/icons/headphones';
 	import { player } from '$lib/player/player.svelte';
 	import { HUES, fmtTime } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
@@ -23,6 +24,20 @@
 
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
+	let editCoverPreview = $state('');
+	let editCoverFailed = $state(false);
+	let savingEdit = $state(false);
+
+	function openEdit() {
+		editCoverPreview = '';
+		editCoverFailed = false;
+		editing = true;
+	}
+
+	function onEditCoverInput(event: Event) {
+		const file = (event.currentTarget as HTMLInputElement).files?.[0];
+		if (file) editCoverPreview = URL.createObjectURL(file);
+	}
 
 	const dateFormatter = new Intl.DateTimeFormat('es', { dateStyle: 'medium' });
 
@@ -44,6 +59,12 @@
 		const track = tracks[index];
 		if (player.current.id === track.id) player.toggle();
 		else player.playQueue(tracks, index);
+	}
+
+	function playFromLibrary(index: number) {
+		const track = library[index];
+		if (player.current.id === track.id) player.toggle();
+		else player.playQueue(library, index);
 	}
 </script>
 
@@ -67,8 +88,10 @@
 
 	<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end">
 		<PlaylistArt
+			playlistId={playlist.id}
 			trackIds={tracks.map((t) => t.id)}
 			hue={hueFor(playlist.id)}
+			size="large"
 			class="h-44 w-44 flex-shrink-0 rounded-2xl shadow-[0_20px_45px_-15px_rgba(0,0,0,0.7)]"
 		/>
 		<div class="min-w-0 flex-1">
@@ -101,7 +124,7 @@
 		</button>
 		<button
 			type="button"
-			onclick={() => (editing = true)}
+			onclick={openEdit}
 			class="inline-flex h-12 items-center gap-2 rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/5"
 		>
 			<Pencil class="h-4 w-4" />
@@ -120,7 +143,7 @@
 	{#if tracks.length > 0}
 		<div class="mt-8">
 			<div
-				class="grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+				class="grid grid-cols-[32px_1fr_140px_64px_36px] items-center gap-4 border-b border-white/10 px-3 pb-2 text-xs uppercase tracking-wide text-neutral-500"
 			>
 				<span class="text-center">#</span>
 				<span>Título</span>
@@ -176,34 +199,50 @@
 				{/each}
 			</div>
 		</div>
-	{:else}
-		<div class="mt-8 max-w-[900px] rounded-2xl border border-white/10 bg-neutral-900/40 p-10 text-center">
-			<Music class="mx-auto h-9 w-9 text-neutral-600" />
-			<p class="mt-4 text-neutral-300">Esta playlist está vacía. Añade canciones de tu biblioteca.</p>
-		</div>
 	{/if}
 
 	{#if library.length > 0}
-		<div class="mt-12 max-w-[900px]">
+		<div class="mt-12">
 			<h2 class="font-display text-lg font-bold tracking-tight">Añadir de tu biblioteca</h2>
 			<div class="mt-4 flex flex-col">
-				{#each library as track (track.id)}
-					<div class="flex items-center gap-3.5 rounded-[10px] px-3 py-[10px] transition hover:bg-neutral-900/60">
-						<Cover
-							trackId={track.id}
-							hue={hueFor(track.id)}
-							size="small"
-							alt={track.title}
-							class="h-[40px] w-[40px] flex-shrink-0 rounded-md"
-						/>
-						<div class="min-w-0 flex-1 truncate text-sm font-medium text-neutral-200">{track.title}</div>
-						<form method="POST" action="?/addTrack" use:enhance={() => async ({ update }) => update()}>
+				{#each library as track, i (track.id)}
+					<div
+						class="group grid grid-cols-[1fr_140px_110px] items-center gap-4 rounded-[10px] px-3 py-[10px] transition hover:bg-neutral-900/60"
+					>
+						<button
+							type="button"
+							onclick={() => playFromLibrary(i)}
+							class="flex min-w-0 items-center gap-3.5 text-left"
+						>
+							<Cover
+								trackId={track.id}
+								hue={hueFor(track.id)}
+								size="small"
+								alt={track.title}
+								class="h-[40px] w-[40px] flex-shrink-0 rounded-md"
+							>
+								{#if player.current.id === track.id}
+									<NowPlaying paused={!player.playing} />
+								{/if}
+							</Cover>
+							<div class="min-w-0 flex-1 truncate text-sm font-medium text-neutral-200">{track.title}</div>
+						</button>
+						<div class="flex items-center justify-start gap-1.5 text-[12.5px] tabular-nums text-neutral-500">
+							<Headphones class="h-3.5 w-3.5" />
+							{Number(track.listensCount)}
+						</div>
+						<form
+							method="POST"
+							action="?/addTrack"
+							use:enhance={() => async ({ update }) => update()}
+							class="flex justify-end"
+						>
 							<input type="hidden" name="trackId" value={track.id} />
 							<button
 								type="submit"
-								class="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-xs font-semibold text-white transition hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-300"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-xs text-white transition hover:border-[var(--mf-accent)]/50 hover:text-[var(--mf-accent)]"
 							>
-								<Plus class="h-3.5 w-3.5" strokeWidth={2.5} />
+								<Plus class="h-3.5 w-3.5" />
 								Añadir
 							</button>
 						</form>
@@ -226,9 +265,9 @@
 			if (e.key === 'Escape') editing = false;
 		}}
 	>
-		<div class="animate-pop w-full max-w-md rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-2xl">
+		<div class="animate-pop w-full max-w-2xl rounded-2xl bg-[var(--mf-bg)] p-6 shadow-2xl">
 			<div class="flex items-center justify-between">
-				<h2 class="font-display text-lg font-bold tracking-tight">Editar playlist</h2>
+				<h2 class="text-lg font-bold tracking-tight">Editar playlist</h2>
 				<button
 					type="button"
 					onclick={() => (editing = false)}
@@ -241,41 +280,85 @@
 			<form
 				method="POST"
 				action="?/rename"
-				use:enhance={() => async ({ update, result }) => {
-					await update({ reset: false });
-					if (result.type === 'success') editing = false;
+				enctype="multipart/form-data"
+				use:enhance={() => {
+					savingEdit = true;
+					return async ({ update, result }) => {
+						await update({ reset: false });
+						savingEdit = false;
+						if (result.type === 'success') editing = false;
+					};
 				}}
-				class="mt-5 space-y-4"
+				class="mt-4 w-full max-w-4xl space-y-4"
 			>
-				<div>
-					<label for="edit-name" class="mb-2 block text-sm font-medium text-neutral-300">Nombre</label>
-					<input
-						id="edit-name"
-						name="name"
-						type="text"
-						maxlength={100}
-						required
-						value={playlist.name}
-						class="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-emerald-500/60 focus:outline-none"
-					/>
+				<div class="flex items-stretch gap-8">
+					<div class="flex flex-col">
+						<span class="mb-3 block text-sm font-medium text-neutral-300">
+							Portada <span class="text-neutral-500">(Opcional)</span>
+						</span>
+						<label
+							class="relative grid h-52 w-52 cursor-pointer place-items-center overflow-hidden rounded-lg border border-transparent bg-[var(--mf-surface)] transition-colors hover:border-[var(--mf-accent)]/50"
+						>
+							<input
+								type="file"
+								name="cover"
+								accept="image/*"
+								onchange={onEditCoverInput}
+								class="absolute inset-0 cursor-pointer opacity-0"
+								aria-label="Seleccionar portada"
+							/>
+							{#if editCoverPreview !== ''}
+								<img src={editCoverPreview} alt="Portada" class="h-full w-full object-cover" />
+							{:else if !editCoverFailed}
+								<img
+									src="/api/playlists/{playlist.id}/cover?size=medium"
+									alt="Portada actual"
+									loading="lazy"
+									onerror={() => (editCoverFailed = true)}
+									class="h-full w-full object-cover"
+								/>
+							{:else}
+								<ImageIcon class="h-12 w-12 text-neutral-500" />
+							{/if}
+						</label>
+					</div>
+
+					<div class="flex flex-1 flex-col gap-4">
+						<div>
+							<label for="edit-name" class="mb-2 block text-sm font-medium text-neutral-300">Nombre</label>
+							<input
+								id="edit-name"
+								name="name"
+								type="text"
+								maxlength={100}
+								required
+								value={playlist.name}
+								class="w-full rounded-lg border border-transparent bg-[var(--mf-surface)] px-4 py-3 text-sm text-neutral-100 focus:border-[var(--mf-accent)]/50 focus:outline-none"
+							/>
+						</div>
+
+						<div class="flex min-h-0 flex-1 flex-col">
+							<label for="edit-desc" class="mb-2 block text-sm font-medium text-neutral-300">
+								Descripción <span class="text-neutral-500">(Opcional)</span>
+							</label>
+							<textarea
+								id="edit-desc"
+								name="description"
+								rows="3"
+								maxlength={300}
+								value={playlist.description}
+								class="w-full min-h-0 flex-1 resize-none rounded-lg border border-transparent bg-[var(--mf-surface)] px-4 py-3 text-sm text-neutral-100 focus:border-[var(--mf-accent)]/50 focus:outline-none"
+							></textarea>
+						</div>
+					</div>
 				</div>
-				<div>
-					<label for="edit-desc" class="mb-2 block text-sm font-medium text-neutral-300">Descripción</label>
-					<textarea
-						id="edit-desc"
-						name="description"
-						rows="3"
-						maxlength={300}
-						value={playlist.description}
-						class="w-full resize-none rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-emerald-500/60 focus:outline-none"
-					></textarea>
-				</div>
+
 				{#if form?.message}
 					<p class="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
 						{form.message}
 					</p>
 				{/if}
-				<div class="flex items-center justify-end gap-3 pt-1">
+				<div class="flex items-center justify-end gap-3">
 					<button
 						type="button"
 						onclick={() => (editing = false)}
@@ -285,9 +368,10 @@
 					</button>
 					<button
 						type="submit"
-						class="rounded-lg bg-[var(--mf-accent)] px-6 py-2.5 text-sm font-semibold text-neutral-950 transition hover:brightness-110"
+						disabled={savingEdit}
+						class="rounded-lg bg-[var(--mf-accent)] px-6 py-2.5 text-sm font-semibold text-neutral-800 transition disabled:opacity-40"
 					>
-						Guardar
+						{savingEdit ? 'Guardando…' : 'Guardar'}
 					</button>
 				</div>
 			</form>
