@@ -3,6 +3,7 @@
 	import Music from '@lucide/svelte/icons/music';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
+	import ListMusic from '@lucide/svelte/icons/list-music';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
@@ -389,7 +390,7 @@
 		}}
 	></div>
 	<div
-		class="fixed z-40 w-60 rounded-xl border border-[var(--mf-border)] bg-[var(--mf-elevated)] p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
+		class="fixed z-40 w-60 rounded-xl bg-[var(--mf-elevated)] p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
 		style="left:{contextMenu.x}px; top:{contextMenu.y}px;"
 	>
 		<button
@@ -398,13 +399,14 @@
 			class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[var(--mf-text-2)] transition hover:bg-white/5"
 		>
 			<ListPlus class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-			<span>Añadir a la cola</span>
+			<span class="text-base">Añadir a la cola</span>
 		</button>
 		<div class="group/addmenu relative">
 			<div
-				class="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--mf-text-2)] transition group-hover/addmenu:bg-white/5"
+				class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--mf-text-2)] transition group-hover/addmenu:bg-white/5"
 			>
-				<span>Añadir a una playlist</span>
+				<ListMusic class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+				<span class="flex-1">Añadir a una playlist</span>
 				<ChevronRight class="h-4 w-4 shrink-0 text-[var(--mf-text-3)]" />
 			</div>
 			<div
@@ -412,9 +414,7 @@
 					? 'right-full pr-1.5'
 					: 'left-full pl-1.5'}"
 			>
-				<div
-					class="w-64 overflow-hidden rounded-xl border border-[var(--mf-border)] bg-[var(--mf-elevated)] p-2 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
-				>
+				<div class="w-64 overflow-hidden rounded-xl bg-[var(--mf-elevated)] p-2 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]">
 					<div class="max-h-80 overflow-y-auto">
 						{#each data.playlists as playlist (playlist.id)}
 							<form
