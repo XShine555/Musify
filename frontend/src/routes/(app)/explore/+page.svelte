@@ -1,8 +1,6 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
-	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import Check from '@lucide/svelte/icons/check';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
@@ -22,17 +20,18 @@
 
 	let { data, form } = $props();
 
+	let searchValue = $state(data.query);
 	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	let ytItems = $state<YouTubeSong[]>([]);
 	let ytContinuation = $state('');
 	let ytLoadingMore = $state(false);
-	let addedVideoIds = $state<Set<string>>(new Set());
+	let contextMenu = $state<{ song: YouTubeSong; x: number; y: number } | null>(null);
 
 	$effect(() => {
 		ytItems = (data.ytResults?.items ?? []) as YouTubeSong[];
 		ytContinuation = data.ytResults?.continuationToken ?? '';
-		addedVideoIds = new Set();
+		contextMenu = null;
 	});
 
 	const tracks = $derived(data.tracks);
@@ -99,6 +98,22 @@
 		);
 	}
 
+	function openContextMenu(event: MouseEvent, song: YouTubeSong) {
+		if (data.playlists.length === 0) return;
+		event.preventDefault();
+		const menuWidth = 224;
+		const menuHeight = 56 + data.playlists.length * 40;
+		contextMenu = {
+			song,
+			x: Math.min(event.clientX, window.innerWidth - menuWidth - 8),
+			y: Math.min(event.clientY, window.innerHeight - menuHeight - 8)
+		};
+	}
+
+	function closeContextMenu() {
+		contextMenu = null;
+	}
+
 	async function loadMoreYouTube() {
 		if (!ytContinuation || ytLoadingMore) return;
 		ytLoadingMore = true;
@@ -132,7 +147,7 @@
 		</span>
 		<input
 			type="search"
-			value={data.query}
+			bind:value={searchValue}
 			oninput={onSearchInput}
 			placeholder="Buscar en tu música y en YouTube Music..."
 			autocomplete="off"
@@ -155,7 +170,7 @@
 
 	{#if localVisible}
 		{#if localHeadingVisible}
-			<h2 class="mt-10 font-display text-lg font-bold tracking-tight">Mi música</h2>
+			<h2 class="mt-10 font-display text-lg font-bold tracking-tight">Musify</h2>
 		{/if}
 
 		<p class="{localHeadingVisible ? 'mt-1' : 'mt-6'} text-sm text-neutral-500">
@@ -254,7 +269,11 @@
 		{:else}
 			<ul class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
 				{#each ytItems as song, i (song.videoId)}
-					<li class="group animate-enter relative" style="animation-delay:{i * 40}ms">
+					<li
+						class="group animate-enter relative"
+						style="animation-delay:{i * 40}ms"
+						oncontextmenu={(e) => openContextMenu(e, song)}
+					>
 						<button type="button" onclick={() => togglePlayYouTube(i)} class="block w-full text-left">
 							<Cover
 								trackId={song.videoId}
@@ -294,53 +313,6 @@
 								<span class="truncate text-xs text-neutral-500" title={song.artist}>{song.artist}</span>
 							</div>
 						</button>
-
-						{#if data.playlists.length > 0}
-							<details class="absolute right-2.5 top-2.5 z-10">
-								<summary
-									class="grid h-9 w-9 cursor-pointer list-none place-items-center rounded-full bg-neutral-950/70 text-white opacity-0 shadow-lg backdrop-blur-sm transition group-hover:opacity-100 [&::-webkit-details-marker]:hidden"
-									class:!opacity-100={addedVideoIds.has(song.videoId)}
-									title="Añadir a playlist"
-								>
-									{#if addedVideoIds.has(song.videoId)}
-										<Check class="h-4 w-4 text-emerald-400" />
-									{:else}
-										<ListPlus class="h-4 w-4" />
-									{/if}
-								</summary>
-								<div
-									class="absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-white/10 bg-neutral-900 p-2 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
-								>
-									<p class="px-3 py-1.5 text-xs font-semibold text-neutral-500">Añadir a playlist</p>
-									{#each data.playlists as playlist (playlist.id)}
-										<form
-											method="POST"
-											action="?/addYouTubeToPlaylist"
-											use:enhance={() =>
-												({ result, update }) => {
-													if (result.type === 'success') {
-														addedVideoIds = new Set([...addedVideoIds, song.videoId]);
-													}
-													return update({ reset: false });
-												}}
-										>
-											<input type="hidden" name="playlistId" value={playlist.id} />
-											<input type="hidden" name="videoId" value={song.videoId} />
-											<input type="hidden" name="title" value={song.title} />
-											<input type="hidden" name="artist" value={song.artist} />
-											<input type="hidden" name="durationSeconds" value={song.durationSeconds} />
-											<input type="hidden" name="thumbnailUrl" value={song.thumbnailUrl} />
-											<button
-												type="submit"
-												class="w-full truncate rounded-lg px-3 py-2 text-left text-sm text-neutral-200 transition hover:bg-white/5"
-											>
-												{playlist.name}
-											</button>
-										</form>
-									{/each}
-								</div>
-							</details>
-						{/if}
 					</li>
 				{/each}
 			</ul>
@@ -363,3 +335,49 @@
 		{/if}
 	{/if}
 </section>
+
+{#if contextMenu}
+	<div
+		class="fixed inset-0 z-30"
+		role="button"
+		tabindex="0"
+		onclick={closeContextMenu}
+		onkeydown={(e) => {
+			if (e.key === 'Escape') closeContextMenu();
+		}}
+		oncontextmenu={(e) => {
+			e.preventDefault();
+			closeContextMenu();
+		}}
+	></div>
+	<div
+		class="fixed z-40 w-56 rounded-2xl border border-white/10 bg-neutral-900 p-2 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
+		style="left:{contextMenu.x}px; top:{contextMenu.y}px;"
+	>
+		<p class="px-3 py-1.5 text-xs font-semibold text-neutral-500">Añadir a playlist</p>
+		{#each data.playlists as playlist (playlist.id)}
+			<form
+				method="POST"
+				action="?/addYouTubeToPlaylist"
+				use:enhance={() =>
+					({ update }) => {
+						closeContextMenu();
+						return update({ reset: false });
+					}}
+			>
+				<input type="hidden" name="playlistId" value={playlist.id} />
+				<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
+				<input type="hidden" name="title" value={contextMenu.song.title} />
+				<input type="hidden" name="artist" value={contextMenu.song.artist} />
+				<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
+				<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
+				<button
+					type="submit"
+					class="w-full truncate rounded-lg px-3 py-2 text-left text-sm text-neutral-200 transition hover:bg-white/5"
+				>
+					{playlist.name}
+				</button>
+			</form>
+		{/each}
+	</div>
+{/if}
