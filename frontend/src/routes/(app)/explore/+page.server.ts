@@ -4,39 +4,26 @@ import { createApiClient } from '$lib/server/api';
 
 const PAGE_SIZE = 24;
 
-type Source = 'all' | 'local' | 'yt';
-
-function parseSource(value: string | null): Source {
-	return value === 'local' || value === 'yt' ? value : 'all';
-}
-
 export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const query = url.searchParams.get('q')?.trim() ?? '';
-	const src = parseSource(url.searchParams.get('src'));
 	const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
-	const wantsLocal = src !== 'yt';
-	const wantsYouTube = src !== 'local';
-
-	const tracksPromise = wantsLocal
-		? api.GET('/tracks', {
-				params: { query: { name: query || undefined, pageNumber: page, pageSize: PAGE_SIZE } }
-			})
-		: Promise.resolve(null);
+	const tracksPromise = api.GET('/tracks', {
+		params: { query: { name: query || undefined, pageNumber: page, pageSize: PAGE_SIZE } }
+	});
 
 	const searchPromise =
-		wantsYouTube && query && locals.accessToken
+		query && locals.accessToken
 			? api.GET('/youtube/search', { params: { query: { query } } })
 			: Promise.resolve(null);
 
-	const playlistsPromise =
-		wantsYouTube && locals.user
-			? api.GET('/playlists/users/{userId}', {
-					params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 50 } }
-				})
-			: Promise.resolve(null);
+	const playlistsPromise = locals.user
+		? api.GET('/playlists/users/{userId}', {
+				params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 50 } }
+			})
+		: Promise.resolve(null);
 
 	const [tracksRes, searchRes, playlistsRes] = await Promise.all([
 		tracksPromise,
@@ -44,18 +31,17 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		playlistsPromise
 	]);
 
-	if (wantsLocal && (tracksRes?.error || !tracksRes?.data)) {
+	if (tracksRes.error || !tracksRes.data) {
 		error(502, 'No se pudieron cargar las canciones.');
 	}
 
 	return {
-		src,
 		query,
-		tracks: tracksRes?.data ?? null,
+		tracks: tracksRes.data,
 		ytResults: searchRes?.data ?? null,
 		ytError: Boolean(searchRes?.error),
 		playlists: playlistsRes?.data?.items ?? [],
-		needsAuth: wantsYouTube && !locals.user
+		needsAuth: !locals.user
 	};
 };
 
