@@ -389,20 +389,20 @@
 		}}
 	></div>
 	<div
-		class="fixed z-40 w-60 overflow-hidden rounded-xl border border-[var(--mf-border)] bg-[var(--mf-elevated)] py-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
+		class="fixed z-40 w-60 rounded-xl border border-[var(--mf-border)] bg-[var(--mf-elevated)] p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
 		style="left:{contextMenu.x}px; top:{contextMenu.y}px;"
 	>
 		<button
 			type="button"
 			onclick={() => addToQueue(contextMenu)}
-			class="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm font-semibold text-[var(--mf-text-2)] transition hover:bg-white/5"
+			class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[var(--mf-text-2)] transition hover:bg-white/5"
 		>
 			<ListPlus class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
 			<span>Añadir a la cola</span>
 		</button>
 		<div class="group/addmenu relative">
 			<div
-				class="flex items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold text-[var(--mf-text-2)] transition group-hover/addmenu:bg-white/5"
+				class="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--mf-text-2)] transition group-hover/addmenu:bg-white/5"
 			>
 				<span>Añadir a una playlist</span>
 				<ChevronRight class="h-4 w-4 shrink-0 text-[var(--mf-text-3)]" />
