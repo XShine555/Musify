@@ -20,6 +20,15 @@
 		isExplicit: boolean;
 	}
 
+	interface LocalTrackTarget {
+		id: string;
+		title: string;
+	}
+
+	type ContextMenuTarget =
+		| { kind: 'youtube'; song: YouTubeSong }
+		| { kind: 'local'; track: LocalTrackTarget };
+
 	let { data, form } = $props();
 
 	let searchValue = $state(data.query);
@@ -28,7 +37,7 @@
 	let ytItems = $state<YouTubeSong[]>([]);
 	let ytContinuation = $state('');
 	let ytLoadingMore = $state(false);
-	let contextMenu = $state<{ song: YouTubeSong; x: number; y: number; openLeft: boolean } | null>(
+	let contextMenu = $state<(ContextMenuTarget & { x: number; y: number; openLeft: boolean }) | null>(
 		null
 	);
 
@@ -102,13 +111,13 @@
 		);
 	}
 
-	function openContextMenu(event: MouseEvent, song: YouTubeSong) {
+	function openContextMenu(event: MouseEvent, target: ContextMenuTarget) {
 		if (data.playlists.length === 0) return;
 		event.preventDefault();
 		const menuWidth = 208;
 		const submenuWidth = 224;
 		contextMenu = {
-			song,
+			...target,
 			x: Math.min(event.clientX, window.innerWidth - menuWidth - 8),
 			y: Math.min(event.clientY, window.innerHeight - 60),
 			openLeft: event.clientX + menuWidth + submenuWidth + 16 > window.innerWidth
@@ -196,7 +205,11 @@
 		{:else}
 			<ul class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
 				{#each tracks.items as track, i (track.id)}
-					<li class="group animate-enter" style="animation-delay:{i * 40}ms">
+					<li
+						class="group animate-enter relative"
+						style="animation-delay:{i * 40}ms"
+						oncontextmenu={(e) => openContextMenu(e, { kind: 'local', track })}
+					>
 						<button type="button" onclick={() => togglePlayLocal(i)} class="block w-full text-left">
 							<Cover
 								trackId={track.id}
@@ -277,7 +290,7 @@
 					<li
 						class="group animate-enter relative"
 						style="animation-delay:{i * 40}ms"
-						oncontextmenu={(e) => openContextMenu(e, song)}
+						oncontextmenu={(e) => openContextMenu(e, { kind: 'youtube', song })}
 					>
 						<button type="button" onclick={() => togglePlayYouTube(i)} class="block w-full text-left">
 							<Cover
@@ -375,7 +388,7 @@
 					{#each data.playlists as playlist (playlist.id)}
 						<form
 							method="POST"
-							action="?/addYouTubeToPlaylist"
+							action={contextMenu.kind === 'youtube' ? '?/addYouTubeToPlaylist' : '?/addTrack'}
 							use:enhance={() =>
 								({ update }) => {
 									closeContextMenu();
@@ -383,11 +396,15 @@
 								}}
 						>
 							<input type="hidden" name="playlistId" value={playlist.id} />
-							<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
-							<input type="hidden" name="title" value={contextMenu.song.title} />
-							<input type="hidden" name="artist" value={contextMenu.song.artist} />
-							<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
-							<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
+							{#if contextMenu.kind === 'youtube'}
+								<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
+								<input type="hidden" name="title" value={contextMenu.song.title} />
+								<input type="hidden" name="artist" value={contextMenu.song.artist} />
+								<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
+								<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
+							{:else}
+								<input type="hidden" name="trackId" value={contextMenu.track.id} />
+							{/if}
 							<button
 								type="submit"
 								class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-neutral-200 transition hover:bg-white/5"
@@ -397,7 +414,7 @@
 									trackIds={[]}
 									hue={hueFor(playlist.id)}
 									size="small"
-									class="h-8 w-8 flex-shrink-0 rounded-md"
+									class="h-8 w-8 flex-shrink-0 rounded-lg"
 								/>
 								<span class="truncate">{playlist.name}</span>
 							</button>
