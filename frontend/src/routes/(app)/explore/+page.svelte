@@ -385,9 +385,9 @@
 					: 'left-full pl-1'}"
 			>
 				<div
-					class="w-56 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
+					class="w-64 rounded-2xl border border-white/10 bg-neutral-900 p-3 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
 				>
-					<div class="max-h-72 overflow-y-auto">
+					<div class="max-h-80 overflow-y-auto">
 						{#each data.playlists as playlist (playlist.id)}
 							<form
 								method="POST"
@@ -410,14 +410,14 @@
 								{/if}
 								<button
 									type="submit"
-									class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-neutral-200 transition hover:bg-white/5"
+									class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-base text-neutral-200 transition hover:bg-white/5"
 								>
 									<PlaylistArt
 										playlistId={playlist.id}
 										trackIds={[]}
 										hue={hueFor(playlist.id)}
 										size="small"
-										class="h-8 w-8 flex-shrink-0 rounded-lg"
+										class="h-11 w-11 flex-shrink-0 rounded-lg"
 									/>
 									<span class="truncate">{playlist.name}</span>
 								</button>
