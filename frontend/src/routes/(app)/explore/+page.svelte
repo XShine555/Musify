@@ -1,11 +1,13 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import { player, queueIdForTrack, toQueueItems } from '$lib/player/player.svelte';
 	import Cover from '$lib/components/ui/Cover.svelte';
+	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import { HUES } from '$lib/theme/color';
 
 	interface YouTubeSong {
@@ -26,7 +28,9 @@
 	let ytItems = $state<YouTubeSong[]>([]);
 	let ytContinuation = $state('');
 	let ytLoadingMore = $state(false);
-	let contextMenu = $state<{ song: YouTubeSong; x: number; y: number } | null>(null);
+	let contextMenu = $state<{ song: YouTubeSong; x: number; y: number; openLeft: boolean } | null>(
+		null
+	);
 
 	$effect(() => {
 		ytItems = (data.ytResults?.items ?? []) as YouTubeSong[];
@@ -101,12 +105,13 @@
 	function openContextMenu(event: MouseEvent, song: YouTubeSong) {
 		if (data.playlists.length === 0) return;
 		event.preventDefault();
-		const menuWidth = 224;
-		const menuHeight = 56 + data.playlists.length * 40;
+		const menuWidth = 208;
+		const submenuWidth = 224;
 		contextMenu = {
 			song,
 			x: Math.min(event.clientX, window.innerWidth - menuWidth - 8),
-			y: Math.min(event.clientY, window.innerHeight - menuHeight - 8)
+			y: Math.min(event.clientY, window.innerHeight - 60),
+			openLeft: event.clientX + menuWidth + submenuWidth + 16 > window.innerWidth
 		};
 	}
 
@@ -351,33 +356,55 @@
 		}}
 	></div>
 	<div
-		class="fixed z-40 w-56 rounded-2xl border border-white/10 bg-neutral-900 p-2 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
+		class="fixed z-40 w-52 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
 		style="left:{contextMenu.x}px; top:{contextMenu.y}px;"
 	>
-		<p class="px-3 py-1.5 text-xs font-semibold text-neutral-500">Añadir a playlist</p>
-		{#each data.playlists as playlist (playlist.id)}
-			<form
-				method="POST"
-				action="?/addYouTubeToPlaylist"
-				use:enhance={() =>
-					({ update }) => {
-						closeContextMenu();
-						return update({ reset: false });
-					}}
+		<div class="group/addmenu relative">
+			<div
+				class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-neutral-200 transition group-hover/addmenu:bg-white/5"
 			>
-				<input type="hidden" name="playlistId" value={playlist.id} />
-				<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
-				<input type="hidden" name="title" value={contextMenu.song.title} />
-				<input type="hidden" name="artist" value={contextMenu.song.artist} />
-				<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
-				<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
-				<button
-					type="submit"
-					class="w-full truncate rounded-lg px-3 py-2 text-left text-sm text-neutral-200 transition hover:bg-white/5"
-				>
-					{playlist.name}
-				</button>
-			</form>
-		{/each}
+				<span>Añadir a una playlist</span>
+				<ChevronRight class="h-4 w-4 shrink-0 text-neutral-500" />
+			</div>
+			<div
+				class="invisible absolute top-0 z-50 w-56 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 opacity-0 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)] transition group-hover/addmenu:visible group-hover/addmenu:opacity-100 {contextMenu.openLeft
+					? 'right-full mr-1'
+					: 'left-full ml-1'}"
+			>
+				<div class="max-h-72 overflow-y-auto">
+					{#each data.playlists as playlist (playlist.id)}
+						<form
+							method="POST"
+							action="?/addYouTubeToPlaylist"
+							use:enhance={() =>
+								({ update }) => {
+									closeContextMenu();
+									return update({ reset: false });
+								}}
+						>
+							<input type="hidden" name="playlistId" value={playlist.id} />
+							<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
+							<input type="hidden" name="title" value={contextMenu.song.title} />
+							<input type="hidden" name="artist" value={contextMenu.song.artist} />
+							<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
+							<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
+							<button
+								type="submit"
+								class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-neutral-200 transition hover:bg-white/5"
+							>
+								<PlaylistArt
+									playlistId={playlist.id}
+									trackIds={[]}
+									hue={hueFor(playlist.id)}
+									size="small"
+									class="h-8 w-8 flex-shrink-0 rounded-md"
+								/>
+								<span class="truncate">{playlist.name}</span>
+							</button>
+						</form>
+					{/each}
+				</div>
+			</div>
+		</div>
 	</div>
 {/if}
