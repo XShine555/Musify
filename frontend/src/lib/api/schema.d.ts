@@ -562,6 +562,7 @@ export interface components {
             /** Format: int32 */
             durationSeconds: number | string;
             thumbnailUrl: string;
+            isExplicit: boolean;
         };
         /** @enum {unknown} */
         YouTubeStreamMode: "Server" | "YouTube";

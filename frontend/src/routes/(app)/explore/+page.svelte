@@ -17,6 +17,7 @@
 		album: string;
 		durationSeconds: number;
 		thumbnailUrl: string;
+		isExplicit: boolean;
 	}
 
 	type Source = 'all' | 'local' | 'yt';
@@ -319,8 +320,16 @@
 								<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]" title={song.title}>
 									{song.title}
 								</div>
-								<div class="mt-0.5 truncate text-xs text-neutral-500" title={song.artist}>
-									{song.artist}
+								<div class="mt-0.5 flex min-w-0 items-center gap-1.5">
+									{#if song.isExplicit}
+										<span
+											class="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-[3px] bg-white/20 text-[9px] font-bold leading-none text-neutral-200"
+											title="Contenido explícito"
+										>
+											E
+										</span>
+									{/if}
+									<span class="truncate text-xs text-neutral-500" title={song.artist}>{song.artist}</span>
 								</div>
 							</button>
 

@@ -8,7 +8,8 @@ namespace Musify.Application.Contracts
         string Artist,
         string Album,
         int DurationSeconds,
-        string ThumbnailUrl);
+        string ThumbnailUrl,
+        bool IsExplicit);
 
     public record YouTubeSearchResult(
         IReadOnlyList<YouTubeSongResult> Items,

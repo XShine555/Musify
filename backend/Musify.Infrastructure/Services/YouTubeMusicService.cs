@@ -48,7 +48,8 @@ namespace Musify.Infrastructure.Services
                     song.Thumbnails
                         .OrderByDescending(thumbnail => thumbnail.Width)
                         .Select(thumbnail => thumbnail.Url)
-                        .FirstOrDefault() ?? string.Empty))
+                        .FirstOrDefault() ?? string.Empty,
+                    song.IsExplicit))
                 .ToList();
 
             var nextToken = string.Empty;
@@ -122,7 +123,8 @@ namespace Musify.Infrastructure.Services
                     info.Thumbnails
                         .OrderByDescending(thumbnail => thumbnail.Width)
                         .Select(thumbnail => thumbnail.Url)
-                        .FirstOrDefault() ?? string.Empty);
+                        .FirstOrDefault() ?? string.Empty,
+                    info.IsExplicit);
             }
             catch (Exception exception)
             {
