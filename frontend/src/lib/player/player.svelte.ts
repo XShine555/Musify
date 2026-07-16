@@ -37,27 +37,35 @@ export interface ApiTrackLike {
 	audioStatus?: 'Pending' | 'Processing' | 'Completed' | 'Failed';
 }
 
-export function isPendingYouTubeTrack(track: ApiTrackLike): boolean {
-	return track.source === 'YouTube' && track.audioStatus !== 'Completed';
+export function isYouTubeTrack(track: ApiTrackLike): boolean {
+	return track.source === 'YouTube';
 }
 
-export function queueIdForTrack(track: ApiTrackLike): string | number {
-	return isPendingYouTubeTrack(track) && track.externalId ? track.externalId : track.id;
+export function isPendingYouTubeTrack(track: ApiTrackLike): boolean {
+	return isYouTubeTrack(track) && track.audioStatus !== 'Completed';
 }
 
 export function youTubeThumbnailUrl(videoId: string): string {
 	return `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
 }
 
+export function queueIdForTrack(track: ApiTrackLike): string | number {
+	return isYouTubeTrack(track) && track.externalId ? track.externalId : track.id;
+}
+
 export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 	return tracks.map((track) => {
-		const pendingYouTube = isPendingYouTubeTrack(track);
+		const youTube = isYouTubeTrack(track);
 		return {
 			id: queueIdForTrack(track),
 			title: track.title,
 			artist: track.artist,
-			source: pendingYouTube ? 'youtube' : 'local',
-			coverUrl: pendingYouTube && track.externalId ? youTubeThumbnailUrl(track.externalId) : undefined
+			source: youTube ? 'youtube' : 'local',
+			coverUrl: youTube
+				? isPendingYouTubeTrack(track) && track.externalId
+					? youTubeThumbnailUrl(track.externalId)
+					: `/api/tracks/${track.id}/cover?size=small`
+				: undefined
 		};
 	});
 }
