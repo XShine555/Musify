@@ -338,7 +338,9 @@ class PlayerState {
 			this.playQueue([item], 0);
 			return;
 		}
-		this.tracks = [...this.tracks, toTrack(item)];
+		const tracks = [...this.tracks];
+		tracks.splice(this.#index() + 1, 0, toTrack(item));
+		this.tracks = tracks;
 	}
 
 	playTrack(id: string | number) {
