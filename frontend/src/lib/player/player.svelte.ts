@@ -333,6 +333,14 @@ class PlayerState {
 		this.#loadCurrent();
 	}
 
+	addToQueue(item: QueueItem) {
+		if (this.currentId === null) {
+			this.playQueue([item], 0);
+			return;
+		}
+		this.tracks = [...this.tracks, toTrack(item)];
+	}
+
 	playTrack(id: string | number) {
 		if (this.currentId === id) {
 			this.toggle();

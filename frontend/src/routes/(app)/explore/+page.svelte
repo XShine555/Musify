@@ -2,10 +2,17 @@
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { player, queueIdForTrack, toQueueItems } from '$lib/player/player.svelte';
+	import {
+		player,
+		queueIdForTrack,
+		toQueueItems,
+		type ApiTrackLike,
+		type QueueItem
+	} from '$lib/player/player.svelte';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import { HUES } from '$lib/theme/color';
@@ -20,14 +27,9 @@
 		isExplicit: boolean;
 	}
 
-	interface LocalTrackTarget {
-		id: string;
-		title: string;
-	}
-
 	type ContextMenuTarget =
 		| { kind: 'youtube'; song: YouTubeSong }
-		| { kind: 'local'; track: LocalTrackTarget };
+		| { kind: 'local'; track: ApiTrackLike };
 
 	let { data, form } = $props();
 
@@ -126,6 +128,24 @@
 
 	function closeContextMenu() {
 		contextMenu = null;
+	}
+
+	function queueItemFor(target: ContextMenuTarget): QueueItem {
+		return target.kind === 'youtube'
+			? {
+					id: target.song.videoId,
+					title: target.song.title,
+					artist: target.song.artist,
+					source: 'youtube',
+					coverUrl: target.song.thumbnailUrl
+				}
+			: toQueueItems([target.track])[0];
+	}
+
+	function addToQueue(target: ContextMenuTarget | null) {
+		if (!target) return;
+		player.addToQueue(queueItemFor(target));
+		closeContextMenu();
 	}
 
 	async function loadMoreYouTube() {
@@ -369,12 +389,20 @@
 		}}
 	></div>
 	<div
-		class="fixed z-40 w-52 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
+		class="fixed z-40 w-56 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
 		style="left:{contextMenu.x}px; top:{contextMenu.y}px;"
 	>
+		<button
+			type="button"
+			onclick={() => addToQueue(contextMenu)}
+			class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-base text-neutral-200 transition hover:bg-white/5"
+		>
+			<ListPlus class="h-4 w-4 shrink-0 text-neutral-500" />
+			<span>Añadir a la cola</span>
+		</button>
 		<div class="group/addmenu relative">
 			<div
-				class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-neutral-200 transition group-hover/addmenu:bg-white/5"
+				class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-base text-neutral-200 transition group-hover/addmenu:bg-white/5"
 			>
 				<span>Añadir a una playlist</span>
 				<ChevronRight class="h-4 w-4 shrink-0 text-neutral-500" />
