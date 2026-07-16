@@ -137,10 +137,12 @@ class PlayerState {
 		audio.addEventListener('play', () => {
 			this.playing = true;
 			this.#startProgressLoop();
+			this.#syncMediaSessionPlaybackState();
 		});
 		audio.addEventListener('pause', () => {
 			this.playing = false;
 			this.#stopProgressLoop();
+			this.#syncMediaSessionPlaybackState();
 		});
 		audio.addEventListener('ended', () => {
 			this.#stopProgressLoop();
@@ -162,7 +164,35 @@ class PlayerState {
 			this.error = 'No se pudo reproducir la pista.';
 		});
 		this.#audio = audio;
+		this.#setupMediaSession(audio);
 		return audio;
+	}
+
+	#setupMediaSession(audio: HTMLAudioElement) {
+		if (!('mediaSession' in navigator)) return;
+		navigator.mediaSession.setActionHandler('play', () => audio.play().catch(() => {}));
+		navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+		navigator.mediaSession.setActionHandler('previoustrack', () => this.previous());
+		navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
+	}
+
+	#syncMediaSessionPlaybackState() {
+		if (!browser || !('mediaSession' in navigator)) return;
+		navigator.mediaSession.playbackState = this.playing ? 'playing' : 'paused';
+	}
+
+	#syncMediaSessionMetadata(track: PlayerTrack) {
+		if (!browser || !('mediaSession' in navigator)) return;
+		if (!track.id) {
+			navigator.mediaSession.metadata = null;
+			return;
+		}
+		const artwork = track.coverUrl ?? `/api/tracks/${track.id}/cover?size=small`;
+		navigator.mediaSession.metadata = new MediaMetadata({
+			title: track.title,
+			artist: track.artist,
+			artwork: [{ src: artwork, sizes: '256x256' }]
+		});
 	}
 
 	#tickProgress = () => {
@@ -229,6 +259,7 @@ class PlayerState {
 		const id = this.currentId;
 		const track = this.tracks.find((t) => t.id === id);
 		this.#applyAccent(id, track?.coverUrl);
+		if (track) this.#syncMediaSessionMetadata(track);
 		const token = ++this.#loadToken;
 		this.loading = true;
 		this.error = '';
