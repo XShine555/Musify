@@ -35,10 +35,19 @@
 		addedVideoIds = new Set();
 	});
 
-	const showHeadings = $derived(!!data.query);
 	const tracks = $derived(data.tracks);
 	const currentPage = $derived(Number(data.tracks.pageNumber));
 	const total = $derived(Number(data.tracks.totalItemCount));
+
+	const localVisible = $derived(!data.query || tracks.items.length > 0);
+	const youtubeVisible = $derived(
+		!!data.query && (data.needsAuth || data.ytError || ytItems.length > 0)
+	);
+	const localHeadingVisible = $derived(!!data.query && localVisible);
+	const youtubeHeadingVisible = $derived(!!data.query && youtubeVisible);
+	const nothingFound = $derived(
+		!!data.query && !localVisible && !youtubeVisible && !data.needsAuth && !data.ytError
+	);
 
 	function buildHref(page = 1, query = data.query) {
 		const params = new URLSearchParams();
@@ -137,95 +146,98 @@
 		</p>
 	{/if}
 
-	{#if showHeadings}
-		<h2 class="mt-10 font-display text-lg font-bold tracking-tight">Mi música</h2>
-	{/if}
-
-	<p class="{showHeadings ? 'mt-1' : 'mt-6'} text-sm text-neutral-500">
-		{#if data.query}
-			{total}
-			{total === 1 ? 'resultado' : 'resultados'} para «{data.query}»
-		{:else}
-			{total}
-			{total === 1 ? 'canción' : 'canciones'}
-		{/if}
-	</p>
-
-	{#if tracks.items.length === 0}
-		<div class="mt-6 rounded-2xl border border-white/10 bg-neutral-900/40 p-10 text-center backdrop-blur-md">
-			<Music class="mx-auto h-8 w-8 text-neutral-500" />
-			<p class="mt-3 text-sm text-neutral-300">
-				{#if data.query}
-					No hay canciones tuyas que coincidan con «{data.query}».
-				{:else}
-					Todavía no hay canciones. ¡Sé el primero en subir una!
-				{/if}
-			</p>
+	{#if nothingFound}
+		<div class="mt-10 rounded-2xl border border-white/10 bg-neutral-900/40 p-12 text-center backdrop-blur-md">
+			<Music class="mx-auto h-10 w-10 text-neutral-500" />
+			<p class="mt-4 text-neutral-300">No hay resultados para «{data.query}».</p>
 		</div>
-	{:else}
-		<ul class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-			{#each tracks.items as track, i (track.id)}
-				<li class="group animate-enter" style="animation-delay:{i * 40}ms">
-					<button type="button" onclick={() => togglePlayLocal(i)} class="block w-full text-left">
-						<Cover
-							trackId={track.id}
-							hue={hueFor(track.id)}
-							size="large"
-							alt={track.title}
-							class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
-						>
-							<span
-								class="absolute right-2.5 bottom-2.5 grid h-11 w-11 translate-y-2 place-items-center rounded-full bg-[var(--mf-accent)] text-neutral-950 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100"
-								class:!opacity-100={player.current?.id === queueIdForTrack(track)}
-								class:!translate-y-0={player.current?.id === queueIdForTrack(track)}
-							>
-								{#if player.current?.id === queueIdForTrack(track) && player.isPlaying}
-									<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-										<path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-									</svg>
-								{:else}
-									<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-										<path d="M8 5v14l11-7z" />
-									</svg>
-								{/if}
-							</span>
-						</Cover>
-						<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]" title={track.title}>
-							{track.title}
-						</div>
-						{#if track.artist}
-							<div class="mt-0.5 truncate text-xs text-neutral-500">{track.artist}</div>
-						{/if}
-					</button>
-				</li>
-			{/each}
-		</ul>
+	{/if}
 
-		{#if tracks.hasPreviousPage || tracks.hasNextPage}
-			<nav class="mt-8 flex items-center justify-center gap-4">
-				{#if tracks.hasPreviousPage}
-					<a
-						href={buildHref(currentPage - 1)}
-						class="rounded-lg border border-white/10 px-5 py-2 text-sm text-white/65 transition hover:bg-white/2.5"
-					>
-						Anterior
-					</a>
-				{/if}
-				<span class="text-sm text-neutral-500">Página {currentPage}</span>
-				{#if tracks.hasNextPage}
-					<a
-						href={buildHref(currentPage + 1)}
-						class="rounded-lg border border-white/10 px-5 py-2 text-sm text-white/65 transition hover:bg-white/2.5"
-					>
-						Siguiente
-					</a>
-				{/if}
-			</nav>
+	{#if localVisible}
+		{#if localHeadingVisible}
+			<h2 class="mt-10 font-display text-lg font-bold tracking-tight">Mi música</h2>
+		{/if}
+
+		<p class="{localHeadingVisible ? 'mt-1' : 'mt-6'} text-sm text-neutral-500">
+			{#if data.query}
+				{total}
+				{total === 1 ? 'resultado' : 'resultados'} para «{data.query}»
+			{:else}
+				{total}
+				{total === 1 ? 'canción' : 'canciones'}
+			{/if}
+		</p>
+
+		{#if tracks.items.length === 0}
+			<div class="mt-6 rounded-2xl border border-white/10 bg-neutral-900/40 p-10 text-center backdrop-blur-md">
+				<Music class="mx-auto h-8 w-8 text-neutral-500" />
+				<p class="mt-3 text-sm text-neutral-300">Todavía no hay canciones. ¡Sé el primero en subir una!</p>
+			</div>
+		{:else}
+			<ul class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
+				{#each tracks.items as track, i (track.id)}
+					<li class="group animate-enter" style="animation-delay:{i * 40}ms">
+						<button type="button" onclick={() => togglePlayLocal(i)} class="block w-full text-left">
+							<Cover
+								trackId={track.id}
+								hue={hueFor(track.id)}
+								size="large"
+								alt={track.title}
+								class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
+							>
+								<span
+									class="absolute right-2.5 bottom-2.5 grid h-11 w-11 translate-y-2 place-items-center rounded-full bg-[var(--mf-accent)] text-neutral-950 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100"
+									class:!opacity-100={player.current?.id === queueIdForTrack(track)}
+									class:!translate-y-0={player.current?.id === queueIdForTrack(track)}
+								>
+									{#if player.current?.id === queueIdForTrack(track) && player.isPlaying}
+										<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+											<path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+										</svg>
+									{:else}
+										<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+											<path d="M8 5v14l11-7z" />
+										</svg>
+									{/if}
+								</span>
+							</Cover>
+							<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]" title={track.title}>
+								{track.title}
+							</div>
+							{#if track.artist}
+								<div class="mt-0.5 truncate text-xs text-neutral-500">{track.artist}</div>
+							{/if}
+						</button>
+					</li>
+				{/each}
+			</ul>
+
+			{#if tracks.hasPreviousPage || tracks.hasNextPage}
+				<nav class="mt-8 flex items-center justify-center gap-4">
+					{#if tracks.hasPreviousPage}
+						<a
+							href={buildHref(currentPage - 1)}
+							class="rounded-lg border border-white/10 px-5 py-2 text-sm text-white/65 transition hover:bg-white/2.5"
+						>
+							Anterior
+						</a>
+					{/if}
+					<span class="text-sm text-neutral-500">Página {currentPage}</span>
+					{#if tracks.hasNextPage}
+						<a
+							href={buildHref(currentPage + 1)}
+							class="rounded-lg border border-white/10 px-5 py-2 text-sm text-white/65 transition hover:bg-white/2.5"
+						>
+							Siguiente
+						</a>
+					{/if}
+				</nav>
+			{/if}
 		{/if}
 	{/if}
 
-	{#if data.query}
-		{#if showHeadings}
+	{#if youtubeVisible}
+		{#if youtubeHeadingVisible}
 			<h2 class="mt-12 font-display text-lg font-bold tracking-tight">YouTube Music</h2>
 		{/if}
 
@@ -238,11 +250,6 @@
 			<div class="mt-6 rounded-2xl border border-white/10 bg-neutral-900/40 p-10 text-center backdrop-blur-md">
 				<Music class="mx-auto h-8 w-8 text-neutral-500" />
 				<p class="mt-3 text-sm text-neutral-300">YouTube Music no está disponible ahora mismo. Inténtalo de nuevo.</p>
-			</div>
-		{:else if ytItems.length === 0}
-			<div class="mt-6 rounded-2xl border border-white/10 bg-neutral-900/40 p-10 text-center backdrop-blur-md">
-				<Music class="mx-auto h-8 w-8 text-neutral-500" />
-				<p class="mt-3 text-sm text-neutral-300">No hay resultados en YouTube Music para «{data.query}».</p>
 			</div>
 		{:else}
 			<ul class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
