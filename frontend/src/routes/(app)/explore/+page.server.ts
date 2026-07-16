@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { createApiClient } from '$lib/server/api';
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 27;
 
 export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const query = url.searchParams.get('q')?.trim() ?? '';
