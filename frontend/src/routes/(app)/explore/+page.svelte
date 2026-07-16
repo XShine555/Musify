@@ -380,46 +380,50 @@
 				<ChevronRight class="h-4 w-4 shrink-0 text-neutral-500" />
 			</div>
 			<div
-				class="invisible absolute top-0 z-50 w-56 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 opacity-0 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)] transition group-hover/addmenu:visible group-hover/addmenu:opacity-100 {contextMenu.openLeft
-					? 'right-full mr-1'
-					: 'left-full ml-1'}"
+				class="invisible absolute top-0 z-50 opacity-0 transition group-hover/addmenu:visible group-hover/addmenu:opacity-100 {contextMenu.openLeft
+					? 'right-full pr-1'
+					: 'left-full pl-1'}"
 			>
-				<div class="max-h-72 overflow-y-auto">
-					{#each data.playlists as playlist (playlist.id)}
-						<form
-							method="POST"
-							action={contextMenu.kind === 'youtube' ? '?/addYouTubeToPlaylist' : '?/addTrack'}
-							use:enhance={() =>
-								({ update }) => {
-									closeContextMenu();
-									return update({ reset: false });
-								}}
-						>
-							<input type="hidden" name="playlistId" value={playlist.id} />
-							{#if contextMenu.kind === 'youtube'}
-								<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
-								<input type="hidden" name="title" value={contextMenu.song.title} />
-								<input type="hidden" name="artist" value={contextMenu.song.artist} />
-								<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
-								<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
-							{:else}
-								<input type="hidden" name="trackId" value={contextMenu.track.id} />
-							{/if}
-							<button
-								type="submit"
-								class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-neutral-200 transition hover:bg-white/5"
+				<div
+					class="w-56 rounded-2xl border border-white/10 bg-neutral-900 p-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.8)]"
+				>
+					<div class="max-h-72 overflow-y-auto">
+						{#each data.playlists as playlist (playlist.id)}
+							<form
+								method="POST"
+								action={contextMenu.kind === 'youtube' ? '?/addYouTubeToPlaylist' : '?/addTrack'}
+								use:enhance={() =>
+									({ update }) => {
+										closeContextMenu();
+										return update({ reset: false });
+									}}
 							>
-								<PlaylistArt
-									playlistId={playlist.id}
-									trackIds={[]}
-									hue={hueFor(playlist.id)}
-									size="small"
-									class="h-8 w-8 flex-shrink-0 rounded-lg"
-								/>
-								<span class="truncate">{playlist.name}</span>
-							</button>
-						</form>
-					{/each}
+								<input type="hidden" name="playlistId" value={playlist.id} />
+								{#if contextMenu.kind === 'youtube'}
+									<input type="hidden" name="videoId" value={contextMenu.song.videoId} />
+									<input type="hidden" name="title" value={contextMenu.song.title} />
+									<input type="hidden" name="artist" value={contextMenu.song.artist} />
+									<input type="hidden" name="durationSeconds" value={contextMenu.song.durationSeconds} />
+									<input type="hidden" name="thumbnailUrl" value={contextMenu.song.thumbnailUrl} />
+								{:else}
+									<input type="hidden" name="trackId" value={contextMenu.track.id} />
+								{/if}
+								<button
+									type="submit"
+									class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-neutral-200 transition hover:bg-white/5"
+								>
+									<PlaylistArt
+										playlistId={playlist.id}
+										trackIds={[]}
+										hue={hueFor(playlist.id)}
+										size="small"
+										class="h-8 w-8 flex-shrink-0 rounded-lg"
+									/>
+									<span class="truncate">{playlist.name}</span>
+								</button>
+							</form>
+						{/each}
+					</div>
 				</div>
 			</div>
 		</div>
