@@ -46,6 +46,32 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 };
 
 export const actions: Actions = {
+	addTrack: async ({ request, locals, fetch }) => {
+		if (!locals.accessToken) return fail(401, { message: 'Inicia sesión.' });
+
+		const form = await request.formData();
+		const playlistId = String(form.get('playlistId') ?? '');
+		const trackId = String(form.get('trackId') ?? '');
+
+		if (!playlistId || !trackId) {
+			return fail(400, { message: 'Faltan datos de la canción.' });
+		}
+
+		const api = createApiClient({ fetch, accessToken: locals.accessToken });
+		const { error: err, response } = await api.POST('/playlists/{playlistId}/tracks/{trackId}', {
+			params: { path: { playlistId, trackId } }
+		});
+
+		if (err) {
+			if (response?.status === 409) {
+				return fail(409, { message: 'La canción ya está en esa playlist.', trackId });
+			}
+			return fail(502, { message: 'No se pudo añadir la canción.', trackId });
+		}
+
+		return { added: true, trackId, playlistId };
+	},
+
 	addYouTubeToPlaylist: async ({ request, locals, fetch }) => {
 		if (!locals.accessToken) return fail(401, { message: 'Inicia sesión.' });
 
