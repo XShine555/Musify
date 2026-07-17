@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" />
-    <PackageReference Include="DispatchR.Mediator" />
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.RabbitMQ" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

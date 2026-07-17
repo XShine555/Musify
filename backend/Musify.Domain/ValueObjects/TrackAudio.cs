@@ -19,5 +19,9 @@ namespace Musify.Domain.ValueObjects
 
         [MemberNotNullWhen(true, nameof(FolderName))]
         public bool IsProcessed => TranscodeStatus == ProcessingStatus.Completed;
+
+        public bool IsFailed => TranscodeStatus == ProcessingStatus.Failed;
+
+        public bool IsInProgress => TranscodeStatus is ProcessingStatus.Pending or ProcessingStatus.Processing;
     }
 }

@@ -22,7 +22,7 @@ namespace Musify.Application.PlayLists
         {
             var playList = await database.PlayLists.AsNoTracking()
                 .Where(p => p.Id == request.PlayListId)
-                .Select(p => new { p.SmallPictureName, p.MediumPictureName, p.LargePictureName })
+                .Select(p => new { p.Pictures.SmallName, p.Pictures.MediumName, p.Pictures.LargeName })
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (playList == null)
@@ -31,9 +31,9 @@ namespace Musify.Application.PlayLists
             var routes = playListConfiguration.Routes;
             var (name, key, presetName) = request.Size.ToLowerInvariant() switch
             {
-                "small" => (playList.SmallPictureName, BuildKey(routes.BuildSmallPicturePath, playList.SmallPictureName), routes.PresetSmallPicture),
-                "large" => (playList.LargePictureName, BuildKey(routes.BuildLargePicturePath, playList.LargePictureName), routes.PresetLargePicture),
-                _ => (playList.MediumPictureName, BuildKey(routes.BuildMediumPicturePath, playList.MediumPictureName), routes.PresetMediumPicture)
+                "small" => (playList.SmallName, BuildKey(routes.BuildSmallPicturePath, playList.SmallName), routes.PresetSmallPicture),
+                "large" => (playList.LargeName, BuildKey(routes.BuildLargePicturePath, playList.LargeName), routes.PresetLargePicture),
+                _ => (playList.MediumName, BuildKey(routes.BuildMediumPicturePath, playList.MediumName), routes.PresetMediumPicture)
             };
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(key) || name == presetName)

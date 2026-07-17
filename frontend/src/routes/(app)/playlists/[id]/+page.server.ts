@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch }) => {
 			params: { path: { playlistId: params.id }, query: { pageNumber: 1, pageSize: 200 } }
 		}),
 		api.GET('/tracks/users/{userId}', {
-			params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 200 } }
+			params: { path: { userId: locals.user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 		})
 	]);
 

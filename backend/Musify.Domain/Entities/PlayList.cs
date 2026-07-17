@@ -26,23 +26,9 @@ namespace Musify.Domain.Entities
 
         [Required]
         [MaxLength(256)]
-        public required string Description { get; set; } = "No description was provided.";
+        public string Description { get; set; } = "No description was provided.";
 
-        [Required]
-        [MaxLength(64)]
-        public required string OriginalPictureName { get; set; }
-
-        [Required]
-        [MaxLength(64)]
-        public required string SmallPictureName { get; set; }
-
-        [Required]
-        [MaxLength(64)]
-        public required string MediumPictureName { get; set; }
-
-        [Required]
-        [MaxLength(64)]
-        public required string LargePictureName { get; set; }
+        public required PlayListPictures Pictures { get; set; }
 
         [Required]
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;

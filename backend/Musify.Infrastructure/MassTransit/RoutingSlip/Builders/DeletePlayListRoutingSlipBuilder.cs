@@ -42,44 +42,44 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 var bucket = storageConfiguration.Bucket;
                 var routes = playListConfiguration.Routes;
 
-                if (playList.OriginalPictureName != routes.PresetOriginalPicture)
+                if (playList.Pictures.OriginalName != routes.PresetOriginalPicture)
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemovePlayListOriginalPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            routes.BuildOriginalPicturePath(userId, playList.OriginalPictureName)));
+                            routes.BuildOriginalPicturePath(userId, playList.Pictures.OriginalName)));
                 }
 
-                if (playList.SmallPictureName != routes.PresetSmallPicture)
+                if (playList.Pictures.SmallName != routes.PresetSmallPicture)
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemovePlayListSmallPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            routes.BuildSmallPicturePath(playList.SmallPictureName)));
+                            routes.BuildSmallPicturePath(playList.Pictures.SmallName)));
                 }
 
-                if (playList.MediumPictureName != routes.PresetMediumPicture)
+                if (playList.Pictures.MediumName != routes.PresetMediumPicture)
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemovePlayListMediumPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            routes.BuildMediumPicturePath(playList.MediumPictureName)));
+                            routes.BuildMediumPicturePath(playList.Pictures.MediumName)));
                 }
 
-                if (playList.LargePictureName != routes.PresetLargePicture)
+                if (playList.Pictures.LargeName != routes.PresetLargePicture)
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemovePlayListLargePicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            routes.BuildLargePicturePath(playList.LargePictureName)));
+                            routes.BuildLargePicturePath(playList.Pictures.LargeName)));
                 }
             }
 

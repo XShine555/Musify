@@ -8,6 +8,7 @@ using Musify.Application.Events;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 using Musify.Application.Contracts;
 
 namespace Musify.Application.PlayLists
@@ -65,10 +66,13 @@ namespace Musify.Application.PlayLists
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
-                OriginalPictureName = originalPictureName,
-                SmallPictureName = playListConfiguration.Routes.PresetSmallPicture,
-                MediumPictureName = playListConfiguration.Routes.PresetMediumPicture,
-                LargePictureName = playListConfiguration.Routes.PresetLargePicture
+                Pictures = new PlayListPictures
+                {
+                    OriginalName = originalPictureName,
+                    SmallName = playListConfiguration.Routes.PresetSmallPicture,
+                    MediumName = playListConfiguration.Routes.PresetMediumPicture,
+                    LargeName = playListConfiguration.Routes.PresetLargePicture
+                }
             };
 
             await database.PlayLists.AddAsync(playList, cancellationToken);

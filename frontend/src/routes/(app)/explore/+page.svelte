@@ -396,17 +396,16 @@
 		<button
 			type="button"
 			onclick={() => addToQueue(contextMenu)}
-			class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[var(--mf-text-2)] transition hover:bg-white/5"
+			class="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-sm text-[var(--mf-text-2)] transition hover:bg-white/5"
 		>
-			<ListPlus class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+			<ListPlus class="h-6 w-6 shrink-0" strokeWidth={2} />
 			<span class="text-base">Añadir a la cola</span>
 		</button>
 		<div class="group/addmenu relative">
 			<div
-				class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--mf-text-2)] transition group-hover/addmenu:bg-white/5"
+				class="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-[var(--mf-text-2)] transition group-hover/addmenu:bg-white/5"
 			>
-				<ListMusic class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-				<span class="flex-1">Añadir a una playlist</span>
+				<span class="flex-1 text-base cursor-default">Añadir a una playlist</span>
 				<ChevronRight class="h-4 w-4 shrink-0 text-[var(--mf-text-3)]" />
 			</div>
 			<div
@@ -445,9 +444,9 @@
 										trackIds={[]}
 										hue={hueFor(playlist.id)}
 										size="small"
-										class="h-11 w-11 flex-shrink-0 rounded-lg"
+										class="h-8 w-8 flex-shrink-0 rounded-lg"
 									/>
-									<span class="truncate">{playlist.name}</span>
+									<span class="truncate text-base text-[var(--mf-text-2)]">{playlist.name}</span>
 								</button>
 							</form>
 						{/each}

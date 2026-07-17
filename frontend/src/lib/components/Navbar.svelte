@@ -30,7 +30,7 @@
 				</a>
 				<form method="POST" action="/logout">
 					<button
-						class="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/5"
+						class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/65 transition hover:bg-white/2.5"
 					>
 						Salir
 					</button>

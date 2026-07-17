@@ -40,6 +40,12 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [NotMapped]
+        public bool IsConsumed => Status == UploadIntentStatus.Consumed;
+
+        [NotMapped]
+        public bool IsExpired => Status == UploadIntentStatus.Expired || ExpiresAt < DateTime.UtcNow;
+
         [ForeignKey(nameof(UserId)) ]
         public User User { get; set; } = null!;
     }

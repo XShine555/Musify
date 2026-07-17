@@ -49,10 +49,13 @@ namespace Musify.Application.PlayLists
                 return Error.Conflict(description: "Track is already in the playlist.");
             }
 
-            var nextPosition = await database.PlayListHasTracks
-                .Where(plt => plt.PlayListId == request.PlayListId)
-                .Select(plt => (int?)plt.Position)
-                .MaxAsync(cancellationToken) + 1 ?? 0;
+            var playListTracksQuery = database.PlayListHasTracks
+                .Where(plt => plt.PlayListId == request.PlayListId);
+
+            var hasTracks = await playListTracksQuery.AnyAsync(cancellationToken);
+            var nextPosition = hasTracks
+                ? await playListTracksQuery.MaxAsync(plt => plt.Position, cancellationToken) + 1
+                : 0;
 
             await database.PlayListHasTracks.AddAsync(new PlayListHasTrack
             {

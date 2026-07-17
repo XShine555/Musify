@@ -30,11 +30,11 @@
 	const mainLinks = [
 		{ href: '/', label: 'Inicio', icon: Home },
 		{ href: '/explore', label: 'Buscar', icon: Search },
-		{ href: '/playlists', label: 'Mis listas', icon: ListMusic }
+		{ href: '/playlists', label: 'Listas', icon: ListMusic }
 	];
 
 	const secondaryLinks = [
-		{ href: '/library', label: 'Tus canciones subidas', icon: Library },
+		{ href: '/library', label: 'Canciones subidas', icon: Library },
 		{ href: '/upload', label: 'Subir música', icon: Upload }
 	];
 
@@ -65,7 +65,7 @@
 	<a
 		href={link.href}
 		data-active={active}
-		class="relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[14px] font-semibold transition-colors duration-100 {active
+		class="relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 font-semibold transition-colors duration-100 {active
 			? 'text-[var(--mf-text)]'
 			: 'text-[var(--mf-text-2)] hover:bg-white/5 hover:text-[var(--mf-text)]'}"
 	>

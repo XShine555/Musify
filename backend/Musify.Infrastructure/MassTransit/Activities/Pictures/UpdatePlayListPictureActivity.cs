@@ -39,15 +39,15 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 
                 var log = new UpdatePlayListPictureLog(
                     playList.Id,
-                    playList.OriginalPictureName,
-                    playList.SmallPictureName,
-                    playList.MediumPictureName,
-                    playList.LargePictureName);
+                    playList.Pictures.OriginalName,
+                    playList.Pictures.SmallName,
+                    playList.Pictures.MediumName,
+                    playList.Pictures.LargeName);
 
-                playList.OriginalPictureName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
-                playList.SmallPictureName = Path.GetFileName(smallResizedVariable);
-                playList.MediumPictureName = Path.GetFileName(mediumResizedVariable);
-                playList.LargePictureName = Path.GetFileName(largeResizedVariable);
+                playList.Pictures.OriginalName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
+                playList.Pictures.SmallName = Path.GetFileName(smallResizedVariable);
+                playList.Pictures.MediumName = Path.GetFileName(mediumResizedVariable);
+                playList.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
@@ -82,10 +82,10 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     return compensateContext.Compensated();
                 }
 
-                playList.OriginalPictureName = compensateContext.Log.PreviousOriginalPictureKey;
-                playList.SmallPictureName = compensateContext.Log.PreviousSmallPictureKey;
-                playList.MediumPictureName = compensateContext.Log.PreviousMediumPictureKey;
-                playList.LargePictureName = compensateContext.Log.PreviousLargePictureKey;
+                playList.Pictures.OriginalName = compensateContext.Log.PreviousOriginalPictureKey;
+                playList.Pictures.SmallName = compensateContext.Log.PreviousSmallPictureKey;
+                playList.Pictures.MediumName = compensateContext.Log.PreviousMediumPictureKey;
+                playList.Pictures.LargeName = compensateContext.Log.PreviousLargePictureKey;
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);

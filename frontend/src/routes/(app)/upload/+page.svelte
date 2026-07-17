@@ -160,7 +160,7 @@
 				<button
 					type="button"
 					onclick={reset}
-					class="rounded-lg border border-white/20 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-md transition hover:bg-white/5"
+					class="rounded-lg border border-white/10 px-8 py-3.5 text-base text-white/65 transition hover:bg-white/2.5"
 				>
 					Subir otra
 				</button>
@@ -311,7 +311,7 @@
 			<div class="flex items-center justify-end gap-4">
 				<a
 					href="/explore"
-					class="rounded-lg border border-white/20 px-8 py-3.5 text-base font-semibold text-white backdrop-blur-md transition hover:bg-white/5"
+					class="rounded-lg border border-white/10 px-8 py-3.5 text-base text-white/65 transition hover:bg-white/2.5"
 				>
 					Cancelar
 				</a>

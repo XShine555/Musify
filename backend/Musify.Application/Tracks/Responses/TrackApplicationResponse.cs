@@ -25,7 +25,7 @@ namespace Musify.Application.Tracks.Responses
                 track.Source,
                 track.ExternalId,
                 track.Audio.TranscodeStatus,
-                track.Duration,
+                track.DurationSeconds,
                 listensCount,
                 track.OwnerUserId,
                 track.CreatedAt,

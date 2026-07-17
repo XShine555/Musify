@@ -130,14 +130,14 @@
 			if (e.key === 'Escape') creating = false;
 		}}
 	>
-		<div class="animate-pop w-full max-w-2xl rounded-2xl bg-[var(--mf-bg)] p-6 shadow-2xl">
+		<div class="animate-pop w-full max-w-2xl rounded-lg bg-[var(--mf-bg)] p-6 shadow-2xl">
 			<div class="flex items-center justify-between">
 				<h2 class="text-2xl font-bold tracking-tight">Nueva lista</h2>
 				<button
 					type="button"
 					onclick={() => (creating = false)}
 					aria-label="Cerrar"
-					class="grid h-8 w-8 place-items-center rounded-full text-neutral-400 transition hover:bg-white/5 hover:text-white"
+					class="grid h-8 w-8 place-items-center rounded-lg text-neutral-400 transition hover:bg-white/5 hover:text-white"
 				>
 					<X class="h-4 w-4" />
 				</button>
@@ -222,7 +222,7 @@
 					<button
 						type="button"
 						onclick={() => (creating = false)}
-						class="rounded-lg border border-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/5"
+						class="rounded-lg border border-white/10 px-5 py-2.5 text-sm text-white/65 transition hover:bg-white/2.5"
 					>
 						Cancelar
 					</button>

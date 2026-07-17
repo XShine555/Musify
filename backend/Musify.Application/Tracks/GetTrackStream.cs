@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Application.Tracks.Responses;
-using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks
 {
@@ -22,20 +21,19 @@ namespace Musify.Application.Tracks
         {
             var track = await database.Tracks.AsNoTracking()
                 .Where(t => t.Id == request.TrackId)
-                .Select(t => new { t.Id, t.Audio.TranscodeStatus, t.Audio.FolderName } )
+                .Select(t => new { t.Id, t.Audio })
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (track == null)
                 return Error.NotFound();
 
-            if (string.IsNullOrWhiteSpace(track.FolderName)
-                || track.TranscodeStatus != ProcessingStatus.Completed)
+            if (!track.Audio.IsProcessed)
             {
                 logger.LogInformation("Stream requested for track {TrackId} but audio is not ready", request.TrackId);
                 return Error.Conflict(description: "Track audio is not available for streaming yet.");
             }
 
-            var response = await streamIssuer.IssueAsync(track.Id, track.FolderName, request.UserId, cancellationToken);
+            var response = await streamIssuer.IssueAsync(track.Id, track.Audio.FolderName, request.UserId, cancellationToken);
 
             logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId);
 

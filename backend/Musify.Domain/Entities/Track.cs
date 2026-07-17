@@ -20,7 +20,7 @@ namespace Musify.Domain.Entities
         public required string NormalizedTitle { get; set; }
 
         [Required]
-        public int Duration { get; set; }
+        public int DurationSeconds { get; set; }
 
         public long? OwnerUserId { get; set; }
 
@@ -43,7 +43,7 @@ namespace Musify.Domain.Entities
 
         public TrackAudio Audio { get; set; } = new();
 
-        [ForeignKey(nameof(OwnerUserId))]
+        [ForeignKey(nameof(OwnerUserId)) ]
         public User? Owner { get; set; }
 
         public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
@@ -53,5 +53,8 @@ namespace Musify.Domain.Entities
         public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
 
         public ICollection<TrackArtist> TrackArtists { get; set; } = new List<TrackArtist>();
+
+        [NotMapped]
+        public bool IsExternal => Source != TrackSource.Local;
     }
 }

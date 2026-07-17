@@ -96,6 +96,16 @@ namespace Musify.Infrastructure.Persistence
                 .IsUnique()
                 .HasFilter("\"ExternalId\" IS NULL AND \"UserId\" IS NULL");
 
+            modelBuilder.Entity<PlayList>()
+                .OwnsOne(playList => playList.Pictures, pictures =>
+                {
+                    pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64);
+                });
+            modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired();
+
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
             playListProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();

@@ -34,8 +34,7 @@ namespace Musify.Application.Tracks
                 return Error.Unauthorized();
             }
 
-            if (track.Audio.TranscodeStatus == ProcessingStatus.Processing
-                || track.Audio.TranscodeStatus == ProcessingStatus.Pending)
+            if (track.Audio.IsInProgress)
             {
                 logger.LogWarning("Track {TrackId} is currently being processed and cannot be deleted", request.TrackId);
                 return Error.Conflict(description: "Track is currently being processed and cannot be deleted");

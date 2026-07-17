@@ -50,7 +50,7 @@ public sealed class YouTubeTrackProvisioner(
             NormalizedTitle = title.ToUpperInvariant(),
             Source = TrackSource.YouTube,
             ExternalId = videoId,
-            Duration = song.DurationSeconds,
+            DurationSeconds = song.DurationSeconds,
             Pictures = new TrackPictures
             {
                 SmallName = trackConfiguration.Routes.PresetSmallPicture,

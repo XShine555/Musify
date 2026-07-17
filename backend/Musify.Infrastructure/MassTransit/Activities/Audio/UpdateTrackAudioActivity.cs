@@ -53,10 +53,10 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                 var log = new UpdateTrackAudioLog(
                     track.Id,
                     track.Audio.FolderName,
-                    track.Duration);
+                    track.DurationSeconds);
 
                 track.Audio.FolderName = Path.GetFileName(audioFolderKey);
-                track.Duration = durationSeconds;
+                track.DurationSeconds = durationSeconds;
                 track.Audio.TranscodeStatus = ProcessingStatus.Completed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
@@ -97,7 +97,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                     throw new InvalidOperationException($"Track with id {compensateContext.Log.TrackId} not found");
 
                 track.Audio.FolderName = compensateContext.Log.PreviousAudioFolderName;
-                track.Duration = compensateContext.Log.PreviousDuration;
+                track.DurationSeconds = compensateContext.Log.PreviousDurationSeconds;
                 track.Audio.TranscodeStatus = ProcessingStatus.Failed;
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
 
