@@ -8,7 +8,7 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Services;
 
-public sealed record YouTubeTrackProvision(Track Track, bool Created, YouTubeSongResult? Song);
+public sealed record YouTubeTrackProvision(Track Track, YouTubeSongResult? Song);
 
 public sealed class YouTubeTrackProvisioner(
     IDatabase database,
@@ -26,7 +26,7 @@ public sealed class YouTubeTrackProvisioner(
     {
         var existing = await FindAsync(videoId, cancellationToken);
         if (existing is not null)
-            return new YouTubeTrackProvision(existing, Created: false, Song: null);
+            return new YouTubeTrackProvision(existing, Song: null);
 
         var songResult = await youTubeMusicService.GetSongAsync(videoId, cancellationToken);
         if (songResult.IsError)
@@ -81,7 +81,7 @@ public sealed class YouTubeTrackProvisioner(
         {
             await database.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Created YouTube track {VideoId} ({TrackId})", videoId, track.Id);
-            return new YouTubeTrackProvision(track, Created: true, Song: song);
+            return new YouTubeTrackProvision(track, Song: song);
         }
         catch (DbUpdateException)
         {
@@ -92,7 +92,7 @@ public sealed class YouTubeTrackProvisioner(
                 logger.LogWarning("YouTube track {VideoId} creation raced but could not be refetched", videoId);
                 return Error.Conflict(description: "The track was just created by another request. Retry the operation.");
             }
-            return new YouTubeTrackProvision(refetched, Created: false, Song: null);
+            return new YouTubeTrackProvision(refetched, Song: null);
         }
     }
 
@@ -107,6 +107,30 @@ public sealed class YouTubeTrackProvisioner(
             : await database.Artists.SingleOrDefaultAsync(a => a.ExternalId == null && a.UserId == null && a.NormalizedName == normalized, cancellationToken);
         if (existing is not null)
             return existing;
+
+        if (byExternalId)
+        {
+            var adoptable = await database.Artists
+                .SingleOrDefaultAsync(a => a.ExternalId == null && a.UserId == null && a.NormalizedName == normalized, cancellationToken);
+            if (adoptable is not null)
+            {
+                var previousName = adoptable.Name;
+                adoptable.ExternalId = reference.Id;
+                adoptable.Name = name;
+
+                try
+                {
+                    await database.SaveChangesAsync(cancellationToken);
+                    return adoptable;
+                }
+                catch (DbUpdateException)
+                {
+                    adoptable.ExternalId = null;
+                    adoptable.Name = previousName;
+                    return await database.Artists.SingleAsync(a => a.ExternalId == reference.Id, cancellationToken);
+                }
+            }
+        }
 
         var artist = new Artist
         {

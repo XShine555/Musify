@@ -110,6 +110,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
             migrationBuilder.Sql(
                 """
+                DELETE FROM "Tracks" WHERE "Source" = 0 AND "OwnerUserId" IS NULL;
+                """);
+
+            migrationBuilder.Sql(
+                """
                 INSERT INTO "Artists" ("Id", "Name", "NormalizedName", "UserId", "ExternalId", "CreatedAt", "UpdatedAt")
                 SELECT gen_random_uuid(), u."Name", u."NormalizedName", u."Id", NULL, now(), now()
                 FROM "User" u
@@ -120,7 +125,12 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 """
                 INSERT INTO "Artists" ("Id", "Name", "NormalizedName", "UserId", "ExternalId", "CreatedAt", "UpdatedAt")
                 SELECT gen_random_uuid(), s."Artist", upper(s."Artist"), NULL, NULL, now(), now()
-                FROM (SELECT DISTINCT "Artist" FROM "Tracks" WHERE "Source" = 1 AND "Artist" IS NOT NULL) s;
+                FROM (
+                    SELECT DISTINCT ON (upper("Artist")) "Artist"
+                    FROM "Tracks"
+                    WHERE "Source" = 1 AND "Artist" IS NOT NULL
+                    ORDER BY upper("Artist"), "Artist"
+                ) s;
                 """);
 
             migrationBuilder.Sql(
@@ -135,7 +145,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 """
                 INSERT INTO "TrackArtist" ("TrackId", "ArtistId", "Position")
                 SELECT t."Id", a."Id", 0 FROM "Tracks" t
-                JOIN "Artists" a ON a."UserId" IS NULL AND a."ExternalId" IS NULL AND a."Name" = t."Artist"
+                JOIN "Artists" a ON a."UserId" IS NULL AND a."ExternalId" IS NULL AND a."NormalizedName" = upper(t."Artist")
                 WHERE t."Source" = 1 AND t."Artist" IS NOT NULL;
                 """);
 

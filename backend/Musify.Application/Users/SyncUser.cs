@@ -47,6 +47,14 @@ namespace Musify.Application.Users
             user.SecondName = request.SecondName;
             user.ProfilePictureUrl = request.ProfilePictureUrl;
 
+            var artist = await database.Artists
+                .SingleOrDefaultAsync(a => a.UserId == request.Id, cancellationToken);
+            if (artist is not null)
+            {
+                artist.Name = request.Name;
+                artist.NormalizedName = request.Name.ToUpperInvariant();
+            }
+
             var written = await database.SaveChangesAsync(cancellationToken);
             if (written > 0)
                 logger.LogInformation("Synced profile for user {UserId}", request.Id);
