@@ -20,6 +20,8 @@ namespace Musify.Application.Tracks
             var tracksQuery = database.UserHasTracks
                 .AsNoTracking()
                 .Include(ut => ut.Track)
+                    .ThenInclude(track => track.TrackArtists)
+                    .ThenInclude(trackArtist => trackArtist.Artist)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(request.Name))

@@ -1,3 +1,4 @@
+using System.Linq;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
@@ -20,7 +21,7 @@ namespace Musify.Application.Tracks.Responses
             new(
                 track.Id,
                 track.Title,
-                track.Artist,
+                FormatArtist(track),
                 track.Source,
                 track.ExternalId,
                 track.AudioTranscodeProcessingStatus,
@@ -29,5 +30,15 @@ namespace Musify.Application.Tracks.Responses
                 track.OwnerUserId,
                 track.CreatedAt,
                 track.UpdatedAt);
+
+        private static string? FormatArtist(Track track)
+        {
+            if (track.TrackArtists.Count == 0)
+                return null;
+
+            return string.Join(", ", track.TrackArtists
+                .OrderBy(trackArtist => trackArtist.Position)
+                .Select(trackArtist => trackArtist.Artist.Name));
+        }
     }
 }

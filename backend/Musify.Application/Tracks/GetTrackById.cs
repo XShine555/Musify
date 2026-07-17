@@ -15,6 +15,8 @@ namespace Musify.Application.Tracks
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(GetTrackByIdQuery request, CancellationToken cancellationToken)
         {
             var entity = await database.Tracks.AsNoTracking()
+                .Include(t => t.TrackArtists)
+                    .ThenInclude(trackArtist => trackArtist.Artist)
                 .Where(t => t.Id == request.TrackId)
                 .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count })
                 .SingleOrDefaultAsync(cancellationToken);

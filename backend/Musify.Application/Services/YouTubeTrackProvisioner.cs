@@ -48,7 +48,6 @@ public sealed class YouTubeTrackProvisioner(
         {
             Title = title,
             NormalizedTitle = title.ToUpperInvariant(),
-            Artist = Truncate(song.Artist, 200),
             Source = TrackSource.YouTube,
             ExternalId = videoId,
             DownloadRequested = false,

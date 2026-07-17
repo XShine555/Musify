@@ -24,6 +24,8 @@ namespace Musify.Application.Tracks
                 .ToListAsync(cancellationToken);
 
             var tracksById = await database.Tracks
+                .Include(t => t.TrackArtists)
+                    .ThenInclude(trackArtist => trackArtist.Artist)
                 .Where(t => recentTrackIds.Contains(t.Id))
                 .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count } )
                 .ToDictionaryAsync(t => t.Id, cancellationToken);

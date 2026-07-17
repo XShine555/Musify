@@ -65,7 +65,6 @@ namespace Musify.Application.Tracks
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.ToUpperInvariant(),
-                Artist = user.Name,
                 OwnerUserId = user.Id,
                 OriginalPictureName = pictureIntent.ObjectName,
                 OriginalAudioName = audioIntent.ObjectName,

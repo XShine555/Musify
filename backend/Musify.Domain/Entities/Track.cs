@@ -23,9 +23,6 @@ namespace Musify.Domain.Entities
         [Required]
         public int Duration { get; set; }
 
-        [MaxLength(200)]
-        public string? Artist { get; set; }
-
         public long? OwnerUserId { get; set; }
 
         [Required]
