@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Musify.Domain.Abstractions;
@@ -23,23 +23,20 @@ namespace Musify.Domain.Entities
         [Required]
         public int Duration { get; set; }
 
-        [Required]
         [MaxLength(200)]
-        public string Artist { get; set; } = string.Empty;
+        public string? Artist { get; set; }
 
         [Required]
         public TrackSource Source { get; set; } = TrackSource.Local;
 
-        [Required]
         [MaxLength(16)]
-        public string ExternalId { get; set; } = string.Empty;
+        public string? ExternalId { get; set; }
 
         [Required]
         public bool DownloadRequested { get; set; } = false;
 
-        [Required]
         [MaxLength(64)]
-        public required string OriginalPictureName { get; set; }
+        public string? OriginalPictureName { get; set; }
 
         [MaxLength(64)]
         public string? SmallPictureName { get; set; }
@@ -50,9 +47,8 @@ namespace Musify.Domain.Entities
         [MaxLength(64)]
         public string? LargePictureName { get; set; }
 
-        [Required]
         [MaxLength(64)]
-        public required string OriginalAudioName { get; set; }
+        public string? OriginalAudioName { get; set; }
 
         [MaxLength(64)]
         public string? AudioFolderName { get; set; }

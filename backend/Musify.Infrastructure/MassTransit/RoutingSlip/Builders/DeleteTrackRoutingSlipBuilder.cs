@@ -41,12 +41,15 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             {
                 var bucket = storageConfiguration.Bucket;
 
-                routingSlipBuilder.AddActivity(
-                    ActivityNames.RemoveTrackOriginalPicture,
-                    EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                    new RemoveFileFromBucketArguments(
-                        bucket,
-                        trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.OriginalPictureName)));
+                if (!string.IsNullOrEmpty(track.OriginalPictureName))
+                {
+                    routingSlipBuilder.AddActivity(
+                        ActivityNames.RemoveTrackOriginalPicture,
+                        EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                        new RemoveFileFromBucketArguments(
+                            bucket,
+                            trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.OriginalPictureName)));
+                }
 
                 if (track.IsPicturesProcessed)
                 {
@@ -72,12 +75,15 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                             trackConfiguration.Routes.BuildLargePicturePath(track.LargePictureName)));
                 }
 
-                routingSlipBuilder.AddActivity(
-                    ActivityNames.RemoveTrackOriginalAudio,
-                    EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
-                    new RemoveFileFromBucketArguments(
-                        bucket,
-                        trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.OriginalAudioName)));
+                if (!string.IsNullOrEmpty(track.OriginalAudioName))
+                {
+                    routingSlipBuilder.AddActivity(
+                        ActivityNames.RemoveTrackOriginalAudio,
+                        EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
+                        new RemoveFileFromBucketArguments(
+                            bucket,
+                            trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.OriginalAudioName)));
+                }
 
                 if (track.IsAudioProcessed)
                 {

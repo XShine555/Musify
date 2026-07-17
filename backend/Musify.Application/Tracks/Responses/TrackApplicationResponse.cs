@@ -6,9 +6,9 @@ namespace Musify.Application.Tracks.Responses
     public record TrackApplicationResponse(
         Guid Id,
         string Title,
-        string Artist,
+        string? Artist,
         TrackSource Source,
-        string ExternalId,
+        string? ExternalId,
         ProcessingStatus AudioStatus,
         int Duration,
         int ListensCount,

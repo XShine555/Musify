@@ -32,8 +32,7 @@ namespace Musify.Infrastructure.Persistence
 
             modelBuilder.Entity<Track>()
                 .HasIndex(track => new { track.Source, track.ExternalId })
-                .IsUnique()
-                .HasFilter("\"ExternalId\" <> ''");
+                .IsUnique();
 
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
