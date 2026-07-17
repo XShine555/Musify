@@ -34,6 +34,45 @@ namespace Musify.Infrastructure.Persistence
                 .HasIndex(track => new { track.Source, track.ExternalId })
                 .IsUnique();
 
+            modelBuilder.Entity<Track>()
+                .HasOne(track => track.Owner)
+                .WithMany()
+                .HasForeignKey(track => track.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Track>()
+                .ToTable(t => t.HasCheckConstraint(
+                    "CK_Tracks_OwnerUserId_Source",
+                    "(\"OwnerUserId\" IS NOT NULL) = (\"Source\" = 0)"));
+
+            modelBuilder.Entity<TrackArtist>()
+                .HasKey(trackArtist => new { trackArtist.TrackId, trackArtist.ArtistId });
+
+            modelBuilder.Entity<TrackArtist>()
+                .HasOne(trackArtist => trackArtist.Track)
+                .WithMany(track => track.TrackArtists)
+                .HasForeignKey(trackArtist => trackArtist.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrackArtist>()
+                .HasOne(trackArtist => trackArtist.Artist)
+                .WithMany(artist => artist.TrackArtists)
+                .HasForeignKey(trackArtist => trackArtist.ArtistId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Artist>()
+                .HasIndex(artist => artist.UserId)
+                .IsUnique();
+
+            modelBuilder.Entity<Artist>()
+                .HasIndex(artist => artist.ExternalId)
+                .IsUnique();
+
+            modelBuilder.Entity<Artist>()
+                .HasIndex(artist => artist.NormalizedName)
+                .IsUnique()
+                .HasFilter("\"ExternalId\" IS NULL AND \"UserId\" IS NULL");
+
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
             playListProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();
@@ -43,6 +82,10 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<User> Users => Set<User>();
 
         public DbSet<Track> Tracks => Set<Track>();
+
+        public DbSet<Artist> Artists => Set<Artist>();
+
+        public DbSet<TrackArtist> TrackArtists => Set<TrackArtist>();
 
         public DbSet<PlayList> PlayLists => Set<PlayList>();
 

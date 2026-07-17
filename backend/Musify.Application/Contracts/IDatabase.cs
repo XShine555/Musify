@@ -11,6 +11,10 @@ namespace Musify.Application.Contracts
 
         DbSet<Track> Tracks { get; }
 
+        DbSet<Artist> Artists { get; }
+
+        DbSet<TrackArtist> TrackArtists { get; }
+
         DbSet<UserHasTrack> UserHasTracks { get; }
 
         DbSet<PlayListHasTrack> PlayListHasTracks { get; }

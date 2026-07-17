@@ -32,9 +32,9 @@ namespace Musify.Application.Tracks
     {
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
         {
-            var userExists = await database.Users.AsNoTracking()
-                .AnyAsync(u => u.Id == request.UserId, cancellationToken);
-            if (!userExists)
+            var user = await database.Users.AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+            if (user is null)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
                 return Error.NotFound(description: $"User {request.UserId} not found");
@@ -59,10 +59,14 @@ namespace Musify.Application.Tracks
             var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
             var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
+            var artist = await GetOrCreateUserArtistAsync(user, cancellationToken);
+
             var trackEntity = new Track
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.ToUpperInvariant(),
+                Artist = user.Name,
+                OwnerUserId = user.Id,
                 OriginalPictureName = pictureIntent.ObjectName,
                 OriginalAudioName = audioIntent.ObjectName,
                 SmallPictureName = trackConfiguration.Routes.PresetSmallPicture,
@@ -73,6 +77,13 @@ namespace Musify.Application.Tracks
             };
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
+
+            await database.TrackArtists.AddAsync(new TrackArtist
+            {
+                TrackId = trackEntity.Id,
+                ArtistId = artist.Id,
+                Position = 0
+            }, cancellationToken);
 
             await database.UserHasTracks.AddAsync(new UserHasTrack
             {
@@ -124,6 +135,33 @@ namespace Musify.Application.Tracks
             }
 
             return TrackApplicationResponse.FromEntity(trackEntity, listensCount: 0);
+        }
+
+        private async Task<Artist> GetOrCreateUserArtistAsync(User user, CancellationToken cancellationToken)
+        {
+            var existing = await database.Artists.SingleOrDefaultAsync(a => a.UserId == user.Id, cancellationToken);
+            if (existing is not null)
+                return existing;
+
+            var artist = new Artist
+            {
+                Name = user.Name,
+                NormalizedName = user.NormalizedName,
+                UserId = user.Id
+            };
+
+            await database.Artists.AddAsync(artist, cancellationToken);
+
+            try
+            {
+                await database.SaveChangesAsync(cancellationToken);
+                return artist;
+            }
+            catch (DbUpdateException)
+            {
+                database.Artists.Remove(artist);
+                return await database.Artists.SingleAsync(a => a.UserId == user.Id, cancellationToken);
+            }
         }
     }
 }

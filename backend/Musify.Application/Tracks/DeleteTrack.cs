@@ -28,10 +28,7 @@ namespace Musify.Application.Tracks
                 return Error.NotFound();
             }
 
-            var isOwner = await database.UserHasTracks
-                .AsNoTracking()
-                .AnyAsync(ut => ut.TrackId == request.TrackId && ut.UserId == request.UserId, cancellationToken);
-            if (!isOwner)
+            if (track.OwnerUserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
                 return Error.Unauthorized();

@@ -26,6 +26,8 @@ namespace Musify.Domain.Entities
         [MaxLength(200)]
         public string? Artist { get; set; }
 
+        public long? OwnerUserId { get; set; }
+
         [Required]
         public TrackSource Source { get; set; } = TrackSource.Local;
 
@@ -73,11 +75,16 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [ForeignKey(nameof(OwnerUserId))]
+        public User? Owner { get; set; }
+
         public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
         public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
 
         public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
+
+        public ICollection<TrackArtist> TrackArtists { get; set; } = new List<TrackArtist>();
 
         [NotMapped]
         [MemberNotNullWhen(true, nameof(SmallPictureName)) ]

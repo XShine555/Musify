@@ -12,6 +12,7 @@ namespace Musify.Application.Tracks.Responses
         ProcessingStatus AudioStatus,
         int Duration,
         int ListensCount,
+        long? OwnerUserId,
         DateTime CreatedAt,
         DateTime UpdatedAt)
     {
@@ -25,6 +26,7 @@ namespace Musify.Application.Tracks.Responses
                 track.AudioTranscodeProcessingStatus,
                 track.Duration,
                 listensCount,
+                track.OwnerUserId,
                 track.CreatedAt,
                 track.UpdatedAt);
     }
