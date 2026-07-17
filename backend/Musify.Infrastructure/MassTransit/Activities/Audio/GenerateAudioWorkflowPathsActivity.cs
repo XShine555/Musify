@@ -32,7 +32,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
             try
             {
-                track.AudioTranscodeProcessingStatus = ProcessingStatus.Processing;
+                track.Audio.TranscodeStatus = ProcessingStatus.Processing;
                 var folderName = Guid.NewGuid().ToString();
                 var sourceFileName = Path.GetFileName(executeContext.Arguments.SourceKey);
                 var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, folderName);
@@ -57,7 +57,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
                 try
                 {
-                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
+                    track.Audio.TranscodeStatus = ProcessingStatus.Failed;
                     await database.SaveChangesAsync(executeContext.CancellationToken);
                 }
                 catch (Exception dbException)

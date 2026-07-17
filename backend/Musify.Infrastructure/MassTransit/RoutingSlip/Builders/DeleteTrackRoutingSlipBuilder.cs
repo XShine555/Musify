@@ -41,58 +41,58 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             {
                 var bucket = storageConfiguration.Bucket;
 
-                if (!string.IsNullOrEmpty(track.OriginalPictureName))
+                if (!string.IsNullOrEmpty(track.Pictures.OriginalName))
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemoveTrackOriginalPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.OriginalPictureName)));
+                            trackConfiguration.Routes.BuildOriginalPicturePath(userId, track.Pictures.OriginalName)));
                 }
 
-                if (track.IsPicturesProcessed)
+                if (track.Pictures.IsProcessed)
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemoveTrackSmallPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildSmallPicturePath(track.SmallPictureName)));
+                            trackConfiguration.Routes.BuildSmallPicturePath(track.Pictures.SmallName)));
 
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemoveTrackMediumPicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildMediumPicturePath(track.MediumPictureName)));
+                            trackConfiguration.Routes.BuildMediumPicturePath(track.Pictures.MediumName)));
 
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemoveTrackLargePicture,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildLargePicturePath(track.LargePictureName)));
+                            trackConfiguration.Routes.BuildLargePicturePath(track.Pictures.LargeName)));
                 }
 
-                if (!string.IsNullOrEmpty(track.OriginalAudioName))
+                if (!string.IsNullOrEmpty(track.Audio.OriginalName))
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemoveTrackOriginalAudio,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.OriginalAudioName)));
+                            trackConfiguration.Routes.BuildOriginalAudioPath(userId, track.Audio.OriginalName)));
                 }
 
-                if (track.IsAudioProcessed)
+                if (track.Audio.IsProcessed)
                 {
                     routingSlipBuilder.AddActivity(
                         ActivityNames.RemoveTrackProcessedAudio,
                         EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                         new RemoveFileFromBucketArguments(
                             bucket,
-                            trackConfiguration.Routes.BuildProcessedAudioPath(track.AudioFolderName)));
+                            trackConfiguration.Routes.BuildProcessedAudioPath(track.Audio.FolderName)));
                 }
             }
 

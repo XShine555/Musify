@@ -51,19 +51,19 @@ namespace Musify.Application.PlayLists
 
             var track = provisionResult.Value.Track;
 
-            var failed = track.AudioTranscodeProcessingStatus == ProcessingStatus.Failed;
-            var neverQueued = !track.DownloadRequested && !track.IsAudioProcessed;
+            var failed = track.Audio.TranscodeStatus == ProcessingStatus.Failed;
+            var neverQueued = !track.Audio.DownloadRequested && !track.Audio.IsProcessed;
             if (failed || neverQueued)
             {
                 if (failed)
                 {
-                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Pending;
-                    track.PicturesProcessingStatus = ProcessingStatus.Pending;
+                    track.Audio.TranscodeStatus = ProcessingStatus.Pending;
+                    track.Pictures.ProcessingStatus = ProcessingStatus.Pending;
                     track.LifeCycleStatus = LifeCycleStatus.Active;
-                    track.RetryCount += 1;
-                    track.LastRetryAt = DateTime.UtcNow;
+                    track.Audio.RetryCount += 1;
+                    track.Audio.LastRetryAt = DateTime.UtcNow;
                 }
-                track.DownloadRequested = true;
+                track.Audio.DownloadRequested = true;
 
                 var thumbnailUrl = await ResolveThumbnailUrlAsync(request.VideoId, provisionResult.Value.Song, cancellationToken);
                 if (thumbnailUrl.IsError)

@@ -64,7 +64,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
                 try
                 {
-                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
+                    track.Audio.TranscodeStatus = ProcessingStatus.Failed;
                     await database.SaveChangesAsync(executeContext.CancellationToken);
                 }
                 catch (Exception dbException)

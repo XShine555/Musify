@@ -66,13 +66,19 @@ namespace Musify.Application.Tracks
                 Title = request.Title,
                 NormalizedTitle = request.Title.ToUpperInvariant(),
                 OwnerUserId = user.Id,
-                OriginalPictureName = pictureIntent.ObjectName,
-                OriginalAudioName = audioIntent.ObjectName,
-                SmallPictureName = trackConfiguration.Routes.PresetSmallPicture,
-                MediumPictureName = trackConfiguration.Routes.PresetMediumPicture,
-                LargePictureName = trackConfiguration.Routes.PresetLargePicture,
-                PicturesProcessingStatus = ProcessingStatus.Pending,
-                AudioTranscodeProcessingStatus = ProcessingStatus.Pending
+                Pictures = new TrackPictures
+                {
+                    OriginalName = pictureIntent.ObjectName,
+                    SmallName = trackConfiguration.Routes.PresetSmallPicture,
+                    MediumName = trackConfiguration.Routes.PresetMediumPicture,
+                    LargeName = trackConfiguration.Routes.PresetLargePicture,
+                    ProcessingStatus = ProcessingStatus.Pending
+                },
+                Audio = new TrackAudio
+                {
+                    OriginalName = audioIntent.ObjectName,
+                    TranscodeStatus = ProcessingStatus.Pending
+                }
             };
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);

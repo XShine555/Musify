@@ -21,7 +21,7 @@ namespace Musify.Application.Tracks
         {
             var track = await database.Tracks.AsNoTracking()
                 .Where(t => t.Id == request.TrackId)
-                .Select(t => new { t.SmallPictureName, t.MediumPictureName, t.LargePictureName })
+                .Select(t => new { t.Pictures.SmallName, t.Pictures.MediumName, t.Pictures.LargeName })
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (track == null)
@@ -30,9 +30,9 @@ namespace Musify.Application.Tracks
             var routes = trackConfiguration.Routes;
             var (name, key) = request.Size.ToLowerInvariant() switch
             {
-                "small" => (track.SmallPictureName, BuildKey(routes.BuildSmallPicturePath, track.SmallPictureName)),
-                "large" => (track.LargePictureName, BuildKey(routes.BuildLargePicturePath, track.LargePictureName)),
-                _ => (track.MediumPictureName, BuildKey(routes.BuildMediumPicturePath, track.MediumPictureName))
+                "small" => (track.SmallName, BuildKey(routes.BuildSmallPicturePath, track.SmallName)),
+                "large" => (track.LargeName, BuildKey(routes.BuildLargePicturePath, track.LargeName)),
+                _ => (track.MediumName, BuildKey(routes.BuildMediumPicturePath, track.MediumName))
             };
 
             if (string.IsNullOrEmpty(name) || key == null)

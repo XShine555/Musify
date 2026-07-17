@@ -24,7 +24,7 @@ namespace Musify.Application.Tracks.Responses
                 FormatArtist(track),
                 track.Source,
                 track.ExternalId,
-                track.AudioTranscodeProcessingStatus,
+                track.Audio.TranscodeStatus,
                 track.Duration,
                 listensCount,
                 track.OwnerUserId,

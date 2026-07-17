@@ -50,15 +50,19 @@ public sealed class YouTubeTrackProvisioner(
             NormalizedTitle = title.ToUpperInvariant(),
             Source = TrackSource.YouTube,
             ExternalId = videoId,
-            DownloadRequested = false,
             Duration = song.DurationSeconds,
-            OriginalPictureName = null,
-            OriginalAudioName = null,
-            SmallPictureName = trackConfiguration.Routes.PresetSmallPicture,
-            MediumPictureName = trackConfiguration.Routes.PresetMediumPicture,
-            LargePictureName = trackConfiguration.Routes.PresetLargePicture,
-            PicturesProcessingStatus = ProcessingStatus.Pending,
-            AudioTranscodeProcessingStatus = ProcessingStatus.Pending
+            Pictures = new TrackPictures
+            {
+                SmallName = trackConfiguration.Routes.PresetSmallPicture,
+                MediumName = trackConfiguration.Routes.PresetMediumPicture,
+                LargeName = trackConfiguration.Routes.PresetLargePicture,
+                ProcessingStatus = ProcessingStatus.Pending
+            },
+            Audio = new TrackAudio
+            {
+                DownloadRequested = false,
+                TranscodeStatus = ProcessingStatus.Pending
+            }
         };
 
         await database.Tracks.AddAsync(track, cancellationToken);

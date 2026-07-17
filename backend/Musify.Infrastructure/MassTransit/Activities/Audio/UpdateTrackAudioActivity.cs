@@ -52,12 +52,12 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
                 var log = new UpdateTrackAudioLog(
                     track.Id,
-                    track.AudioFolderName,
+                    track.Audio.FolderName,
                     track.Duration);
 
-                track.AudioFolderName = Path.GetFileName(audioFolderKey);
+                track.Audio.FolderName = Path.GetFileName(audioFolderKey);
                 track.Duration = durationSeconds;
-                track.AudioTranscodeProcessingStatus = ProcessingStatus.Completed;
+                track.Audio.TranscodeStatus = ProcessingStatus.Completed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);
 
                 logger.LogInformation("Updated track {TrackId} audio", executeContext.Arguments.TrackId);
@@ -75,7 +75,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
                 try
                 {
-                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
+                    track.Audio.TranscodeStatus = ProcessingStatus.Failed;
                     await database.SaveChangesAsync(executeContext.CancellationToken);
                 }
                 catch (Exception dbException)
@@ -96,9 +96,9 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
                 if (track is null)
                     throw new InvalidOperationException($"Track with id {compensateContext.Log.TrackId} not found");
 
-                track.AudioFolderName = compensateContext.Log.PreviousAudioFolderName;
+                track.Audio.FolderName = compensateContext.Log.PreviousAudioFolderName;
                 track.Duration = compensateContext.Log.PreviousDuration;
-                track.AudioTranscodeProcessingStatus = ProcessingStatus.Failed;
+                track.Audio.TranscodeStatus = ProcessingStatus.Failed;
                 await database.SaveChangesAsync(compensateContext.CancellationToken);
 
                 logger.LogInformation("Compensated track {TrackId} audio", compensateContext.Log.TrackId);

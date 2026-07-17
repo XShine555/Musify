@@ -190,6 +190,50 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.ToTable("OutboxState");
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.Artist", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasFilter("\"ExternalId\" IS NULL AND \"UserId\" IS NULL");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Artists");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.ListeningHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -307,11 +351,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Artist")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
                     b.Property<string>("AudioFolderName")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -329,7 +368,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("ExternalId")
-                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
@@ -353,14 +391,15 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("OriginalAudioName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
                     b.Property<string>("OriginalPictureName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<long?>("OwnerUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("PicturesProcessingStatus")
                         .HasColumnType("integer");
@@ -385,11 +424,33 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Source", "ExternalId")
-                        .IsUnique()
-                        .HasFilter("\"ExternalId\" <> ''");
+                    b.HasIndex("OwnerUserId");
 
-                    b.ToTable("Tracks");
+                    b.HasIndex("Source", "ExternalId")
+                        .IsUnique();
+
+                    b.ToTable("Tracks", t =>
+                        {
+                            t.HasCheckConstraint("CK_Tracks_OwnerUserId_Source", "(\"OwnerUserId\" IS NOT NULL) = (\"Source\" = 0)");
+                        });
+                });
+
+            modelBuilder.Entity("Musify.Domain.Entities.TrackArtist", b =>
+                {
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ArtistId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.HasKey("TrackId", "ArtistId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.ToTable("TrackArtist");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Upload", b =>
@@ -606,6 +667,15 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.Artist", b =>
+                {
+                    b.HasOne("Musify.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.ListeningHistory", b =>
                 {
                     b.HasOne("Musify.Domain.Entities.Track", "Track")
@@ -655,6 +725,35 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("Track");
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.Track", b =>
+                {
+                    b.HasOne("Musify.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Musify.Domain.Entities.TrackArtist", b =>
+                {
+                    b.HasOne("Musify.Domain.Entities.Artist", "Artist")
+                        .WithMany("TrackArtists")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Musify.Domain.Entities.Track", "Track")
+                        .WithMany("TrackArtists")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
+
+                    b.Navigation("Track");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.UploadIntent", b =>
                 {
                     b.HasOne("Musify.Domain.Entities.User", "User")
@@ -685,6 +784,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.Artist", b =>
+                {
+                    b.Navigation("TrackArtists");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.PlayList", b =>
                 {
                     b.Navigation("PlayListTracks");
@@ -695,6 +799,8 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("ListeningHistories");
 
                     b.Navigation("PlayListTracks");
+
+                    b.Navigation("TrackArtists");
 
                     b.Navigation("UserTracks");
                 });

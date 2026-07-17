@@ -24,9 +24,9 @@ namespace Musify.Application.YouTube
         {
             var track = await provisioner.FindAsync(request.VideoId, cancellationToken);
 
-            if (track is not null && track.IsAudioProcessed)
+            if (track is not null && track.Audio.IsProcessed)
             {
-                var serverStream = await streamIssuer.IssueAsync(track.Id, track.AudioFolderName, request.UserId, cancellationToken);
+                var serverStream = await streamIssuer.IssueAsync(track.Id, track.Audio.FolderName, request.UserId, cancellationToken);
                 return new YouTubeStreamResponse(
                     YouTubeStreamMode.Server,
                     serverStream.ManifestUrl,

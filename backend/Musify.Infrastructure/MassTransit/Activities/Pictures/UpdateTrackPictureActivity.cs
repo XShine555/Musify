@@ -40,16 +40,16 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 
                 var log = new UpdateTrackPictureLog(
                     track.Id,
-                    track.OriginalPictureName,
-                    track.SmallPictureName,
-                    track.MediumPictureName,
-                    track.LargePictureName);
+                    track.Pictures.OriginalName,
+                    track.Pictures.SmallName,
+                    track.Pictures.MediumName,
+                    track.Pictures.LargeName);
 
-                track.OriginalPictureName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
-                track.SmallPictureName = Path.GetFileName(smallResizedVariable);
-                track.MediumPictureName = Path.GetFileName(mediumResizedVariable);
-                track.LargePictureName = Path.GetFileName(largeResizedVariable);
-                track.PicturesProcessingStatus = ProcessingStatus.Completed;
+                track.Pictures.OriginalName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
+                track.Pictures.SmallName = Path.GetFileName(smallResizedVariable);
+                track.Pictures.MediumName = Path.GetFileName(mediumResizedVariable);
+                track.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
+                track.Pictures.ProcessingStatus = ProcessingStatus.Completed;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(executeContext.CancellationToken);
@@ -82,11 +82,11 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                 if (track is null)
                     return compensateContext.Compensated();
 
-                track.OriginalPictureName = compensateContext.Log.PreviousOriginalPictureKey;
-                track.SmallPictureName = compensateContext.Log.PreviousSmallPictureKey;
-                track.MediumPictureName = compensateContext.Log.PreviousMediumPictureKey;
-                track.LargePictureName = compensateContext.Log.PreviousLargePictureKey;
-                track.PicturesProcessingStatus = ProcessingStatus.Failed;
+                track.Pictures.OriginalName = compensateContext.Log.PreviousOriginalPictureKey;
+                track.Pictures.SmallName = compensateContext.Log.PreviousSmallPictureKey;
+                track.Pictures.MediumName = compensateContext.Log.PreviousMediumPictureKey;
+                track.Pictures.LargeName = compensateContext.Log.PreviousLargePictureKey;
+                track.Pictures.ProcessingStatus = ProcessingStatus.Failed;
 
                 database.Tracks.Update(track);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);

@@ -45,6 +45,29 @@ namespace Musify.Infrastructure.Persistence
                     "CK_Tracks_OwnerUserId_Source",
                     "(\"OwnerUserId\" IS NOT NULL) = (\"Source\" = 0)"));
 
+            modelBuilder.Entity<Track>()
+                .OwnsOne(track => track.Pictures, pictures =>
+                {
+                    pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64);
+                    pictures.Property(p => p.ProcessingStatus).HasColumnName("PicturesProcessingStatus");
+                });
+            modelBuilder.Entity<Track>().Navigation(track => track.Pictures).IsRequired();
+
+            modelBuilder.Entity<Track>()
+                .OwnsOne(track => track.Audio, audio =>
+                {
+                    audio.Property(a => a.OriginalName).HasColumnName("OriginalAudioName").HasMaxLength(64);
+                    audio.Property(a => a.FolderName).HasColumnName("AudioFolderName").HasMaxLength(64);
+                    audio.Property(a => a.TranscodeStatus).HasColumnName("AudioTranscodeProcessingStatus");
+                    audio.Property(a => a.DownloadRequested).HasColumnName("DownloadRequested");
+                    audio.Property(a => a.RetryCount).HasColumnName("RetryCount");
+                    audio.Property(a => a.LastRetryAt).HasColumnName("LastRetryAt");
+                });
+            modelBuilder.Entity<Track>().Navigation(track => track.Audio).IsRequired();
+
             modelBuilder.Entity<TrackArtist>()
                 .HasKey(trackArtist => new { trackArtist.TrackId, trackArtist.ArtistId });
 
