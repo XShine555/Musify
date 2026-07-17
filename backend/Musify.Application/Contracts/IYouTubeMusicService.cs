@@ -2,6 +2,8 @@ using ErrorOr;
 
 namespace Musify.Application.Contracts
 {
+    public record YouTubeArtistRef(string? Id, string Name);
+
     public record YouTubeSongResult(
         string VideoId,
         string Title,
@@ -9,7 +11,8 @@ namespace Musify.Application.Contracts
         string Album,
         int DurationSeconds,
         string ThumbnailUrl,
-        bool IsExplicit);
+        bool IsExplicit,
+        IReadOnlyList<YouTubeArtistRef> Artists);
 
     public record YouTubeSearchResult(
         IReadOnlyList<YouTubeSongResult> Items,

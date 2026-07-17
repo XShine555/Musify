@@ -49,7 +49,12 @@ namespace Musify.Infrastructure.Services
                         .OrderByDescending(thumbnail => thumbnail.Width)
                         .Select(thumbnail => thumbnail.Url)
                         .FirstOrDefault() ?? string.Empty,
-                    song.IsExplicit))
+                    song.IsExplicit,
+                    song.Artists
+                        .Select(artist => new YouTubeArtistRef(
+                            string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                            artist.Name))
+                        .ToList()))
                 .ToList();
 
             var nextToken = string.Empty;
@@ -124,7 +129,12 @@ namespace Musify.Infrastructure.Services
                         .OrderByDescending(thumbnail => thumbnail.Width)
                         .Select(thumbnail => thumbnail.Url)
                         .FirstOrDefault() ?? string.Empty,
-                    info.IsExplicit);
+                    info.IsExplicit,
+                    info.Artists
+                        .Select(artist => new YouTubeArtistRef(
+                            string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                            artist.Name))
+                        .ToList());
             }
             catch (Exception exception)
             {

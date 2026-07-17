@@ -40,7 +40,7 @@ public static class YouTubeEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new GetYouTubeTrackStreamQuery(videoId, currentUser.RequiredId),
+            new ResolveYouTubeTrackStreamCommand(videoId, currentUser.RequiredId),
             cancellationToken);
 
         return result.ToHttpResult();

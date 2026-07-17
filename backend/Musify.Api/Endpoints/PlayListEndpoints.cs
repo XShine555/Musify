@@ -254,11 +254,7 @@ public static class PlayListEndpoints
             new AddYouTubeTrackToPlayListCommand(
                 currentUser.RequiredId,
                 playlistId,
-                request.VideoId,
-                request.Title,
-                request.Artist,
-                request.DurationSeconds,
-                request.ThumbnailUrl),
+                request.VideoId),
             cancellationToken);
 
         return result.ToCreatedResult(track => $"/tracks/{track.Id}");

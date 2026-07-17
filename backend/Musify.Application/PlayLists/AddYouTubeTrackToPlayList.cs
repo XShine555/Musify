@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.Events;
+using Musify.Application.Services;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
@@ -15,16 +16,14 @@ namespace Musify.Application.PlayLists
     public record AddYouTubeTrackToPlayListCommand(
         long UserId,
         Guid PlayListId,
-        string VideoId,
-        string Title,
-        string Artist,
-        int DurationSeconds,
-        string ThumbnailUrl)
+        string VideoId)
         : ICommand<ErrorOr<TrackApplicationResponse>>;
 
     public class AddYouTubeTrackToPlayListCommandHandler(
         IDatabase database,
         IEventBus eventBus,
+        IYouTubeMusicService youTubeMusicService,
+        YouTubeTrackProvisioner provisioner,
         ApplicationStorageConfiguration storageConfiguration,
         TrackConfiguration trackConfiguration,
         ILogger<AddYouTubeTrackToPlayListCommandHandler> logger)
@@ -46,11 +45,34 @@ namespace Musify.Application.PlayLists
                 return Error.Unauthorized();
             }
 
-            var trackResult = await GetOrCreateTrackAsync(request, cancellationToken);
-            if (trackResult.IsError)
-                return trackResult.Errors;
+            var provisionResult = await provisioner.GetOrCreateAsync(request.VideoId, cancellationToken);
+            if (provisionResult.IsError)
+                return provisionResult.Errors;
 
-            var track = trackResult.Value;
+            var track = provisionResult.Value.Track;
+
+            var failed = track.AudioTranscodeProcessingStatus == ProcessingStatus.Failed;
+            var neverQueued = !track.DownloadRequested && !track.IsAudioProcessed;
+            if (failed || neverQueued)
+            {
+                if (failed)
+                {
+                    track.AudioTranscodeProcessingStatus = ProcessingStatus.Pending;
+                    track.PicturesProcessingStatus = ProcessingStatus.Pending;
+                    track.LifeCycleStatus = LifeCycleStatus.Active;
+                    track.RetryCount += 1;
+                    track.LastRetryAt = DateTime.UtcNow;
+                }
+                track.DownloadRequested = true;
+
+                var thumbnailUrl = await ResolveThumbnailUrlAsync(request.VideoId, provisionResult.Value.Song, cancellationToken);
+                if (thumbnailUrl.IsError)
+                    return thumbnailUrl.Errors;
+
+                await PublishDownloadEventAsync(track.Id, request.VideoId, thumbnailUrl.Value, cancellationToken);
+                await database.SaveChangesAsync(cancellationToken);
+                logger.LogInformation("Queued YouTube track {VideoId} for download", request.VideoId);
+            }
 
             var alreadyAdded = await database.PlayListHasTracks.AsNoTracking()
                 .AnyAsync(plt => plt.PlayListId == request.PlayListId && plt.TrackId == track.Id, cancellationToken);
@@ -83,77 +105,27 @@ namespace Musify.Application.PlayLists
             return TrackApplicationResponse.FromEntity(track, listensCount);
         }
 
-        private async Task<ErrorOr<Track>> GetOrCreateTrackAsync(AddYouTubeTrackToPlayListCommand request, CancellationToken cancellationToken)
+        private async Task<ErrorOr<string>> ResolveThumbnailUrlAsync(string videoId, YouTubeSongResult? song, CancellationToken cancellationToken)
         {
-            var track = await database.Tracks
-                .SingleOrDefaultAsync(t => t.Source == TrackSource.YouTube && t.ExternalId == request.VideoId, cancellationToken);
+            if (!string.IsNullOrEmpty(song?.ThumbnailUrl))
+                return song.ThumbnailUrl;
 
-            if (track is not null)
-            {
-                var failed = track.AudioTranscodeProcessingStatus == ProcessingStatus.Failed;
-                var neverQueued = !track.DownloadRequested && !track.IsAudioProcessed;
-                if (failed || neverQueued)
-                {
-                    if (failed)
-                    {
-                        track.AudioTranscodeProcessingStatus = ProcessingStatus.Pending;
-                        track.PicturesProcessingStatus = ProcessingStatus.Pending;
-                        track.LifeCycleStatus = LifeCycleStatus.Active;
-                        track.RetryCount += 1;
-                        track.LastRetryAt = DateTime.UtcNow;
-                    }
-                    track.DownloadRequested = true;
-                    await PublishDownloadEventAsync(track.Id, request, cancellationToken);
-                    await database.SaveChangesAsync(cancellationToken);
-                    logger.LogInformation("Queued YouTube track {VideoId} for download", request.VideoId);
-                }
-                return track;
-            }
+            var songResult = await youTubeMusicService.GetSongAsync(videoId, cancellationToken);
+            if (songResult.IsError)
+                return songResult.Errors;
 
-            var title = Truncate(request.Title, 50);
-            track = new Track
-            {
-                Title = title,
-                NormalizedTitle = title.ToUpperInvariant(),
-                Artist = Truncate(request.Artist, 200),
-                Source = TrackSource.YouTube,
-                ExternalId = request.VideoId,
-                DownloadRequested = true,
-                Duration = request.DurationSeconds,
-                OriginalPictureName = null,
-                OriginalAudioName = null,
-                SmallPictureName = trackConfiguration.Routes.PresetSmallPicture,
-                MediumPictureName = trackConfiguration.Routes.PresetMediumPicture,
-                LargePictureName = trackConfiguration.Routes.PresetLargePicture,
-                PicturesProcessingStatus = ProcessingStatus.Pending,
-                AudioTranscodeProcessingStatus = ProcessingStatus.Pending
-            };
-
-            await database.Tracks.AddAsync(track, cancellationToken);
-            await PublishDownloadEventAsync(track.Id, request, cancellationToken);
-
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-                logger.LogInformation("Created YouTube track {VideoId} ({TrackId}) and queued its download", request.VideoId, track.Id);
-                return track;
-            }
-            catch (DbUpdateException)
-            {
-                logger.LogInformation("YouTube track {VideoId} was created concurrently", request.VideoId);
-                return Error.Conflict(description: "The track was just created by another request. Retry the operation.");
-            }
+            return songResult.Value.ThumbnailUrl;
         }
 
-        private async Task PublishDownloadEventAsync(Guid trackId, AddYouTubeTrackToPlayListCommand request, CancellationToken cancellationToken)
+        private async Task PublishDownloadEventAsync(Guid trackId, string videoId, string thumbnailUrl, CancellationToken cancellationToken)
         {
             var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
             await eventBus.PublishAsync(
                 new DownloadYouTubeTrackEvent(
                     trackId,
-                    request.VideoId,
-                    request.ThumbnailUrl,
+                    videoId,
+                    thumbnailUrl,
                     storageConfiguration.Bucket,
                     audioProcessedFolderKey,
                     new ImageSize(
@@ -170,8 +142,5 @@ namespace Musify.Application.PlayLists
                         trackConfiguration.PicturesSizes.LargePictureHeight)),
                 cancellationToken);
         }
-
-        private static string Truncate(string value, int maxLength) =>
-            value.Length <= maxLength ? value : value[..maxLength];
     }
 }
