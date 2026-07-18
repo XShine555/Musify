@@ -1,11 +1,14 @@
-import type { PageServerLoad } from './$types';
-import { createApiClient } from '$lib/server/api';
+import type { PageServerLoad, Actions } from './$types';
+import { createApiClient, playlistCoverTrackIds } from '$lib/server/api';
+import { fetchYoutubeFiller, shuffle } from '$lib/server/youtube';
+import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
+import { HOME_LATEST_PAGE_SIZE, YOUTUBE_FILLER_LIMIT } from '$lib/config';
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
 	const latestPromise = api.GET('/tracks', {
-		params: { query: { pageNumber: 1, pageSize: 12 } }
+		params: { query: { pageNumber: 1, pageSize: HOME_LATEST_PAGE_SIZE } }
 	});
 	const playlistsPromise = locals.user
 		? api.GET('/playlists/users/{userId}', {
@@ -22,20 +25,26 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 		recentlyPlayedPromise
 	]);
 	const playlistItems = playlists.data?.items ?? [];
+	const trackIds = await playlistCoverTrackIds(
+		api,
+		playlistItems.map((p) => p.id)
+	);
 
-	const covers = await Promise.all(
-		playlistItems.map(async (playlist) => {
-			const { data: tracks } = await api.GET('/playlists/{playlistId}/tracks', {
-				params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 4 } }
-			});
-			return [playlist.id, tracks?.items.map((t) => t.id) ?? []] as const;
-		})
+	const novedades = shuffle(
+		(latest.data?.items ?? []).map((track) => ({ kind: 'local' as const, track }))
 	);
 
 	return {
-		latest: latest.data?.items ?? [],
+		novedades,
+		novedadesHasNext: Boolean(latest.data?.hasNextPage),
+		youtubeFiller: fetchYoutubeFiller(api, locals.accessToken, YOUTUBE_FILLER_LIMIT),
 		playlists: playlistItems,
-		trackIds: Object.fromEntries(covers) as Record<string, string[]>,
+		trackIds,
 		recentlyPlayed: recentlyPlayed.data ?? []
 	};
+};
+
+export const actions: Actions = {
+	addTrack: addTrackAction,
+	addYouTubeToPlaylist: addYouTubeToPlaylistAction
 };

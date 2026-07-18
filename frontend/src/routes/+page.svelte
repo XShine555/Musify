@@ -1,32 +1,192 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
-	import { player, queueIdForTrack, toQueueItems } from '$lib/player/player.svelte';
-	import { HUES } from '$lib/theme/color';
+	import { player, toQueueItems, type QueueItem } from '$lib/player/player.svelte';
+	import { hueFor } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
-	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
+	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
+	import { HOME_LATEST_PAGE_SIZE } from '$lib/config';
+	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
+	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import TrackTile from '$lib/components/TrackTile.svelte';
+	import TrackContextMenu, {
+		contextMenuStateFor,
+		type ContextMenuTarget,
+		type ContextMenuState
+	} from '$lib/components/TrackContextMenu.svelte';
+	import type { YouTubeSong } from '$lib/types';
+  import { appendUnique } from '$lib/collections.js';
 
 	let { data } = $props();
 
-	const latest = $derived(data.latest);
+	let youtubeFillerItems = $state<YouTubeSong[]>([]);
+	let ytContinuation = $state('');
+	let ytQuery = $state('');
+	let contextMenu = $state<ContextMenuState | null>(null);
+
+	type LocalNovedad = (typeof data.novedades)[number];
+
+	let localNovedades = $state<LocalNovedad[]>([]);
+	let localPage = $state(1);
+	let localHasNext = $state(false);
+	let loadingMore = $state(false);
+
+	$effect(() => {
+		youtubeFillerItems = [];
+		ytContinuation = '';
+		ytQuery = '';
+		localNovedades = data.novedades;
+		localPage = 1;
+		localHasNext = data.novedadesHasNext;
+		data.youtubeFiller.then((filler) => {
+			youtubeFillerItems = filler.items;
+			ytContinuation = filler.continuationToken;
+			ytQuery = filler.query;
+		});
+	});
+
+	const novedades = $derived([
+		...localNovedades,
+		...youtubeFillerItems.map((song) => ({ kind: 'youtube' as const, song }))
+	]);
+
+	const hasMoreNovedades = $derived(localHasNext || ytContinuation !== '');
+
+	async function loadMoreNovedades() {
+		if (loadingMore) return;
+		loadingMore = true;
+		try {
+			if (localHasNext) {
+				const params = new URLSearchParams({
+					pageNumber: String(localPage + 1),
+					pageSize: String(HOME_LATEST_PAGE_SIZE)
+				});
+				const res = await fetch(`/api/tracks?${params}`);
+				if (!res.ok) throw new Error(String(res.status));
+				const next = await res.json();
+				localNovedades = appendUnique(
+					localNovedades,
+					next.items.map((track: LocalNovedad['track']) => ({
+						kind: 'local' as const,
+						track
+					})),
+					item => item.track.id
+				);
+				localPage = Number(next.pageNumber);
+				localHasNext = Boolean(next.hasNextPage);
+			} else if (ytContinuation && ytQuery) {
+				const params = new URLSearchParams({ query: ytQuery, continuation: ytContinuation });
+				const res = await fetch(`/api/youtube/search?${params}`);
+				if (!res.ok) throw new Error(String(res.status));
+				const next = (await res.json()) as { items: YouTubeSong[]; continuationToken: string };
+				youtubeFillerItems = appendUnique(
+					youtubeFillerItems,
+					next.items,
+					item => item.videoId
+				);
+				ytContinuation = next.continuationToken;
+			}
+		} catch {
+			if (localHasNext) localHasNext = false;
+			else ytContinuation = '';
+		} finally {
+			loadingMore = false;
+		}
+	}
 	const playlists = $derived(data.playlists);
 	const trackIds = $derived(data.trackIds);
-	interface RecentItem {
-		id: string;
-		title: string;
-		artist?: string;
-		source: 'local' | 'youtube';
-		coverUrl?: string;
+
+	function novedadId(item: (typeof novedades)[number]) {
+		return item.kind === 'youtube' ? item.song.videoId : item.track.id;
+	}
+
+	function novedadTitle(item: (typeof novedades)[number]) {
+		return item.kind === 'youtube' ? item.song.title : item.track.title;
+	}
+
+	function novedadArtist(item: (typeof novedades)[number]) {
+		return item.kind === 'youtube' ? item.song.artist : item.track.artist;
+	}
+
+	function novedadExplicit(item: (typeof novedades)[number]) {
+		return item.kind === 'youtube' ? item.song.isExplicit : false;
+	}
+
+	function novedadQueueItem(item: ContextMenuTarget): QueueItem {
+		return item.kind === 'youtube'
+			? {
+					id: item.song.videoId,
+					title: item.song.title,
+					artist: item.song.artist,
+					source: 'youtube',
+					coverUrl: item.song.thumbnailUrl,
+					explicit: item.song.isExplicit
+				}
+			: toQueueItems([item.track])[0];
+	}
+
+	function playNovedad(index: number) {
+		player.playOrToggle(novedades.map(novedadQueueItem), index);
+	}
+
+	function openContextMenu(event: MouseEvent, target: ContextMenuTarget) {
+		contextMenu = contextMenuStateFor(event, target);
+	}
+
+	function closeContextMenu() {
+		contextMenu = null;
+	}
+
+	function addToQueue() {
+		if (!contextMenu) return;
+		player.addToQueue(novedadQueueItem(contextMenu));
+		closeContextMenu();
+	}
+
+	function contextMenuTargetFor(item: QueueItem): ContextMenuTarget {
+		return item.source === 'youtube'
+			? {
+					kind: 'youtube',
+					song: {
+						videoId: String(item.id),
+						title: item.title,
+						artist: item.artist ?? '',
+						album: '',
+						durationSeconds: 0,
+						thumbnailUrl: item.coverUrl ?? '',
+						isExplicit: item.explicit ?? false
+					}
+				}
+			: {
+					kind: 'local',
+					track: {
+						id: item.id,
+						title: item.title,
+						artist: item.artist,
+						source: 'Local',
+						isExplicit: item.explicit
+					}
+				};
 	}
 
 	const recentlyPlayed = $derived.by(() => {
 		const seen = new Set<string>();
-		const merged: RecentItem[] = [];
+		const merged: QueueItem[] = [];
 		for (const t of player.recentlyPlayed) {
 			const id = String(t.id);
 			if (seen.has(id)) continue;
 			seen.add(id);
-			merged.push({ id, title: t.title, artist: t.artist, source: t.source, coverUrl: t.coverUrl });
+			merged.push({
+				id,
+				title: t.title,
+				artist: t.artist,
+				source: t.source,
+				coverUrl: t.coverUrl,
+				explicit: t.explicit
+			});
 		}
 		for (const item of toQueueItems(data.recentlyPlayed)) {
 			const id = String(item.id);
@@ -37,7 +197,8 @@
 				title: item.title,
 				artist: item.artist,
 				source: item.source ?? 'local',
-				coverUrl: item.coverUrl
+				coverUrl: item.coverUrl,
+				explicit: item.explicit
 			});
 		}
 		return merged.slice(0, 15);
@@ -61,25 +222,8 @@
 		return /[.!?]$/.test(pick) ? pick : `${pick}.`;
 	})();
 
-	const listasIsFirstSection = $derived(recentlyPlayed.length === 0 && playlists.length > 0);
-	const novedadesIsFirstSection = $derived(recentlyPlayed.length === 0 && playlists.length === 0);
-
-	function hueFor(id: string) {
-		let hash = 0;
-		for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-		return HUES[hash % HUES.length];
-	}
-
-	function playLatest(index: number) {
-		const track = latest[index];
-		if (player.current.id === queueIdForTrack(track)) player.toggle();
-		else player.playQueue(toQueueItems(latest), index);
-	}
-
 	function playRecent(index: number) {
-		const track = recentlyPlayed[index];
-		if (player.current.id === track.id) player.toggle();
-		else player.playQueue(recentlyPlayed, index);
+		player.playOrToggle(recentlyPlayed, index);
 	}
 </script>
 
@@ -88,28 +232,32 @@
 	<meta name="description" content="Tu música, sin límites." />
 </svelte:head>
 
-<section class="relative overflow-hidden px-8 pb-16 pt-11">
+<section class="page-x relative overflow-hidden pt-11 pb-16">
 	<div
 		class="pointer-events-none absolute inset-0 blur-[70px] saturate-150"
 		style="background:linear-gradient(135deg, var(--mf-accent), color-mix(in oklch, var(--mf-accent), black 55%));animation:breathe 9s ease-in-out infinite"
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2.5">
-		<p class="text-[13px] uppercase tracking-[0.14em] text-[var(--mf-text-3)]">{greeting}</p>
-		<h1 class="max-w-[640px] font-display text-[42px] font-extrabold leading-[1.05] tracking-tight">
+		<p class="tracking-[0.14em] text-fg-2 uppercase">{greeting}</p>
+		<h1 class="max-w-160 text-5xl leading-[1.05] font-extrabold text-fg">
 			Tu música. Sin límites.
 		</h1>
 	</div>
 </section>
 
 {#if recentlyPlayed.length > 0}
-	<section class="px-8 pb-3 pt-6">
-		<h2 class="mb-4 font-display text-xl font-bold">Escuchado recientemente</h2>
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3.5">
+	<section class="page-x pt-6 pb-3">
+		<SectionHeading title="Escuchado recientemente" />
+		<MediaGrid min="300px">
 			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
 					onclick={() => playRecent(i)}
-					class="flex items-center gap-3.5 rounded-xl bg-[var(--mf-surface)] p-2 text-left transition hover:bg-[var(--mf-surface-hover)]"
+					oncontextmenu={(e) => openContextMenu(e, contextMenuTargetFor(track))}
+					aria-label="{player.current.id === track.id && player.playing
+						? 'Pausar'
+						: 'Reproducir'} {track.title}"
+					class="flex min-w-0 items-center gap-3 rounded-control bg-surface p-2 text-left transition hover:bg-surface-hover"
 				>
 					<Cover
 						trackId={track.id}
@@ -117,95 +265,77 @@
 						hue={hueFor(track.id)}
 						size="small"
 						alt={track.title}
-						class="h-14 w-14 flex-shrink-0 rounded-lg"
+						class="h-14 w-14 flex-shrink-0 rounded-control"
 					>
 						{#if player.current.id === track.id}
 							<NowPlaying paused={!player.playing} />
 						{/if}
 					</Cover>
 					<div class="min-w-0">
-						<div class="truncate text-sm font-semibold text-[var(--mf-text)]">{track.title}</div>
+						<div class="flex min-w-0 items-center gap-1.5">
+							{#if track.explicit}
+								<ExplicitBadge />
+							{/if}
+							<span class="truncate text-fg">{track.title}</span>
+						</div>
 						{#if track.artist}
-							<div class="truncate text-xs text-neutral-500">{track.artist}</div>
+							<div class="truncate text-sm text-muted">{track.artist}</div>
 						{/if}
 					</div>
 				</button>
 			{/each}
-		</div>
+		</MediaGrid>
 	</section>
 {/if}
 
 {#if playlists.length > 0}
-	<section class="px-8 pb-3 {listasIsFirstSection ? 'pt-6' : 'pt-3'}">
-	<h2 class="mb-4 font-display text-xl font-bold">Mis listas</h2>
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
+	<section class="page-x pt-6 pb-3">
+		<SectionHeading title="Mis listas" />
+		<MediaGrid>
 			{#each playlists as playlist, i (playlist.id)}
-				<a
-					href="/playlists/{playlist.id}"
-					class="group animate-enter text-left"
-					style="animation-delay:{i * 45}ms"
-				>
-					<PlaylistArt
-						playlistId={playlist.id}
-						trackIds={trackIds[playlist.id] ?? []}
-						hue={hueFor(playlist.id)}
-						class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)] transition group-hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.75)]"
-					/>
-					<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]">
-						{playlist.name}
-					</div>
-				</a>
+				<PlaylistCard
+					id={playlist.id}
+					name={playlist.name}
+					description={playlist.description}
+					trackIds={trackIds[playlist.id] ?? []}
+					updatedAt={playlist.updatedAt}
+					index={i}
+				/>
 			{/each}
-		</div>
-</section>
+		</MediaGrid>
+	</section>
 {/if}
 
-<section class="px-8 pb-8 {novedadesIsFirstSection ? 'pt-6' : 'pt-3'}">
-	<h2 class="mb-4 font-display text-xl font-bold">Novedades</h2>
-	{#if latest.length > 0}
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-			{#each latest as track, i (track.id)}
-				<button
-					type="button"
-					onclick={() => playLatest(i)}
-					class="group animate-enter text-left"
-					style="animation-delay:{i * 45}ms"
-				>
-					<Cover
-						trackId={track.id}
-						hue={hueFor(track.id)}
-						size="large"
-						alt={track.title}
-						class="aspect-square w-full rounded-xl shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
-					>
-						<span
-							class="absolute right-2.5 bottom-2.5 grid h-11 w-11 translate-y-2 place-items-center rounded-full bg-[var(--mf-accent)] text-neutral-950 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100"
-							class:!opacity-100={player.current.id === track.id}
-							class:!translate-y-0={player.current.id === track.id}
-						>
-							{#if player.current.id === track.id && player.playing}
-								<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-									<path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-								</svg>
-							{:else}
-								<svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
-									<path d="M8 5v14l11-7z" />
-								</svg>
-							{/if}
-						</span>
-					</Cover>
-					<div class="mt-2.5 truncate text-sm font-semibold text-[var(--mf-text)]">{track.title}</div>
-				</button>
+<section class="page-x pt-6 pb-10">
+	<SectionHeading title="Novedades" />
+	{#if novedades.length > 0}
+		<MediaGrid as="ul">
+			{#each novedades as item, i (novedadId(item))}
+				<TrackTile
+					id={novedadId(item)}
+					title={novedadTitle(item)}
+					artist={novedadArtist(item)}
+					coverSrc={item.kind === 'youtube' ? item.song.thumbnailUrl : undefined}
+					hue={hueFor(novedadId(item))}
+					explicit={novedadExplicit(item)}
+					active={player.current.id === novedadId(item)}
+					playing={player.isPlaying}
+					index={i}
+					onClick={() => playNovedad(i)}
+					onContextMenu={(e) => openContextMenu(e, item)}
+				/>
 			{/each}
-		</div>
+		</MediaGrid>
+		<InfiniteScroll
+			onLoadMore={loadMoreNovedades}
+			hasMore={hasMoreNovedades}
+			loading={loadingMore}
+		/>
 	{:else}
-		<div class="max-w-[1400px] rounded-2xl border border-[var(--mf-border)] px-8 py-12 text-center">
-			<Music class="mx-auto h-9 w-9 text-[var(--mf-text-4)]" />
-			<h3 class="mt-4 font-display text-xl font-bold">Todavía no hay música</h3>
-			<p class="mt-2 text-sm text-[var(--mf-text-2)]">
-				<a href="/upload" class="text-emerald-400 underline underline-offset-2">Sube una canción</a>
-				y empieza a escuchar.
-			</p>
-		</div>
+		<EmptyState icon={Music} title="Todavía no hay música" />
 	{/if}
 </section>
+
+{#if contextMenu}
+	<TrackContextMenu menu={contextMenu} {playlists} onClose={closeContextMenu} onAddToQueue={addToQueue} />
+{/if}

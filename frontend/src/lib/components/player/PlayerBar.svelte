@@ -6,7 +6,8 @@
 </script>
 
 <div
-	class="animate-enter fixed bottom-0 left-[264px] right-0 z-50 h-[92px] border-t border-[var(--mf-border)] bg-[var(--mf-bg)]"
+	class="animate-enter fixed bottom-0 right-0 z-50 h-[92px] border-t border-line bg-bg"
+	style="left:var(--mf-sidebar-w)"
 >
 	<div
 		class="grid h-full items-center gap-5 px-8"

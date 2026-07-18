@@ -8,7 +8,7 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Services;
 
-public sealed record YouTubeTrackProvision(Track Track, YouTubeSongResult? Song);
+public sealed record YouTubeTrackProvision(ExternalTrack Track, YouTubeSongResult? Song);
 
 public sealed class YouTubeTrackProvisioner(
     IDatabase database,
@@ -16,8 +16,8 @@ public sealed class YouTubeTrackProvisioner(
     TrackConfiguration trackConfiguration,
     ILogger<YouTubeTrackProvisioner> logger)
 {
-    public Task<Track?> FindAsync(string videoId, CancellationToken cancellationToken) =>
-        database.Tracks
+    public Task<ExternalTrack?> FindAsync(string videoId, CancellationToken cancellationToken) =>
+        database.ExternalTracks
             .Include(track => track.TrackArtists)
             .ThenInclude(trackArtist => trackArtist.Artist)
             .SingleOrDefaultAsync(t => t.Source == TrackSource.YouTube && t.ExternalId == videoId, cancellationToken);
@@ -44,7 +44,7 @@ public sealed class YouTubeTrackProvisioner(
             artists.Add(await GetOrCreateArtistAsync(artistRef, cancellationToken));
 
         var title = Truncate(song.Title, 50);
-        var track = new Track
+        var track = new ExternalTrack
         {
             Title = title,
             NormalizedTitle = title.ToUpperInvariant(),
@@ -65,7 +65,7 @@ public sealed class YouTubeTrackProvisioner(
             }
         };
 
-        await database.Tracks.AddAsync(track, cancellationToken);
+        await database.ExternalTracks.AddAsync(track, cancellationToken);
 
         for (var position = 0; position < artists.Count; position++)
         {
@@ -85,7 +85,7 @@ public sealed class YouTubeTrackProvisioner(
         }
         catch (DbUpdateException)
         {
-            database.Tracks.Remove(track);
+            database.ExternalTracks.Remove(track);
             var refetched = await FindAsync(videoId, cancellationToken);
             if (refetched is null)
             {
@@ -100,43 +100,17 @@ public sealed class YouTubeTrackProvisioner(
     {
         var name = Truncate(reference.Name, 200);
         var normalized = name.ToUpperInvariant();
-        var byExternalId = !string.IsNullOrEmpty(reference.Id);
+        var externalId = reference.Id ?? $"name:{normalized}";
 
-        var existing = byExternalId
-            ? await database.Artists.SingleOrDefaultAsync(a => a.ExternalId == reference.Id, cancellationToken)
-            : await database.Artists.SingleOrDefaultAsync(a => a.ExternalId == null && a.UserId == null && a.NormalizedName == normalized, cancellationToken);
+        var existing = await database.Artists.SingleOrDefaultAsync(a => a.ExternalId == externalId, cancellationToken);
         if (existing is not null)
             return existing;
-
-        if (byExternalId)
-        {
-            var adoptable = await database.Artists
-                .SingleOrDefaultAsync(a => a.ExternalId == null && a.UserId == null && a.NormalizedName == normalized, cancellationToken);
-            if (adoptable is not null)
-            {
-                var previousName = adoptable.Name;
-                adoptable.ExternalId = reference.Id;
-                adoptable.Name = name;
-
-                try
-                {
-                    await database.SaveChangesAsync(cancellationToken);
-                    return adoptable;
-                }
-                catch (DbUpdateException)
-                {
-                    adoptable.ExternalId = null;
-                    adoptable.Name = previousName;
-                    return await database.Artists.SingleAsync(a => a.ExternalId == reference.Id, cancellationToken);
-                }
-            }
-        }
 
         var artist = new Artist
         {
             Name = name,
             NormalizedName = normalized,
-            ExternalId = byExternalId ? reference.Id : null
+            ExternalId = externalId
         };
 
         await database.Artists.AddAsync(artist, cancellationToken);
@@ -149,9 +123,7 @@ public sealed class YouTubeTrackProvisioner(
         catch (DbUpdateException)
         {
             database.Artists.Remove(artist);
-            return byExternalId
-                ? await database.Artists.SingleAsync(a => a.ExternalId == reference.Id, cancellationToken)
-                : await database.Artists.SingleAsync(a => a.ExternalId == null && a.UserId == null && a.NormalizedName == normalized, cancellationToken);
+            return await database.Artists.SingleAsync(a => a.ExternalId == externalId, cancellationToken);
         }
     }
 

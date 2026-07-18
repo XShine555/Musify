@@ -31,21 +31,6 @@ namespace Musify.Infrastructure.Persistence
             trackProcessing.Property(state => state.CurrentState).HasMaxLength(64);
 
             modelBuilder.Entity<Track>()
-                .HasIndex(track => new { track.Source, track.ExternalId })
-                .IsUnique();
-
-            modelBuilder.Entity<Track>()
-                .HasOne(track => track.Owner)
-                .WithMany()
-                .HasForeignKey(track => track.OwnerUserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Track>()
-                .ToTable(t => t.HasCheckConstraint(
-                    "CK_Tracks_OwnerUserId_Source",
-                    "(\"OwnerUserId\" IS NOT NULL) = (\"Source\" = 0)"));
-
-            modelBuilder.Entity<Track>()
                 .OwnsOne(track => track.Pictures, pictures =>
                 {
                     pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
@@ -68,6 +53,22 @@ namespace Musify.Infrastructure.Persistence
                 });
             modelBuilder.Entity<Track>().Navigation(track => track.Audio).IsRequired();
 
+            modelBuilder.Entity<LocalTrack>()
+                .ToTable("LocalTracks");
+
+            modelBuilder.Entity<LocalTrack>()
+                .HasOne(track => track.Owner)
+                .WithMany()
+                .HasForeignKey(track => track.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ExternalTrack>()
+                .ToTable("ExternalTracks");
+
+            modelBuilder.Entity<ExternalTrack>()
+                .HasIndex(track => new { track.Source, track.ExternalId })
+                .IsUnique();
+
             modelBuilder.Entity<TrackArtist>()
                 .HasKey(trackArtist => new { trackArtist.TrackId, trackArtist.ArtistId });
 
@@ -84,17 +85,8 @@ namespace Musify.Infrastructure.Persistence
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Artist>()
-                .HasIndex(artist => artist.UserId)
-                .IsUnique();
-
-            modelBuilder.Entity<Artist>()
                 .HasIndex(artist => artist.ExternalId)
                 .IsUnique();
-
-            modelBuilder.Entity<Artist>()
-                .HasIndex(artist => artist.NormalizedName)
-                .IsUnique()
-                .HasFilter("\"ExternalId\" IS NULL AND \"UserId\" IS NULL");
 
             modelBuilder.Entity<PlayList>()
                 .OwnsOne(playList => playList.Pictures, pictures =>
@@ -104,7 +96,7 @@ namespace Musify.Infrastructure.Persistence
                     pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64);
                     pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64);
                 });
-            modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired();
+            modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired(false);
 
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
@@ -115,6 +107,10 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<User> Users => Set<User>();
 
         public DbSet<Track> Tracks => Set<Track>();
+
+        public DbSet<LocalTrack> LocalTracks => Set<LocalTrack>();
+
+        public DbSet<ExternalTrack> ExternalTracks => Set<ExternalTrack>();
 
         public DbSet<Artist> Artists => Set<Artist>();
 

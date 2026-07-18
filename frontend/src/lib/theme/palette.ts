@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { ACCENT_LIGHTNESS } from './color';
 
 export interface Accent {
 	accent: string;
@@ -107,7 +108,7 @@ export async function extractAccent(url: string): Promise<Accent | null> {
 	const h2 = ((hue + 25) % 360).toFixed(1);
 
 	return {
-		accent: `oklch(72% ${c} ${h})`,
+		accent: `oklch(${ACCENT_LIGHTNESS}% ${c} ${h})`,
 		gradient: `linear-gradient(135deg, oklch(74% ${c} ${h}), oklch(56% ${c2} ${h2}))`
 	};
 }

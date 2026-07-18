@@ -22,23 +22,23 @@ namespace Musify.Application.Tracks.Responses
                 track.Id,
                 track.Title,
                 FormatArtist(track),
-                track.Source,
-                track.ExternalId,
+                track is ExternalTrack external ? external.Source : TrackSource.Local,
+                (track as ExternalTrack)?.ExternalId,
                 track.Audio.TranscodeStatus,
                 track.DurationSeconds,
                 listensCount,
-                track.OwnerUserId,
+                (track as LocalTrack)?.OwnerUserId,
                 track.CreatedAt,
                 track.UpdatedAt);
 
-        private static string? FormatArtist(Track track)
+        private static string? FormatArtist(Track track) => track switch
         {
-            if (track.TrackArtists.Count == 0)
-                return null;
-
-            return string.Join(", ", track.TrackArtists
-                .OrderBy(trackArtist => trackArtist.Position)
-                .Select(trackArtist => trackArtist.Artist.Name));
-        }
+            LocalTrack local => local.Owner.Name,
+            ExternalTrack { TrackArtists.Count: > 0 } external =>
+                string.Join(", ", external.TrackArtists
+                    .OrderBy(trackArtist => trackArtist.Position)
+                    .Select(trackArtist => trackArtist.Artist.Name)),
+            _ => null
+        };
     }
 }

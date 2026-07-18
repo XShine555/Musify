@@ -6,6 +6,7 @@ using Musify.Application.Tracks.Responses;
 using X.PagedList;
 using X.PagedList.EF;
 using Musify.Application.Contracts;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks
 {
@@ -26,9 +27,9 @@ namespace Musify.Application.Tracks
 
             var tracksQuery = database.UserHasTracks
                 .AsNoTracking()
-                .Include(ut => ut.Track)
-                    .ThenInclude(track => track.TrackArtists)
+                .Include(ut => ((ExternalTrack)ut.Track).TrackArtists)
                     .ThenInclude(trackArtist => trackArtist.Artist)
+                .Include(ut => ((LocalTrack)ut.Track).Owner)
                 .Where(p => p.UserId == request.UserId);
 
             if (!string.IsNullOrEmpty(request.Name))

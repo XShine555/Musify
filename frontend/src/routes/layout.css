@@ -1,9 +1,40 @@
 @import 'tailwindcss';
 
 @theme {
-	--font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 	--color-neutral-950: #08080a;
+
+	--color-bg: var(--mf-bg);
+	--color-elevated: var(--mf-elevated);
+	--color-surface: var(--mf-surface);
+	--color-surface-2: var(--mf-surface-2);
+	--color-surface-hover: var(--mf-surface-hover);
+	--color-hover: rgba(255, 255, 255, 0.05);
+	--color-line: var(--mf-border);
+	--color-line-strong: var(--mf-border-strong);
+	--color-track: var(--mf-track);
+	--color-fg: var(--mf-text);
+	--color-fg-2: var(--mf-text-2);
+	--color-fg-3: var(--mf-text-3);
+	--color-muted: var(--mf-text-4);
+	--color-accent: var(--mf-accent);
+	--color-accent-soft: var(--mf-accent-60);
+	--color-on-accent: #ffffff;
+	--color-danger: oklch(63.7% 0.237 25.331);
+	--color-danger-fg: oklch(88.5% 0.062 18.334);
+
+	--radius-control: 0.625rem;
+	--radius-panel: 1rem;
+	--radius-art: 0.75rem;
+	--radius-art-lg: 1rem;
+
+	--shadow-art: 0 12px 28px -10px rgba(0, 0, 0, 0.6);
+	--shadow-art-lg: 0 20px 45px -15px rgba(0, 0, 0, 0.7);
+	--shadow-menu: 0 12px 28px -10px rgba(0, 0, 0, 0.6);
+}
+
+@utility page-x {
+	padding-inline: --spacing(8);
 }
 
 @utility scrollbar-stable {

@@ -42,8 +42,6 @@ namespace Musify.Application.PlayLists
             }
 
             UploadIntent? pictureIntent = null;
-            string originalPictureName;
-
             if (request.PictureIntentId.HasValue)
             {
                 var validation = await uploadIntentValidator.ValidateAndLoadAsync(
@@ -53,11 +51,6 @@ namespace Musify.Application.PlayLists
                     return validation.Errors;
 
                 pictureIntent = validation.Value;
-                originalPictureName = pictureIntent.ObjectName;
-            }
-            else
-            {
-                originalPictureName = playListConfiguration.Routes.PresetOriginalPicture;
             }
 
             var playList = new PlayList
@@ -66,20 +59,15 @@ namespace Musify.Application.PlayLists
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = request.Description,
-                Pictures = new PlayListPictures
-                {
-                    OriginalName = originalPictureName,
-                    SmallName = playListConfiguration.Routes.PresetSmallPicture,
-                    MediumName = playListConfiguration.Routes.PresetMediumPicture,
-                    LargeName = playListConfiguration.Routes.PresetLargePicture
-                }
+                Pictures = pictureIntent == null ? null
+                    : new PlayListPictures { OriginalName = pictureIntent.ObjectName }
             };
 
             await database.PlayLists.AddAsync(playList, cancellationToken);
 
-            if (pictureIntent is not null)
+            if (pictureIntent != null)
             {
-                var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, originalPictureName);
+                var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
                 var publishResult = await PublishCreatePlayListEventAsync(
                     playList.Id, pictureIntent, finalPictureKey, cancellationToken);
                 if (publishResult.IsError)

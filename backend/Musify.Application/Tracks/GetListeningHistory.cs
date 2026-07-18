@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks
 {
@@ -24,8 +25,9 @@ namespace Musify.Application.Tracks
                 .ToListAsync(cancellationToken);
 
             var tracksById = await database.Tracks
-                .Include(t => t.TrackArtists)
+                .Include(t => ((ExternalTrack)t).TrackArtists)
                     .ThenInclude(trackArtist => trackArtist.Artist)
+                .Include(t => ((LocalTrack)t).Owner)
                 .Where(t => recentTrackIds.Contains(t.Id))
                 .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count } )
                 .ToDictionaryAsync(t => t.Id, cancellationToken);

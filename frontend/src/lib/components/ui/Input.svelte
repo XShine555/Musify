@@ -1,0 +1,53 @@
+<script lang="ts">
+	import type { LucideIcon } from '@lucide/svelte';
+
+	interface Props {
+		value?: string;
+		id?: string;
+		name?: string;
+		type?: 'text' | 'search';
+		placeholder?: string;
+		maxlength?: number;
+		required?: boolean;
+		autocomplete?: 'on' | 'off';
+		icon?: LucideIcon;
+		oninput?: (event: Event) => void;
+		class?: string;
+	}
+
+	let {
+		value = $bindable(''),
+		id,
+		name,
+		type = 'text',
+		placeholder,
+		maxlength,
+		required = false,
+		autocomplete = 'off',
+		icon: Icon,
+		oninput,
+		class: klass = ''
+	}: Props = $props();
+</script>
+
+<div class="relative w-full">
+	{#if Icon}
+		<span class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-muted">
+			<Icon class="h-4 w-4" />
+		</span>
+	{/if}
+	<input
+		{id}
+		{name}
+		{type}
+		{placeholder}
+		{maxlength}
+		{required}
+		{autocomplete}
+		{oninput}
+		bind:value
+		class="w-full rounded-control border border-line bg-surface py-3 text-base text-fg transition placeholder:text-muted focus:border-accent/50 focus:outline-none {Icon
+			? 'pr-4 pl-11'
+			: 'px-4'} {klass}"
+	/>
+</div>

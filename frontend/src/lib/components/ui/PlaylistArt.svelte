@@ -1,23 +1,17 @@
 <script lang="ts">
 	import Cover from './Cover.svelte';
-	import { gradientForHue, HUES } from '$lib/theme/color';
+	import { gradientForHue, hueFor } from '$lib/theme/color';
 
 	interface Props {
 		playlistId?: string;
 		trackIds: (string | number)[];
 		hue: number;
 		size?: 'small' | 'medium' | 'large';
+		version?: string;
 		class?: string;
 	}
 
-	let { playlistId, trackIds, hue, size = 'medium', class: klass = '' }: Props = $props();
-
-	function hueFor(id: string | number) {
-		const text = String(id);
-		let hash = 0;
-		for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
-		return HUES[hash % HUES.length];
-	}
+	let { playlistId, trackIds, hue, size = 'medium', version, class: klass = '' }: Props = $props();
 
 	let coverFailed = $state(false);
 
@@ -28,7 +22,7 @@
 {#if playlistId && !coverFailed}
 	<div class="relative overflow-hidden {klass}" style="background:{gradientForHue(hue)}">
 		<img
-			src="/api/playlists/{playlistId}/cover?size={size}"
+			src="/api/playlists/{playlistId}/cover?size={size}{version ? `&v=${encodeURIComponent(version)}` : ''}"
 			alt=""
 			loading="lazy"
 			onerror={() => (coverFailed = true)}

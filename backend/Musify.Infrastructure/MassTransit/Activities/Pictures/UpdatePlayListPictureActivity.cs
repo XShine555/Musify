@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Application.Events;
+using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
@@ -35,6 +36,13 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     logger.LogWarning("Playlist {PlayListId} not found",
                         executeContext.Arguments.PlayListId);
                     throw new InvalidOperationException($"PlayList with id {executeContext.Arguments.PlayListId} not found");
+                }
+
+                if (playList.Pictures is null)
+                {
+                    logger.LogWarning("Playlist {PlayListId} has no pending picture upload",
+                        executeContext.Arguments.PlayListId);
+                    throw new InvalidOperationException($"PlayList with id {executeContext.Arguments.PlayListId} has no pending picture upload");
                 }
 
                 var log = new UpdatePlayListPictureLog(
@@ -82,10 +90,13 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     return compensateContext.Compensated();
                 }
 
-                playList.Pictures.OriginalName = compensateContext.Log.PreviousOriginalPictureKey;
-                playList.Pictures.SmallName = compensateContext.Log.PreviousSmallPictureKey;
-                playList.Pictures.MediumName = compensateContext.Log.PreviousMediumPictureKey;
-                playList.Pictures.LargeName = compensateContext.Log.PreviousLargePictureKey;
+                playList.Pictures = new PlayListPictures
+                {
+                    OriginalName = compensateContext.Log.PreviousOriginalPictureKey,
+                    SmallName = compensateContext.Log.PreviousSmallPictureKey,
+                    MediumName = compensateContext.Log.PreviousMediumPictureKey,
+                    LargeName = compensateContext.Log.PreviousLargePictureKey
+                };
 
                 database.PlayLists.Update(playList);
                 await database.SaveChangesAsync(compensateContext.CancellationToken);

@@ -2,6 +2,7 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 using Musify.Application.Events;
 using Musify.Application.Contracts;
@@ -28,7 +29,7 @@ namespace Musify.Application.Tracks
                 return Error.NotFound();
             }
 
-            if (track.OwnerUserId != request.UserId)
+            if (track is not LocalTrack localTrack || localTrack.OwnerUserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
                 return Error.Unauthorized();

@@ -20,23 +20,23 @@ namespace Musify.Application.PlayLists
     {
         public async ValueTask<ErrorOr<PlayListCoverLocation>> Handle(GetPlayListCoverQuery request, CancellationToken cancellationToken)
         {
-            var playList = await database.PlayLists.AsNoTracking()
+            var pictures = await database.PlayLists.AsNoTracking()
                 .Where(p => p.Id == request.PlayListId)
-                .Select(p => new { p.Pictures.SmallName, p.Pictures.MediumName, p.Pictures.LargeName })
+                .Select(p => p.Pictures)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (playList == null)
+            if (pictures is null)
                 return Error.NotFound();
 
             var routes = playListConfiguration.Routes;
-            var (name, key, presetName) = request.Size.ToLowerInvariant() switch
+            var (name, key) = request.Size.ToLowerInvariant() switch
             {
-                "small" => (playList.SmallName, BuildKey(routes.BuildSmallPicturePath, playList.SmallName), routes.PresetSmallPicture),
-                "large" => (playList.LargeName, BuildKey(routes.BuildLargePicturePath, playList.LargeName), routes.PresetLargePicture),
-                _ => (playList.MediumName, BuildKey(routes.BuildMediumPicturePath, playList.MediumName), routes.PresetMediumPicture)
+                "small" => (pictures.SmallName, BuildKey(routes.BuildSmallPicturePath, pictures.SmallName)),
+                "large" => (pictures.LargeName, BuildKey(routes.BuildLargePicturePath, pictures.LargeName)),
+                _ => (pictures.MediumName, BuildKey(routes.BuildMediumPicturePath, pictures.MediumName))
             };
 
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(key) || name == presetName)
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(key))
                 return Error.NotFound();
 
             var contentType = MimeUtility.GetMimeMapping(name);

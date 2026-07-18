@@ -1,12 +1,12 @@
 <script lang="ts">
-	import '@fontsource-variable/manrope/index.css';
-	import '@fontsource-variable/sora/index.css';
+	import '@fontsource-variable/inter/index.css';
 	import '$lib/theme/theme.css';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import PlayerBar from '$lib/components/player/PlayerBar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import { player } from '$lib/player/player.svelte';
+	import { ACCENT_LIGHTNESS, ACCENT_CHROMA, ACCENT_HUE } from '$lib/theme/color';
 	import { page } from '$app/state';
 
 	let { children, data } = $props();
@@ -23,7 +23,7 @@
 		return m ? { c: parseFloat(m[1]), h: parseFloat(m[2]) } : null;
 	}
 
-	let displayed = { c: 0.17, h: 145 };
+	let displayed = { c: ACCENT_CHROMA, h: ACCENT_HUE };
 	let rafId = 0;
 
 	$effect(() => {
@@ -45,7 +45,10 @@
 			const c = from.c + (target.c - from.c) * e;
 			const h = (((from.h + dh * e) % 360) + 360) % 360;
 			displayed = { c, h };
-			document.documentElement.style.setProperty('--mf-accent', `oklch(72% ${c.toFixed(3)} ${h.toFixed(1)})`);
+			document.documentElement.style.setProperty(
+				'--mf-accent',
+				`oklch(${ACCENT_LIGHTNESS}% ${c.toFixed(3)} ${h.toFixed(1)})`
+			);
 			if (t < 1) rafId = requestAnimationFrame(tick);
 		};
 		rafId = requestAnimationFrame(tick);
@@ -55,11 +58,11 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 {#if isAuthPage}
-	<div class="min-h-screen bg-[var(--mf-bg)] text-[var(--mf-text)] antialiased">
+	<div class="min-h-screen bg-bg text-fg antialiased">
 		{@render children()}
 	</div>
 {:else}
-	<div class="flex min-h-screen bg-[var(--mf-bg)] text-[var(--mf-text)] antialiased">
+	<div class="flex min-h-screen bg-bg text-fg antialiased">
 		<Sidebar user={data.user!} />
 		<div class="flex min-w-0 flex-1 flex-col">
 			<main class="flex-1 transition-[padding] {hasTrack ? 'pb-[92px]' : 'pb-0'}">

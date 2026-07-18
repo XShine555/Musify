@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { HUES, accentForHue, gradientForHue } from '$lib/theme/color';
+import { HUES, accentForHue, gradientForHue, hueFor } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
 
 export type TrackSourceKind = 'local' | 'youtube';
@@ -12,6 +12,7 @@ export interface PlayerTrack {
 	hue: number;
 	source: TrackSourceKind;
 	coverUrl?: string;
+	explicit?: boolean;
 }
 
 export interface Playlist {
@@ -26,6 +27,7 @@ export interface QueueItem {
 	artist?: string;
 	source?: TrackSourceKind;
 	coverUrl?: string;
+	explicit?: boolean;
 }
 
 export interface ApiTrackLike {
@@ -35,6 +37,7 @@ export interface ApiTrackLike {
 	source?: 'Local' | 'YouTube';
 	externalId?: string;
 	audioStatus?: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+	isExplicit?: boolean;
 }
 
 export function isYouTubeTrack(track: ApiTrackLike): boolean {
@@ -65,7 +68,8 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 				? isPendingYouTubeTrack(track) && track.externalId
 					? youTubeThumbnailUrl(track.externalId)
 					: `/api/tracks/${track.id}/cover?size=small`
-				: undefined
+				: undefined,
+			explicit: track.isExplicit
 		};
 	});
 }
@@ -74,13 +78,6 @@ const RECENT_LIMIT = 15;
 
 const EMPTY: PlayerTrack = { id: '', title: '', artist: '', duration: 0, hue: HUES[0], source: 'local' };
 
-function hueFor(id: string | number): number {
-	const text = String(id);
-	let hash = 0;
-	for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
-	return HUES[hash % HUES.length];
-}
-
 function toTrack(item: QueueItem): PlayerTrack {
 	return {
 		id: item.id,
@@ -88,6 +85,7 @@ function toTrack(item: QueueItem): PlayerTrack {
 		artist: item.artist ?? '',
 		duration: 0,
 		hue: hueFor(item.id),
+		explicit: item.explicit,
 		source: item.source ?? 'local',
 		coverUrl: item.coverUrl
 	};
@@ -99,7 +97,7 @@ class PlayerState {
 	playing = $state(false);
 	progress = $state(0);
 	volume = $state(
-		browser ? Number(localStorage.getItem("player.volume") ?? 100) : 100
+		browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100
 	);
 	loading = $state(false);
 	error = $state('');
@@ -333,6 +331,12 @@ class PlayerState {
 		this.#loadCurrent();
 	}
 
+	playOrToggle(list: QueueItem[], index: number) {
+		if (index < 0 || index >= list.length) return;
+		if (this.currentId === list[index].id) this.toggle();
+		else this.playQueue(list, index);
+	}
+
 	addToQueue(item: QueueItem) {
 		if (this.currentId === null) {
 			this.playQueue([item], 0);
@@ -404,7 +408,7 @@ class PlayerState {
 		const audio = this.#audioEl();
 		if (audio) {
 			audio.volume = this.volume / 100;
-			localStorage.setItem("player.volume", String(this.volume));
+			localStorage.setItem('player.volume', String(this.volume));
 		}
 	}
 }

@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.Tracks
 {
@@ -15,8 +16,9 @@ namespace Musify.Application.Tracks
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(GetTrackByIdQuery request, CancellationToken cancellationToken)
         {
             var entity = await database.Tracks.AsNoTracking()
-                .Include(t => t.TrackArtists)
+                .Include(t => ((ExternalTrack)t).TrackArtists)
                     .ThenInclude(trackArtist => trackArtist.Artist)
+                .Include(t => ((LocalTrack)t).Owner)
                 .Where(t => t.Id == request.TrackId)
                 .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count })
                 .SingleOrDefaultAsync(cancellationToken);

@@ -26,8 +26,6 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/inter": "^5.2.8",
-		"@fontsource-variable/manrope": "^5.2.8",
-		"@fontsource-variable/sora": "^5.2.8",
 		"@lucide/svelte": "^1.23.0",
 		"@sveltejs/adapter-node": "^5.5.7",
 		"jose": "^6.2.3",

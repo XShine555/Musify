@@ -17,7 +17,7 @@
 		oninput={handleVolumeChange}
 		aria-label="Volumen"
 		class="mf-volume"
-		style="background:linear-gradient(to right, var(--mf-accent) {player.volume}%, var(--mf-track) {player.volume}%)"
+		style="background:linear-gradient(to right, var(--mf-accent-60) {player.volume}%, var(--mf-track) {player.volume}%)"
 	/>
 </div>
 

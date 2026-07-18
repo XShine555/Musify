@@ -8,6 +8,7 @@ using Musify.Application.Events;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 using Musify.Application.Contracts;
 
 namespace Musify.Application.PlayLists
@@ -68,7 +69,7 @@ namespace Musify.Application.PlayLists
                     return validation.Errors;
 
                 pictureIntent = validation.Value;
-                playListEntity.Pictures.OriginalName = pictureIntent.ObjectName;
+                playListEntity.Pictures = new PlayListPictures { OriginalName = pictureIntent.ObjectName };
                 finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             }
 

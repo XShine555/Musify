@@ -1,42 +1,14 @@
 import type { Actions } from './$types';
 import { fail } from '@sveltejs/kit';
-import { createApiClient } from '$lib/server/api';
-import { putPresigned } from '$lib/server/upload';
+import { createApiClient, requireAccessTokenAction, unwrapOrFail } from '$lib/server/api';
+import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
 
 const MAX_TITLE = 100;
 
-const AUDIO_TYPES: Record<string, string> = {
-	mp3: 'audio/mpeg',
-	m4a: 'audio/mp4',
-	aac: 'audio/aac',
-	flac: 'audio/flac',
-	wav: 'audio/wav',
-	ogg: 'audio/ogg',
-	opus: 'audio/opus'
-};
-
-const IMAGE_TYPES: Record<string, string> = {
-	jpg: 'image/jpeg',
-	jpeg: 'image/jpeg',
-	png: 'image/png',
-	webp: 'image/webp'
-};
-
-function extOf(name: string): string {
-	const dot = name.lastIndexOf('.');
-	return dot >= 0 ? name.slice(dot + 1).toLowerCase() : '';
-}
-
-function contentTypeOf(file: File, table: Record<string, string>): string {
-	if (file.type) return file.type;
-	return table[extOf(file.name)] ?? 'application/octet-stream';
-}
-
 export const actions: Actions = {
 	default: async ({ request, locals, fetch }) => {
-		if (!locals.accessToken) {
-			return fail(401, { message: 'Inicia sesión para subir música.' });
-		}
+		const accessToken = requireAccessTokenAction(locals, 'Inicia sesión para subir música.');
+		if (typeof accessToken !== 'string') return accessToken;
 
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();
@@ -55,9 +27,9 @@ export const actions: Actions = {
 
 		const audioContentType = contentTypeOf(audio, AUDIO_TYPES);
 		const pictureContentType = contentTypeOf(cover, IMAGE_TYPES);
-		const api = createApiClient({ fetch, accessToken: locals.accessToken });
+		const api = createApiClient({ fetch, accessToken });
 
-		const { data: urls, error: urlsError } = await api.POST('/tracks/upload-urls', {
+		const urlsResult = await api.POST('/tracks/upload-urls', {
 			body: {
 				pictureFileType: extOf(cover.name) || 'jpg',
 				pictureContentType,
@@ -68,9 +40,9 @@ export const actions: Actions = {
 			}
 		});
 
-		if (urlsError || !urls) {
-			return fail(502, { message: 'No se pudieron reservar las URLs de subida.' });
-		}
+		const urlsFailure = unwrapOrFail(urlsResult, 'No se pudieron reservar las URLs de subida.');
+		if (urlsFailure) return urlsFailure;
+		const urls = urlsResult.data!;
 
 		try {
 			const [audioBuffer, coverBuffer] = await Promise.all([
@@ -88,7 +60,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const { data: track, error: createError } = await api.POST('/tracks', {
+		const trackResult = await api.POST('/tracks', {
 			body: {
 				title,
 				pictureIntentId: urls.pictureIntentId,
@@ -96,9 +68,9 @@ export const actions: Actions = {
 			}
 		});
 
-		if (createError || !track) {
-			return fail(502, { message: 'No se pudo crear la pista tras la subida.' });
-		}
+		const trackFailure = unwrapOrFail(trackResult, 'No se pudo crear la pista tras la subida.');
+		if (trackFailure) return trackFailure;
+		const track = trackResult.data!;
 
 		return { success: true, trackId: track.id, title: track.title };
 	}

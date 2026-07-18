@@ -3,8 +3,8 @@
 	import type { SessionUser } from '$lib/types';
 	import Home from '@lucide/svelte/icons/house';
 	import Search from '@lucide/svelte/icons/search';
-	import Library from '@lucide/svelte/icons/library-big';
-	import ListMusic from '@lucide/svelte/icons/list-music';
+	import Folder from '@lucide/svelte/icons/folder';
+	import Music from '@lucide/svelte/icons/music';
 	import Upload from '@lucide/svelte/icons/upload';
 	import LogOut from '@lucide/svelte/icons/log-out';
 
@@ -30,11 +30,11 @@
 	const mainLinks = [
 		{ href: '/', label: 'Inicio', icon: Home },
 		{ href: '/explore', label: 'Buscar', icon: Search },
-		{ href: '/playlists', label: 'Listas', icon: ListMusic }
+		{ href: '/playlists', label: 'Listas', icon: Music }
 	];
 
 	const secondaryLinks = [
-		{ href: '/library', label: 'Canciones subidas', icon: Library },
+		{ href: '/library', label: 'Canciones subidas', icon: Folder },
 		{ href: '/upload', label: 'Subir música', icon: Upload }
 	];
 
@@ -65,32 +65,32 @@
 	<a
 		href={link.href}
 		data-active={active}
-		class="relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 font-semibold transition-colors duration-100 {active
-			? 'text-[var(--mf-text)]'
-			: 'text-[var(--mf-text-2)] hover:bg-white/5 hover:text-[var(--mf-text)]'}"
+		class="relative flex items-center gap-4 rounded-control px-4 py-3 transition-colors duration-100 {active
+			? 'text-fg'
+			: 'text-fg-3 hover:bg-hover hover:text-fg'}"
 	>
 		<link.icon
-			class="h-[18px] w-[18px] flex-shrink-0"
-			strokeWidth={2}
-			style={active ? 'color:var(--mf-accent)' : ''}
+			class="h-6 w-6 shrink-0"
+			style={active ? 'color:var(--mf-accent-60)' : ''}
 		/>
 		{link.label}
 	</a>
 {/snippet}
 
 <aside
-	class="sticky top-0 flex h-screen w-[264px] flex-shrink-0 flex-col gap-7 border-r border-[var(--mf-border)] px-[18px] py-[26px]"
+	class="sticky top-0 flex h-screen flex-shrink-0 flex-col gap-7 border-r border-line px-[18px] py-[26px]"
+	style="width:var(--mf-sidebar-w)"
 >
-	<a href="/" class="px-3 font-display text-xl font-extrabold tracking-tight">Musify</a>
+	<a href="/" class="px-3 text-xl font-extrabold tracking-wide">Musify</a>
 
 	<div class="relative flex flex-col gap-7" bind:this={navBox}>
 		<div
-			class="pointer-events-none absolute inset-x-0 z-0 overflow-hidden rounded-[10px] bg-white/10 {animate
+			class="pointer-events-none absolute inset-x-0 z-0 overflow-hidden rounded-control bg-surface-hover {animate
 				? 'transition-[top,height] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]'
 				: ''}"
 			style="top:{pillTop}px; height:{pillHeight}px; opacity:{pillVisible ? 1 : 0}"
 		>
-			<span class="absolute inset-y-0 left-0 w-[3px] rounded-r-full bg-[var(--mf-accent)]"></span>
+			<span class="absolute inset-y-0 left-0 w-[3px] rounded-r-full" style="background:var(--mf-accent-60)"></span>
 		</div>
 
 		<nav class="relative z-10 flex flex-col gap-1">
@@ -99,7 +99,7 @@
 			{/each}
 		</nav>
 
-		<div class="mx-2 border-t border-[var(--mf-border)]"></div>
+		<div class="mx-2 border-t border-line"></div>
 
 		<nav class="relative z-10 flex flex-col gap-1">
 			{#each secondaryLinks as link (link.href)}
@@ -111,12 +111,12 @@
 	<div class="relative mt-auto" bind:this={menuRef}>
 		{#if menuOpen}
 			<div
-				class="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-xl border border-[var(--mf-border)] bg-[var(--mf-elevated)] py-1.5 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.6)]"
+				class="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-panel border border-line bg-elevated py-1.5 shadow-menu"
 			>
 				<form method="POST" action="/logout" data-sveltekit-reload>
 					<button
 						type="submit"
-						class="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold text-[var(--mf-text-2)] transition hover:bg-white/5"
+						class="flex w-full items-center gap-3 px-3 py-2.5 text-base font-semibold text-fg-2 transition hover:bg-hover"
 					>
 						<LogOut class="h-[18px] w-[18px]" strokeWidth={2} />
 						Salir
@@ -127,18 +127,18 @@
 		<button
 			type="button"
 			onclick={() => (menuOpen = !menuOpen)}
-			class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/5"
+			class="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left transition hover:bg-hover"
 		>
 			{#if user.picture}
 				<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
 			{:else}
 				<span
-					class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[var(--mf-surface-2)] text-xs font-semibold uppercase"
+					class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-semibold uppercase"
 				>
 					{user.name.charAt(0)}
 				</span>
 			{/if}
-			<span class="truncate text-[13px] font-semibold leading-[1.35]">{user.name}</span>
+			<span class="truncate text-base font-semibold leading-[1.35]">{user.name}</span>
 		</button>
 	</div>
 </aside>

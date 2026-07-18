@@ -8,18 +8,18 @@
 	}
 </script>
 
-<div class="flex w-full max-w-[900px] items-center gap-[9px]">
-	<span class="w-8 text-right text-[11px] tabular-nums text-[var(--mf-text-4)]">
+<div class="flex w-full max-w-172 items-center gap-3">
+	<span class="text-right text-xs tabular-nums text-muted">
 		{fmtTime(player.progress)}
 	</span>
 	<button
 		type="button"
 		onclick={seek}
 		aria-label="Barra de progreso"
-		class="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-[var(--mf-track)] transition-[height] hover:h-2"
+		class="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-track transition-[height] hover:h-2"
 	>
 		<div
-			class="absolute inset-y-0 left-0 rounded-full bg-[var(--mf-accent)] group-hover:brightness-110"
+			class="absolute inset-y-0 left-0 rounded-full bg-accent/60 group-hover:brightness-110"
 			style="width:{player.progressPercent}%"
 		></div>
 		<span
@@ -27,7 +27,7 @@
 			style="left:{player.progressPercent}%"
 		></span>
 	</button>
-	<span class="w-8 text-[11px] tabular-nums text-[var(--mf-text-4)]">
+	<span class="text-xs tabular-nums text-(--mf-text-4)">
 		{fmtTime(player.current.duration)}
 	</span>
 </div>

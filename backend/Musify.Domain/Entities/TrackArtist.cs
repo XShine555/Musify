@@ -17,7 +17,7 @@ namespace Musify.Domain.Entities
         public int Position { get; set; } = 0;
 
         [ForeignKey(nameof(TrackId)) ]
-        public Track Track { get; set; }
+        public ExternalTrack Track { get; set; }
 
         [ForeignKey(nameof(ArtistId)) ]
         public Artist Artist { get; set; }
