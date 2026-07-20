@@ -4,6 +4,111 @@
  */
 
 export interface paths {
+    "/albums": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paginated Albums. */
+        get: operations["GetAlbums"];
+        put?: never;
+        /** Create A New Album. */
+        post: operations["CreateAlbum"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get An Album By Id. */
+        get: operations["GetAlbumById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Paginated Albums For A User. */
+        get: operations["GetAlbumsByUserId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{albumId}/tracks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Tracks Of An Album Ordered By Track Number. */
+        get: operations["GetAlbumTracks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{albumId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update An Album. */
+        put: operations["UpdateAlbum"];
+        post?: never;
+        /** Delete An Album. */
+        delete: operations["DeleteAlbum"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{albumId}/tracks/{trackId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add One Of Your Uploaded Tracks To An Album. */
+        post: operations["AddTrackToAlbum"];
+        /** Remove A Track From An Album. */
+        delete: operations["RemoveTrackFromAlbum"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/playlists": {
         parameters: {
             query?: never;
@@ -372,11 +477,31 @@ export interface components {
     schemas: {
         AddYouTubeTrackRequest: {
             videoId: string;
+        };
+        AlbumApplicationResponse: {
+            /** Format: uuid */
+            id: string;
             title: string;
-            artist: string;
+            description: null | string;
             /** Format: int32 */
-            durationSeconds: number | string;
-            thumbnailUrl: string;
+            releaseYear: null | number | string;
+            /** Format: int64 */
+            ownerUserId: number | string;
+            /** Format: int32 */
+            trackCount: number | string;
+            smallImageKeyName: null | string;
+            mediumImageKeyName: null | string;
+            largeImageKeyName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateAlbumRequest: {
+            title: string;
+            description: null | string;
+            /** Format: int32 */
+            releaseYear: null | number | string;
         };
         CreatePlayListRequest: {
             name: string;
@@ -408,6 +533,19 @@ export interface components {
             errors?: {
                 [key: string]: string[];
             };
+        };
+        PaginatedResponseOfAlbumApplicationResponse: {
+            items: components["schemas"]["AlbumApplicationResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
         };
         PaginatedResponseOfPlayListApplicationResponse: {
             items: components["schemas"]["PlayListApplicationResponse"][];
@@ -452,10 +590,10 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
-            description: string;
-            smallImageKeyName: string;
-            mediumImageKeyName: string;
-            largeImageKeyName: string;
+            description: null | string;
+            smallImageKeyName: null | string;
+            mediumImageKeyName: null | string;
+            largeImageKeyName: null | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -494,14 +632,16 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
-            artist: string;
+            artist: null | string;
             source: components["schemas"]["TrackSource"];
-            externalId: string;
+            externalId: null | string;
             audioStatus: components["schemas"]["ProcessingStatus"];
             /** Format: int32 */
             duration: number | string;
             /** Format: int32 */
             listensCount: number | string;
+            /** Format: int64 */
+            ownerUserId: null | number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -532,6 +672,12 @@ export interface components {
             /** Format: int32 */
             expiresInSeconds: number | string;
         };
+        UpdateAlbumRequest: {
+            newTitle: string;
+            newDescription: null | string;
+            /** Format: int32 */
+            newReleaseYear: null | number | string;
+        };
         UpdatePlayListRequest: {
             newName: null | string;
             newDescription: null | string;
@@ -550,6 +696,10 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        YouTubeArtistRef: {
+            id: null | string;
+            name: string;
+        };
         YouTubeSearchResult: {
             items: components["schemas"]["YouTubeSongResult"][];
             continuationToken: string;
@@ -563,6 +713,7 @@ export interface components {
             durationSeconds: number | string;
             thumbnailUrl: string;
             isExplicit: boolean;
+            artists: components["schemas"]["YouTubeArtistRef"][];
         };
         /** @enum {unknown} */
         YouTubeStreamMode: "Server" | "YouTube";
@@ -584,6 +735,330 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    GetAlbums: {
+        parameters: {
+            query?: {
+                title?: string;
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfAlbumApplicationResponse"];
+                };
+            };
+        };
+    };
+    CreateAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAlbumRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlbumApplicationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAlbumById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlbumApplicationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAlbumsByUserId: {
+        parameters: {
+            query?: {
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path: {
+                userId: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfAlbumApplicationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAlbumTracks: {
+        parameters: {
+            query?: {
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path: {
+                albumId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfTrackApplicationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                albumId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAlbumRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlbumApplicationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                albumId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AddTrackToAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                albumId: string;
+                trackId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RemoveTrackFromAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                albumId: string;
+                trackId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetPlayLists: {
         parameters: {
             query?: {

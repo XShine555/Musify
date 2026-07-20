@@ -19,7 +19,7 @@ export function targetTitle(target: TrackTarget): string {
 }
 
 export function targetArtist(target: TrackTarget): string | undefined {
-	return target.kind === 'youtube' ? target.song.artist : target.track.artist;
+	return (target.kind === 'youtube' ? target.song.artist : target.track.artist) ?? undefined;
 }
 
 export function targetExplicit(target: TrackTarget): boolean {

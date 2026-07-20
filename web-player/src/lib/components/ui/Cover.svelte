@@ -7,7 +7,7 @@
 		trackId: string | number;
 		hue: number;
 		size?: 'small' | 'medium' | 'large';
-		src?: string;
+		src?: string | null;
 		alt?: string;
 		class?: string;
 		children?: Snippet;

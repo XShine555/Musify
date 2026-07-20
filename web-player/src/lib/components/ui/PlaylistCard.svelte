@@ -5,7 +5,7 @@
 	interface Props {
 		id: string;
 		name: string;
-		description?: string;
+		description?: string | null;
 		trackIds: (string | number)[];
 		updatedAt: string;
 		index?: number;

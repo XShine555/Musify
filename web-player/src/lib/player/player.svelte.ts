@@ -34,9 +34,9 @@ export interface QueueItem {
 export interface ApiTrackLike {
 	id: string | number;
 	title: string;
-	artist?: string;
+	artist?: string | null;
 	source?: 'Local' | 'YouTube';
-	externalId?: string;
+	externalId?: string | null;
 	audioStatus?: 'Pending' | 'Processing' | 'Completed' | 'Failed';
 	isExplicit?: boolean;
 }
@@ -63,7 +63,7 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 		return {
 			id: queueIdForTrack(track),
 			title: track.title,
-			artist: track.artist,
+			artist: track.artist ?? undefined,
 			source: youTube ? 'youtube' : 'local',
 			coverUrl: youTube
 				? isPendingYouTubeTrack(track) && track.externalId

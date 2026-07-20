@@ -7,8 +7,8 @@
 	interface Props {
 		id: string | number;
 		title: string;
-		artist?: string;
-		coverSrc?: string;
+		artist?: string | null;
+		coverSrc?: string | null;
 		coverSize?: 'small' | 'medium' | 'large';
 		hue: number;
 		explicit?: boolean;

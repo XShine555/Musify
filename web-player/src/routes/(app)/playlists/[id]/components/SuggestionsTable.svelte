@@ -71,7 +71,7 @@
 			: {
 					id: queueIdForTrack(item.track),
 					title: item.track.title,
-					artist: item.track.artist,
+					artist: item.track.artist ?? undefined,
 					source: 'local',
 					coverUrl: `/api/tracks/${item.track.id}/cover?size=small`
 				};

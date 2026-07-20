@@ -66,7 +66,7 @@
 	<PlaylistForm
 		action="?/rename"
 		initialName={playlist.name}
-		initialDescription={playlist.description}
+		initialDescription={playlist.description ?? ''}
 		coverFallbackUrl="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
 			playlist.updatedAt
 		)}"

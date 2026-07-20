@@ -5,7 +5,9 @@
 		value?: string;
 		id?: string;
 		name?: string;
-		type?: 'text' | 'search';
+		type?: 'text' | 'search' | 'number';
+		min?: number;
+		max?: number;
 		placeholder?: string;
 		maxlength?: number;
 		required?: boolean;
@@ -20,6 +22,8 @@
 		id,
 		name,
 		type = 'text',
+		min,
+		max,
 		placeholder,
 		maxlength,
 		required = false,
@@ -40,6 +44,8 @@
 		{id}
 		{name}
 		{type}
+		{min}
+		{max}
 		{placeholder}
 		{maxlength}
 		{required}

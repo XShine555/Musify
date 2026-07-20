@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	const alreadyLinked = new Set(
 		tracks.filter((t) => t.source === 'YouTube' && t.externalId).map((t) => t.externalId)
 	);
-	const seeds = [...new Set(tracks.map((t) => t.artist).filter((a) => !!a))];
+	const seeds = [...new Set(tracks.map((t) => t.artist).filter((a): a is string => !!a))];
 	const seed = seeds.length > 0 ? shuffle(seeds)[0] : undefined;
 
 	const youtube = fetchYoutubeFiller(

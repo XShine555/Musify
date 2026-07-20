@@ -6,8 +6,8 @@
 	interface Props {
 		trackId: string | number;
 		title: string;
-		artist?: string;
-		coverSrc?: string;
+		artist?: string | null;
+		coverSrc?: string | null;
 		coverSize?: string;
 		hue: number;
 		explicit?: boolean;
