@@ -23,5 +23,8 @@ namespace Musify.Infrastructure.Configuration
 
         [Range(32, 720)]
         public int ThumbnailSize { get; set; } = 240;
+
+        [Range(120, 1080)]
+        public int ArtworkSize { get; set; } = 544;
     }
 }

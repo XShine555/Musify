@@ -111,13 +111,13 @@ namespace Musify.Application.PlayLists
         private async Task<ErrorOr<string>> ResolveThumbnailUrlAsync(string videoId, YouTubeSongResult? song, CancellationToken cancellationToken)
         {
             if (!string.IsNullOrEmpty(song?.ThumbnailUrl))
-                return song.ThumbnailUrl;
+                return youTubeMusicService.ResolveArtworkUrl(song.ThumbnailUrl);
 
             var songResult = await youTubeMusicService.GetSongAsync(videoId, cancellationToken);
             if (songResult.IsError)
                 return songResult.Errors;
 
-            return songResult.Value.ThumbnailUrl;
+            return youTubeMusicService.ResolveArtworkUrl(songResult.Value.ThumbnailUrl);
         }
 
         private async Task PublishDownloadEventAsync(Guid trackId, string videoId, string thumbnailUrl, CancellationToken cancellationToken)

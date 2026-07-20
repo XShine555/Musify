@@ -27,5 +27,7 @@ namespace Musify.Application.Contracts
         Task<ErrorOr<YouTubeStreamInfo>> GetAudioStreamAsync(string videoId, CancellationToken cancellationToken);
 
         Task<ErrorOr<YouTubeSongResult>> GetSongAsync(string videoId, CancellationToken cancellationToken);
+
+        string ResolveArtworkUrl(string thumbnailUrl);
     }
 }

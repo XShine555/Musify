@@ -160,6 +160,9 @@ namespace Musify.Infrastructure.Services
             }
         }
 
+        public string ResolveArtworkUrl(string thumbnailUrl) =>
+            YouTubeThumbnail.WithSize(thumbnailUrl, configuration.ArtworkSize);
+
         private string PickThumbnail(IEnumerable<YouTubeMusicAPI.Models.Thumbnail> thumbnails)
         {
             var ordered = thumbnails.OrderBy(thumbnail => thumbnail.Width).ToList();
