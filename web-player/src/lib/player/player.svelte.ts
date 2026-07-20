@@ -40,7 +40,7 @@ export interface ApiTrackLike {
 	isExplicit?: boolean;
 }
 
-export function isYouTubeTrack(track: ApiTrackLike): boolean {
+function isYouTubeTrack(track: ApiTrackLike): boolean {
 	return track.source === 'YouTube';
 }
 

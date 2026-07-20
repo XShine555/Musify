@@ -17,7 +17,7 @@
 		oninput={handleVolumeChange}
 		aria-label="Volumen"
 		class="mf-volume"
-		style="background:linear-gradient(to right, var(--mf-accent-60) {player.volume}%, var(--mf-track) {player.volume}%)"
+		style="background:linear-gradient(to right, var(--color-accent-soft) {player.volume}%, var(--color-track) {player.volume}%)"
 	/>
 </div>
 
@@ -37,14 +37,14 @@
 		width: 12px;
 		height: 12px;
 		border-radius: 50%;
-		background: var(--mf-text);
+		background: var(--color-fg);
 		cursor: pointer;
 	}
 	.mf-volume::-moz-range-thumb {
 		width: 12px;
 		height: 12px;
 		border-radius: 50%;
-		background: var(--mf-text);
+		background: var(--color-fg);
 		border: none;
 		cursor: pointer;
 	}

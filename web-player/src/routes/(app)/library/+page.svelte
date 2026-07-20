@@ -4,7 +4,8 @@
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems } from '$lib/player/player.svelte';
-	import { hueFor, fmtTime, fmtDate } from '$lib/theme/color';
+	import { hueFor } from '$lib/theme/color';
+	import { fmtTime, fmtDate } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';

@@ -52,18 +52,19 @@
 			if (t < 1) rafId = requestAnimationFrame(tick);
 		};
 		rafId = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(rafId);
 	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-{#if isAuthPage}
+{#if isAuthPage || !data.user}
 	<div class="min-h-screen bg-bg text-fg antialiased">
 		{@render children()}
 	</div>
 {:else}
 	<div class="flex min-h-screen bg-bg text-fg antialiased">
-		<Sidebar user={data.user!} />
+		<Sidebar user={data.user} />
 		<div class="flex min-w-0 flex-1 flex-col">
 			<main class="flex-1 transition-[padding] {hasTrack ? 'pb-[92px]' : 'pb-0'}">
 				{#key page.url.pathname}

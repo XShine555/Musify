@@ -12,7 +12,7 @@
 </svelte:head>
 
 <div class="grid min-h-screen place-items-center bg-bg px-6 text-fg">
-	<div class="flex w-full max-w-[440px] flex-col items-center gap-9 text-center">
+	<div class="flex w-full max-w-110 flex-col items-center gap-9 text-center">
 		<div class="text-3xl font-extrabold tracking-tight">Musify</div>
 
 		<div>

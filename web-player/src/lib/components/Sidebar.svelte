@@ -69,7 +69,7 @@
 			? 'text-fg'
 			: 'text-fg-3 hover:bg-hover hover:text-fg'}"
 	>
-		<link.icon class="h-6 w-6 shrink-0" style={active ? 'color:var(--mf-accent-60)' : ''} />
+		<link.icon class="h-6 w-6 shrink-0 {active ? 'text-accent-soft' : ''}" />
 		{link.label}
 	</a>
 {/snippet}
@@ -87,10 +87,7 @@
 				: ''}"
 			style="top:{pillTop}px; height:{pillHeight}px; opacity:{pillVisible ? 1 : 0}"
 		>
-			<span
-				class="absolute inset-y-0 left-0 w-[3px] rounded-r-full"
-				style="background:var(--mf-accent-60)"
-			></span>
+			<span class="absolute inset-y-0 left-0 w-[3px] rounded-r-full bg-accent-soft"></span>
 		</div>
 
 		<nav class="relative z-10 flex flex-col gap-1">

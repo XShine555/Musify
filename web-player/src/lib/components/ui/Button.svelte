@@ -38,7 +38,7 @@
 		primary: 'bg-accent-soft font-semibold text-on-accent active:scale-[0.97]',
 		secondary: 'border border-line text-fg hover:bg-hover',
 		subtle: 'bg-surface-2 font-semibold text-fg hover:bg-surface-hover',
-		danger: 'bg-danger font-semibold text-white hover:brightness-110'
+		danger: 'bg-danger font-semibold text-on-accent hover:brightness-110'
 	};
 
 	const classes = $derived(

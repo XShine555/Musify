@@ -7,7 +7,8 @@
 		type ApiTrackLike,
 		type QueueItem
 	} from '$lib/player/player.svelte';
-	import { hueFor, fmtTime } from '$lib/theme/color';
+	import { hueFor } from '$lib/theme/color';
+	import { fmtTime } from '$lib/format';
 	import type { YouTubeSong } from '$lib/types';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';

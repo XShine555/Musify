@@ -68,7 +68,7 @@
 
 {#if open}
 	<div
-		class="animate-fade fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+		class="animate-fade fixed inset-0 z-[60] grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm"
 		role="presentation"
 		onclick={onBackdropClick}
 	>

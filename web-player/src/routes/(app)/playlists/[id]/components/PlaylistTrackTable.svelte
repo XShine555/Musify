@@ -9,7 +9,8 @@
 		youTubeThumbnailUrl,
 		type ApiTrackLike
 	} from '$lib/player/player.svelte';
-	import { hueFor, fmtTime, fmtDate } from '$lib/theme/color';
+	import { hueFor } from '$lib/theme/color';
+	import { fmtTime, fmtDate } from '$lib/format';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';

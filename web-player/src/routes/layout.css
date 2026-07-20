@@ -2,7 +2,6 @@
 
 @theme {
 	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-	--color-neutral-950: #08080a;
 
 	--color-bg: var(--mf-bg);
 	--color-elevated: var(--mf-elevated);
@@ -18,8 +17,10 @@
 	--color-fg-3: var(--mf-text-3);
 	--color-muted: var(--mf-text-4);
 	--color-accent: var(--mf-accent);
-	--color-accent-soft: var(--mf-accent-60);
-	--color-on-accent: #ffffff;
+	--color-accent-soft: var(--mf-accent-soft);
+	--color-on-accent: var(--mf-on-art);
+	--color-scrim: var(--mf-scrim);
+	--color-on-art: var(--mf-on-art);
 	--color-danger: oklch(63.7% 0.237 25.331);
 	--color-danger-fg: oklch(88.5% 0.062 18.334);
 

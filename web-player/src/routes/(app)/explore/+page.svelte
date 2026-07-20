@@ -84,9 +84,7 @@
 
 	const hasMore = $derived(localHasNext || ytContinuation !== '');
 
-	const nothingFound = $derived(
-		!!data.query && items.length === 0 && !data.needsAuth && !data.ytError
-	);
+	const nothingFound = $derived(!!data.query && items.length === 0 && !data.ytError);
 
 	function buildHref(query: string) {
 		return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
@@ -212,12 +210,7 @@
 		<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
 	{/if}
 
-	{#if data.needsAuth}
-		<EmptyState
-			icon={Music}
-			description="Inicia sesión para ver también resultados de YouTube Music."
-		/>
-	{:else if data.ytError}
+	{#if data.ytError}
 		<EmptyState
 			icon={Music}
 			description="YouTube Music no está disponible ahora mismo. Inténtalo de nuevo."

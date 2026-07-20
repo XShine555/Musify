@@ -13,10 +13,10 @@
 	];
 </script>
 
-<div class="absolute inset-0 flex items-end justify-center gap-[2.5px] bg-black/45 pb-2">
+<div class="absolute inset-0 flex items-end justify-center gap-[2.5px] bg-scrim/45 pb-2">
 	{#each bars as bar, i (i)}
 		<span
-			class="w-[3px] origin-bottom rounded-full bg-white"
+			class="w-[3px] origin-bottom rounded-full bg-on-art"
 			style="height:14px; animation:equalize {bar.dur}s ease-in-out {bar.delay}s infinite; animation-play-state:{paused
 				? 'paused'
 				: 'running'}"

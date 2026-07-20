@@ -171,7 +171,7 @@
 <section class="relative overflow-hidden page-x pt-11 pb-16">
 	<div
 		class="pointer-events-none absolute inset-0 blur-[70px] saturate-150"
-		style="background:linear-gradient(135deg, var(--mf-accent), color-mix(in oklch, var(--mf-accent), black 55%));animation:breathe 9s ease-in-out infinite"
+		style="background:linear-gradient(135deg, var(--color-accent), color-mix(in oklch, var(--color-accent), black 55%));animation:breathe 9s ease-in-out infinite"
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2.5">
 		<p class="tracking-[0.14em] text-fg-2 uppercase">{data.greeting}</p>

@@ -1,7 +1,7 @@
 import type { createApiClient } from '$lib/server/api';
 import type { YouTubeSong } from '$lib/types';
 
-export const YOUTUBE_FILLER_QUERIES = [
+const YOUTUBE_FILLER_QUERIES = [
 	'pop',
 	'rock',
 	'reggaeton',
@@ -24,7 +24,7 @@ export interface YoutubeFiller {
 	continuationToken: string;
 }
 
-export function pickRandomFillerQuery(): string {
+function pickRandomFillerQuery(): string {
 	return YOUTUBE_FILLER_QUERIES[Math.floor(Math.random() * YOUTUBE_FILLER_QUERIES.length)];
 }
 

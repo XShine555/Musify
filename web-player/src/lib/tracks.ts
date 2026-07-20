@@ -30,7 +30,7 @@ export function targetCoverSrc(target: TrackTarget): string | undefined {
 	return target.kind === 'youtube' ? target.song.thumbnailUrl : undefined;
 }
 
-export function queueIdForTarget(target: TrackTarget): string | number {
+function queueIdForTarget(target: TrackTarget): string | number {
 	return target.kind === 'youtube' ? target.song.videoId : queueIdForTrack(target.track);
 }
 
