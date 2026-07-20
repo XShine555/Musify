@@ -8,6 +8,7 @@
 		id: string | number;
 		title: string;
 		artist?: string | null;
+		typeLabel?: string;
 		coverSrc?: string | null;
 		coverSize?: 'small' | 'medium' | 'large';
 		hue: number;
@@ -24,6 +25,7 @@
 		id,
 		title,
 		artist,
+		typeLabel,
 		coverSrc,
 		coverSize = 'large',
 		hue,
@@ -35,6 +37,8 @@
 		onContextMenu,
 		badge
 	}: Props = $props();
+
+	const meta = $derived([typeLabel, artist].filter((part) => !!part).join(' · '));
 </script>
 
 <li
@@ -64,11 +68,11 @@
 			{/if}
 			<span class="truncate text-fg" {title}>{title}</span>
 		</div>
-		{#if badge || artist}
+		{#if badge || meta}
 			<div class="mt-0.5 flex min-w-0 items-center gap-1.5">
 				{@render badge?.()}
-				{#if artist}
-					<span class="truncate text-sm text-fg-3" title={artist}>{artist}</span>
+				{#if meta}
+					<span class="truncate text-sm text-fg-3" title={meta}>{meta}</span>
 				{/if}
 			</div>
 		{/if}

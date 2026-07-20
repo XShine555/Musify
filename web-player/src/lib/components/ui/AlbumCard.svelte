@@ -8,6 +8,7 @@
 		title: string;
 		href?: string;
 		subtitle?: string;
+		typeLabel?: string;
 		releaseYear?: number;
 		trackCount?: number;
 		trackIds?: (string | number)[];
@@ -20,6 +21,7 @@
 		title,
 		href,
 		subtitle,
+		typeLabel,
 		releaseYear,
 		trackCount,
 		trackIds = [],
@@ -29,6 +31,7 @@
 
 	const meta = $derived(
 		[
+			typeLabel,
 			subtitle,
 			releaseYear ? String(releaseYear) : undefined,
 			trackCount === undefined

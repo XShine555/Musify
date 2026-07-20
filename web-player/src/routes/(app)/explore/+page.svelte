@@ -275,6 +275,7 @@
 					<AlbumCard
 						id={album.id}
 						title={album.title}
+						typeLabel="Álbum"
 						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 						trackCount={Number(album.trackCount)}
 						trackIds={album.coverTrackIds}
@@ -286,6 +287,7 @@
 						id={album.albumId}
 						href="/albums/youtube/{album.albumId}"
 						title={album.title}
+						typeLabel="Álbum"
 						subtitle={album.artist}
 						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 						coverSrc={album.thumbnailUrl}
@@ -314,6 +316,7 @@
 					id={targetId(item)}
 					title={targetTitle(item)}
 					artist={targetArtist(item)}
+					typeLabel="Canción"
 					coverSrc={targetCoverSrc(item)}
 					hue={hueFor(targetId(item))}
 					explicit={targetExplicit(item)}
