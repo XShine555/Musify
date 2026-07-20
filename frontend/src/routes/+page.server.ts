@@ -3,6 +3,7 @@ import { createApiClient, playlistCoverTrackIds } from '$lib/server/api';
 import { fetchYoutubeFiller, shuffle } from '$lib/server/youtube';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
 import { HOME_LATEST_PAGE_SIZE, YOUTUBE_FILLER_LIMIT } from '$lib/config';
+import { pickGreeting } from '$lib/server/greeting';
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
@@ -30,13 +31,10 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 		playlistItems.map((p) => p.id)
 	);
 
-	const novedades = shuffle(
-		(latest.data?.items ?? []).map((track) => ({ kind: 'local' as const, track }))
-	);
-
 	return {
-		novedades,
-		novedadesHasNext: Boolean(latest.data?.hasNextPage),
+		greeting: pickGreeting(new Date().getHours()),
+		latest: shuffle((latest.data?.items ?? []).map((track) => ({ kind: 'local' as const, track }))),
+		latestHasNext: Boolean(latest.data?.hasNextPage),
 		youtubeFiller: fetchYoutubeFiller(api, locals.accessToken, YOUTUBE_FILLER_LIMIT),
 		playlists: playlistItems,
 		trackIds,
