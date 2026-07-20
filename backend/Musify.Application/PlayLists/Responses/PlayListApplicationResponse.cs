@@ -1,4 +1,4 @@
-﻿using Musify.Domain.Entities;
+using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists.Responses
 {
@@ -10,9 +10,14 @@ namespace Musify.Application.PlayLists.Responses
         string? MediumImageKeyName,
         string? LargeImageKeyName,
         DateTime CreatedAt,
-        DateTime UpdatedAt)
+        DateTime UpdatedAt,
+        IReadOnlyList<Guid> CoverTrackIds)
     {
-        public static PlayListApplicationResponse FromEntity(PlayList playList)
+        public const int CoverTrackCount = 4;
+
+        public static PlayListApplicationResponse FromEntity(
+            PlayList playList,
+            IReadOnlyList<Guid>? coverTrackIds = null)
         {
             return new PlayListApplicationResponse(
                 playList.Id,
@@ -22,7 +27,8 @@ namespace Musify.Application.PlayLists.Responses
                 playList.Pictures?.MediumName,
                 playList.Pictures?.LargeName,
                 playList.CreatedAt,
-                playList.UpdatedAt);
+                playList.UpdatedAt,
+                coverTrackIds ?? []);
         }
     }
 }

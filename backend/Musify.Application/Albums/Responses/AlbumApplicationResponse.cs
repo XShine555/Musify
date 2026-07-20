@@ -13,9 +13,15 @@ namespace Musify.Application.Albums.Responses
         string? MediumImageKeyName,
         string? LargeImageKeyName,
         DateTime CreatedAt,
-        DateTime UpdatedAt)
+        DateTime UpdatedAt,
+        IReadOnlyList<Guid> CoverTrackIds)
     {
-        public static AlbumApplicationResponse FromEntity(UserAlbum album, int trackCount)
+        public const int CoverTrackCount = 4;
+
+        public static AlbumApplicationResponse FromEntity(
+            UserAlbum album,
+            int trackCount,
+            IReadOnlyList<Guid>? coverTrackIds = null)
         {
             return new AlbumApplicationResponse(
                 album.Id,
@@ -28,7 +34,8 @@ namespace Musify.Application.Albums.Responses
                 album.Pictures?.MediumName,
                 album.Pictures?.LargeName,
                 album.CreatedAt,
-                album.UpdatedAt);
+                album.UpdatedAt,
+                coverTrackIds ?? []);
         }
     }
 }

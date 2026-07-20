@@ -14,16 +14,24 @@ namespace Musify.Application.PlayLists
     {
         public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(GetPlayListByIdQuery request, CancellationToken cancellationToken)
         {
-            var playList = await database.PlayLists
+            var entry = await database.PlayLists
                 .AsNoTracking()
                 .Where(p => p.Id == request.Id)
-                .Select(p => PlayListApplicationResponse.FromEntity(p))
+                .Select(p => new
+                {
+                    PlayList = p,
+                    CoverTrackIds = p.PlayListTracks
+                        .OrderBy(plt => plt.Position)
+                        .Take(PlayListApplicationResponse.CoverTrackCount)
+                        .Select(plt => plt.TrackId)
+                        .ToList()
+                })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (playList is null)
+            if (entry is null)
                 return Error.NotFound();
 
-            return playList;
+            return PlayListApplicationResponse.FromEntity(entry.PlayList, entry.CoverTrackIds);
         }
     }
 }

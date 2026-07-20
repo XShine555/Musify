@@ -89,14 +89,21 @@ namespace Musify.Application.Albums
                 return Error.Failure(description: $"Failed to save album {request.AlbumId}");
             }
 
-            var trackCount = await database.AlbumHasTracks
+            var albumTracks = database.AlbumHasTracks
                 .AsNoTracking()
-                .CountAsync(albumTrack => albumTrack.AlbumId == album.Id, cancellationToken);
+                .Where(albumTrack => albumTrack.AlbumId == album.Id);
+
+            var trackCount = await albumTracks.CountAsync(cancellationToken);
+            var coverTrackIds = await albumTracks
+                .OrderBy(albumTrack => albumTrack.TrackNumber)
+                .Take(AlbumApplicationResponse.CoverTrackCount)
+                .Select(albumTrack => albumTrack.TrackId)
+                .ToListAsync(cancellationToken);
 
             logger.LogInformation("Saved YouTube album {AlbumId} as {AlbumGuid} with {TrackCount} tracks",
                 request.AlbumId, album.Id, trackCount);
 
-            return AlbumApplicationResponse.FromEntity(album, trackCount);
+            return AlbumApplicationResponse.FromEntity(album, trackCount, coverTrackIds);
         }
 
         private static string Truncate(string value, int maxLength) =>

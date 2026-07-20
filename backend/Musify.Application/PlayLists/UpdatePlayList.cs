@@ -93,8 +93,16 @@ namespace Musify.Application.PlayLists
                 return Error.Failure(description: $"Failed to update playlist {playListEntity.Id}");
             }
 
+            var coverTrackIds = await database.PlayListHasTracks
+                .AsNoTracking()
+                .Where(plt => plt.PlayListId == playListEntity.Id)
+                .OrderBy(plt => plt.Position)
+                .Take(PlayListApplicationResponse.CoverTrackCount)
+                .Select(plt => plt.TrackId)
+                .ToListAsync(cancellationToken);
+
             logger.LogInformation("Updated playlist {PlayListId}", playListEntity.Id);
-            return PlayListApplicationResponse.FromEntity(playListEntity);
+            return PlayListApplicationResponse.FromEntity(playListEntity, coverTrackIds);
         }
 
         async Task<ErrorOr<Success>> PublishUpdatePlayListPictureSourceEventAsync(

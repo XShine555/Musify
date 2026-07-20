@@ -17,13 +17,22 @@ namespace Musify.Application.Albums
             var album = await database.UserAlbums
                 .AsNoTracking()
                 .Where(a => a.Id == request.Id)
-                .Select(a => new { Album = a, TrackCount = a.AlbumTracks.Count })
+                .Select(a => new
+                {
+                    Album = a,
+                    TrackCount = a.AlbumTracks.Count,
+                    CoverTrackIds = a.AlbumTracks
+                        .OrderBy(albumTrack => albumTrack.TrackNumber)
+                        .Take(AlbumApplicationResponse.CoverTrackCount)
+                        .Select(albumTrack => albumTrack.TrackId)
+                        .ToList()
+                })
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (album is null)
                 return Error.NotFound();
 
-            return AlbumApplicationResponse.FromEntity(album.Album, album.TrackCount);
+            return AlbumApplicationResponse.FromEntity(album.Album, album.TrackCount, album.CoverTrackIds);
         }
     }
 }

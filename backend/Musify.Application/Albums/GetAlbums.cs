@@ -31,11 +31,20 @@ namespace Musify.Application.Albums
 
             var pagedEntities = await albumsQuery
                 .OrderByDescending(album => album.CreatedAt)
-                .Select(album => new { Album = album, TrackCount = album.AlbumTracks.Count })
+                .Select(album => new
+                {
+                    Album = album,
+                    TrackCount = album.AlbumTracks.Count,
+                    CoverTrackIds = album.AlbumTracks
+                        .OrderBy(albumTrack => albumTrack.TrackNumber)
+                        .Take(AlbumApplicationResponse.CoverTrackCount)
+                        .Select(albumTrack => albumTrack.TrackId)
+                        .ToList()
+                })
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             var pagedAlbums = new StaticPagedList<AlbumApplicationResponse>(
-                pagedEntities.Select(entry => AlbumApplicationResponse.FromEntity(entry.Album, entry.TrackCount)),
+                pagedEntities.Select(entry => AlbumApplicationResponse.FromEntity(entry.Album, entry.TrackCount, entry.CoverTrackIds)),
                 pagedEntities.PageNumber, pagedEntities.PageSize, pagedEntities.TotalItemCount);
 
             return PaginatedResponse<AlbumApplicationResponse>.FromPagedList(pagedAlbums);
