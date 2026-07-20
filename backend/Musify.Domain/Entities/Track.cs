@@ -11,11 +11,11 @@ namespace Musify.Domain.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        [MaxLength(50)]
+        [MaxLength(200)]
         public required string Title { get; set; }
 
         [Required]
-        [MaxLength(50)]
+        [MaxLength(200)]
         public required string NormalizedTitle { get; set; }
 
         [Required]

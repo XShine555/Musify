@@ -43,7 +43,7 @@ public sealed class YouTubeTrackProvisioner(
         foreach (var artistRef in artistRefs)
             artists.Add(await GetOrCreateArtistAsync(artistRef, cancellationToken));
 
-        var title = Truncate(song.Title, 50);
+        var title = Truncate(song.Title, 200);
         var track = new ExternalTrack
         {
             Title = title,
