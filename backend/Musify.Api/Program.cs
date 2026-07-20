@@ -38,6 +38,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app
+    .MapAlbumEndpoints()
     .MapPlayListEndpoints()
     .MapTrackEndpoints()
     .MapUserEndpoints()
