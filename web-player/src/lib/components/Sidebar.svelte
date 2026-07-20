@@ -7,6 +7,7 @@
 	import Music from '@lucide/svelte/icons/music';
 	import Upload from '@lucide/svelte/icons/upload';
 	import LogOut from '@lucide/svelte/icons/log-out';
+	import MenuItem from './ui/MenuItem.svelte';
 
 	interface Props {
 		user: SessionUser;
@@ -108,16 +109,10 @@
 	<div class="relative mt-auto" bind:this={menuRef}>
 		{#if menuOpen}
 			<div
-				class="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-panel border border-line bg-elevated py-1.5 shadow-menu"
+				class="animate-pop absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-panel border border-line bg-elevated p-1.5 shadow-menu"
 			>
 				<form method="POST" action="/logout" data-sveltekit-reload>
-					<button
-						type="submit"
-						class="flex w-full items-center gap-3 px-3 py-2.5 text-base font-semibold text-fg-2 transition hover:bg-hover"
-					>
-						<LogOut class="h-4.5 w-4.5" strokeWidth={2} />
-						Salir
-					</button>
+					<MenuItem icon={LogOut} label="Salir" type="submit" />
 				</form>
 			</div>
 		{/if}
@@ -135,7 +130,7 @@
 					{user.name.charAt(0)}
 				</span>
 			{/if}
-			<span class="truncate text-base leading-[1.35] font-semibold">{user.name}</span>
+			<span class="truncate leading-[1.35]">{user.name}</span>
 		</button>
 	</div>
 </aside>

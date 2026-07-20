@@ -126,7 +126,7 @@
 								{i + 1}
 							{/if}
 						</span>
-						<span class="text-base font-semibold text-fg">{step.label}</span>
+						<span class="text-fg">{step.label}</span>
 					</div>
 					<p class="mt-3 text-base text-muted">{step.hint}</p>
 				</Surface>
@@ -205,12 +205,12 @@
 					{/if}
 				</span>
 				{#if audioName === ''}
-					<p class="mt-5 text-base font-medium text-fg sm:text-lg">
+					<p class="mt-5 text-fg sm:text-lg">
 						Arrastra tu audio aquí o haz clic para elegir
 					</p>
 					<p class="mt-2 text-sm text-muted">MP3, FLAC, WAV…</p>
 				{:else}
-					<p class="mt-5 max-w-full truncate text-base font-medium text-fg sm:text-lg">
+					<p class="mt-5 max-w-full truncate text-fg sm:text-lg">
 						{audioName}
 					</p>
 					<p class="mt-2 text-sm text-muted">{formatSize(audioSize)} · Listo para subir</p>

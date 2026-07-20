@@ -3,6 +3,7 @@
 	import Upload from '@lucide/svelte/icons/upload';
 	import Folder from '@lucide/svelte/icons/folder';
 	import LogOut from '@lucide/svelte/icons/log-out';
+	import MenuItem from './ui/MenuItem.svelte';
 
 	interface Props {
 		user: SessionUser;
@@ -34,9 +35,7 @@
 			{#if user.picture}
 				<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
 			{:else}
-				<span
-					class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm font-semibold uppercase"
-				>
+				<span class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm uppercase">
 					{user.name.charAt(0)}
 				</span>
 			{/if}
@@ -44,33 +43,23 @@
 
 		{#if menuOpen}
 			<div
-				class="animate-pop absolute top-full right-0 mt-2 w-56 overflow-hidden rounded-panel border border-line bg-elevated py-1.5 shadow-menu"
+				class="animate-pop absolute top-full right-0 mt-2 w-56 overflow-hidden rounded-panel border border-line bg-elevated p-1.5 shadow-menu"
 			>
-				<a
+				<MenuItem
+					icon={Folder}
+					label="Canciones subidas"
 					href="/library"
 					onclick={() => (menuOpen = false)}
-					class="flex w-full items-center gap-3 px-3 py-2.5 text-base font-semibold text-fg-2 transition hover:bg-hover"
-				>
-					<Folder class="h-[18px] w-[18px]" strokeWidth={2} />
-					Canciones subidas
-				</a>
-				<a
+				/>
+				<MenuItem
+					icon={Upload}
+					label="Subir música"
 					href="/upload"
 					onclick={() => (menuOpen = false)}
-					class="flex w-full items-center gap-3 px-3 py-2.5 text-base font-semibold text-fg-2 transition hover:bg-hover"
-				>
-					<Upload class="h-[18px] w-[18px]" strokeWidth={2} />
-					Subir música
-				</a>
-				<div class="my-1.5 border-t border-line"></div>
+				/>
+				<div class="-mx-1.5 my-1.5 border-t border-line"></div>
 				<form method="POST" action="/logout" data-sveltekit-reload>
-					<button
-						type="submit"
-						class="flex w-full items-center gap-3 px-3 py-2.5 text-base font-semibold text-fg-2 transition hover:bg-hover"
-					>
-						<LogOut class="h-[18px] w-[18px]" strokeWidth={2} />
-						Salir
-					</button>
+					<MenuItem icon={LogOut} label="Salir" type="submit" />
 				</form>
 			</div>
 		{/if}

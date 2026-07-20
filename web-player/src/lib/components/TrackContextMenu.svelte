@@ -58,7 +58,7 @@
 		onclick={onAddToQueue}
 		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm text-fg-2 transition hover:bg-hover"
 	>
-		<ListPlus class="h-6 w-6 shrink-0" strokeWidth={2} />
+		<ListPlus class="h-5 w-5 shrink-0" strokeWidth={2} />
 		<span class="text-base">Reproducir a continuación</span>
 	</button>
 	{#if playlists.length > 0}
@@ -107,9 +107,9 @@
 										trackIds={[]}
 										hue={hueFor(playlist.id)}
 										size="small"
-										class="h-8 w-8 shrink-0 rounded-control"
+										class="h-9 w-9 shrink-0 rounded-control"
 									/>
-									<span class="truncate text-base text-fg-2">{playlist.name}</span>
+									<span class="truncate text-fg-2">{playlist.name}</span>
 								</button>
 							</form>
 						{/each}
