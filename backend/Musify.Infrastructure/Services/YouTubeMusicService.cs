@@ -28,12 +28,18 @@ namespace Musify.Infrastructure.Services
                 () => FetchSearchPageAsync(query, continuationToken, cancellationToken));
         }
 
-        private async Task<ErrorOr<YouTubeSearchResult>> FetchSearchPageAsync(string query, string continuationToken, CancellationToken cancellationToken)
+        private sealed record SearchPage(IReadOnlyList<SearchResult> Results, string NextToken);
+
+        private async Task<ErrorOr<SearchPage>> FetchPageAsync(
+            string query,
+            SearchCategory category,
+            string continuationToken,
+            CancellationToken cancellationToken)
         {
             PaginatedAsyncEnumerable<SearchResult>? paginator;
             if (string.IsNullOrEmpty(continuationToken))
             {
-                paginator = client.SearchAsync(query, SearchCategory.Songs);
+                paginator = client.SearchAsync(query, category);
             }
             else if (!cache.TryGetValue(SearchCacheKey(continuationToken), out paginator) || paginator is null)
             {
@@ -47,11 +53,30 @@ namespace Musify.Infrastructure.Services
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "YouTube Music search failed for query '{Query}'", query);
+                logger.LogError(exception, "YouTube Music {Category} search failed for query '{Query}'", category, query);
                 return Error.Failure(description: $"YouTube Music search failed: {exception.Message}");
             }
 
-            var items = results
+            var nextToken = string.Empty;
+            if (paginator.HasMore)
+            {
+                nextToken = Guid.NewGuid().ToString("N");
+                cache.Set(
+                    SearchCacheKey(nextToken),
+                    paginator,
+                    TimeSpan.FromSeconds(configuration.SearchContinuationCacheSeconds));
+            }
+
+            return new SearchPage(results, nextToken);
+        }
+
+        private async Task<ErrorOr<YouTubeSearchResult>> FetchSearchPageAsync(string query, string continuationToken, CancellationToken cancellationToken)
+        {
+            var page = await FetchPageAsync(query, SearchCategory.Songs, continuationToken, cancellationToken);
+            if (page.IsError)
+                return page.Errors;
+
+            var items = page.Value.Results
                 .OfType<SongSearchResult>()
                 .Select(song => new YouTubeSongResult(
                     song.Id,
@@ -68,18 +93,100 @@ namespace Musify.Infrastructure.Services
                         .ToList()))
                 .ToList();
 
-            var nextToken = string.Empty;
-            if (paginator.HasMore)
-            {
-                nextToken = Guid.NewGuid().ToString("N");
-                cache.Set(
-                    SearchCacheKey(nextToken),
-                    paginator,
-                    TimeSpan.FromSeconds(configuration.SearchContinuationCacheSeconds));
-            }
-
-            return new YouTubeSearchResult(items, nextToken);
+            return new YouTubeSearchResult(items, page.Value.NextToken);
         }
+
+        public async Task<ErrorOr<YouTubeAlbumSearchResult>> SearchAlbumsAsync(string query, string continuationToken, CancellationToken cancellationToken)
+        {
+            if (!string.IsNullOrEmpty(continuationToken))
+                return await FetchAlbumSearchPageAsync(query, continuationToken, cancellationToken);
+
+            return await singleFlight.GetOrCreateAsync(
+                AlbumSearchResultsCacheKey(query),
+                TimeSpan.FromSeconds(configuration.SearchResultsCacheSeconds),
+                () => FetchAlbumSearchPageAsync(query, continuationToken, cancellationToken));
+        }
+
+        private async Task<ErrorOr<YouTubeAlbumSearchResult>> FetchAlbumSearchPageAsync(string query, string continuationToken, CancellationToken cancellationToken)
+        {
+            var page = await FetchPageAsync(query, SearchCategory.Albums, continuationToken, cancellationToken);
+            if (page.IsError)
+                return page.Errors;
+
+            var items = page.Value.Results
+                .OfType<AlbumSearchResult>()
+                .Select(ToAlbumResult)
+                .ToList();
+
+            return new YouTubeAlbumSearchResult(items, page.Value.NextToken);
+        }
+
+        public async Task<ErrorOr<YouTubeAlbumDetail>> GetAlbumAsync(string albumId, CancellationToken cancellationToken)
+        {
+            return await singleFlight.GetOrCreateAsync(
+                AlbumCacheKey(albumId),
+                TimeSpan.FromSeconds(configuration.SongInfoCacheSeconds),
+                () => FetchAlbumAsync(albumId, cancellationToken));
+        }
+
+        private async Task<ErrorOr<YouTubeAlbumDetail>> FetchAlbumAsync(string albumId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var browseId = await client.GetAlbumBrowseIdAsync(albumId, cancellationToken);
+                var info = await client.GetAlbumInfoAsync(browseId, cancellationToken);
+
+                var album = new YouTubeAlbumResult(
+                    albumId,
+                    info.Name,
+                    string.Join(", ", info.Artists.Select(artist => artist.Name)),
+                    PickThumbnail(info.Thumbnails),
+                    info.ReleaseYear,
+                    info.IsSingle,
+                    info.IsEp,
+                    info.Artists
+                        .Select(artist => new YouTubeArtistRef(
+                            string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                            artist.Name))
+                        .ToList());
+
+                var tracks = info.Songs
+                    .Select((song, index) => new YouTubeAlbumTrack(
+                        song.Id ?? string.Empty,
+                        song.Name,
+                        (int)song.Duration.TotalSeconds,
+                        song.SongNumber ?? index + 1,
+                        song.IsExplicit))
+                    .Where(track => !string.IsNullOrEmpty(track.VideoId))
+                    .ToList();
+
+                return new YouTubeAlbumDetail(
+                    album,
+                    info.Description ?? string.Empty,
+                    (int)info.Duration.TotalSeconds,
+                    tracks);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to load YouTube album '{AlbumId}'", albumId);
+                return Error.Failure(description: $"Failed to load YouTube album '{albumId}': {exception.Message}");
+            }
+        }
+
+        private YouTubeAlbumResult ToAlbumResult(AlbumSearchResult album) =>
+            new(
+                album.Id,
+                album.Name,
+                string.Join(", ", album.Artists.Select(artist => artist.Name)),
+                PickThumbnail(album.Thumbnails),
+                album.ReleaseYear,
+                album.IsSingle,
+                album.IsEp,
+                album.Artists
+                    .Select(artist => new YouTubeArtistRef(
+                        string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                        artist.Name))
+                    .ToList());
 
         public async Task<ErrorOr<YouTubeStreamInfo>> GetAudioStreamAsync(string videoId, CancellationToken cancellationToken)
         {
@@ -181,6 +288,10 @@ namespace Musify.Infrastructure.Services
         private static string SearchCacheKey(string token) => $"yt-search:{token}";
 
         private static string SearchResultsCacheKey(string query) => $"yt-search-results:{query.Trim().ToLowerInvariant()}";
+
+        private static string AlbumSearchResultsCacheKey(string query) => $"yt-album-search:{query.Trim().ToLowerInvariant()}";
+
+        private static string AlbumCacheKey(string albumId) => $"yt-album:{albumId}";
 
         private static string SongInfoCacheKey(string videoId) => $"yt-song:{videoId}";
 
