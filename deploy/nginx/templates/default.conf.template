@@ -9,6 +9,12 @@
 
 resolver 127.0.0.11 valid=10s;
 
+# YouTube artwork the web player proxies from Google. Caching it on disk keeps
+# repeated searches off both the node process and Google, which answers 429
+# once a client pulls a whole grid of covers at a time.
+proxy_cache_path /var/cache/nginx/thumbnails levels=1:2 keys_zone=thumbnails:10m
+                 max_size=${MUSIFY_THUMBNAIL_CACHE_SIZE} inactive=30d use_temp_path=off;
+
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      close;
@@ -33,6 +39,21 @@ server {
 
     ssl_certificate     /etc/nginx/certs/origin.pem;
     ssl_certificate_key /etc/nginx/certs/origin.key;
+
+    location = /api/youtube/thumbnail {
+        set $upstream http://web-player:3000;
+        proxy_pass $upstream;
+        include /etc/nginx/snippets/proxy.conf;
+
+        proxy_cache thumbnails;
+        proxy_cache_key $uri$is_args$args;
+        proxy_cache_valid 200 30d;
+        proxy_cache_valid 400 404 5m;
+        proxy_cache_lock on;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_background_update on;
+        add_header X-Cache-Status $upstream_cache_status;
+    }
 
     location / {
         set $upstream http://web-player:3000;
