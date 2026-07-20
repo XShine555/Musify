@@ -13,7 +13,6 @@
 		"gen:api": "npx -y openapi-typescript@7 http://localhost:5111/openapi/v1.json -o src/lib/api/schema.d.ts"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
