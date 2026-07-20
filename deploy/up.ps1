@@ -4,25 +4,35 @@
     Brings up the Musify development environment.
 
 .DESCRIPTION
-    Starts the infrastructure stack, generates the stream-ticket keys, applies EF
-    Core migrations and provisions Zitadel (project + OIDC app + ClientId).
+    Starts the infrastructure stack, generates the stream-ticket keys, applies
+    the EF Core migrations and provisions Zitadel (project + OIDC apps). The
+    .NET apps and the web player then run from the IDE; add -Apps to run them
+    in Docker instead.
 
 .EXAMPLE
-    ./up.ps1                    # Bring everything up
+    ./up.ps1                    # Infrastructure only (apps from the IDE)
+    ./up.ps1 -Apps              # Also build and run api, worker, gateway, web player
+    ./up.ps1 -Tools             # Also start pgAdmin
     ./up.ps1 -SkipMigrations    # Skip the database migration step
     ./up.ps1 -Down              # Stop and remove containers (keep volumes)
     ./up.ps1 -Destroy           # Stop and remove containers + volumes (wipe data)
 #>
 [CmdletBinding()]
 param(
+    [switch]$Apps,
+    [switch]$Tools,
+    [switch]$SkipMigrations,
     [switch]$Down,
-    [switch]$Destroy,
-    [switch]$SkipMigrations
+    [switch]$Destroy
 )
 
 $ErrorActionPreference = "Stop"
-$deployDir   = $PSScriptRoot
-$composeFile = Join-Path $deployDir "docker-compose.yml"
+$deployDir = $PSScriptRoot
+$compose   = @(
+    "-f", (Join-Path $deployDir "compose.yml"),
+    "-f", (Join-Path $deployDir "compose.dev.yml")
+)
+$profiles = @("--profile", "apps", "--profile", "tools")
 
 . (Join-Path $deployDir "scripts\common.ps1")
 
@@ -30,12 +40,12 @@ $composeFile = Join-Path $deployDir "docker-compose.yml"
 if ($Down -or $Destroy) {
     if ($Destroy) {
         Write-Step "Stopping the stack and REMOVING volumes (data is wiped)"
-        docker compose -f $composeFile down -v --remove-orphans
-        # Drop the Zitadel init secrets (PAT) so the next start re-initializes cleanly.
+        docker compose @compose @profiles down -v --remove-orphans
+        # Drop the Zitadel init secrets so the next start re-initializes cleanly.
         Get-ChildItem (Join-Path $deployDir "zitadel\.output") -File -ErrorAction SilentlyContinue | Remove-Item -Force
     } else {
         Write-Step "Stopping the stack (volumes are kept)"
-        docker compose -f $composeFile down --remove-orphans
+        docker compose @compose @profiles down --remove-orphans
     }
     return
 }
@@ -47,12 +57,18 @@ if (-not (Test-Path $envFile)) {
     Copy-Item (Join-Path $deployDir ".env.example") $envFile
 }
 $cfg = Read-DotEnv $envFile
-$streamKeysDir = if ($cfg['STREAM_KEYS_DIR']) { $cfg['STREAM_KEYS_DIR'] } else { "D:/weed" }
-$workerTempDir = if ($cfg['WORKER_TEMP_DIR']) { $cfg['WORKER_TEMP_DIR'] } else { "D:/tempsFilesDev" }
+
+# Host directories the apps expect: RS256 keys (mounted into the api/gateway
+# containers, read directly by the IDE runs) and the Worker scratch space.
+& (Join-Path $deployDir "scripts\stream-keys.ps1") -KeysDir (Join-Path $deployDir "keys")
+$tempDir = Join-Path $deployDir ".tmp"
+if (-not (Test-Path $tempDir)) { New-Item -ItemType Directory -Path $tempDir | Out-Null }
 
 # Infrastructure -------------------------------------------------------------
 Write-Step "Starting the infrastructure stack"
-docker compose -f $composeFile up -d
+$upArgs = @("up", "-d")
+if ($Tools) { $upArgs = @("--profile", "tools") + $upArgs }
+docker compose @compose @upArgs
 if ($LASTEXITCODE -ne 0) { throw "docker compose up failed" }
 
 Write-Step "Waiting for Postgres to become healthy"
@@ -62,16 +78,6 @@ do {
     $status = docker inspect --format '{{.State.Health.Status}}' musify-postgres 2>$null
 } until ($status -eq "healthy" -or (Get-Date) -gt $deadline)
 if ($status -ne "healthy") { throw "Postgres did not become healthy in time" }
-
-# Stream-ticket keys ---------------------------------------------------------
-Write-Step "Ensuring stream-ticket keys"
-& (Join-Path $deployDir "scripts\stream-keys.ps1") -KeysDir $streamKeysDir
-
-# Worker temp directory ------------------------------------------------------
-if (-not (Test-Path $workerTempDir)) {
-    Write-Step "Creating the Worker temp directory: $workerTempDir"
-    New-Item -ItemType Directory -Path $workerTempDir | Out-Null
-}
 
 # Database migrations --------------------------------------------------------
 if ($SkipMigrations) {
@@ -83,16 +89,36 @@ if ($SkipMigrations) {
 }
 
 # Zitadel provisioning -------------------------------------------------------
-Write-Step "Provisioning Zitadel (project + OIDC app + ClientId)"
-try {
-    & (Join-Path $deployDir "zitadel\provision.ps1")
-} catch {
-    Write-Host "Warning: Zitadel provisioning failed: $($_.Exception.Message)" -ForegroundColor Yellow
+# Writes the client ids into .env, Musify.Api user-secrets and web-player/.env,
+# so it has to run before the app containers start.
+& (Join-Path $deployDir "zitadel\provision.ps1")
+
+# Applications ---------------------------------------------------------------
+if ($Apps) {
+    Write-Step "Building and starting the applications"
+    docker compose @compose --profile apps up -d --build
+    if ($LASTEXITCODE -ne 0) { throw "docker compose up (apps) failed" }
 }
 
 # Summary --------------------------------------------------------------------
-$zDomain = $cfg['ZITADEL_EXTERNAL_DOMAIN']
-$zPort   = $cfg['ZITADEL_EXTERNAL_PORT']
+$cfg = Read-DotEnv $envFile
+$authUrl = $cfg['PUBLIC_AUTH_URL']
+$appLines = if ($Apps) {
+@"
+  Musify API          $($cfg['PUBLIC_API_URL'])/scalar/v1
+  Streaming gateway   $($cfg['PUBLIC_STREAM_URL'])/health
+  Web player          $($cfg['PUBLIC_WEB_URL'])
+"@
+} else {
+@"
+  Run the apps from the IDE (or ./up.ps1 -Apps to run them in Docker):
+    dotnet run --project backend/Musify.Api               # :5111
+    dotnet run --project backend/Musify.StreamingGateway  # :8081
+    dotnet run --project backend/Musify.Worker            # background
+    npm --prefix web-player run dev                       # :5173
+"@
+}
+
 Write-Host @"
 
 ============================================================
@@ -102,21 +128,18 @@ Write-Host @"
   Service             URL / port
   ------------------  --------------------------------------
   PostgreSQL          localhost:$($cfg['POSTGRES_HOST_PORT'])  (db: $($cfg['POSTGRES_DB']))
-  pgAdmin             http://localhost:$($cfg['PGADMIN_HOST_PORT'])  ($($cfg['PGADMIN_DEFAULT_EMAIL'])/$($cfg['PGADMIN_DEFAULT_PASSWORD']))
-  Zitadel console     http://$zDomain`:$zPort/ui/console
+  Zitadel console     $authUrl/ui/console
   RabbitMQ mgmt       http://localhost:15672  ($($cfg['RABBITMQ_DEFAULT_USER'])/$($cfg['RABBITMQ_DEFAULT_PASS']))
   SeaweedFS S3        http://localhost:8333   (bucket: $($cfg['S3_BUCKET']))
   SeaweedFS filer     http://localhost:8888
   SeaweedFS master    http://localhost:9333
   Jaeger traces       http://localhost:16686  (OTLP: localhost:4317)
+  pgAdmin (-Tools)    http://localhost:$($cfg['PGADMIN_HOST_PORT'])  ($($cfg['PGADMIN_DEFAULT_EMAIL'])/$($cfg['PGADMIN_DEFAULT_PASSWORD']))
 
-  Zitadel admin: $($cfg['ZITADEL_ADMIN_USERNAME'])@zitadel.$zDomain / $($cfg['ZITADEL_ADMIN_PASSWORD'])
-  Auth is provisioned automatically; ClientId is in Musify.Api user-secrets and .env.
-  Log in via Scalar: http://localhost:5111/scalar/v1
+  Zitadel admin       $($cfg['ZITADEL_ADMIN_USERNAME'])@zitadel.$($cfg['ZITADEL_EXTERNAL_DOMAIN']) / $($cfg['ZITADEL_ADMIN_PASSWORD'])
+  API client id       $($cfg['AUTH_CLIENT_ID'])
+  Web client id       $($cfg['WEB_CLIENT_ID'])
 
-  Run the apps from the IDE or:
-    dotnet run --project backend/Musify.Api               # :5111
-    dotnet run --project backend/Musify.StreamingGateway  # :8081
-    dotnet run --project backend/Musify.Worker            # background
+$appLines
 ============================================================
 "@ -ForegroundColor Green
