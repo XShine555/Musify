@@ -2,7 +2,7 @@ import http from 'node:http';
 import https from 'node:https';
 import { env } from '$env/dynamic/private';
 
-const CONNECT_HOST = env.S3_UPLOAD_CONNECT_HOST || '127.0.0.1';
+const UPLOAD_ENDPOINT = env.S3_UPLOAD_ENDPOINT ?? '';
 
 export const IMAGE_TYPES: Record<string, string> = {
 	jpg: 'image/jpeg',
@@ -48,14 +48,15 @@ export async function putPresigned(
 	if (signed.has('content-type')) headers['Content-Type'] = contentType;
 	if (signed.has('if-none-match')) headers['If-None-Match'] = '*';
 
-	const secure = url.protocol === 'https:';
+	const target = UPLOAD_ENDPOINT ? new URL(UPLOAD_ENDPOINT) : url;
+	const secure = target.protocol === 'https:';
 	const transport = secure ? https : http;
-	const port = url.port || (secure ? 443 : 80);
+	const port = target.port || (secure ? 443 : 80);
 
 	await new Promise<void>((resolve, reject) => {
 		const request = transport.request(
 			{
-				host: CONNECT_HOST,
+				host: target.hostname,
 				port,
 				method: 'PUT',
 				path: url.pathname + url.search,
