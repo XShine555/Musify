@@ -277,6 +277,7 @@
 						title={album.title}
 						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 						trackCount={Number(album.trackCount)}
+						trackIds={album.coverTrackIds}
 						index={i}
 					/>
 				{/each}
