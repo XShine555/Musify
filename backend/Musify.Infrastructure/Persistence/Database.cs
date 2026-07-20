@@ -98,6 +98,41 @@ namespace Musify.Infrastructure.Persistence
                 });
             modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired(false);
 
+            modelBuilder.Entity<Album>()
+                .OwnsOne(album => album.Pictures, pictures =>
+                {
+                    pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64);
+                    pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64);
+                });
+            modelBuilder.Entity<Album>().Navigation(album => album.Pictures).IsRequired(false);
+
+            modelBuilder.Entity<UserAlbum>()
+                .ToTable("UserAlbums");
+
+            modelBuilder.Entity<UserAlbum>()
+                .HasOne(album => album.Owner)
+                .WithMany()
+                .HasForeignKey(album => album.OwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AlbumHasTrack>()
+                .HasOne(albumTrack => albumTrack.Album)
+                .WithMany(album => album.AlbumTracks)
+                .HasForeignKey(albumTrack => albumTrack.AlbumId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AlbumHasTrack>()
+                .HasOne(albumTrack => albumTrack.Track)
+                .WithMany(track => track.AlbumTracks)
+                .HasForeignKey(albumTrack => albumTrack.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AlbumHasTrack>()
+                .HasIndex(albumTrack => new { albumTrack.AlbumId, albumTrack.TrackId })
+                .IsUnique();
+
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
             playListProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();
@@ -117,6 +152,12 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<TrackArtist> TrackArtists => Set<TrackArtist>();
 
         public DbSet<PlayList> PlayLists => Set<PlayList>();
+
+        public DbSet<Album> Albums => Set<Album>();
+
+        public DbSet<UserAlbum> UserAlbums => Set<UserAlbum>();
+
+        public DbSet<AlbumHasTrack> AlbumHasTracks => Set<AlbumHasTrack>();
 
         public DbSet<UserHasTrack> UserHasTracks => Set<UserHasTrack>();
 

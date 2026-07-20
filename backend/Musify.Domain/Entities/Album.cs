@@ -5,7 +5,7 @@ using Musify.Domain.ValueObjects;
 namespace Musify.Domain.Entities
 {
 #pragma warning disable CS8618
-    public abstract class Track : IAuditable
+    public abstract class Album : IAuditable
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -18,8 +18,12 @@ namespace Musify.Domain.Entities
         [MaxLength(200)]
         public required string NormalizedTitle { get; set; }
 
-        [Required]
-        public int DurationSeconds { get; set; }
+        [MaxLength(256)]
+        public string? Description { get; set; }
+
+        public int? ReleaseYear { get; set; }
+
+        public AlbumPictures? Pictures { get; set; }
 
         [Required]
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
@@ -30,16 +34,6 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public TrackPictures Pictures { get; set; } = new();
-
-        public TrackAudio Audio { get; set; } = new();
-
-        public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
-
-        public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
-
         public ICollection<AlbumHasTrack> AlbumTracks { get; set; } = new List<AlbumHasTrack>();
-
-        public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
     }
 }
