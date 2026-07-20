@@ -1,0 +1,40 @@
+name: musify-prod
+
+# Production overlay: adds the nginx edge and the host-mounted secrets.
+# Nothing but nginx publishes a port; every other service is reachable only on
+# the internal `musify-prod_default` network.
+#
+#   docker compose --env-file deploy/.env.prod \
+#     -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
+#
+# Use ./up.sh, which also generates the stream keys, provisions Zitadel and
+# applies the database migrations.
+
+services:
+  worker:
+    # yt-dlp reads the YouTube cookie jar from here (see YTDLP_ADDITIONAL_ARGUMENTS).
+    volumes:
+      - ./secrets:/secrets:ro
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: musify-nginx
+    depends_on:
+      - api
+      - gateway
+      - zitadel
+      - web-player
+    environment:
+      # The entrypoint renders /etc/nginx/templates/*.template with envsubst.
+      # The filter keeps it from eating nginx's own $host / $remote_addr.
+      MUSIFY_ROOT_DOMAIN: ${ROOT_DOMAIN}
+      MUSIFY_MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-1024m}
+      NGINX_ENVSUBST_FILTER: ^MUSIFY_
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    restart: unless-stopped

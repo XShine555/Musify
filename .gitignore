@@ -15,10 +15,16 @@ artifacts/
 Thumbs.db
 .DS_Store
 
-# Secrets / local
+# Environment files (deploy/.env, deploy/.env.prod, web-player/.env, ...)
+.env
+.env.*
 *.env
+!.env.example
+!.env.prod.example
 
-# Production env and mounted secrets
-.env.prod
-*.env.*
+# Deploy secrets and runtime state
+deploy/keys/
 deploy/secrets/
+deploy/nginx/certs/
+deploy/zitadel/.output/
+deploy/.tmp/

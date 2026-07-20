@@ -1,0 +1,277 @@
+# Musify — base stack, shared by development and production.
+#
+# This file publishes no host ports and hardcodes no domain: everything that
+# differs between environments comes from the .env file (see .env.example) or
+# from the overlay that is merged on top of it.
+#
+#   dev   docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
+#   prod  docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
+#
+# The four application services sit behind the `apps` profile, so a plain `up`
+# starts only the infrastructure (the usual dev setup: apps from the IDE).
+# Add `--profile apps` to run them in Docker. Use ./up.ps1 (dev) or ./up.sh
+# (prod) instead of calling compose by hand.
+
+x-app-depends: &app-depends
+  postgres:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+  seaweedfs:
+    condition: service_healthy
+
+# Backend settings that are identical for the API and the Worker. ASP.NET Core
+# maps `__` to `:`, so these override the matching AppSettings.json sections.
+x-backend-env: &backend-env
+  Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+  MassTransit__Address: "rabbitmq://rabbitmq:5672"
+  MassTransit__Username: ${RABBITMQ_DEFAULT_USER}
+  MassTransit__Password: ${RABBITMQ_DEFAULT_PASS}
+  # The public S3 URL, not the internal one: the same address is used to sign
+  # the presigned upload/download URLs the browser has to be able to reach.
+  InfrastructureStorage__Address: ${S3_PUBLIC_URL}
+  InfrastructureStorage__AccessKey: ${S3_ACCESS_KEY}
+  InfrastructureStorage__SecretAccessKey: ${S3_SECRET_KEY}
+  InfrastructureStorage__ForcePathStyle: "true"
+  InfrastructureStorage__UseHttp: ${S3_USE_HTTP}
+  ApplicationStorage__Bucket: ${S3_BUCKET}
+  OpenTelemetry__OtlpEndpoint: "http://jaeger:4317"
+
+services:
+  # --- Infrastructure -------------------------------------------------------
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: musify-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # OIDC provider. `start-from-init` runs init + setup (both idempotent) and
+  # then starts, so the same command works on a cold and on a warm volume.
+  # It reuses the Postgres above: the admin user creates the `zitadel` database
+  # and role on first start.
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:latest
+    container_name: musify-zitadel
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
+    environment:
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY}
+      # The external domain/port forms the token issuer and must be identical
+      # for the browser, the apps and the containers (Zitadel routes by Host).
+      ZITADEL_EXTERNALSECURE: ${ZITADEL_EXTERNAL_SECURE}
+      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_EXTERNAL_DOMAIN}
+      ZITADEL_EXTERNALPORT: ${ZITADEL_EXTERNAL_PORT}
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DATABASE_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${POSTGRES_USER}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # Initial console admin. Login: <username>@zitadel.<external domain>
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_USERNAME}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
+      # Service account + PAT written on init; the provisioning script uses it
+      # to create the Musify project and its OIDC apps.
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: zitadel-admin-sa
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Admin Service Account
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /output/admin-sa.pat
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./zitadel/.output:/output
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: musify-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # All-in-one object store: master + volume + filer + S3 gateway.
+  # The S3 identity file is rendered from the environment on start so the
+  # credentials can never drift from the ones handed to the apps.
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: musify-seaweedfs
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        cat > /tmp/s3.conf <<'JSON'
+        {
+          "identities": [
+            {
+              "name": "musify",
+              "credentials": [{ "accessKey": "${S3_ACCESS_KEY}", "secretKey": "${S3_SECRET_KEY}" }],
+              "actions": ["Admin", "Read", "Write"]
+            }
+          ]
+        }
+        JSON
+        exec weed server \
+          -ip.bind=0.0.0.0 \
+          -dir=/data \
+          -master.volumeSizeLimitMB=1024 \
+          -volume.max=0 \
+          -filer \
+          -s3 \
+          -s3.config=/tmp/s3.conf
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9333/cluster/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # One-shot: SeaweedFS does not auto-create buckets.
+  seaweedfs-init:
+    image: amazon/aws-cli:latest
+    container_name: musify-seaweedfs-init
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        aws --endpoint-url http://seaweedfs:8333 s3 mb s3://${S3_BUCKET} 2>/dev/null || true
+        aws --endpoint-url http://seaweedfs:8333 s3 ls
+    restart: "no"
+
+  # OTLP collector + trace UI (MassTransit / EF Core / HTTP spans).
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: musify-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    restart: unless-stopped
+
+  # --- Applications (profile: apps) -----------------------------------------
+
+  api:
+    profiles: [apps]
+    build:
+      context: ../backend
+      dockerfile: Musify.Api.Dockerfile
+    container_name: musify-api
+    depends_on: *app-depends
+    environment:
+      <<: *backend-env
+      ASPNETCORE_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:5111
+      StreamGateway__PublicBaseUrl: ${PUBLIC_STREAM_URL}
+      StreamTicket__PrivateKeyPath: /keys/stream_private.pem
+      Workers__Routes__TemporaryFilesDirectory: /tmp/musify
+      # Client id and secret are written to the .env file by the Zitadel
+      # provisioning script (deploy/zitadel/provision.*).
+      Authentication__MetadataAddress: "${PUBLIC_AUTH_URL}/.well-known/openid-configuration"
+      Authentication__IssuerAddress: ${PUBLIC_AUTH_URL}
+      Authentication__ClientId: ${AUTH_CLIENT_ID}
+      Authentication__AudienceAddress: ${AUTH_CLIENT_ID}
+      Authentication__AuthorizationEndpoint: "${PUBLIC_AUTH_URL}/oauth/v2/authorize?prompt=login"
+      Authentication__TokenEndpoint: "${PUBLIC_AUTH_URL}/oauth/v2/token"
+      Authentication__ScalarRedirectUri: "${PUBLIC_API_URL}/scalar/"
+      Authentication__Scopes__0: openid
+      Authentication__Scopes__1: profile
+      Authentication__Scopes__2: email
+      Authentication__RequireHttpsMetadata: ${AUTH_REQUIRE_HTTPS}
+    volumes:
+      - ./keys:/keys:ro
+    restart: unless-stopped
+
+  worker:
+    profiles: [apps]
+    build:
+      context: ../backend
+      dockerfile: Musify.Worker.Dockerfile
+    container_name: musify-worker
+    depends_on: *app-depends
+    environment:
+      <<: *backend-env
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      AudioTranscoder__Routes__WorkingDirectory: /tmp/musify
+      Workers__Routes__TemporaryFilesDirectory: /tmp/musify
+      YtDlp__AdditionalArguments: ${YTDLP_ADDITIONAL_ARGUMENTS:-}
+    restart: unless-stopped
+
+  # YARP in front of the SeaweedFS filer: validates the RS256 stream ticket and
+  # streams the bytes, so audio never goes through the API.
+  gateway:
+    profiles: [apps]
+    build:
+      context: ../backend
+      dockerfile: Musify.StreamingGateway.Dockerfile
+    container_name: musify-gateway
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:8081
+      StreamTicket__PublicKeyPath: /keys/stream_public.pem
+      ReverseProxy__Clusters__seaweed-filer__Destinations__filer__Address: "http://seaweedfs:8888/"
+      ReverseProxy__Routes__media__Transforms__0__PathPattern: "/buckets/${S3_BUCKET}/{**rest}"
+      Cors__AllowedOrigins__0: ${PUBLIC_WEB_URL}
+    volumes:
+      - ./keys:/keys:ro
+    restart: unless-stopped
+
+  web-player:
+    profiles: [apps]
+    build:
+      context: ../web-player
+      dockerfile: Dockerfile
+    container_name: musify-web-player
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      ORIGIN: ${PUBLIC_WEB_URL}
+      ZITADEL_ISSUER: ${PUBLIC_AUTH_URL}
+      ZITADEL_CLIENT_ID: ${WEB_CLIENT_ID}
+      ZITADEL_CLIENT_SECRET: ${WEB_CLIENT_SECRET}
+      AUTH_REDIRECT_URI: "${PUBLIC_WEB_URL}/auth/callback"
+      AUTH_POST_LOGOUT_URI: "${PUBLIC_WEB_URL}/"
+      AUTH_ALLOW_INSECURE_HTTP: ${AUTH_ALLOW_INSECURE_HTTP}
+      SESSION_SECRET: ${SESSION_SECRET}
+      API_BASE_URL: http://api:5111
+      # Presigned PUTs are signed for the public S3 host; the container sends
+      # them straight to SeaweedFS instead of going back out through the edge.
+      S3_UPLOAD_ENDPOINT: http://seaweedfs:8333
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  seaweedfs_data:
