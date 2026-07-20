@@ -32,16 +32,19 @@ namespace Musify.Application.Albums
                 return Error.Unauthorized();
             }
 
-            var track = await database.LocalTracks
+            var trackExists = await database.Tracks
                 .AsNoTracking()
-                .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
-            if (track is null)
+                .AnyAsync(t => t.Id == request.TrackId, cancellationToken);
+            if (!trackExists)
             {
-                logger.LogInformation("Local track {TrackId} not found", request.TrackId);
-                return Error.NotFound(description: "Only tracks you uploaded can be added to an album.");
+                logger.LogInformation("Track {TrackId} not found", request.TrackId);
+                return Error.NotFound(description: $"Track {request.TrackId} not found");
             }
 
-            if (track.OwnerUserId != request.UserId)
+            var localTrack = await database.LocalTracks
+                .AsNoTracking()
+                .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
+            if (localTrack is not null && localTrack.OwnerUserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} does not own track {TrackId}", request.UserId, request.TrackId);
                 return Error.Unauthorized();

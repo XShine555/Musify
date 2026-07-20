@@ -112,6 +112,10 @@ namespace Musify.Infrastructure.Persistence
                 .ToTable("UserAlbums");
 
             modelBuilder.Entity<UserAlbum>()
+                .HasIndex(album => new { album.OwnerUserId, album.ExternalId })
+                .IsUnique();
+
+            modelBuilder.Entity<UserAlbum>()
                 .HasOne(album => album.Owner)
                 .WithMany()
                 .HasForeignKey(album => album.OwnerUserId)
