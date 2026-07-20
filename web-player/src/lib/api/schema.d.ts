@@ -581,6 +581,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            coverTrackIds: string[];
         };
         CreateAlbumRequest: {
             title: string;
@@ -708,6 +709,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            coverTrackIds: string[];
         };
         PlayListPictureUploadResponse: {
             /** Format: uuid */

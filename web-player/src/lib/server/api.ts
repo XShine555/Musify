@@ -52,33 +52,3 @@ export function unwrapOrFail(
 ): ActionFailure<{ message: string }> | undefined {
 	return result.error ? fail(502, { message }) : undefined;
 }
-
-export async function albumCoverTrackIds(
-	api: ReturnType<typeof createApiClient>,
-	albumIds: string[]
-): Promise<Record<string, string[]>> {
-	const covers = await Promise.all(
-		albumIds.map(async (albumId) => {
-			const { data: tracks } = await api.GET('/albums/{albumId}/tracks', {
-				params: { path: { albumId }, query: { pageNumber: 1, pageSize: 4 } }
-			});
-			return [albumId, tracks?.items.map((t) => t.id) ?? []] as const;
-		})
-	);
-	return Object.fromEntries(covers);
-}
-
-export async function playlistCoverTrackIds(
-	api: ReturnType<typeof createApiClient>,
-	playlistIds: string[]
-): Promise<Record<string, string[]>> {
-	const covers = await Promise.all(
-		playlistIds.map(async (playlistId) => {
-			const { data: tracks } = await api.GET('/playlists/{playlistId}/tracks', {
-				params: { path: { playlistId }, query: { pageNumber: 1, pageSize: 4 } }
-			});
-			return [playlistId, tracks?.items.map((t) => t.id) ?? []] as const;
-		})
-	);
-	return Object.fromEntries(covers);
-}

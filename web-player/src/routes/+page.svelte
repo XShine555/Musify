@@ -108,7 +108,6 @@
 	}
 	const playlists = $derived(data.playlists);
 	const mixes = $derived(data.mixes);
-	const trackIds = $derived(data.trackIds);
 
 	function playLatest(index: number) {
 		player.playOrToggle(latest.map(queueItemForTarget), index);
@@ -246,7 +245,7 @@
 					id={playlist.id}
 					name={playlist.name}
 					description={playlist.description}
-					trackIds={trackIds[playlist.id] ?? []}
+					trackIds={playlist.coverTrackIds}
 					updatedAt={playlist.updatedAt}
 					index={i}
 				/>

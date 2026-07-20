@@ -13,7 +13,6 @@
 	let { data, form } = $props();
 
 	const items = $derived(data.albums.items);
-	const trackIds = $derived(data.trackIds);
 
 	let creating = $state(false);
 </script>
@@ -43,7 +42,7 @@
 					title={album.title}
 					releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 					trackCount={Number(album.trackCount)}
-					trackIds={trackIds[album.id] ?? []}
+					trackIds={album.coverTrackIds}
 					index={i}
 				/>
 			{/each}

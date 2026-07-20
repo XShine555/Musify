@@ -2,7 +2,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
 	createApiClient,
-	playlistCoverTrackIds,
 	requireAccessTokenAction,
 	requireUser,
 	unwrapOrError
@@ -19,12 +18,8 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	});
 
 	const data = unwrapOrError(result, 'No se pudieron cargar tus playlists.');
-	const trackIds = await playlistCoverTrackIds(
-		api,
-		data.items.map((p) => p.id)
-	);
 
-	return { playlists: data, trackIds };
+	return { playlists: data };
 };
 
 export const actions: Actions = {

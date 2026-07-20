@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, playlistCoverTrackIds, requireUser } from '$lib/server/api';
+import { createApiClient, requireUser } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
 import { shuffle } from '$lib/collections';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
@@ -28,10 +28,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		recentlyPlayedPromise
 	]);
 	const playlistItems = playlists.data?.items ?? [];
-	const trackIds = await playlistCoverTrackIds(
-		api,
-		playlistItems.map((p) => p.id)
-	);
 
 	return {
 		greeting: pickGreeting(new Date().getHours()),
@@ -46,7 +42,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		),
 		playlists: playlistItems,
 		mixes: mixes.data ?? [],
-		trackIds,
 		recentlyPlayed: recentlyPlayed.data ?? []
 	};
 };

@@ -1,7 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
-	albumCoverTrackIds,
 	createApiClient,
 	requireAccessTokenAction,
 	requireUser,
@@ -19,12 +18,8 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	});
 
 	const albums = unwrapOrError(result, 'No se pudieron cargar tus álbumes.');
-	const trackIds = await albumCoverTrackIds(
-		api,
-		albums.items.map((album) => album.id)
-	);
 
-	return { albums, trackIds };
+	return { albums };
 };
 
 export const actions: Actions = {

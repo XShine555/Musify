@@ -32,7 +32,6 @@
 	let { data, form } = $props();
 
 	const items = $derived(data.playlists.items);
-	const trackIds = $derived(data.trackIds);
 
 	let creating = $state(false);
 
@@ -65,7 +64,7 @@
 					id={playlist.id}
 					name={playlist.name}
 					description={playlist.description}
-					trackIds={trackIds[playlist.id] ?? []}
+					trackIds={playlist.coverTrackIds}
 					updatedAt={playlist.updatedAt}
 					index={i}
 				/>
