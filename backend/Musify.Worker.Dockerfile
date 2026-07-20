@@ -17,9 +17,18 @@ RUN cp /app/AppSettings.json /app/appsettings.json \
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-# ffmpeg: the Worker transcodes audio to .m4a.
+# ffmpeg: the Worker transcodes audio to .m4a. yt-dlp: downloads YouTube audio.
+# yt-dlp is installed via pip in a venv rather than the standalone PyInstaller
+# binary: the binary adds a ~1s unpack cost per invocation and extracts slower,
+# so pip roughly halves resolution latency. deno solves nsig challenges.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends ffmpeg python3 python3-venv ca-certificates curl unzip \
+    && python3 -m venv /opt/ytdlp \
+    && /opt/ytdlp/bin/pip install --no-cache-dir -U yt-dlp \
+    && ln -s /opt/ytdlp/bin/yt-dlp /usr/local/bin/yt-dlp \
+    && curl -fsSL https://deno.land/install.sh | sh -s -- -y \
+    && mv /root/.deno/bin/deno /usr/local/bin/deno \
+    && apt-get purge -y curl unzip \
+    && rm -rf /var/lib/apt/lists/* /root/.deno
 COPY --from=build /app ./
 ENTRYPOINT ["dotnet", "Musify.Worker.dll"]
