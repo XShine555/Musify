@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { gradientForHue } from '$lib/theme/color';
+	import { thumbnailSrc } from '$lib/thumbnails';
 
 	interface Props {
 		trackId: string | number;
@@ -25,7 +26,9 @@
 	let failed = $state(false);
 	let loaded = $state(false);
 
-	const imageSrc = $derived(src ?? `/api/tracks/${trackId}/cover?size=${size}`);
+	const imageSrc = $derived(
+		src ? (thumbnailSrc(src, size) ?? src) : `/api/tracks/${trackId}/cover?size=${size}`
+	);
 
 	$effect(() => {
 		imageSrc;
@@ -43,6 +46,8 @@
 			src={imageSrc}
 			{alt}
 			loading="lazy"
+			decoding="async"
+			fetchpriority="low"
 			onload={() => (loaded = true)}
 			onerror={() => (failed = true)}
 			class="h-full w-full object-cover"

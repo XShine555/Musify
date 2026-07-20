@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { HUES, accentForHue, gradientForHue, hueFor } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
+import { thumbnailSrc } from '$lib/thumbnails';
 
 export type TrackSourceKind = 'local' | 'youtube';
 
@@ -190,7 +191,8 @@ class PlayerState {
 			navigator.mediaSession.metadata = null;
 			return;
 		}
-		const artwork = track.coverUrl ?? `/api/tracks/${track.id}/cover?size=small`;
+		const artwork =
+			thumbnailSrc(track.coverUrl, 'medium') ?? `/api/tracks/${track.id}/cover?size=small`;
 		navigator.mediaSession.metadata = new MediaMetadata({
 			title: track.title,
 			artist: track.artist,
@@ -242,7 +244,9 @@ class PlayerState {
 			this.gradientColor = cached.gradient;
 			return;
 		}
-		const result = await extractAccent(coverUrl ?? `/api/tracks/${id}/cover?size=small`);
+		const result = await extractAccent(
+			thumbnailSrc(coverUrl, 'small') ?? `/api/tracks/${id}/cover?size=small`
+		);
 		if (this.currentId !== id) return;
 		if (result) {
 			this.#accentCache.set(key, result);
