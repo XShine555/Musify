@@ -3,6 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import {
 	createApiClient,
 	requireAccessTokenAction,
+	requireUser,
 	unwrapOrError,
 	unwrapOrFail
 } from '$lib/server/api';
@@ -14,7 +15,8 @@ import type { YouTubeSong } from '$lib/types';
 const MAX_NAME = 100;
 const SUGGESTIONS_LIMIT = 20;
 
-export const load: PageServerLoad = async ({ params, locals, fetch }) => {
+export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
+	const user = requireUser(locals, url);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
 	const [playlistRes, tracksRes, libraryRes, playlistsRes] = await Promise.all([
@@ -23,10 +25,10 @@ export const load: PageServerLoad = async ({ params, locals, fetch }) => {
 			params: { path: { playlistId: params.id }, query: { pageNumber: 1, pageSize: 200 } }
 		}),
 		api.GET('/tracks/users/{userId}', {
-			params: { path: { userId: locals.user!.sub }, query: { pageNumber: 1, pageSize: 50 } }
+			params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 		}),
 		api.GET('/playlists/users/{userId}', {
-			params: { path: { userId: locals.user!.sub }, query: { pageNumber: 1, pageSize: 50 } }
+			params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 		})
 	]);
 

@@ -1,6 +1,7 @@
 import createClient from 'openapi-fetch';
-import { error, fail, type ActionFailure } from '@sveltejs/kit';
+import { error, fail, redirect, type ActionFailure } from '@sveltejs/kit';
 import type { paths } from '$lib/api/schema';
+import type { SessionUser } from '$lib/types';
 import { apiConfig } from '$lib/server/config';
 
 interface ApiClientOptions {
@@ -14,6 +15,11 @@ export function createApiClient({ fetch, accessToken }: ApiClientOptions) {
 		fetch,
 		headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
 	});
+}
+
+export function requireUser(locals: App.Locals, url: URL): SessionUser {
+	if (!locals.user) redirect(302, `/login?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+	return locals.user;
 }
 
 export function requireAccessToken(locals: App.Locals, message = 'Inicia sesión.'): string {

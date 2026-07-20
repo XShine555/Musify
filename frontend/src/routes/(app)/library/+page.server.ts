@@ -1,13 +1,20 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
-import { createApiClient, requireAccessTokenAction, unwrapOrError, unwrapOrFail } from '$lib/server/api';
+import {
+	createApiClient,
+	requireAccessTokenAction,
+	requireUser,
+	unwrapOrError,
+	unwrapOrFail
+} from '$lib/server/api';
 
 const PAGE_SIZE = 50;
 
-export const load: PageServerLoad = async ({ locals, fetch }) => {
+export const load: PageServerLoad = async ({ locals, url, fetch }) => {
+	const user = requireUser(locals, url);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 	const result = await api.GET('/tracks/users/{userId}', {
-		params: { path: { userId: locals.user!.sub }, query: { pageNumber: 1, pageSize: PAGE_SIZE } }
+		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: PAGE_SIZE } }
 	});
 
 	return { tracks: unwrapOrError(result, 'No se pudo cargar tu biblioteca.') };

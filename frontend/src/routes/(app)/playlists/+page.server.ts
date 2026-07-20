@@ -4,16 +4,18 @@ import {
 	createApiClient,
 	playlistCoverTrackIds,
 	requireAccessTokenAction,
+	requireUser,
 	unwrapOrError
 } from '$lib/server/api';
 import { uploadPresignedImage } from '$lib/server/upload';
 
 const MAX_NAME = 100;
 
-export const load: PageServerLoad = async ({ locals, fetch }) => {
+export const load: PageServerLoad = async ({ locals, url, fetch }) => {
+	const user = requireUser(locals, url);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 	const result = await api.GET('/playlists/users/{userId}', {
-		params: { path: { userId: locals.user!.sub }, query: { pageNumber: 1, pageSize: 50 } }
+		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 	});
 
 	const data = unwrapOrError(result, 'No se pudieron cargar tus playlists.');

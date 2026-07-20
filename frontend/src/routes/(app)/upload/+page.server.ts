@@ -1,9 +1,18 @@
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { createApiClient, requireAccessTokenAction, unwrapOrFail } from '$lib/server/api';
+import {
+	createApiClient,
+	requireAccessTokenAction,
+	requireUser,
+	unwrapOrFail
+} from '$lib/server/api';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
 
 const MAX_TITLE = 100;
+
+export const load: PageServerLoad = ({ locals, url }) => {
+	requireUser(locals, url);
+};
 
 export const actions: Actions = {
 	default: async ({ request, locals, fetch }) => {
