@@ -14,5 +14,14 @@ namespace Musify.Infrastructure.Configuration
 
         [Range(60, 3600)]
         public int SearchContinuationCacheSeconds { get; set; } = 600;
+
+        [Range(0, 86400)]
+        public int SearchResultsCacheSeconds { get; set; } = 900;
+
+        [Range(0, 604800)]
+        public int SongInfoCacheSeconds { get; set; } = 86400;
+
+        [Range(32, 720)]
+        public int ThumbnailSize { get; set; } = 240;
     }
 }

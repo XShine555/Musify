@@ -13,10 +13,22 @@ namespace Musify.Infrastructure.Services
     public class YouTubeMusicService(YouTubeConfiguration configuration, IMemoryCache cache, ILogger<YouTubeMusicService> logger) : IYouTubeMusicService
     {
         private readonly YouTubeMusicClient client = new(geographicalLocation: configuration.GeographicalLocation);
+        private readonly SingleFlightCache singleFlight = new(cache);
 
         private sealed record CachedStreamInfo(string Url, DateTime ExpiresAtUtc);
 
         public async Task<ErrorOr<YouTubeSearchResult>> SearchSongsAsync(string query, string continuationToken, CancellationToken cancellationToken)
+        {
+            if (!string.IsNullOrEmpty(continuationToken))
+                return await FetchSearchPageAsync(query, continuationToken, cancellationToken);
+
+            return await singleFlight.GetOrCreateAsync(
+                SearchResultsCacheKey(query),
+                TimeSpan.FromSeconds(configuration.SearchResultsCacheSeconds),
+                () => FetchSearchPageAsync(query, continuationToken, cancellationToken));
+        }
+
+        private async Task<ErrorOr<YouTubeSearchResult>> FetchSearchPageAsync(string query, string continuationToken, CancellationToken cancellationToken)
         {
             PaginatedAsyncEnumerable<SearchResult>? paginator;
             if (string.IsNullOrEmpty(continuationToken))
@@ -47,10 +59,7 @@ namespace Musify.Infrastructure.Services
                     string.Join(", ", song.Artists.Select(artist => artist.Name)),
                     song.Album?.Name ?? string.Empty,
                     (int)song.Duration.TotalSeconds,
-                    song.Thumbnails
-                        .OrderByDescending(thumbnail => thumbnail.Width)
-                        .Select(thumbnail => thumbnail.Url)
-                        .FirstOrDefault() ?? string.Empty,
+                    PickThumbnail(song.Thumbnails),
                     song.IsExplicit,
                     song.Artists
                         .Select(artist => new YouTubeArtistRef(
@@ -118,6 +127,14 @@ namespace Musify.Infrastructure.Services
 
         public async Task<ErrorOr<YouTubeSongResult>> GetSongAsync(string videoId, CancellationToken cancellationToken)
         {
+            return await singleFlight.GetOrCreateAsync(
+                SongInfoCacheKey(videoId),
+                TimeSpan.FromSeconds(configuration.SongInfoCacheSeconds),
+                () => FetchSongAsync(videoId, cancellationToken));
+        }
+
+        private async Task<ErrorOr<YouTubeSongResult>> FetchSongAsync(string videoId, CancellationToken cancellationToken)
+        {
             try
             {
                 var info = await client.GetSongVideoInfoAsync(videoId, cancellationToken);
@@ -128,10 +145,7 @@ namespace Musify.Infrastructure.Services
                     string.Join(", ", info.Artists.Select(artist => artist.Name)),
                     string.Empty,
                     (int)info.Duration.TotalSeconds,
-                    info.Thumbnails
-                        .OrderByDescending(thumbnail => thumbnail.Width)
-                        .Select(thumbnail => thumbnail.Url)
-                        .FirstOrDefault() ?? string.Empty,
+                    PickThumbnail(info.Thumbnails),
                     info.IsExplicit,
                     info.Artists
                         .Select(artist => new YouTubeArtistRef(
@@ -146,7 +160,23 @@ namespace Musify.Infrastructure.Services
             }
         }
 
+        private string PickThumbnail(IEnumerable<YouTubeMusicAPI.Models.Thumbnail> thumbnails)
+        {
+            var ordered = thumbnails.OrderBy(thumbnail => thumbnail.Width).ToList();
+
+            var chosen = ordered.FirstOrDefault(thumbnail => thumbnail.Width >= configuration.ThumbnailSize)
+                ?? ordered.LastOrDefault();
+
+            return chosen is null
+                ? string.Empty
+                : YouTubeThumbnail.WithSize(chosen.Url, configuration.ThumbnailSize);
+        }
+
         private static string SearchCacheKey(string token) => $"yt-search:{token}";
+
+        private static string SearchResultsCacheKey(string query) => $"yt-search-results:{query.Trim().ToLowerInvariant()}";
+
+        private static string SongInfoCacheKey(string videoId) => $"yt-song:{videoId}";
 
         private static string StreamCacheKey(string videoId) => $"yt-stream:{videoId}";
     }
