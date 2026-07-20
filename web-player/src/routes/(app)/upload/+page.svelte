@@ -205,9 +205,7 @@
 					{/if}
 				</span>
 				{#if audioName === ''}
-					<p class="mt-5 text-fg sm:text-lg">
-						Arrastra tu audio aquí o haz clic para elegir
-					</p>
+					<p class="mt-5 text-fg sm:text-lg">Arrastra tu audio aquí o haz clic para elegir</p>
 					<p class="mt-2 text-sm text-muted">MP3, FLAC, WAV…</p>
 				{:else}
 					<p class="mt-5 max-w-full truncate text-fg sm:text-lg">
