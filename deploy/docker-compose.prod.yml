@@ -234,7 +234,7 @@ services:
 
   frontend:
     build:
-      context: ../frontend
+      context: ../web-player
       dockerfile: Dockerfile
     container_name: musify-frontend
     depends_on:
