@@ -17,3 +17,8 @@ Thumbs.db
 
 # Secrets / local
 *.env
+
+# Production env and mounted secrets
+.env.prod
+*.env.*
+deploy/secrets/
