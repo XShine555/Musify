@@ -101,12 +101,14 @@
 	const hasMore = $derived(showTracks && (localHasNext || ytContinuation !== ''));
 
 	const albums = $derived(data.albums);
+	const youtubeAlbums = $derived(data.youtubeAlbums);
+	const hasAlbums = $derived(albums.length > 0 || youtubeAlbums.length > 0);
 
 	const nothingFound = $derived(
 		!!data.query &&
 			!data.ytError &&
 			(showTracks ? items.length === 0 : true) &&
-			(showAlbums ? albums.length === 0 : true) &&
+			(showAlbums ? !hasAlbums : true) &&
 			filters.length > 0
 	);
 
@@ -230,7 +232,7 @@
 		/>
 	{/if}
 
-	{#if showAlbums && albums.length > 0}
+	{#if showAlbums && hasAlbums}
 		<div class="mt-8">
 			<SectionHeading title="Álbumes" />
 			<MediaGrid class="mt-4">
@@ -240,8 +242,18 @@
 						title={album.title}
 						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 						trackCount={Number(album.trackCount)}
-						trackIds={[]}
 						index={i}
+					/>
+				{/each}
+				{#each youtubeAlbums as album, i (album.albumId)}
+					<AlbumCard
+						id={album.albumId}
+						href="/albums/youtube/{album.albumId}"
+						title={album.title}
+						subtitle={album.artist}
+						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
+						coverSrc={album.thumbnailUrl}
+						index={albums.length + i}
 					/>
 				{/each}
 			</MediaGrid>
@@ -249,7 +261,7 @@
 	{/if}
 
 	{#if showTracks && items.length > 0}
-		{#if showAlbums && albums.length > 0}
+		{#if showAlbums && hasAlbums}
 			<SectionHeading title="Canciones" class="mt-10" />
 		{/if}
 		<MediaGrid as="ul" class="mt-6">

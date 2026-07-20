@@ -454,6 +454,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/youtube/albums": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Albums On YouTube Music. */
+        get: operations["SearchYouTubeAlbums"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/youtube/albums/{albumId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get A YouTube Music Album With Its Tracklist. */
+        get: operations["GetYouTubeAlbum"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/youtube/tracks/{videoId}/stream": {
         parameters: {
             query?: never;
@@ -695,6 +729,37 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        YouTubeAlbumDetail: {
+            album: components["schemas"]["YouTubeAlbumResult"];
+            description: string;
+            /** Format: int32 */
+            totalDurationSeconds: number | string;
+            tracks: components["schemas"]["YouTubeAlbumTrack"][];
+        };
+        YouTubeAlbumResult: {
+            albumId: string;
+            title: string;
+            artist: string;
+            thumbnailUrl: string;
+            /** Format: int32 */
+            releaseYear: null | number | string;
+            isSingle: boolean;
+            isEp: boolean;
+            artists: components["schemas"]["YouTubeArtistRef"][];
+        };
+        YouTubeAlbumSearchResult: {
+            items: components["schemas"]["YouTubeAlbumResult"][];
+            continuationToken: string;
+        };
+        YouTubeAlbumTrack: {
+            videoId: string;
+            title: string;
+            /** Format: int32 */
+            durationSeconds: number | string;
+            /** Format: int32 */
+            trackNumber: number | string;
+            isExplicit: boolean;
         };
         YouTubeArtistRef: {
             id: null | string;
@@ -1955,6 +2020,81 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SearchYouTubeAlbums: {
+        parameters: {
+            query: {
+                query: string;
+                continuation?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YouTubeAlbumSearchResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetYouTubeAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                albumId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YouTubeAlbumDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

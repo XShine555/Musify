@@ -35,11 +35,17 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 			})
 		: Promise.resolve(null);
 
-	const [tracksRes, searchRes, playlistsRes, albumsRes] = await Promise.all([
+	const youtubeAlbumsPromise =
+		query.length >= SEARCH_MIN_LENGTH
+			? api.GET('/youtube/albums', { params: { query: { query } } })
+			: Promise.resolve(null);
+
+	const [tracksRes, searchRes, playlistsRes, albumsRes, youtubeAlbumsRes] = await Promise.all([
 		tracksPromise,
 		searchPromise,
 		playlistsPromise,
-		albumsPromise
+		albumsPromise,
+		youtubeAlbumsPromise
 	]);
 
 	const tracks = unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.');
@@ -48,6 +54,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		query,
 		tracks,
 		albums: albumsRes?.data?.items ?? [],
+		youtubeAlbums: youtubeAlbumsRes?.data?.items ?? [],
 		ytResults: searchRes?.data ?? null,
 		ytError: Boolean(searchRes?.error),
 		youtubeFiller: query
