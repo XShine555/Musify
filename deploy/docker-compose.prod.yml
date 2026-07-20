@@ -232,11 +232,11 @@ services:
       - ./keys:/keys:ro
     restart: unless-stopped
 
-  frontend:
+  web-player:
     build:
       context: ../web-player
       dockerfile: Dockerfile
-    container_name: musify-frontend
+    container_name: musify-web-player
     depends_on:
       - api
     environment:
@@ -258,7 +258,7 @@ services:
       - api
       - gateway
       - zitadel
-      - frontend
+      - web-player
     ports:
       - "80:80"
       - "443:443"
