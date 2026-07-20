@@ -57,6 +57,7 @@ namespace Musify.Application.Albums
 
             await database.UserAlbums.AddAsync(album, cancellationToken);
 
+            var linkedTrackIds = new HashSet<Guid>();
             foreach (var track in detail.Tracks)
             {
                 var provisionResult = await provisioner.GetOrCreateAsync(track.VideoId, cancellationToken);
@@ -66,6 +67,9 @@ namespace Musify.Application.Albums
                         track.VideoId, request.AlbumId, provisionResult.FirstError.Description);
                     continue;
                 }
+
+                if (!linkedTrackIds.Add(provisionResult.Value.Track.Id))
+                    continue;
 
                 await database.AlbumHasTracks.AddAsync(new AlbumHasTrack
                 {
