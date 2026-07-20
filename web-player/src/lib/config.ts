@@ -6,5 +6,6 @@ export const ALBUMS_PAGE_SIZE = 50;
 export const ALBUM_TRACKS_PAGE_SIZE = 200;
 export const ALBUM_EARLIEST_YEAR = 1877;
 export const LIBRARY_PICKER_PAGE_SIZE = 50;
+export const EXPLORE_ALBUMS_PAGE_SIZE = 18;
 export const HOME_LATEST_PAGE_SIZE = 12;
 export const YOUTUBE_FILLER_LIMIT = 27;

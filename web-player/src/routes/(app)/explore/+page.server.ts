@@ -3,6 +3,7 @@ import { createApiClient, requireUser, unwrapOrError } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
 import {
+	EXPLORE_ALBUMS_PAGE_SIZE,
 	EXPLORE_PAGE_SIZE as PAGE_SIZE,
 	SEARCH_MIN_LENGTH,
 	YOUTUBE_FILLER_LIMIT
@@ -28,10 +29,17 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 	});
 
-	const [tracksRes, searchRes, playlistsRes] = await Promise.all([
+	const albumsPromise = query
+		? api.GET('/albums', {
+				params: { query: { title: query, pageNumber: 1, pageSize: EXPLORE_ALBUMS_PAGE_SIZE } }
+			})
+		: Promise.resolve(null);
+
+	const [tracksRes, searchRes, playlistsRes, albumsRes] = await Promise.all([
 		tracksPromise,
 		searchPromise,
-		playlistsPromise
+		playlistsPromise,
+		albumsPromise
 	]);
 
 	const tracks = unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.');
@@ -39,6 +47,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	return {
 		query,
 		tracks,
+		albums: albumsRes?.data?.items ?? [],
 		ytResults: searchRes?.data ?? null,
 		ytError: Boolean(searchRes?.error),
 		youtubeFiller: query

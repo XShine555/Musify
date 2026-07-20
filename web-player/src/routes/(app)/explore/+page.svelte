@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
+	import Disc from '@lucide/svelte/icons/disc-3';
+	import Users from '@lucide/svelte/icons/users';
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { player } from '$lib/player/player.svelte';
@@ -11,6 +13,9 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
+	import ChipGroup, { type ChipOption } from '$lib/components/ui/ChipGroup.svelte';
+	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
+	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '$lib/config';
 	import { hueFor } from '$lib/theme/color';
 	import type { YouTubeSong } from '$lib/types';
@@ -35,6 +40,17 @@
 
 	let searchValue = $state(untrack(() => data.query));
 	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	const filterOptions: ChipOption[] = [
+		{ value: 'tracks', label: 'Canciones', icon: Music },
+		{ value: 'albums', label: 'Álbumes', icon: Disc },
+		{ value: 'users', label: 'Usuarios', icon: Users, disabled: true, hint: 'Próximamente' }
+	];
+
+	let filters = $state<string[]>(['tracks', 'albums']);
+
+	const showTracks = $derived(filters.includes('tracks'));
+	const showAlbums = $derived(filters.includes('albums'));
 
 	let ytItems = $state<YouTubeSong[]>([]);
 	let ytContinuation = $state('');
@@ -82,9 +98,17 @@
 		...ytItems.map((song) => ({ kind: 'youtube' as const, song }))
 	]);
 
-	const hasMore = $derived(localHasNext || ytContinuation !== '');
+	const hasMore = $derived(showTracks && (localHasNext || ytContinuation !== ''));
 
-	const nothingFound = $derived(!!data.query && items.length === 0 && !data.ytError);
+	const albums = $derived(data.albums);
+
+	const nothingFound = $derived(
+		!!data.query &&
+			!data.ytError &&
+			(showTracks ? items.length === 0 : true) &&
+			(showAlbums ? albums.length === 0 : true) &&
+			filters.length > 0
+	);
 
 	function buildHref(query: string) {
 		return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
@@ -176,7 +200,23 @@
 			oninput={onSearchInput}
 			placeholder="Buscar en tu música y en YouTube Music..."
 		/>
+
+		<ChipGroup
+			label="Qué quieres buscar"
+			options={filterOptions}
+			selected={filters}
+			onChange={(next) => (filters = next)}
+			class="mt-4"
+		/>
 	</div>
+
+	{#if filters.length === 0}
+		<EmptyState
+			icon={Search}
+			title="No has elegido qué buscar"
+			description="Marca al menos un tipo de resultado para verlos aquí."
+		/>
+	{/if}
 
 	{#if form?.message}
 		<Alert class="mt-4">{form.message}</Alert>
@@ -190,7 +230,28 @@
 		/>
 	{/if}
 
-	{#if items.length > 0}
+	{#if showAlbums && albums.length > 0}
+		<div class="mt-8">
+			<SectionHeading title="Álbumes" />
+			<MediaGrid class="mt-4">
+				{#each albums as album, i (album.id)}
+					<AlbumCard
+						id={album.id}
+						title={album.title}
+						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
+						trackCount={Number(album.trackCount)}
+						trackIds={[]}
+						index={i}
+					/>
+				{/each}
+			</MediaGrid>
+		</div>
+	{/if}
+
+	{#if showTracks && items.length > 0}
+		{#if showAlbums && albums.length > 0}
+			<SectionHeading title="Canciones" class="mt-10" />
+		{/if}
 		<MediaGrid as="ul" class="mt-6">
 			{#each items as item, i (targetId(item))}
 				<TrackTile
