@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { player, queueIdForTrack, toQueueItems, type QueueItem } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
@@ -16,14 +17,23 @@
 	import TrackTile from '$lib/components/TrackTile.svelte';
 	import TrackContextMenu, {
 		contextMenuStateFor,
-		type ContextMenuTarget,
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
-  import { appendUnique } from '$lib/collections.js';
+	import { appendUnique } from '$lib/collections';
+	import {
+		isTargetCurrent,
+		queueItemForTarget,
+		targetArtist,
+		targetCoverSrc,
+		targetExplicit,
+		targetId,
+		targetTitle,
+		type TrackTarget
+	} from '$lib/tracks';
 
 	let { data, form } = $props();
 
-	let searchValue = $state(data.query);
+	let searchValue = $state(untrack(() => data.query));
 	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	let ytItems = $state<YouTubeSong[]>([]);
@@ -45,31 +55,29 @@
 		localHasNext = Boolean(data.tracks.hasNextPage);
 
 		if (data.query) {
-			ytItems = appendUnique(
-				[],
-				(data.ytResults?.items ?? []) as YouTubeSong[],
-				item => item.videoId
-			);
+			ytItems = appendUnique([], (data.ytResults?.items ?? []) as YouTubeSong[], (i) => i.videoId);
 			ytContinuation = data.ytResults?.continuationToken ?? '';
 			ytSearchTerm = data.query;
 			return;
 		}
+
 		ytItems = [];
 		ytContinuation = '';
 		ytSearchTerm = '';
+
+		let cancelled = false;
 		data.youtubeFiller?.then((filler) => {
-			if (!filler) return;
-			ytItems = appendUnique(
-				[],
-				filler.items,
-				item => item.videoId
-			);
+			if (cancelled || !filler) return;
+			ytItems = appendUnique([], filler.items, (i) => i.videoId);
 			ytContinuation = filler.continuationToken;
 			ytSearchTerm = filler.query;
 		});
+		return () => {
+			cancelled = true;
+		};
 	});
 
-	const items = $derived<ContextMenuTarget[]>([
+	const items = $derived<TrackTarget[]>([
 		...localItems.map((track) => ({ kind: 'local' as const, track })),
 		...ytItems.map((song) => ({ kind: 'youtube' as const, song }))
 	]);
@@ -79,41 +87,6 @@
 	const nothingFound = $derived(
 		!!data.query && items.length === 0 && !data.needsAuth && !data.ytError
 	);
-
-	function itemId(item: ContextMenuTarget) {
-		return item.kind === 'youtube' ? item.song.videoId : item.track.id;
-	}
-
-	function itemTitle(item: ContextMenuTarget) {
-		return item.kind === 'youtube' ? item.song.title : item.track.title;
-	}
-
-	function itemArtist(item: ContextMenuTarget) {
-		return item.kind === 'youtube' ? item.song.artist : item.track.artist;
-	}
-
-	function itemExplicit(item: ContextMenuTarget) {
-		return item.kind === 'youtube' ? item.song.isExplicit : (item.track.isExplicit ?? false);
-	}
-
-	function itemActive(item: ContextMenuTarget) {
-		return (
-			player.current?.id === (item.kind === 'youtube' ? item.song.videoId : queueIdForTrack(item.track))
-		);
-	}
-
-	function queueItemFor(target: ContextMenuTarget): QueueItem {
-		return target.kind === 'youtube'
-			? {
-					id: target.song.videoId,
-					title: target.song.title,
-					artist: target.song.artist,
-					source: 'youtube',
-					coverUrl: target.song.thumbnailUrl,
-					explicit: target.song.isExplicit
-				}
-			: toQueueItems([target.track])[0];
-	}
 
 	function buildHref(query: string) {
 		return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
@@ -132,10 +105,10 @@
 	}
 
 	function togglePlay(index: number) {
-		player.playOrToggle(items.map(queueItemFor), index);
+		player.playOrToggle(items.map(queueItemForTarget), index);
 	}
 
-	function openContextMenu(event: MouseEvent, target: ContextMenuTarget) {
+	function openContextMenu(event: MouseEvent, target: TrackTarget) {
 		contextMenu = contextMenuStateFor(event, target);
 	}
 
@@ -145,7 +118,7 @@
 
 	function addToQueue() {
 		if (!contextMenu) return;
-		player.addToQueue(queueItemFor(contextMenu));
+		player.addToQueue(queueItemForTarget(contextMenu));
 		closeContextMenu();
 	}
 
@@ -158,11 +131,7 @@
 		const res = await fetch(`/api/tracks?${params}`);
 		if (!res.ok) throw new Error(String(res.status));
 		const next = (await res.json()) as typeof data.tracks;
-		localItems = appendUnique(
-			localItems,
-			next.items,
-			track => track.id
-		);
+		localItems = appendUnique(localItems, next.items, (track) => track.id);
 		localPage = Number(next.pageNumber);
 		localHasNext = Boolean(next.hasNextPage);
 	}
@@ -172,11 +141,7 @@
 		const res = await fetch(`/api/youtube/search?${params}`);
 		if (!res.ok) throw new Error(String(res.status));
 		const next = (await res.json()) as { items: YouTubeSong[]; continuationToken: string };
-		ytItems = appendUnique(
-			ytItems,
-			next.items,
-			item => item.videoId
-		);
+		ytItems = appendUnique(ytItems, next.items, (i) => i.videoId);
 		ytContinuation = next.continuationToken;
 	}
 
@@ -223,15 +188,15 @@
 
 	{#if items.length > 0}
 		<MediaGrid as="ul" class="mt-6">
-			{#each items as item, i (itemId(item))}
+			{#each items as item, i (targetId(item))}
 				<TrackTile
-					id={itemId(item)}
-					title={itemTitle(item)}
-					artist={itemArtist(item)}
-					coverSrc={item.kind === 'youtube' ? item.song.thumbnailUrl : undefined}
-					hue={hueFor(itemId(item))}
-					explicit={itemExplicit(item)}
-					active={itemActive(item)}
+					id={targetId(item)}
+					title={targetTitle(item)}
+					artist={targetArtist(item)}
+					coverSrc={targetCoverSrc(item)}
+					hue={hueFor(targetId(item))}
+					explicit={targetExplicit(item)}
+					active={isTargetCurrent(item)}
 					playing={player.isPlaying}
 					index={i}
 					onClick={() => togglePlay(i)}

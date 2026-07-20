@@ -1,20 +1,12 @@
 <script lang="ts" module>
-	import type { ApiTrackLike } from '$lib/player/player.svelte';
-	import type { YouTubeSong } from '$lib/types';
+	import type { TrackTarget } from '$lib/tracks';
 
-	export type ContextMenuTarget =
-		| { kind: 'youtube'; song: YouTubeSong }
-		| { kind: 'local'; track: ApiTrackLike };
-
-	export type ContextMenuState = ContextMenuTarget & { x: number; y: number; openLeft: boolean };
+	export type ContextMenuState = TrackTarget & { x: number; y: number; openLeft: boolean };
 
 	const MENU_WIDTH = 208;
 	const SUBMENU_WIDTH = 224;
 
-	export function contextMenuStateFor(
-		event: MouseEvent,
-		target: ContextMenuTarget
-	): ContextMenuState {
+	export function contextMenuStateFor(event: MouseEvent, target: TrackTarget): ContextMenuState {
 		event.preventDefault();
 		return {
 			...target,

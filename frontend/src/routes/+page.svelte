@@ -1,6 +1,17 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems, type QueueItem } from '$lib/player/player.svelte';
+	import {
+		isTargetCurrent,
+		queueItemForTarget,
+		targetArtist,
+		targetCoverSrc,
+		targetExplicit,
+		targetForQueueItem,
+		targetId,
+		targetTitle,
+		type TrackTarget
+	} from '$lib/tracks';
 	import { hueFor } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
@@ -14,11 +25,10 @@
 	import TrackTile from '$lib/components/TrackTile.svelte';
 	import TrackContextMenu, {
 		contextMenuStateFor,
-		type ContextMenuTarget,
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
 	import type { YouTubeSong } from '$lib/types';
-  import { appendUnique } from '$lib/collections.js';
+	import { appendUnique } from '$lib/collections';
 
 	let { data } = $props();
 
@@ -27,9 +37,9 @@
 	let ytQuery = $state('');
 	let contextMenu = $state<ContextMenuState | null>(null);
 
-	type LocalNovedad = (typeof data.novedades)[number];
+	type LocalLatest = (typeof data.latest)[number];
 
-	let localNovedades = $state<LocalNovedad[]>([]);
+	let localLatest = $state<LocalLatest[]>([]);
 	let localPage = $state(1);
 	let localHasNext = $state(false);
 	let loadingMore = $state(false);
@@ -38,24 +48,30 @@
 		youtubeFillerItems = [];
 		ytContinuation = '';
 		ytQuery = '';
-		localNovedades = data.novedades;
+		localLatest = data.latest;
 		localPage = 1;
-		localHasNext = data.novedadesHasNext;
+		localHasNext = data.latestHasNext;
+
+		let cancelled = false;
 		data.youtubeFiller.then((filler) => {
+			if (cancelled) return;
 			youtubeFillerItems = filler.items;
 			ytContinuation = filler.continuationToken;
 			ytQuery = filler.query;
 		});
+		return () => {
+			cancelled = true;
+		};
 	});
 
-	const novedades = $derived([
-		...localNovedades,
+	const latest = $derived<TrackTarget[]>([
+		...localLatest,
 		...youtubeFillerItems.map((song) => ({ kind: 'youtube' as const, song }))
 	]);
 
-	const hasMoreNovedades = $derived(localHasNext || ytContinuation !== '');
+	const hasMoreLatest = $derived(localHasNext || ytContinuation !== '');
 
-	async function loadMoreNovedades() {
+	async function loadMoreLatest() {
 		if (loadingMore) return;
 		loadingMore = true;
 		try {
@@ -67,13 +83,10 @@
 				const res = await fetch(`/api/tracks?${params}`);
 				if (!res.ok) throw new Error(String(res.status));
 				const next = await res.json();
-				localNovedades = appendUnique(
-					localNovedades,
-					next.items.map((track: LocalNovedad['track']) => ({
-						kind: 'local' as const,
-						track
-					})),
-					item => item.track.id
+				localLatest = appendUnique(
+					localLatest,
+					next.items.map((track: LocalLatest['track']) => ({ kind: 'local' as const, track })),
+					(item) => item.track.id
 				);
 				localPage = Number(next.pageNumber);
 				localHasNext = Boolean(next.hasNextPage);
@@ -82,11 +95,7 @@
 				const res = await fetch(`/api/youtube/search?${params}`);
 				if (!res.ok) throw new Error(String(res.status));
 				const next = (await res.json()) as { items: YouTubeSong[]; continuationToken: string };
-				youtubeFillerItems = appendUnique(
-					youtubeFillerItems,
-					next.items,
-					item => item.videoId
-				);
+				youtubeFillerItems = appendUnique(youtubeFillerItems, next.items, (i) => i.videoId);
 				ytContinuation = next.continuationToken;
 			}
 		} catch {
@@ -99,40 +108,11 @@
 	const playlists = $derived(data.playlists);
 	const trackIds = $derived(data.trackIds);
 
-	function novedadId(item: (typeof novedades)[number]) {
-		return item.kind === 'youtube' ? item.song.videoId : item.track.id;
+	function playLatest(index: number) {
+		player.playOrToggle(latest.map(queueItemForTarget), index);
 	}
 
-	function novedadTitle(item: (typeof novedades)[number]) {
-		return item.kind === 'youtube' ? item.song.title : item.track.title;
-	}
-
-	function novedadArtist(item: (typeof novedades)[number]) {
-		return item.kind === 'youtube' ? item.song.artist : item.track.artist;
-	}
-
-	function novedadExplicit(item: (typeof novedades)[number]) {
-		return item.kind === 'youtube' ? item.song.isExplicit : false;
-	}
-
-	function novedadQueueItem(item: ContextMenuTarget): QueueItem {
-		return item.kind === 'youtube'
-			? {
-					id: item.song.videoId,
-					title: item.song.title,
-					artist: item.song.artist,
-					source: 'youtube',
-					coverUrl: item.song.thumbnailUrl,
-					explicit: item.song.isExplicit
-				}
-			: toQueueItems([item.track])[0];
-	}
-
-	function playNovedad(index: number) {
-		player.playOrToggle(novedades.map(novedadQueueItem), index);
-	}
-
-	function openContextMenu(event: MouseEvent, target: ContextMenuTarget) {
+	function openContextMenu(event: MouseEvent, target: TrackTarget) {
 		contextMenu = contextMenuStateFor(event, target);
 	}
 
@@ -142,34 +122,8 @@
 
 	function addToQueue() {
 		if (!contextMenu) return;
-		player.addToQueue(novedadQueueItem(contextMenu));
+		player.addToQueue(queueItemForTarget(contextMenu));
 		closeContextMenu();
-	}
-
-	function contextMenuTargetFor(item: QueueItem): ContextMenuTarget {
-		return item.source === 'youtube'
-			? {
-					kind: 'youtube',
-					song: {
-						videoId: String(item.id),
-						title: item.title,
-						artist: item.artist ?? '',
-						album: '',
-						durationSeconds: 0,
-						thumbnailUrl: item.coverUrl ?? '',
-						isExplicit: item.explicit ?? false
-					}
-				}
-			: {
-					kind: 'local',
-					track: {
-						id: item.id,
-						title: item.title,
-						artist: item.artist,
-						source: 'Local',
-						isExplicit: item.explicit
-					}
-				};
 	}
 
 	const recentlyPlayed = $derived.by(() => {
@@ -204,24 +158,6 @@
 		return merged.slice(0, 15);
 	});
 
-	const greeting = (() => {
-		const h = new Date().getHours();
-		const pools =
-			h < 6
-				? ['¿Aún despierto?', 'La noche también tiene banda sonora', 'Un ratito más, con música']
-				: h < 12
-					? ['Buenos días', 'Que empiece bien la mañana', 'Un nuevo día, una nueva lista']
-					: h < 14
-						? ['Buenos días', 'El mediodía sabe mejor con música']
-						: h < 19
-							? ['Buenas tardes', 'La tarde pide su banda sonora', 'Un respiro, con algo de música']
-							: h < 23
-								? ['Buenas noches', 'Hora de bajar el ritmo', 'Que la noche te acompañe']
-								: ['¿Aún despierto?', 'La noche también tiene banda sonora'];
-		const pick = pools[Math.floor(Math.random() * pools.length)];
-		return /[.!?]$/.test(pick) ? pick : `${pick}.`;
-	})();
-
 	function playRecent(index: number) {
 		player.playOrToggle(recentlyPlayed, index);
 	}
@@ -238,7 +174,7 @@
 		style="background:linear-gradient(135deg, var(--mf-accent), color-mix(in oklch, var(--mf-accent), black 55%));animation:breathe 9s ease-in-out infinite"
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2.5">
-		<p class="tracking-[0.14em] text-fg-2 uppercase">{greeting}</p>
+		<p class="tracking-[0.14em] text-fg-2 uppercase">{data.greeting}</p>
 		<h1 class="max-w-160 text-5xl leading-[1.05] font-extrabold text-fg">
 			Tu música. Sin límites.
 		</h1>
@@ -253,7 +189,7 @@
 				<button
 					type="button"
 					onclick={() => playRecent(i)}
-					oncontextmenu={(e) => openContextMenu(e, contextMenuTargetFor(track))}
+					oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(track))}
 					aria-label="{player.current.id === track.id && player.playing
 						? 'Pausar'
 						: 'Reproducir'} {track.title}"
@@ -308,29 +244,25 @@
 
 <section class="page-x pt-6 pb-10">
 	<SectionHeading title="Novedades" />
-	{#if novedades.length > 0}
+	{#if latest.length > 0}
 		<MediaGrid as="ul">
-			{#each novedades as item, i (novedadId(item))}
+			{#each latest as item, i (targetId(item))}
 				<TrackTile
-					id={novedadId(item)}
-					title={novedadTitle(item)}
-					artist={novedadArtist(item)}
-					coverSrc={item.kind === 'youtube' ? item.song.thumbnailUrl : undefined}
-					hue={hueFor(novedadId(item))}
-					explicit={novedadExplicit(item)}
-					active={player.current.id === novedadId(item)}
+					id={targetId(item)}
+					title={targetTitle(item)}
+					artist={targetArtist(item)}
+					coverSrc={targetCoverSrc(item)}
+					hue={hueFor(targetId(item))}
+					explicit={targetExplicit(item)}
+					active={isTargetCurrent(item)}
 					playing={player.isPlaying}
 					index={i}
-					onClick={() => playNovedad(i)}
+					onClick={() => playLatest(i)}
 					onContextMenu={(e) => openContextMenu(e, item)}
 				/>
 			{/each}
 		</MediaGrid>
-		<InfiniteScroll
-			onLoadMore={loadMoreNovedades}
-			hasMore={hasMoreNovedades}
-			loading={loadingMore}
-		/>
+		<InfiniteScroll onLoadMore={loadMoreLatest} hasMore={hasMoreLatest} loading={loadingMore} />
 	{:else}
 		<EmptyState icon={Music} title="Todavía no hay música" />
 	{/if}
