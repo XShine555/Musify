@@ -10,7 +10,8 @@
 	let {
 		name,
 		fallbackUrl,
-		class: klass = 'h-52 w-52 rounded-control border border-line bg-surface hover:border-accent/50'
+		class:
+			klass = 'h-40 w-40 sm:h-52 sm:w-52 rounded-control border border-line bg-surface hover:border-accent/50'
 	}: Props = $props();
 
 	let preview = $state('');

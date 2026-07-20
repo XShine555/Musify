@@ -9,6 +9,6 @@
 	let { class: klass = '', children }: Props = $props();
 </script>
 
-<section class="page-x pt-11 pb-10 {klass}">
+<section class="page-x pt-7 pb-8 sm:pt-11 sm:pb-10 {klass}">
 	{@render children()}
 </section>

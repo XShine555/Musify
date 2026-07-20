@@ -53,7 +53,7 @@
 	}}
 	class="mt-4 w-full max-w-4xl space-y-4"
 >
-	<div class="flex items-stretch gap-8">
+	<div class="flex flex-col items-stretch gap-5 sm:flex-row sm:gap-8">
 		<Field label="Portada" optional>
 			<ImageDropzone name="cover" fallbackUrl={coverFallbackUrl} />
 		</Field>

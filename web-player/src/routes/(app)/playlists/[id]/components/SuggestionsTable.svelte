@@ -82,12 +82,12 @@
 	}
 </script>
 
-<div class="mt-12">
+<div class="mt-10 sm:mt-12">
 	<SectionHeading title="Sugerencias" />
-	<TrackTable columns="1fr 64px 36px">
+	<TrackTable columns="1fr 64px 36px" columnsMobile="1fr 52px 32px">
 		{#snippet headers()}
 			<span>Título</span>
-			<span class="text-center">Duración</span>
+			<span class="hidden text-center sm:block">Duración</span>
 			<span></span>
 		{/snippet}
 		{#each suggestions as item, i (idFor(item))}

@@ -48,13 +48,17 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<TrackTable columns="32px 1fr 100px 100px 64px 36px" class="mt-8">
+		<TrackTable
+			columns="32px 1fr 100px 100px 64px 36px"
+			columnsMobile="28px 1fr 52px 32px"
+			class="mt-6 sm:mt-8"
+		>
 			{#snippet headers()}
 				<span class="text-center">#</span>
 				<span>Título</span>
-				<span class="text-center">Subida</span>
-				<span class="text-center">Escuchas</span>
-				<span class="text-center">Duración</span>
+				<span class="hidden text-center sm:block">Subida</span>
+				<span class="hidden text-center sm:block">Escuchas</span>
+				<span class="hidden text-center sm:block">Duración</span>
 				<span></span>
 			{/snippet}
 			{#each items as track, i (track.id)}
@@ -71,8 +75,8 @@
 						hue={hueFor(track.id)}
 						onClick={() => togglePlay(i)}
 					/>
-					<TrackMeta>{fmtDate(track.createdAt)}</TrackMeta>
-					<TrackMeta>{Number(track.listensCount)}</TrackMeta>
+					<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
+					<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 					<form
 						method="POST"

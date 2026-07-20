@@ -21,5 +21,15 @@
 	--mf-scrim: #000000;
 	--mf-on-art: #ffffff;
 
-	--mf-sidebar-w: 264px;
+	--mf-sidebar-w: 288px;
+	--mf-nav-h: 60px;
+	--mf-player-h: 64px;
+	--mf-safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+@media (width >= 48rem) {
+	:root {
+		--mf-nav-h: 0px;
+		--mf-player-h: 92px;
+	}
 }

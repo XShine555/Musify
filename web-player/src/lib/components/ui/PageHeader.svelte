@@ -11,11 +11,11 @@
 	let { title, subtitle, class: klass = '', actions }: Props = $props();
 </script>
 
-<div class="flex items-end justify-between gap-4 {klass}">
+<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between {klass}">
 	<div class="min-w-0">
-		<h1 class="text-3xl font-bold tracking-tight text-fg sm:text-4xl">{title}</h1>
+		<h1 class="text-2xl font-bold tracking-tight text-fg sm:text-4xl">{title}</h1>
 		{#if subtitle}
-			<p class="mt-2 text-fg-2">{subtitle}</p>
+			<p class="mt-2 text-sm text-fg-2 sm:text-base">{subtitle}</p>
 		{/if}
 	</div>
 	{#if actions}

@@ -3,15 +3,15 @@
 
 	export type ContextMenuState = TrackTarget & { x: number; y: number; openLeft: boolean };
 
-	const MENU_WIDTH = 208;
-	const SUBMENU_WIDTH = 224;
+	const MENU_WIDTH = 240;
+	const SUBMENU_WIDTH = 256;
 
 	export function contextMenuStateFor(event: MouseEvent, target: TrackTarget): ContextMenuState {
 		event.preventDefault();
 		return {
 			...target,
-			x: Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8),
-			y: Math.min(event.clientY, window.innerHeight - 60),
+			x: Math.max(8, Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8)),
+			y: Math.max(8, Math.min(event.clientY, window.innerHeight - 60)),
 			openLeft: event.clientX + MENU_WIDTH + SUBMENU_WIDTH + 16 > window.innerWidth
 		};
 	}
@@ -70,12 +70,12 @@
 				<ChevronRight class="h-4 w-4 shrink-0 text-fg-3" />
 			</div>
 			<div
-				class="invisible absolute top-0 z-50 opacity-0 transition group-hover/addmenu:visible group-hover/addmenu:opacity-100 {menu.openLeft
+				class="invisible absolute top-0 z-50 opacity-0 transition group-hover/addmenu:visible group-hover/addmenu:opacity-100 max-sm:top-full max-sm:right-0 max-sm:left-0 max-sm:px-0 max-sm:pt-1.5 {menu.openLeft
 					? 'right-full pr-1.5'
 					: 'left-full pl-1.5'}"
 			>
 				<div
-					class="w-64 overflow-hidden rounded-panel border border-line bg-elevated p-2 shadow-menu"
+					class="w-64 overflow-hidden rounded-panel border border-line bg-elevated p-2 shadow-menu max-sm:w-full"
 				>
 					<div class="max-h-80 overflow-y-auto">
 						{#each playlists as playlist (playlist.id)}
@@ -107,7 +107,7 @@
 										trackIds={[]}
 										hue={hueFor(playlist.id)}
 										size="small"
-										class="h-8 w-8 flex-shrink-0 rounded-control"
+										class="h-8 w-8 shrink-0 rounded-control"
 									/>
 									<span class="truncate text-base text-fg-2">{playlist.name}</span>
 								</button>

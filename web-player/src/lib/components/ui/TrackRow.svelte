@@ -16,8 +16,8 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="group grid items-center gap-8 rounded-control px-3 py-2.5 transition hover:bg-surface {klass}"
-	style="grid-template-columns:{table.columns}"
+	class="group grid track-grid items-center gap-3 rounded-control px-2 py-2.5 transition hover:bg-surface sm:gap-8 sm:px-3 {klass}"
+	style="--mf-track-cols:{table.columns}; --mf-track-cols-mobile:{table.columnsMobile}"
 	{oncontextmenu}
 >
 	{@render children()}

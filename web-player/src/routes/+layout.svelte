@@ -5,6 +5,8 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import PlayerBar from '$lib/components/player/PlayerBar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import MobileHeader from '$lib/components/MobileHeader.svelte';
+	import MobileNav from '$lib/components/MobileNav.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { ACCENT_LIGHTNESS, ACCENT_CHROMA, ACCENT_HUE } from '$lib/theme/color';
 	import { page } from '$app/state';
@@ -66,7 +68,13 @@
 	<div class="flex min-h-screen bg-bg text-fg antialiased">
 		<Sidebar user={data.user} />
 		<div class="flex min-w-0 flex-1 flex-col">
-			<main class="flex-1 transition-[padding] {hasTrack ? 'pb-23' : 'pb-0'}">
+			<MobileHeader user={data.user} />
+			<main
+				class="flex-1 transition-[padding]"
+				style="padding-bottom:calc(var(--mf-nav-h) + var(--mf-safe-b) + {hasTrack
+					? 'var(--mf-player-h)'
+					: '0px'})"
+			>
 				{#key page.url.pathname}
 					<div class="animate-fade">{@render children()}</div>
 				{/key}
@@ -74,6 +82,7 @@
 			{#if hasTrack}
 				<PlayerBar />
 			{/if}
+			<MobileNav />
 		</div>
 	</div>
 {/if}

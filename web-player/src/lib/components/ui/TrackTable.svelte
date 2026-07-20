@@ -3,6 +3,7 @@
 
 	export interface TrackTableContext {
 		readonly columns: string;
+		readonly columnsMobile: string;
 	}
 </script>
 
@@ -12,24 +13,30 @@
 
 	interface Props {
 		columns: string;
+		columnsMobile?: string;
 		class?: string;
 		headers: Snippet;
 		children: Snippet;
 	}
 
-	let { columns, class: klass = '', headers, children }: Props = $props();
+	let { columns, columnsMobile, class: klass = '', headers, children }: Props = $props();
+
+	const mobile = $derived(columnsMobile ?? columns);
 
 	setContext<TrackTableContext>(trackTableKey, {
 		get columns() {
 			return columns;
+		},
+		get columnsMobile() {
+			return mobile;
 		}
 	});
 </script>
 
 <div class={klass}>
 	<div
-		class="grid items-center gap-8 border-b border-line px-3 pb-2 text-sm font-medium tracking-wide text-muted uppercase"
-		style="grid-template-columns:{columns}"
+		class="grid track-grid items-center gap-3 border-b border-line px-2 pb-2 text-sm font-medium tracking-wide text-muted uppercase sm:gap-8 sm:px-3"
+		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{mobile}"
 	>
 		{@render headers()}
 	</div>

@@ -35,7 +35,27 @@
 }
 
 @utility page-x {
-	padding-inline: --spacing(8);
+	padding-inline: --spacing(4);
+
+	@media (width >= 40rem) {
+		padding-inline: --spacing(8);
+	}
+}
+
+@utility media-grid {
+	grid-template-columns: repeat(auto-fill, minmax(var(--mf-grid-min-mobile), 1fr));
+
+	@media (width >= 40rem) {
+		grid-template-columns: repeat(auto-fill, minmax(var(--mf-grid-min), 1fr));
+	}
+}
+
+@utility track-grid {
+	grid-template-columns: var(--mf-track-cols-mobile);
+
+	@media (width >= 40rem) {
+		grid-template-columns: var(--mf-track-cols);
+	}
 }
 
 @utility scrollbar-stable {
@@ -156,6 +176,8 @@ html {
 	scrollbar-width: thin;
 	scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 	background-color: var(--mf-bg);
+	-webkit-tap-highlight-color: transparent;
+	overflow-x: hidden;
 }
 
 html.home {

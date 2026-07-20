@@ -4,17 +4,24 @@
 	interface Props {
 		as?: 'ul' | 'div';
 		min?: string;
+		minMobile?: string;
 		class?: string;
 		children: Snippet;
 	}
 
-	let { as = 'div', min = '180px', class: klass = '', children }: Props = $props();
+	let {
+		as = 'div',
+		min = '180px',
+		minMobile = '150px',
+		class: klass = '',
+		children
+	}: Props = $props();
 </script>
 
 <svelte:element
 	this={as}
-	class="grid gap-4 {klass}"
-	style="grid-template-columns:repeat(auto-fill,minmax({min},1fr))"
+	class="grid media-grid gap-3 sm:gap-4 {klass}"
+	style="--mf-grid-min:{min}; --mf-grid-min-mobile:{minMobile}"
 >
 	{@render children()}
 </svelte:element>

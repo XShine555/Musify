@@ -168,23 +168,23 @@
 	<meta name="description" content="Tu música, sin límites." />
 </svelte:head>
 
-<section class="relative overflow-hidden page-x pt-11 pb-16">
+<section class="relative overflow-hidden page-x pt-8 pb-10 sm:pt-11 sm:pb-16">
 	<div
 		class="pointer-events-none absolute inset-0 blur-[70px] saturate-150"
 		style="background:linear-gradient(135deg, var(--color-accent), color-mix(in oklch, var(--color-accent), black 55%));animation:breathe 9s ease-in-out infinite"
 	></div>
-	<div class="animate-enter relative flex flex-col gap-2.5">
-		<p class="tracking-[0.14em] text-fg-2 uppercase">{data.greeting}</p>
-		<h1 class="max-w-160 text-5xl leading-[1.05] font-extrabold text-fg">
+	<div class="animate-enter relative flex flex-col gap-2 sm:gap-2.5">
+		<p class="text-sm tracking-[0.14em] text-fg-2 uppercase sm:text-base">{data.greeting}</p>
+		<h1 class="max-w-160 text-3xl leading-[1.05] font-extrabold text-fg sm:text-5xl">
 			Tu música. Sin límites.
 		</h1>
 	</div>
 </section>
 
 {#if recentlyPlayed.length > 0}
-	<section class="page-x pt-6 pb-3">
+	<section class="page-x pt-5 pb-3 sm:pt-6">
 		<SectionHeading title="Escuchado recientemente" />
-		<MediaGrid min="300px">
+		<MediaGrid min="300px" minMobile="220px">
 			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
@@ -225,7 +225,7 @@
 {/if}
 
 {#if playlists.length > 0}
-	<section class="page-x pt-6 pb-3">
+	<section class="page-x pt-5 pb-3 sm:pt-6">
 		<SectionHeading title="Mis listas" />
 		<MediaGrid>
 			{#each playlists as playlist, i (playlist.id)}
@@ -242,7 +242,7 @@
 	</section>
 {/if}
 
-<section class="page-x pt-6 pb-10">
+<section class="page-x pt-5 pb-10 sm:pt-6">
 	<SectionHeading title="Novedades" />
 	{#if latest.length > 0}
 		<MediaGrid as="ul">

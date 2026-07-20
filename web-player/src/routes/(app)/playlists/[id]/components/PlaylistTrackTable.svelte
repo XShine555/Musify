@@ -32,12 +32,16 @@
 	}
 </script>
 
-<TrackTable columns="32px 1fr 140px 64px 36px" class="mt-8">
+<TrackTable
+	columns="32px 1fr 140px 64px 36px"
+	columnsMobile="28px 1fr 52px 32px"
+	class="mt-6 sm:mt-8"
+>
 	{#snippet headers()}
 		<span class="text-center">#</span>
 		<span>Título</span>
-		<span class="text-center">Añadida</span>
-		<span class="text-center">Duración</span>
+		<span class="hidden text-center sm:block">Añadida</span>
+		<span class="hidden text-center sm:block">Duración</span>
 		<span></span>
 	{/snippet}
 	{#each tracks as track, i (track.id)}
@@ -67,7 +71,7 @@
 					{/if}
 				{/snippet}
 			</TrackTitleCell>
-			<TrackMeta>{fmtDate(track.createdAt)}</TrackMeta>
+			<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 			<form
 				method="POST"

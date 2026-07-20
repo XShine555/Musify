@@ -1,14 +1,21 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
+
+	interface Props {
+		compact?: boolean;
+	}
+
+	let { compact = false }: Props = $props();
+
+	const sideClass = $derived(
+		compact
+			? 'grid h-10 w-10 place-items-center text-fg opacity-70 transition active:scale-90'
+			: 'flex text-fg opacity-70 transition hover:opacity-100 active:scale-90'
+	);
 </script>
 
-<div class="flex items-center gap-5">
-	<button
-		type="button"
-		onclick={() => player.previous()}
-		aria-label="Anterior"
-		class="flex text-fg opacity-70 transition hover:opacity-100 active:scale-90"
-	>
+<div class="flex shrink-0 items-center {compact ? 'gap-0.5' : 'gap-5'}">
+	<button type="button" onclick={() => player.previous()} aria-label="Anterior" class={sideClass}>
 		<svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
 			<rect x="0" y="0" width="2.5" height="14" rx="1" />
 			<path d="M15 0 5 7l10 7z" />
@@ -19,7 +26,7 @@
 		type="button"
 		onclick={() => player.toggle()}
 		aria-label={player.playing ? 'Pausar' : 'Reproducir'}
-		class="grid h-[36px] w-[36px] place-items-center rounded-full bg-fg text-bg shadow-lg transition duration-100 active:scale-95"
+		class="grid h-[36px] w-[36px] shrink-0 place-items-center rounded-full bg-fg text-bg shadow-lg transition duration-100 active:scale-95"
 	>
 		{#if player.playing}
 			<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
@@ -33,12 +40,7 @@
 		{/if}
 	</button>
 
-	<button
-		type="button"
-		onclick={() => player.next()}
-		aria-label="Siguiente"
-		class="flex text-fg opacity-70 transition hover:opacity-100 active:scale-90"
-	>
+	<button type="button" onclick={() => player.next()} aria-label="Siguiente" class={sideClass}>
 		<svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">
 			<path d="M1 0 11 7 1 14z" />
 			<rect x="13.5" y="0" width="2.5" height="14" rx="1" />

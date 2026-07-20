@@ -6,11 +6,22 @@
 </script>
 
 <div
-	class="animate-enter fixed right-0 bottom-0 z-50 h-[92px] border-t border-line bg-bg"
-	style="left:var(--mf-sidebar-w)"
+	class="animate-enter fixed right-0 left-0 z-40 h-[var(--mf-player-h)] border-t border-line bg-bg md:left-[var(--mf-sidebar-w)] md:z-50"
+	style="bottom:calc(var(--mf-nav-h) + var(--mf-safe-b))"
 >
+	<div class="absolute inset-x-0 top-0 md:hidden">
+		<SeekBar compact />
+	</div>
+
+	<div class="flex h-full items-center gap-3 page-x md:hidden">
+		<div class="min-w-0 flex-1">
+			<TrackInfo />
+		</div>
+		<TransportControls compact />
+	</div>
+
 	<div
-		class="grid h-full items-center gap-5 px-8"
+		class="hidden h-full items-center gap-5 px-8 md:grid"
 		style="grid-template-columns:minmax(200px,1fr) minmax(0,3fr) minmax(200px,1fr)"
 	>
 		<TrackInfo />

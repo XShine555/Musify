@@ -39,7 +39,7 @@
 		{hue}
 		size="small"
 		alt={title}
-		class="{coverSize} flex-shrink-0 rounded-control"
+		class="{coverSize} shrink-0 rounded-control"
 	>
 		{@render overlay?.()}
 	</Cover>

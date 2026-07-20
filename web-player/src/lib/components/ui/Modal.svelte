@@ -74,7 +74,7 @@
 	>
 		<div
 			bind:this={panel}
-			class="animate-pop w-full {maxWidth} rounded-panel p-6 shadow-2xl outline-none {panelClass}"
+			class="animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 shadow-2xl outline-none sm:p-6 {panelClass}"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}

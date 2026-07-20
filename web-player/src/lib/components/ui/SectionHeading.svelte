@@ -7,4 +7,4 @@
 	let { title, class: klass = '' }: Props = $props();
 </script>
 
-<h2 class="mb-6 text-2xl font-bold text-fg {klass}">{title}</h2>
+<h2 class="mb-4 text-xl font-bold text-fg sm:mb-6 sm:text-2xl {klass}">{title}</h2>

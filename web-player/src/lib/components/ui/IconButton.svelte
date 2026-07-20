@@ -31,7 +31,9 @@
 	title={label}
 	class="grid place-items-center rounded-control text-muted transition hover:bg-hover hover:text-fg {sizes[
 		size
-	]} {revealOnHover ? 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100' : ''} {klass}"
+	]} {revealOnHover
+		? 'sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100'
+		: ''} {klass}"
 >
 	{@render children()}
 </button>

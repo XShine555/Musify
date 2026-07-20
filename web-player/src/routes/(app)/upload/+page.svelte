@@ -112,7 +112,7 @@
 		subtitle="Añade una canción con su portada y título. Nosotros la procesamos para streaming."
 	/>
 
-	<ol class="mt-10 grid gap-4 sm:grid-cols-3">
+	<ol class="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
 		{#each steps as step, i (step.key)}
 			<li>
 				<Surface class={stepClass(stepStates[i])}>
@@ -146,9 +146,11 @@
 				«{publishedTitle}» se está procesando. Aparecerá lista para reproducir en tu biblioteca en
 				unos momentos.
 			</p>
-			<div class="mt-8 flex items-center justify-center gap-4">
-				<Button href="/library" size="lg">Ir a la biblioteca</Button>
-				<Button variant="secondary" size="lg" onclick={reset}>Subir otra</Button>
+			<div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+				<Button href="/library" size="lg" class="w-full sm:w-auto">Ir a la biblioteca</Button>
+				<Button variant="secondary" size="lg" onclick={reset} class="w-full sm:w-auto">
+					Subir otra
+				</Button>
 			</div>
 		</Surface>
 	{:else}
@@ -182,7 +184,7 @@
 				}}
 				ondragleave={() => (dragging = false)}
 				ondrop={onDrop}
-				class="relative flex min-h-72 flex-col items-center justify-center rounded-panel border border-dashed bg-surface p-10 text-center transition {dropClass}"
+				class="relative flex min-h-56 flex-col items-center justify-center rounded-panel border border-dashed bg-surface p-6 text-center transition sm:min-h-72 sm:p-10 {dropClass}"
 			>
 				<input
 					bind:this={audioInput}
@@ -193,28 +195,32 @@
 					class="absolute inset-0 cursor-pointer opacity-0"
 					aria-label="Seleccionar archivo de audio"
 				/>
-				<span class="grid h-20 w-20 place-items-center rounded-full bg-accent-soft text-on-accent">
+				<span
+					class="grid h-16 w-16 place-items-center rounded-full bg-accent-soft text-on-accent sm:h-20 sm:w-20"
+				>
 					{#if audioName === ''}
-						<Headphones class="h-9 w-9" />
+						<Headphones class="h-8 w-8 sm:h-9 sm:w-9" />
 					{:else}
-						<Music class="h-9 w-9" />
+						<Music class="h-8 w-8 sm:h-9 sm:w-9" />
 					{/if}
 				</span>
 				{#if audioName === ''}
-					<p class="mt-5 text-lg font-medium text-fg">
+					<p class="mt-5 text-base font-medium text-fg sm:text-lg">
 						Arrastra tu audio aquí o haz clic para elegir
 					</p>
 					<p class="mt-2 text-sm text-muted">MP3, FLAC, WAV…</p>
 				{:else}
-					<p class="mt-5 max-w-full truncate text-lg font-medium text-fg">{audioName}</p>
+					<p class="mt-5 max-w-full truncate text-base font-medium text-fg sm:text-lg">
+						{audioName}
+					</p>
 					<p class="mt-2 text-sm text-muted">{formatSize(audioSize)} · Listo para subir</p>
 				{/if}
 			</div>
 
-			<div class="grid items-start gap-8 sm:grid-cols-[auto_1fr]">
+			<div class="grid items-start gap-6 sm:grid-cols-[auto_1fr] sm:gap-8">
 				<Field label="Portada">
 					<label
-						class="relative grid h-44 w-44 cursor-pointer place-items-center overflow-hidden rounded-control border border-line bg-surface transition hover:border-accent/50"
+						class="relative grid h-36 w-36 cursor-pointer place-items-center overflow-hidden rounded-control border border-line bg-surface transition hover:border-accent/50 sm:h-44 sm:w-44"
 					>
 						<input
 							type="file"
@@ -274,9 +280,13 @@
 				<Alert tone="danger">{errorMsg}</Alert>
 			{/if}
 
-			<div class="flex items-center justify-end gap-4">
-				<Button href="/explore" variant="secondary" size="lg">Cancelar</Button>
-				<Button type="submit" size="lg" disabled={!canPublish}>Publicar</Button>
+			<div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+				<Button href="/explore" variant="secondary" size="lg" class="w-full sm:w-auto">
+					Cancelar
+				</Button>
+				<Button type="submit" size="lg" disabled={!canPublish} class="w-full sm:w-auto">
+					Publicar
+				</Button>
 			</div>
 		</form>
 	{/if}
