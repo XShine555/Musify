@@ -1,13 +1,16 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
+	import Plus from '@lucide/svelte/icons/plus';
 	import { player, type QueueItem } from '$lib/player/player.svelte';
 	import { hueFor } from '$lib/theme/color';
 	import { fmtTime } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Cover from '$lib/components/ui/Cover.svelte';
+	import Alert from '$lib/components/ui/Alert.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
@@ -19,12 +22,13 @@
 	} from '$lib/components/TrackContextMenu.svelte';
 	import type { TrackTarget } from '$lib/tracks';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	const album = $derived(data.album.album);
 	const tracks = $derived(data.album.tracks);
 
 	let contextMenu = $state<ContextMenuState | null>(null);
+	let saving = $state(false);
 
 	const queue = $derived<QueueItem[]>(
 		tracks.map((track) => ({
@@ -123,7 +127,27 @@
 				Reproducir
 			{/if}
 		</Button>
+		<form
+			method="POST"
+			action="?/save"
+			use:enhance={() => {
+				saving = true;
+				return async ({ update }) => {
+					await update();
+					saving = false;
+				};
+			}}
+		>
+			<Button type="submit" size="sm" variant="secondary" loading={saving}>
+				<Plus class="h-4 w-4" strokeWidth={2} />
+				Guardar en mi biblioteca
+			</Button>
+		</form>
 	</div>
+
+	{#if form?.message}
+		<Alert tone="danger" class="mt-4">{form.message}</Alert>
+	{/if}
 
 	{#if data.album.description}
 		<p class="mt-6 max-w-3xl text-sm text-fg-3">{data.album.description}</p>

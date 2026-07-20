@@ -55,6 +55,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		tracks,
 		albums: albumsRes?.data?.items ?? [],
 		youtubeAlbums: youtubeAlbumsRes?.data?.items ?? [],
+		youtubeAlbumsContinuation: youtubeAlbumsRes?.data?.continuationToken ?? '',
 		ytResults: searchRes?.data ?? null,
 		ytError: Boolean(searchRes?.error),
 		youtubeFiller: query

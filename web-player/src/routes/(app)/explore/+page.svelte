@@ -12,6 +12,7 @@
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
 	import ChipGroup, { type ChipOption } from '$lib/components/ui/ChipGroup.svelte';
 	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
@@ -101,8 +102,42 @@
 	const hasMore = $derived(showTracks && (localHasNext || ytContinuation !== ''));
 
 	const albums = $derived(data.albums);
-	const youtubeAlbums = $derived(data.youtubeAlbums);
+
+	type YouTubeAlbum = (typeof data.youtubeAlbums)[number];
+
+	let youtubeAlbums = $state<YouTubeAlbum[]>([]);
+	let ytAlbumsContinuation = $state('');
+	let loadingAlbums = $state(false);
+
+	$effect(() => {
+		youtubeAlbums = appendUnique([], data.youtubeAlbums, (album) => album.albumId);
+		ytAlbumsContinuation = data.youtubeAlbumsContinuation;
+	});
+
 	const hasAlbums = $derived(albums.length > 0 || youtubeAlbums.length > 0);
+
+	async function loadMoreAlbums() {
+		if (loadingAlbums || !ytAlbumsContinuation) return;
+		loadingAlbums = true;
+		try {
+			const params = new URLSearchParams({
+				query: data.query,
+				continuation: ytAlbumsContinuation
+			});
+			const res = await fetch(`/api/youtube/albums?${params}`);
+			if (!res.ok) throw new Error(String(res.status));
+			const next = (await res.json()) as {
+				items: YouTubeAlbum[];
+				continuationToken: string;
+			};
+			youtubeAlbums = appendUnique(youtubeAlbums, next.items, (album) => album.albumId);
+			ytAlbumsContinuation = next.continuationToken;
+		} catch {
+			ytAlbumsContinuation = '';
+		} finally {
+			loadingAlbums = false;
+		}
+	}
 
 	const nothingFound = $derived(
 		!!data.query &&
@@ -257,6 +292,14 @@
 					/>
 				{/each}
 			</MediaGrid>
+
+			{#if ytAlbumsContinuation}
+				<div class="mt-6 flex justify-center">
+					<Button variant="secondary" onclick={loadMoreAlbums} loading={loadingAlbums}>
+						Ver más álbumes
+					</Button>
+				</div>
+			{/if}
 		</div>
 	{/if}
 
