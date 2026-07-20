@@ -4,6 +4,7 @@
 	import Home from '@lucide/svelte/icons/house';
 	import Search from '@lucide/svelte/icons/search';
 	import Folder from '@lucide/svelte/icons/folder';
+	import Disc from '@lucide/svelte/icons/disc-3';
 	import Music from '@lucide/svelte/icons/music';
 	import Upload from '@lucide/svelte/icons/upload';
 	import LogOut from '@lucide/svelte/icons/log-out';
@@ -35,6 +36,7 @@
 	];
 
 	const secondaryLinks = [
+		{ href: '/albums', label: 'Mis álbumes', icon: Disc },
 		{ href: '/library', label: 'Canciones subidas', icon: Folder },
 		{ href: '/upload', label: 'Subir música', icon: Upload }
 	];
