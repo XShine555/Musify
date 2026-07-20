@@ -55,9 +55,9 @@ export function resizeThumbnailUrl(url: URL, size: number): string {
 }
 
 function ytImgFileName(size: number): string {
-	if (size <= 120) return 'default.jpg';
-	if (size <= 320) return 'mqdefault.jpg';
-	if (size <= 480) return 'hqdefault.jpg';
+	if (size <= 90) return 'default.jpg';
+	if (size <= 180) return 'mqdefault.jpg';
+	if (size <= 360) return 'hqdefault.jpg';
 	return 'maxresdefault.jpg';
 }
 

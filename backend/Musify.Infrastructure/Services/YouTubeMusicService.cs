@@ -167,8 +167,11 @@ namespace Musify.Infrastructure.Services
         {
             var ordered = thumbnails.OrderBy(thumbnail => thumbnail.Width).ToList();
 
-            var chosen = ordered.FirstOrDefault(thumbnail => thumbnail.Width >= configuration.ThumbnailSize)
-                ?? ordered.LastOrDefault();
+            var square = ordered.Where(thumbnail => YouTubeThumbnail.IsSquare(thumbnail.Url)).ToList();
+            var candidates = square.Count > 0 ? square : ordered;
+
+            var chosen = candidates.FirstOrDefault(thumbnail => thumbnail.Width >= configuration.ThumbnailSize)
+                ?? candidates.LastOrDefault();
 
             return chosen is null
                 ? string.Empty

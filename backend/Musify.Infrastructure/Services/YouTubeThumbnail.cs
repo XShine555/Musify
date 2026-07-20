@@ -2,6 +2,9 @@ namespace Musify.Infrastructure.Services
 {
     public static class YouTubeThumbnail
     {
+        public static bool IsSquare(string url) =>
+            url.Contains("googleusercontent.com", StringComparison.OrdinalIgnoreCase);
+
         public static string WithSize(string url, int size)
         {
             if (string.IsNullOrEmpty(url))
@@ -40,9 +43,9 @@ namespace Musify.Infrastructure.Services
 
         private static string YtImgFileName(int size) => size switch
         {
-            <= 120 => "default.jpg",
-            <= 320 => "mqdefault.jpg",
-            <= 480 => "hqdefault.jpg",
+            <= 90 => "default.jpg",
+            <= 180 => "mqdefault.jpg",
+            <= 360 => "hqdefault.jpg",
             _ => "maxresdefault.jpg"
         };
 

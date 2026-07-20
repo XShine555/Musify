@@ -1,7 +1,7 @@
 export const THUMBNAIL_SIZES = {
-	small: 96,
-	medium: 160,
-	large: 320
+	small: 128,
+	medium: 192,
+	large: 360
 } as const;
 
 export type ThumbnailSize = keyof typeof THUMBNAIL_SIZES;
