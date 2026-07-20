@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import ImageDropzone from './ImageDropzone.svelte';
 	import Button from './Button.svelte';
@@ -33,8 +34,8 @@
 		onSuccess
 	}: Props = $props();
 
-	let name = $state(initialName);
-	let description = $state(initialDescription);
+	let name = $state(untrack(() => initialName));
+	let description = $state(untrack(() => initialDescription));
 	let submitting = $state(false);
 </script>
 

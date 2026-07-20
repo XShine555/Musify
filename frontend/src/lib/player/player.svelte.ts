@@ -274,7 +274,8 @@ class PlayerState {
 			this.loading = false;
 			this.#retriedId = null;
 			this.#pushRecent(this.current);
-		} catch {
+		} catch (exception) {
+			console.error('playback failed', exception);
 			if (token !== this.#loadToken) return;
 			this.loading = false;
 			this.playing = false;
