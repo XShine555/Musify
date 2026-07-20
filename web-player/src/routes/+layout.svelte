@@ -66,7 +66,7 @@
 	<div class="flex min-h-screen bg-bg text-fg antialiased">
 		<Sidebar user={data.user} />
 		<div class="flex min-w-0 flex-1 flex-col">
-			<main class="flex-1 transition-[padding] {hasTrack ? 'pb-[92px]' : 'pb-0'}">
+			<main class="flex-1 transition-[padding] {hasTrack ? 'pb-23' : 'pb-0'}">
 				{#key page.url.pathname}
 					<div class="animate-fade">{@render children()}</div>
 				{/key}

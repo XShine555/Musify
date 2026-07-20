@@ -201,7 +201,7 @@
 						hue={hueFor(track.id)}
 						size="small"
 						alt={track.title}
-						class="h-14 w-14 flex-shrink-0 rounded-control"
+						class="h-14 w-14 shrink-0 rounded-control"
 					>
 						{#if player.current.id === track.id}
 							<NowPlaying paused={!player.playing} />
