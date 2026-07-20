@@ -1,5 +1,6 @@
 using ErrorOr;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 using YouTubeMusicAPI.Client;
@@ -9,7 +10,7 @@ using YouTubeMusicAPI.Pagination;
 
 namespace Musify.Infrastructure.Services
 {
-    public class YouTubeMusicService(YouTubeConfiguration configuration, IMemoryCache cache) : IYouTubeMusicService
+    public class YouTubeMusicService(YouTubeConfiguration configuration, IMemoryCache cache, ILogger<YouTubeMusicService> logger) : IYouTubeMusicService
     {
         private readonly YouTubeMusicClient client = new(geographicalLocation: configuration.GeographicalLocation);
 
@@ -34,6 +35,7 @@ namespace Musify.Infrastructure.Services
             }
             catch (Exception exception)
             {
+                logger.LogError(exception, "YouTube Music search failed for query '{Query}'", query);
                 return Error.Failure(description: $"YouTube Music search failed: {exception.Message}");
             }
 
@@ -87,6 +89,7 @@ namespace Musify.Infrastructure.Services
             }
             catch (Exception exception)
             {
+                logger.LogError(exception, "Failed to resolve YouTube stream for '{VideoId}'", videoId);
                 return Error.Failure(description: $"Failed to resolve YouTube stream for '{videoId}': {exception.Message}");
             }
 
@@ -138,6 +141,7 @@ namespace Musify.Infrastructure.Services
             }
             catch (Exception exception)
             {
+                logger.LogError(exception, "Failed to load YouTube song info for '{VideoId}'", videoId);
                 return Error.Failure(description: $"Failed to load YouTube song info for '{videoId}': {exception.Message}");
             }
         }

@@ -43,10 +43,10 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
                 if (downloadResult.ExitCode != 0)
                     throw new InvalidOperationException(
-                        $"yt-dlp failed with exit code {downloadResult.ExitCode}: {downloadResult.StandardError}");
+                        $"YouTube audio download failed: {downloadResult.StandardError}");
 
                 if (!File.Exists(destinationPath))
-                    throw new InvalidOperationException($"yt-dlp did not produce the expected file {destinationPath}.");
+                    throw new InvalidOperationException($"YouTube audio download did not produce the expected file {destinationPath}.");
 
                 logger.LogInformation("Downloaded YouTube audio for video {VideoId} to {DestinationPath}",
                     executeContext.Arguments.VideoId, destinationPath);
