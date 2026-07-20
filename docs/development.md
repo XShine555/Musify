@@ -1,92 +1,90 @@
 # Entorno de desarrollo
 
-Cómo levantar todo en local y probarlo.
+Cómo levantar todo en local y probarlo. El detalle completo del deploy (y el de
+producción) está en [deploy/README.md](../deploy/README.md).
 
-## Dependencias (Docker)
-
-Todo (PostgreSQL, Zitadel, RabbitMQ, SeaweedFS, Jaeger) vive en un solo stack en
-[`deploy/`](../deploy/README.md). Bootstrap completo (levanta + bucket + claves + migraciones):
+## Arranque
 
 ```powershell
-./deploy/up.ps1
+./deploy/up.ps1            # infraestructura; las apps se ejecutan desde el IDE
+./deploy/up.ps1 -Apps      # todo en Docker (api, worker, gateway, web player)
 ```
 
-O solo la infraestructura:
+`up.ps1` hace el bootstrap completo: crea `deploy/.env`, genera las claves RS256
+de stream-ticket en `deploy/keys/`, levanta el stack, aplica las migraciones y
+provisiona Zitadel (proyecto + apps OIDC), dejando los client ids en
+`deploy/.env`, en los user-secrets de `Musify.Api` y en `web-player/.env`.
+
+Otros modificadores: `-Tools` (pgAdmin), `-SkipMigrations`, `-Down`, `-Destroy`.
+
+## Aplicaciones
 
 ```powershell
-docker compose -f deploy\docker-compose.yml up -d
-```
-
-Config (usuarios/claves/puertos) en `deploy/.env`. Ver [deploy/README.md](../deploy/README.md)
-para el detalle y el paso de configuración de Zitadel (crear la app OIDC y copiar el ClientId).
-
-## Aplicaciones (.NET)
-
-```powershell
-dotnet run --project Musify.WebApi\WebApi                    # :5111
-dotnet run --project Musify.StreamingGateway\StreamingGateway # :8081
-dotnet run --project Musify.Worker\Worker                     # background
+dotnet run --project backend/Musify.Api               # :5111
+dotnet run --project backend/Musify.StreamingGateway  # :8081
+dotnet run --project backend/Musify.Worker            # background
+npm --prefix web-player run dev                       # :5173
 ```
 
 ## Mapa de puertos
 
 | Servicio | Puerto |
 |---|---|
-| WebApi | 5111 (`/scalar/v1`, `/openapi/v1.json`) |
-| StreamingGateway | 8081 (`/health`, `/media/...`) |
+| Musify.Api | 5111 (`/scalar/v1`, `/openapi/v1.json`) |
+| Musify.StreamingGateway | 8081 (`/health`, `/media/...`) |
+| web-player | 5173 (`npm run dev`) o 3000 (contenedor) |
 | SeaweedFS S3 / filer / master | 8333 / 8888 / 9333 |
 | Zitadel | 8080 |
 | PostgreSQL | 59000 (→ 5432 en el contenedor) |
 | RabbitMQ AMQP / management | 5672 / 15672 |
-| pgAdmin | 5050 |
+| Jaeger UI / OTLP | 16686 / 4317 |
+| pgAdmin (`-Tools`) | 5050 |
 
-DB: `musify_db`, usuario `postgres`/`postgres`. Bucket S3: `webapi-storage` (credenciales `admin_access_key`/`admin_secret_key`).
+DB: `musify_db`, usuario `postgres`/`postgres`. Bucket S3: `webapi-storage`
+(credenciales `admin_access_key`/`admin_secret_key`). Todos los valores salen de
+`deploy/.env`.
 
 ## Migraciones
 
-No hay migración automática al arrancar. `deploy/up.ps1` las aplica en el bootstrap;
-para hacerlo a mano tras cambios de esquema:
+No hay migración automática al arrancar; `up.ps1` las aplica en el bootstrap.
+A mano, tras cambios de esquema:
 
 ```powershell
-dotnet ef database update --project backend\Musify.Infrastructure --startup-project backend\Musify.Infrastructure --context Database
+dotnet ef database update --project backend/Musify.Infrastructure --startup-project backend/Musify.Infrastructure --context Database
 ```
 
-La cadena de conexión para `dotnet ef` se lee de `DesignSettings.json` / user-secrets del proyecto Infrastructure
-(`up.ps1` la deja en user-secrets automáticamente).
+`Musify.Infrastructure` es a la vez el proyecto de migraciones y el de arranque:
+tiene el `IDesignTimeDbContextFactory` y el paquete `EFCore.Design`. La cadena de
+conexión se lee de sus user-secrets (`up.ps1` la deja puesta).
 
 ## Stream-tickets (claves RS256)
 
-La WebApi firma los stream-tickets con una clave privada y el gateway valida con la pública:
+La API firma los stream-tickets con la clave privada y el gateway los valida con
+la pública. `up.ps1` las genera en `deploy/keys/`; a mano:
 
 ```powershell
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out stream_private.pem
-openssl rsa -in stream_private.pem -pubout -out stream_public.pem
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out deploy/keys/stream_private.pem
+openssl rsa -in deploy/keys/stream_private.pem -pubout -out deploy/keys/stream_public.pem
 ```
 
-- WebApi: `StreamTicket:PrivateKeyPath` → `stream_private.pem`.
-- Gateway: `StreamTicket:PublicKeyPath` → `stream_public.pem`.
-
-## Consola de pruebas: `player.html`
-
-Un único archivo HTML para probar todo sin front:
-
-1. Sírvelo o ábrelo directo (el CORS está abierto en Development).
-2. Pega tu **access token** de Zitadel y la API base (`http://localhost:5111`).
-3. Permite: crear/actualizar/eliminar playlists, listar canciones, añadir/quitar canciones de una playlist, ver las canciones de una playlist y **reproducir** (pide el ticket y abre el `.m4a` con `?t=<ticket>`).
-
-> Nota: `player.html` todavía usa dash.js; tras el cambio a `.m4a` debe actualizarse para reproducir el fichero directo (elemento `<audio>` por HTTP range).
-
-Para obtener un token: login OAuth2 en Scalar (`/scalar/v1`) o cópialo de DevTools.
+- API: `StreamTicket:PrivateKeyPath`.
+- Gateway: `StreamTicket:PublicKeyPath`.
 
 ## Config (AppSettings)
 
-Convención: `AppSettings.json` = plantilla con valores vacíos/por defecto; `AppSettings.Development.json` = valores reales de dev. Secretos sensibles (claves, connection strings) van idealmente en user-secrets.
+Convención: `AppSettings.json` es la plantilla con valores vacíos o neutros;
+`AppSettings.Development.json` tiene los valores reales de dev; en Docker todo
+se sobreescribe con variables de entorno (`Seccion__Clave`) desde
+`deploy/compose.yml`. Los valores de `Authentication` los deja el provisioning
+en user-secrets, no en el repo.
 
-Secciones clave: `Authentication` (Zitadel), `Database`, `MassTransit`, `InfrastructureStorage` (S3), `ApplicationStorage` (bucket), `Track`, `PlayList`, `UploadIntent`, `AudioTranscoder`, `Workers`, `StreamGateway`/`StreamTicket`.
+Secciones clave: `Authentication` (Zitadel), `Database`, `MassTransit`,
+`InfrastructureStorage` (S3), `ApplicationStorage` (bucket), `Track`, `PlayList`,
+`UploadIntent`, `AudioTranscoder`, `YtDlp`, `Workers`, `StreamGateway` /
+`StreamTicket`.
 
 ## Requisitos del host
 
-- .NET 10 SDK.
-- **ffmpeg** en el PATH (transcode de audio del Worker).
+- .NET 10 SDK y Node 22.
+- **ffmpeg** y **yt-dlp** en el PATH (transcode y descarga de audio del Worker).
 - Docker Desktop.
-- Directorio temporal de trabajo del Worker (`Workers:Routes:TemporaryFilesDirectory`, p. ej. `D:\tempsFilesDev`).

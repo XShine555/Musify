@@ -2,7 +2,7 @@
 
 ## Proveedor: Zitadel (OIDC/OAuth2)
 
-El login y la emisión de tokens los hace **Zitadel** (no la WebApi). La WebApi es un **resource server**: solo **valida** el access token (JWT) que le llega en `Authorization: Bearer`.
+El login y la emisión de tokens los hace **Zitadel** (no la API). La API es un **resource server**: solo **valida** el access token (JWT) que le llega en `Authorization: Bearer`.
 
 - Config en la sección `Authentication` (`AuthenticationConfiguration`): metadata address, issuer, audience, client id, endpoints de authorize/token, scopes.
 - `JwtBearerOptionsSetup` configura la validación (issuer, audience, claves vía metadata OIDC).

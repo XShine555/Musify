@@ -1,42 +1,35 @@
-# sv
+# web-player
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Musify's web client: SvelteKit 2 (`adapter-node`), Svelte 5 runes, Tailwind 4,
+TypeScript. Authentication is server-side OIDC against Zitadel (`openid-client`
+and `jose`) with an encrypted session cookie; the backend is called from `load`
+functions and form actions through a typed `openapi-fetch` client.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+## Development
 
 ```sh
-# recreate this project
-npx sv@0.16.2 create --template minimal --types ts --add tailwindcss="plugins:none" --no-download-check --install npm web-player
+npm install
+npm run dev      # :5173
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Configuration lives in `.env` (template in `.env.example`).
+`deploy/zitadel/provision.ps1` fills in the Zitadel values automatically, so the
+usual flow is to bring the stack up first (`./deploy/up.ps1`) and then run the
+dev server.
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm run check    # svelte-check — must be clean before closing a change
+npm run lint     # prettier --check . && eslint .
+npm run format   # prettier --write .
+npm run build    # production build into build/
+npm run gen:api  # regenerate src/lib/api/schema.d.ts from the running API
 ```
 
-## Building
+## Production
 
-To create a production version of your app:
+Built and run as a container by the production stack — see
+[../deploy/README.md](../deploy/README.md). There the same variables come from
+`deploy/.env.prod` through compose instead of from `.env`.
 
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Conventions and the design system are documented in [CLAUDE.md](CLAUDE.md) and
+in the `musify-web` skill.

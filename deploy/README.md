@@ -1,192 +1,158 @@
-# Development deploy
+# Deploy
 
-Everything the backend needs for development, in one place. A single
-`docker-compose.yml` brings up **PostgreSQL, Zitadel, RabbitMQ, SeaweedFS and
-Jaeger**; the .NET apps run from the IDE (or, optionally, in Docker too).
+Everything needed to run Musify, in development and in production, from the
+same set of compose files.
 
-## Quick start
+| File | Role |
+|---|---|
+| `compose.yml` | Every service. No published ports, no domains, no environment-specific values. |
+| `compose.dev.yml` | Development overlay: publishes the ports to the host, adds pgAdmin. |
+| `compose.prod.yml` | Production overlay: adds the nginx edge and the mounted secrets. |
+| `.env` / `.env.prod` | The values compose interpolates. Not versioned; templates in `.env.example` / `.env.prod.example`. |
+| `up.ps1` | Development orchestrator (Windows). |
+| `up.sh` | Production orchestrator (the server). |
 
-```powershell
-# From the repo root (Musify/)
-./deploy/up.ps1
-```
+The four applications (`api`, `worker`, `gateway`, `web-player`) sit behind the
+`apps` compose profile, so a plain `up` starts infrastructure only — the usual
+development setup, with the apps running from the IDE.
 
-`up.ps1` does the full bootstrap:
+---
 
-1. Creates `deploy/.env` from `.env.example` if missing.
-2. Starts the stack (`docker compose up -d`) and waits for Postgres to be healthy.
-3. Creates the `webapi-storage` bucket in SeaweedFS (`seaweedfs-init` service).
-4. Generates the RS256 stream-ticket keys in `D:\weed` if missing.
-5. Creates the Worker temp directory (`D:\tempsFilesDev`).
-6. Applies the EF Core migrations to `musify_db`.
-7. **Provisions Zitadel automatically** (project + OIDC app with JWT token) and
-   wires the ClientId into `Musify.Api` user-secrets and `.env`.
-
-When it finishes it prints a summary with URLs and credentials. **No manual steps.**
-
-### Without the script (infra only)
+## Development
 
 ```powershell
-docker compose -f deploy/docker-compose.yml up -d
+./deploy/up.ps1            # infrastructure only, apps from the IDE
+./deploy/up.ps1 -Apps      # build and run the apps in Docker too
 ```
 
-The compose file still creates the bucket on its own; run migrations with
-`dotnet ef database update` (see [../docs/development.md](../docs/development.md)).
+`up.ps1` does the whole bootstrap, with no manual steps afterwards:
 
-## Services and ports
+1. Creates `deploy/.env` from `.env.example` if it is missing.
+2. Generates the RS256 stream-ticket keys in `deploy/keys/` and the Worker
+   scratch directory `deploy/.tmp/`.
+3. Starts the stack and waits for Postgres.
+4. Applies the EF Core migrations.
+5. Provisions Zitadel: project, API OIDC app and web player OIDC app, then
+   writes the client ids into `deploy/.env`, `Musify.Api` user-secrets and
+   `web-player/.env`.
+6. Prints a summary with every URL and credential.
 
-| Service | Port(s) | Used for |
+Other switches: `-Tools` (pgAdmin), `-SkipMigrations`, `-Down` (stop, keep
+data), `-Destroy` (stop and wipe the volumes).
+
+### Ports
+
+| Service | Port | Used by |
 |---|---|---|
-| PostgreSQL | `59000` → 5432 | API + Worker (EF Core) and the Zitadel database |
-| Zitadel | `8080` | OIDC/OAuth2 (console at `/ui/console`) |
+| PostgreSQL | `59000` → 5432 | API + Worker (EF Core) and Zitadel |
+| Zitadel | `8080` | OIDC/OAuth2, console at `/ui/console` |
 | RabbitMQ | `5672` / `15672` | MassTransit / management UI |
-| SeaweedFS S3 | `8333` | S3 (presigned PUT/GET) |
-| SeaweedFS filer | `8888` | serves files → StreamingGateway |
-| SeaweedFS master | `9333` | admin/UI |
-| Jaeger | `16686` / `4317` / `4318` | OTLP traces (UI / gRPC / HTTP) |
+| SeaweedFS | `8333` / `8888` / `9333` | S3 / filer (→ gateway) / master |
+| Jaeger | `16686` / `4317` / `4318` | traces UI / OTLP gRPC / OTLP HTTP |
+| pgAdmin (`-Tools`) | `5050` | Postgres UI |
+| API, gateway, web player (`-Apps`) | `5111` / `8081` / `3000` | |
 
-Ports are published to the host, so apps run locally connect without changing
-`AppSettings.Development.json` (Postgres, RabbitMQ, S3, OTLP).
-
-## Authentication (Zitadel) — automatic
-
-There are **no manual steps**. `up.ps1` runs `zitadel/provision.ps1`, which
-idempotently:
-
-1. Uses a **service account** with a **PAT** that Zitadel writes on init
-   (`zitadel/.output/admin-sa.pat`).
-2. Creates (or reuses) the **project** `Musify` and an **OIDC app** (PKCE,
-   `devMode`, **access token = JWT** — required for `JwtBearer` to validate).
-3. Captures the generated **ClientId** and writes it to:
-   - **`Musify.Api` user-secrets** (for running the apps locally), and
-   - `deploy/.env` as `AUTH_CLIENT_ID` (for the full-docker path).
-
-The values stay stable while the Postgres volume persists. After `up.ps1 -Destroy`
-the next `up.ps1` re-provisions (new ClientId, re-wired).
-
-- Console: `http://host.docker.internal:8080/ui/console`
-- Admin login: `admin@zitadel.host.docker.internal` / `Password1!` (see `.env`).
-- Test login: open Scalar (`http://localhost:5111/scalar/v1`) and authorize.
-
-### Why `host.docker.internal`
-
-`ZITADEL_EXTERNAL_DOMAIN=host.docker.internal` forms the token *issuer* and
-resolves the **same** from the browser, local apps and containers, so token
-validation works both ways (local and full-docker). Zitadel routes by the `Host`
-header, so the domain must be identical everywhere. If you only run the apps
-locally you can use `localhost`. Changing the domain requires a re-init:
-`up.ps1 -Destroy; up.ps1`.
-
-## Running the apps
-
-### Recommended: from the IDE (best for debugging)
+### Running the apps from the IDE
 
 ```powershell
 dotnet run --project backend/Musify.Api               # :5111
 dotnet run --project backend/Musify.StreamingGateway  # :8081
 dotnet run --project backend/Musify.Worker            # background
+npm --prefix web-player run dev                       # :5173
 ```
 
-Host requirements: **.NET 10 SDK**, **ffmpeg** on PATH (Worker audio transcode).
+Host requirements: .NET 10 SDK, Node 22, ffmpeg and yt-dlp on PATH (the Worker
+transcodes and downloads audio), Docker Desktop.
 
-### Optional: everything in Docker
+### Why `host.docker.internal`
 
-```powershell
-docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.apps.yml up -d --build
+`PUBLIC_AUTH_URL` and `S3_PUBLIC_URL` point at `host.docker.internal`, which
+resolves to the same address from the browser, from apps running on the host
+and from inside the containers. That keeps the OIDC token issuer and the
+presigned S3 URLs valid whichever way the apps are running. Zitadel routes by
+the `Host` header, so the domain has to be identical everywhere; changing it
+requires a re-init (`./up.ps1 -Destroy; ./up.ps1`).
+
+---
+
+## Production
+
+One command on the server, from the repository root:
+
+```sh
+./deploy/up.sh
 ```
 
-Builds and runs `api`, `worker` and `gateway` as containers (the Worker already
-ships ffmpeg). The stream-ticket keys are mounted from `D:\weed` (configurable via
-`STREAM_KEYS_DIR` in `.env`). Auth works in this mode too (the API downloads the
-Zitadel JWKS via `host.docker.internal`).
+It refuses to start until the two things it cannot generate are in place:
 
-> Note: on Linux the apps look for `appsettings*.json` in lowercase. The `Api`/
-> `Worker` projects use `AppSettings*.json` (PascalCase), so their Dockerfiles
-> create lowercase copies at publish time. On Windows it did not matter
-> (case-insensitive).
+1. **`deploy/.env.prod`** — copied from `.env.prod.example` on the first run.
+   Replace every `example.com` with your domain and every `CHANGE_ME` with a
+   random value (`openssl rand -hex 24`; the Zitadel masterkey needs exactly 32
+   characters). `chmod 600` it.
+2. **`deploy/nginx/certs/origin.pem` and `origin.key`** — the origin
+   certificate nginx serves. The stack assumes Cloudflare in *Full (strict)*
+   mode in front of it, so a Cloudflare Origin Certificate is enough; any
+   certificate valid for the five hostnames works.
 
-## Useful commands
+DNS: point `example.com`, `www`, `api`, `auth`, `stream` and `s3` at the server.
 
-```powershell
-./deploy/up.ps1 -SkipMigrations   # bring up without touching the DB
-./deploy/up.ps1 -Down             # stop and remove containers (keep data)
-./deploy/up.ps1 -Destroy          # stop and remove containers + volumes (wipe data)
+Then `up.sh` generates the stream keys, starts the infrastructure and the edge,
+provisions Zitadel (it needs `curl` and `jq` on the server), applies the
+migrations and finally builds and starts the applications. It is idempotent —
+run it again to deploy a new version, or `./deploy/up.sh --no-build` to restart
+without rebuilding.
 
-docker compose -f deploy/docker-compose.yml logs -f zitadel
-docker compose -f deploy/docker-compose.yml ps
-```
+Only nginx publishes ports (80/443); everything else is reachable only on the
+internal compose network.
 
-## Project layout — what each file does
+### Optional secrets
+
+`deploy/secrets/` is mounted read-only at `/secrets` in the Worker. Drop a
+`youtube_cookies.txt` there if you want yt-dlp to use a cookie jar — it is
+referenced from `YTDLP_ADDITIONAL_ARGUMENTS` in `.env.prod`, which you can
+empty if you do not have one.
+
+---
+
+## Layout
 
 ```
 deploy/
-├─ docker-compose.yml         # infrastructure stack (single source of truth)
-├─ docker-compose.apps.yml    # optional overlay: the 3 .NET apps in Docker
-├─ .env                       # local config (secrets/ports); not versioned
-├─ .env.example               # config template (versioned)
-├─ up.ps1                     # orchestrator: up / down / destroy
-├─ README.md                  # this file
+├─ compose.yml                     # all services, environment-independent
+├─ compose.dev.yml                 # dev overlay: host ports, pgAdmin
+├─ compose.prod.yml                # prod overlay: nginx edge, secrets
+├─ .env.example / .env.prod.example
+├─ up.ps1                          # dev orchestrator
+├─ up.sh                           # prod orchestrator
+├─ keys/                           # RS256 stream-ticket key pair (generated)
+├─ secrets/                        # mounted into the Worker (prod, optional)
+├─ nginx/
+│  ├─ templates/default.conf.template # vhosts, rendered with the domain by envsubst
+│  ├─ snippets/proxy.conf             # proxy headers shared by every vhost
+│  └─ certs/                          # origin.pem + origin.key (not versioned)
 ├─ scripts/
-│  ├─ common.ps1              # shared helpers (Read-DotEnv, Write-Step)
-│  ├─ stream-keys.ps1         # generates the RS256 stream-ticket key pair
-│  └─ migrate.ps1             # applies EF Core migrations
-├─ seaweedfs/
-│  └─ s3.conf                 # SeaweedFS S3 identities/credentials
+│  ├─ common.ps1 / lib.sh          # shared helpers
+│  ├─ stream-keys.ps1 / .sh        # RS256 key pair generation
+│  └─ migrate.ps1 / .sh            # EF Core migrations
 └─ zitadel/
-   ├─ provision.ps1           # creates project + OIDC app, wires the ClientId
-   └─ .output/                # PAT + init secrets written by Zitadel (not versioned)
-
-backend/
-├─ Musify.Api.Dockerfile              # API image
-├─ Musify.Worker.Dockerfile           # Worker image (includes ffmpeg)
-├─ Musify.StreamingGateway.Dockerfile # Gateway image
-└─ .dockerignore
+   ├─ provision.ps1 / .sh          # project + OIDC apps, wires the client ids
+   └─ .output/                     # PAT written by Zitadel on init (not versioned)
 ```
 
-### Compose
+The application images are built from `backend/Musify.*.Dockerfile` (build
+context `backend/`, so restore can copy the central props and every csproj) and
+`web-player/Dockerfile`.
 
-- **`docker-compose.yml`** — the infra stack (`postgres`, `zitadel`, `rabbitmq`,
-  `seaweedfs`, the one-shot `seaweedfs-init` bucket creator, and `jaeger`). This is
-  the single source of truth for services, ports and volumes. Values come from `.env`.
-- **`docker-compose.apps.yml`** — an optional overlay that adds the `api`, `worker`
-  and `gateway` services. It merges with the infra file (same `musify-dev` project
-  and network) and shares the backend env via YAML anchors. Used to run the whole
-  stack in Docker; for active development prefer running the apps from the IDE.
+## Notes
 
-### Config
-
-- **`.env`** — the actual values used by compose (Postgres/RabbitMQ/Zitadel/S3
-  credentials, ports, host paths, `AUTH_CLIENT_ID`). Ignored by git (`*.env`).
-- **`.env.example`** — the versioned template. Copy it to `.env` (or let `up.ps1`
-  do it) and adjust.
-
-### Scripts (PowerShell)
-
-- **`up.ps1`** — the orchestrator. Parses `.env`, starts the stack, waits for
-  Postgres, then calls the sub-scripts in order (keys → migrations → provisioning)
-  and prints the summary. Also handles `-Down` / `-Destroy` / `-SkipMigrations`.
-- **`scripts/common.ps1`** — shared helpers dot-sourced by the others: `Read-DotEnv`
-  (parse `.env` into a hashtable) and `Write-Step` (step logging).
-- **`scripts/stream-keys.ps1`** — generates the RS256 key pair that the API uses to
-  sign stream tickets and the Gateway uses to verify them. No-op if the keys exist.
-- **`scripts/migrate.ps1`** — sets the connection string in user-secrets and runs
-  `dotnet ef database update` (startup project = `Musify.Infrastructure`).
-- **`zitadel/provision.ps1`** — reads the service-account PAT, creates/reuses the
-  Zitadel project and OIDC app (JWT token), and wires the ClientId into
-  `Musify.Api` user-secrets and `.env`. Idempotent; can be run standalone.
-
-### Service configs
-
-- **`seaweedfs/s3.conf`** — the S3 identities (access/secret keys) SeaweedFS loads.
-  Must match `InfrastructureStorage:*` in the app settings and `S3_*` in `.env`.
-- **`zitadel/.output/`** — created at runtime; holds the PAT Zitadel writes on init
-  (`admin-sa.pat`). Not versioned; wiped by `up.ps1 -Destroy`.
-
-### Dockerfiles (in `backend/`)
-
-- **`Musify.Api.Dockerfile`** / **`Musify.Worker.Dockerfile`** /
-  **`Musify.StreamingGateway.Dockerfile`** — multi-stage builds for each host. The
-  Worker image also installs ffmpeg. Built by the apps overlay; build context is
-  `backend/` so restore can copy the central props and all csproj files.
-- **`.dockerignore`** — keeps `bin/`, `obj/`, IDE folders and `DesignSettings.json`
-  out of the build context.
+- **S3 credentials** are rendered into the SeaweedFS identity file from
+  `S3_ACCESS_KEY` / `S3_SECRET_KEY` when the container starts, so they cannot
+  drift from the ones the apps are given.
+- **Zitadel** runs `start-from-init`, which is idempotent: the same command
+  works on an empty volume and on an existing one.
+- **`latest` Zitadel images** require the standalone Login UI v2 container,
+  which this stack does not run. The provisioning scripts turn that requirement
+  off so the built-in `/ui/login` is used.
+- **`AppSettings*.json` are PascalCase** in `Musify.Api` and `Musify.Worker`;
+  on case-sensitive Linux the host looks for `appsettings*.json`, so their
+  Dockerfiles create lowercase copies at publish time.
