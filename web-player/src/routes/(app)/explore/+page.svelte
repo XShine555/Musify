@@ -11,7 +11,7 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
-	import { EXPLORE_PAGE_SIZE } from '$lib/config';
+	import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '$lib/config';
 	import { hueFor } from '$lib/theme/color';
 	import type { YouTubeSong } from '$lib/types';
 	import TrackTile from '$lib/components/TrackTile.svelte';
@@ -94,12 +94,14 @@
 		const value = (event.currentTarget as HTMLInputElement).value;
 		clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => {
-			goto(buildHref(value.trim()), {
+			const term = value.trim();
+			if (term === data.query) return;
+			goto(buildHref(term), {
 				keepFocus: true,
 				replaceState: true,
 				noScroll: true
 			});
-		}, 350);
+		}, SEARCH_DEBOUNCE_MS);
 	}
 
 	function togglePlay(index: number) {

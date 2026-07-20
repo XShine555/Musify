@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
+	import { INFINITE_SCROLL_ROOT_MARGIN } from '$lib/config';
 
 	interface Props {
 		onLoadMore: () => void;
@@ -8,7 +9,7 @@
 		rootMargin?: string;
 	}
 
-	let { onLoadMore, hasMore, loading, rootMargin = '600px' }: Props = $props();
+	let { onLoadMore, hasMore, loading, rootMargin = INFINITE_SCROLL_ROOT_MARGIN }: Props = $props();
 
 	let sentinel = $state<HTMLDivElement>();
 	let visible = $state(false);

@@ -2,7 +2,11 @@ import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser, unwrapOrError } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
-import { EXPLORE_PAGE_SIZE as PAGE_SIZE, YOUTUBE_FILLER_LIMIT } from '$lib/config';
+import {
+	EXPLORE_PAGE_SIZE as PAGE_SIZE,
+	SEARCH_MIN_LENGTH,
+	YOUTUBE_FILLER_LIMIT
+} from '$lib/config';
 
 export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const query = url.searchParams.get('q')?.trim() ?? '';
@@ -15,9 +19,10 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		params: { query: { name: query || undefined, pageNumber: page, pageSize: PAGE_SIZE } }
 	});
 
-	const searchPromise = query
-		? api.GET('/youtube/search', { params: { query: { query } } })
-		: Promise.resolve(null);
+	const searchPromise =
+		query.length >= SEARCH_MIN_LENGTH
+			? api.GET('/youtube/search', { params: { query: { query } } })
+			: Promise.resolve(null);
 
 	const playlistsPromise = api.GET('/playlists/users/{userId}', {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
