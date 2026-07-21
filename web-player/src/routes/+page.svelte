@@ -185,7 +185,7 @@
 </section>
 
 {#if recentlyPlayed.length > 0}
-	<section class="page-x pt-10 sm:pt-14">
+	<section class="page-x pt-6 sm:pt-8">
 		<SectionHeading title="Volver a escuchar" />
 		<MediaGrid min="280px" minMobile="220px">
 			{#each recentlyPlayed as track, i (track.id)}
