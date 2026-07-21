@@ -79,7 +79,7 @@
 </Modal>
 
 <Modal open={confirmingDelete} onClose={() => (confirmingDelete = false)} maxWidth="max-w-sm">
-	<h2 class="text-lg font-bold tracking-tight text-fg">
+	<h2 class="text-lg font-semibold tracking-tight text-fg">
 		¿Eliminar «{playlist.name}»?
 	</h2>
 	<p class="mt-2 text-base text-fg-3">

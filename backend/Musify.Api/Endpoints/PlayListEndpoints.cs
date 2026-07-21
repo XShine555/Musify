@@ -181,12 +181,8 @@ public static class PlayListEndpoints
         CreatePlayListRequest request,
         CancellationToken cancellationToken)
     {
-        var description = string.IsNullOrWhiteSpace(request.Description)
-            ? "No description was provided."
-            : request.Description;
-
         var result = await mediator.Send(
-            new CreatePlayListCommand(currentUser.RequiredId, request.Name, description, request.PictureIntentId),
+            new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId),
             cancellationToken);
 
         return result.ToCreatedResult(playList => $"/playlists/{playList.Id}");

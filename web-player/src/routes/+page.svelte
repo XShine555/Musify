@@ -178,14 +178,14 @@
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2 sm:gap-2.5">
 		<p class="text-sm tracking-[0.14em] text-fg-2 uppercase sm:text-base">{data.greeting}</p>
-		<h1 class="max-w-160 text-3xl leading-[1.05] font-extrabold text-fg sm:text-5xl">
+		<h1 class="max-w-160 text-3xl leading-[1.05] font-semibold text-fg sm:text-5xl">
 			Tu música. Sin límites.
 		</h1>
 	</div>
 </section>
 
 {#if recentlyPlayed.length > 0}
-	<section class="page-x pt-5 pb-3 sm:pt-6">
+	<section class="page-x pt-10 sm:pt-14">
 		<SectionHeading title="Volver a escuchar" />
 		<MediaGrid min="280px" minMobile="220px">
 			{#each recentlyPlayed as track, i (track.id)}
@@ -228,7 +228,7 @@
 {/if}
 
 {#if mixes.length > 0 || playlists.length > 0}
-	<section class="grid gap-x-8 gap-y-5 page-x pt-5 pb-3 sm:pt-6 lg:grid-cols-2">
+	<section class="grid gap-x-8 gap-y-10 page-x pt-10 sm:pt-14 lg:grid-cols-2">
 		{#if mixes.length > 0}
 			<div class="min-w-0">
 				<SectionHeading title="Hechas para ti" />
@@ -269,7 +269,7 @@
 {/if}
 
 {#if albums.length > 0}
-	<section class="page-x pt-5 pb-3 sm:pt-6">
+	<section class="page-x pt-10 sm:pt-14">
 		<SectionHeading title="Álbumes escuchados recientemente">
 			{#snippet actions()}
 				<a href="/albums" class="text-sm text-fg-3 transition hover:text-accent-soft">Ver todos</a>
@@ -290,7 +290,7 @@
 	</section>
 {/if}
 
-<section class="page-x pt-5 pb-10 sm:pt-6">
+<section class="page-x pt-10 pb-16 sm:pt-14">
 	<SectionHeading title="Descubrir" />
 	{#if latest.length > 0}
 		<MediaGrid as="ul">
@@ -299,6 +299,7 @@
 					id={targetId(item)}
 					title={targetTitle(item)}
 					artist={targetArtist(item)}
+					coverShape="round"
 					coverSrc={targetCoverSrc(item)}
 					hue={hueFor(targetId(item))}
 					explicit={targetExplicit(item)}

@@ -82,7 +82,7 @@
 		>
 			{#if title}
 				<div class="flex items-center justify-between">
-					<h2 class="text-lg font-bold tracking-tight text-fg">{title}</h2>
+					<h2 class="text-lg font-semibold tracking-tight text-fg">{title}</h2>
 					<IconButton label="Cerrar" onclick={onClose}>
 						<X class="h-4 w-4" />
 					</IconButton>

@@ -141,7 +141,7 @@
 			>
 				<Check class="h-8 w-8" strokeWidth={2.5} />
 			</span>
-			<h2 class="mt-6 text-2xl font-bold tracking-tight text-fg">¡Subida!</h2>
+			<h2 class="mt-6 text-2xl font-semibold tracking-tight text-fg">¡Subida!</h2>
 			<p class="mt-3 text-fg-2">
 				«{publishedTitle}» se está procesando. Aparecerá lista para reproducir en tu biblioteca en
 				unos momentos.

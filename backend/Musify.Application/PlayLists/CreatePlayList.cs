@@ -16,7 +16,7 @@ namespace Musify.Application.PlayLists
     public record CreatePlayListCommand(
         long UserId,
         string Name,
-        string Description,
+        string? Description,
         Guid? PictureIntentId)
         : ICommand<ErrorOr<PlayListApplicationResponse>>;
 
@@ -58,7 +58,7 @@ namespace Musify.Application.PlayLists
                 UserId = request.UserId,
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
-                Description = request.Description,
+                Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
                 Pictures = pictureIntent == null ? null
                     : new PlayListPictures { OriginalName = pictureIntent.ObjectName }
             };

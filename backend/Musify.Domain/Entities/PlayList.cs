@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Musify.Domain.Abstractions;
@@ -24,7 +24,6 @@ namespace Musify.Domain.Entities
         [MaxLength(50)]
         public required string NormalizedName { get; set; }
 
-        [Required]
         [MaxLength(256)]
         public string? Description { get; set; }
 

@@ -13,7 +13,7 @@
 
 <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between {klass}">
 	<div class="min-w-0">
-		<h1 class="text-2xl font-bold tracking-tight text-fg sm:text-4xl">{title}</h1>
+		<h1 class="text-2xl font-semibold tracking-tight text-fg sm:text-4xl">{title}</h1>
 		{#if subtitle}
 			<p class="mt-2 text-sm text-fg-2 sm:text-base">{subtitle}</p>
 		{/if}

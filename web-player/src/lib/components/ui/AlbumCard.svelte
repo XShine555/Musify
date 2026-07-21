@@ -1,4 +1,5 @@
 <script lang="ts">
+	import MediaCard from './MediaCard.svelte';
 	import PlaylistArt from './PlaylistArt.svelte';
 	import Cover from './Cover.svelte';
 	import { hueFor } from '$lib/theme/color';
@@ -45,30 +46,25 @@
 	);
 </script>
 
-<a
+<MediaCard
 	href={href ?? `/albums/${id}`}
-	class="group animate-enter min-w-0 text-left"
-	style="animation-delay:{index * 45}ms"
+	{title}
+	subtitle={meta}
+	{index}
 	oncontextmenu={onContextMenu}
 >
-	{#if coverSrc}
-		<Cover
-			trackId={id}
-			src={coverSrc}
-			hue={hueFor(id)}
-			size="large"
-			alt={title}
-			class="aspect-square w-full rounded-art shadow-art transition group-hover:shadow-art-lg"
-		/>
-	{:else}
-		<PlaylistArt
-			{trackIds}
-			hue={hueFor(id)}
-			class="aspect-square w-full rounded-art shadow-art transition group-hover:shadow-art-lg"
-		/>
-	{/if}
-	<div class="mt-2.5 truncate text-fg">{title}</div>
-	{#if meta}
-		<div class="mt-0.5 truncate text-sm text-fg-3">{meta}</div>
-	{/if}
-</a>
+	{#snippet art(artClass)}
+		{#if coverSrc}
+			<Cover
+				trackId={id}
+				src={coverSrc}
+				hue={hueFor(id)}
+				size="large"
+				alt={title}
+				class={artClass}
+			/>
+		{:else}
+			<PlaylistArt {trackIds} hue={hueFor(id)} class={artClass} />
+		{/if}
+	{/snippet}
+</MediaCard>
