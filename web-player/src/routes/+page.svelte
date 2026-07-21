@@ -186,8 +186,8 @@
 
 {#if recentlyPlayed.length > 0}
 	<section class="page-x pt-5 pb-3 sm:pt-6">
-		<SectionHeading title="Escuchado recientemente" />
-		<MediaGrid min="300px" minMobile="220px">
+		<SectionHeading title="Volver a escuchar" />
+		<MediaGrid min="280px" minMobile="220px">
 			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
@@ -232,7 +232,7 @@
 		{#if mixes.length > 0}
 			<div class="min-w-0">
 				<SectionHeading title="Hechas para ti" />
-				<MediaGrid min="140px" minMobile="130px">
+				<MediaGrid min="150px" minMobile="130px">
 					{#each mixes as mix, i (mix.id)}
 						<MixCard {mix} index={i} />
 					{/each}
@@ -251,7 +251,7 @@
 						{/if}
 					{/snippet}
 				</SectionHeading>
-				<MediaGrid min="140px" minMobile="130px">
+				<MediaGrid min="150px" minMobile="130px">
 					{#each playlists as playlist, i (playlist.id)}
 						<PlaylistCard
 							id={playlist.id}

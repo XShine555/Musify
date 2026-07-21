@@ -11,7 +11,7 @@
 
 	let {
 		as = 'div',
-		min = '180px',
+		min = '200px',
 		minMobile = '150px',
 		class: klass = '',
 		children
