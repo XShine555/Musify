@@ -15,6 +15,7 @@
 	import { hueFor } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
+	import MixCard from '$lib/components/ui/MixCard.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
@@ -106,6 +107,7 @@
 		}
 	}
 	const playlists = $derived(data.playlists);
+	const mixes = $derived(data.mixes);
 	const trackIds = $derived(data.trackIds);
 
 	function playLatest(index: number) {
@@ -219,6 +221,17 @@
 						{/if}
 					</div>
 				</button>
+			{/each}
+		</MediaGrid>
+	</section>
+{/if}
+
+{#if mixes.length > 0}
+	<section class="page-x pt-5 pb-3 sm:pt-6">
+		<SectionHeading title="Hechas para ti" />
+		<MediaGrid>
+			{#each mixes as mix, i (mix.id)}
+				<MixCard {mix} index={i} />
 			{/each}
 		</MediaGrid>
 	</section>

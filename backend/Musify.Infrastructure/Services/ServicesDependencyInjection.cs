@@ -1,4 +1,6 @@
 using Amazon.S3;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -56,6 +58,21 @@ namespace Musify.Infrastructure.Services
 
             serviceDescriptors.AddHostedService<UploadIntentExpirationJob>();
             serviceDescriptors.AddHostedService<TemporalUploadsCleanUpJob>();
+
+            return serviceDescriptors;
+        }
+
+        public static IServiceCollection AddDailyMixGenerationJob(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        {
+            serviceDescriptors.AddHangfire((serviceProvider, hangfireConfiguration) =>
+            {
+                var databaseConfiguration = serviceProvider.GetRequiredService<DatabaseConfiguration>();
+                hangfireConfiguration.UsePostgreSqlStorage(options =>
+                    options.UseNpgsqlConnection(databaseConfiguration.ConnectionString));
+            });
+
+            serviceDescriptors.AddHangfireServer();
+            serviceDescriptors.AddScoped<DailyMixGenerationJob>();
 
             return serviceDescriptors;
         }

@@ -126,6 +126,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/mixes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Server-Generated Mixes Of The Current User. */
+        get: operations["GetMixes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mixes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get A Mix With All Of Its Songs. */
+        get: operations["GetMixById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/playlists": {
         parameters: {
             query?: never;
@@ -585,6 +619,31 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        MixApplicationResponse: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            subtitle: null | string;
+            /** Format: date */
+            generatedOn: string;
+            /** Format: int32 */
+            itemCount: number | string;
+            items: components["schemas"]["MixItemApplicationResponse"][];
+        };
+        MixItemApplicationResponse: {
+            source: components["schemas"]["MixItemSource"];
+            /** Format: uuid */
+            trackId: null | string;
+            videoId: null | string;
+            title: string;
+            artist: null | string;
+            thumbnailUrl: null | string;
+            /** Format: int32 */
+            durationSeconds: number | string;
+            isExplicit: boolean;
+        };
+        /** @enum {unknown} */
+        MixItemSource: "Musify" | "YouTube";
         PaginatedResponseOfAlbumApplicationResponse: {
             items: components["schemas"]["AlbumApplicationResponse"][];
             /** Format: int32 */
@@ -1167,6 +1226,69 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMixes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MixApplicationResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMixById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MixApplicationResponse"];
+                };
             };
             /** @description Unauthorized */
             401: {

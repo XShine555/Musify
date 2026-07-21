@@ -18,6 +18,7 @@ public static class ApplicationDependencyInjection
         services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
         services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
         services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
+        services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
         services.AddValidatedOptions<StreamGatewayConfiguration>(configuration, StreamGatewayConfiguration.SectionName);
         services.AddValidatedOptions<UploadIntentConfiguration>(configuration, UploadIntentConfiguration.SectionName);
 

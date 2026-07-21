@@ -9,6 +9,8 @@
     <PackageVersion Include="DispatchR.Mediator" Version="2.2.0" />
     <PackageVersion Include="ErrorOr" Version="2.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageVersion Include="Hangfire.NetCore" Version="1.8.24" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
     <PackageVersion Include="MassTransit" Version="8.5.9" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.9" />
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.9" />

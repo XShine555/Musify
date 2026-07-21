@@ -8,7 +8,8 @@ import {
 	unwrapOrFail
 } from '$lib/server/api';
 import { uploadPresignedImage } from '$lib/server/upload';
-import { fetchYoutubeFiller, shuffle } from '$lib/server/youtube';
+import { fetchYoutubeFiller } from '$lib/server/youtube';
+import { shuffle } from '$lib/collections';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
 import type { YouTubeSong } from '$lib/types';
 

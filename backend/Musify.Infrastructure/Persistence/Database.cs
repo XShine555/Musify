@@ -137,6 +137,25 @@ namespace Musify.Infrastructure.Persistence
                 .HasIndex(albumTrack => new { albumTrack.AlbumId, albumTrack.TrackId })
                 .IsUnique();
 
+            modelBuilder.Entity<Mix>()
+                .HasIndex(mix => new { mix.UserId, mix.Position });
+
+            modelBuilder.Entity<MixItem>()
+                .HasOne(item => item.Mix)
+                .WithMany(mix => mix.Items)
+                .HasForeignKey(item => item.MixId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MixItem>()
+                .HasOne(item => item.Track)
+                .WithMany()
+                .HasForeignKey(item => item.TrackId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MixItem>()
+                .HasIndex(item => new { item.MixId, item.Position });
+
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
             playListProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();
@@ -166,6 +185,10 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<UserHasTrack> UserHasTracks => Set<UserHasTrack>();
 
         public DbSet<PlayListHasTrack> PlayListHasTracks => Set<PlayListHasTrack>();
+
+        public DbSet<Mix> Mixes => Set<Mix>();
+
+        public DbSet<MixItem> MixItems => Set<MixItem>();
 
         public DbSet<Upload> Uploads => Set<Upload>();
 

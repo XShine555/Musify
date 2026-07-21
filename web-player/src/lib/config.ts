@@ -9,3 +9,4 @@ export const LIBRARY_PICKER_PAGE_SIZE = 50;
 export const EXPLORE_ALBUMS_PAGE_SIZE = 18;
 export const HOME_LATEST_PAGE_SIZE = 12;
 export const YOUTUBE_FILLER_LIMIT = 27;
+export const PLAYLIST_PICKER_PAGE_SIZE = 50;

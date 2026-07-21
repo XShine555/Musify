@@ -29,6 +29,10 @@ namespace Musify.Application.Contracts
 
         DbSet<PlayListHasTrack> PlayListHasTracks { get; }
 
+        DbSet<Mix> Mixes { get; }
+
+        DbSet<MixItem> MixItems { get; }
+
         DbSet<Upload> Uploads { get; }
 
         DbSet<UploadIntent> UploadIntents { get; }

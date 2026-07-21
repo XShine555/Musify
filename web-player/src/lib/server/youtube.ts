@@ -28,23 +28,31 @@ function pickRandomFillerQuery(): string {
 	return YOUTUBE_FILLER_QUERIES[Math.floor(Math.random() * YOUTUBE_FILLER_QUERIES.length)];
 }
 
-export function shuffle<T>(items: T[]): T[] {
-	const copy = [...items];
-	for (let i = copy.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[copy[i], copy[j]] = [copy[j], copy[i]];
+function hash(text: string): number {
+	let h = 0;
+	for (let i = 0; i < text.length; i++) {
+		h = (h * 31 + text.charCodeAt(i)) | 0;
 	}
-	return copy;
+	return Math.abs(h);
+}
+
+function pickFillerQueryForUser(userId: string, date: Date): string {
+	const dayKey = date.toISOString().slice(0, 10);
+	const index = hash(`${userId}:${dayKey}`) % YOUTUBE_FILLER_QUERIES.length;
+	return YOUTUBE_FILLER_QUERIES[index];
 }
 
 export async function fetchYoutubeFiller(
 	api: ReturnType<typeof createApiClient>,
 	accessToken: string | null | undefined,
 	limit: number,
-	seed?: string
+	seedQuery?: string,
+	userId?: string
 ): Promise<YoutubeFiller> {
 	if (!accessToken) return { query: '', items: [], continuationToken: '' };
-	const query = seed?.trim() || pickRandomFillerQuery();
+	const query =
+		seedQuery?.trim() ||
+		(userId ? pickFillerQueryForUser(userId, new Date()) : pickRandomFillerQuery());
 	const { data } = await api.GET('/youtube/search', { params: { query: { query } } });
 	return {
 		query,
