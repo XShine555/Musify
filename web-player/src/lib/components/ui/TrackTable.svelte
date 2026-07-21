@@ -56,7 +56,7 @@
 
 <div class={klass}>
 	<div
-		class="grid track-grid items-center gap-3 border-b border-line px-2 pb-2 text-sm font-medium tracking-wide text-muted uppercase sm:gap-8 sm:px-3"
+		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-2 pl-2 text-sm font-medium tracking-wide text-muted uppercase sm:gap-8 sm:pr-6 sm:pl-3"
 		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{columnsMobile}"
 	>
 		{#if index}
