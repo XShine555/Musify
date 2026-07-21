@@ -23,9 +23,6 @@ namespace Musify.Domain.Entities
         public string? Subtitle { get; set; }
 
         [Required]
-        public required DateOnly GeneratedOn { get; set; }
-
-        [Required]
         public int Position { get; set; } = 0;
 
         [Required]

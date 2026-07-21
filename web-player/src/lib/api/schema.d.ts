@@ -608,8 +608,6 @@ export interface components {
             id: string;
             title: string;
             subtitle: null | string;
-            /** Format: date */
-            generatedOn: string;
             /** Format: int32 */
             itemCount: number | string;
             items: components["schemas"]["MixItemApplicationResponse"][];

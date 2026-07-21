@@ -304,8 +304,6 @@ namespace Musify.Application.Mixes
                 database.Mixes.RemoveRange(previousMixes);
             }
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
             for (var position = 0; position < drafts.Count; position++)
             {
                 var draft = drafts[position];
@@ -314,7 +312,6 @@ namespace Musify.Application.Mixes
                     UserId = userId,
                     Title = draft.Title,
                     Subtitle = draft.Subtitle,
-                    GeneratedOn = today,
                     Position = position
                 };
 

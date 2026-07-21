@@ -6,7 +6,6 @@ namespace Musify.Application.Mixes.Responses
         Guid Id,
         string Title,
         string? Subtitle,
-        DateOnly GeneratedOn,
         int ItemCount,
         IReadOnlyList<MixItemApplicationResponse> Items)
     {
@@ -20,7 +19,6 @@ namespace Musify.Application.Mixes.Responses
                 mix.Id,
                 mix.Title,
                 mix.Subtitle,
-                mix.GeneratedOn,
                 itemCount,
                 [.. items.Select(MixItemApplicationResponse.FromEntity)]);
     }
