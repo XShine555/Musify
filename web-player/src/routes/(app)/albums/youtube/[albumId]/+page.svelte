@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
-	import Plus from '@lucide/svelte/icons/plus';
 	import { player, type QueueItem } from '$lib/player/player.svelte';
 	import { hueFor } from '$lib/theme/color';
 	import { fmtTime } from '$lib/format';
@@ -20,6 +18,10 @@
 		contextMenuStateFor,
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
+	import AlbumContextMenu, {
+		albumContextMenuStateFor,
+		type AlbumMenuState
+	} from '$lib/components/AlbumContextMenu.svelte';
 	import type { TrackTarget } from '$lib/tracks';
 
 	let { data, form } = $props();
@@ -28,7 +30,7 @@
 	const tracks = $derived(data.album.tracks);
 
 	let contextMenu = $state<ContextMenuState | null>(null);
-	let saving = $state(false);
+	let albumMenu = $state<AlbumMenuState | null>(null);
 
 	const queue = $derived<QueueItem[]>(
 		tracks.map((track) => ({
@@ -94,6 +96,7 @@
 			size="large"
 			alt={album.title}
 			class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44"
+			oncontextmenu={(e) => (albumMenu = albumContextMenuStateFor(e, 'youtube', album.albumId))}
 		/>
 		<div class="min-w-0 flex-1">
 			<p class="text-sm tracking-[0.14em] text-fg-3 uppercase">
@@ -127,22 +130,6 @@
 				Reproducir
 			{/if}
 		</Button>
-		<form
-			method="POST"
-			action="?/save"
-			use:enhance={() => {
-				saving = true;
-				return async ({ update }) => {
-					await update();
-					saving = false;
-				};
-			}}
-		>
-			<Button type="submit" size="sm" variant="secondary" loading={saving}>
-				<Plus class="h-4 w-4" strokeWidth={2} />
-				Guardar en mi biblioteca
-			</Button>
-		</form>
 	</div>
 
 	{#if form?.message}
@@ -150,7 +137,7 @@
 	{/if}
 
 	{#if data.album.description}
-		<p class="mt-6 max-w-3xl text-sm text-fg-3">{data.album.description}</p>
+		<p class="mt-6 text-sm text-fg-3">{data.album.description}</p>
 	{/if}
 
 	<TrackTable columns="32px 1fr 64px" columnsMobile="28px 1fr 52px" class="mt-6 sm:mt-8">
@@ -195,5 +182,13 @@
 			}
 			contextMenu = null;
 		}}
+	/>
+{/if}
+
+{#if albumMenu}
+	<AlbumContextMenu
+		menu={albumMenu}
+		playlists={data.playlists}
+		onClose={() => (albumMenu = null)}
 	/>
 {/if}

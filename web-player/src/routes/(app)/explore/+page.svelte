@@ -1,8 +1,6 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
-	import Disc from '@lucide/svelte/icons/disc-3';
-	import Users from '@lucide/svelte/icons/users';
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { player } from '$lib/player/player.svelte';
@@ -12,12 +10,10 @@
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
-	import ChipGroup, { type ChipOption } from '$lib/components/ui/ChipGroup.svelte';
 	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '$lib/config';
+	import { EXPLORE_ALBUM_SLOTS, EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '$lib/config';
 	import { hueFor } from '$lib/theme/color';
 	import type { YouTubeSong } from '$lib/types';
 	import TrackTile from '$lib/components/TrackTile.svelte';
@@ -25,6 +21,10 @@
 		contextMenuStateFor,
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
+	import AlbumContextMenu, {
+		albumContextMenuStateFor,
+		type AlbumMenuState
+	} from '$lib/components/AlbumContextMenu.svelte';
 	import { appendUnique } from '$lib/collections';
 	import {
 		isTargetCurrent,
@@ -42,21 +42,11 @@
 	let searchValue = $state(untrack(() => data.query));
 	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
-	const filterOptions: ChipOption[] = [
-		{ value: 'tracks', label: 'Canciones', icon: Music },
-		{ value: 'albums', label: 'Álbumes', icon: Disc },
-		{ value: 'users', label: 'Usuarios', icon: Users, disabled: true, hint: 'Próximamente' }
-	];
-
-	let filters = $state<string[]>(['tracks', 'albums']);
-
-	const showTracks = $derived(filters.includes('tracks'));
-	const showAlbums = $derived(filters.includes('albums'));
-
 	let ytItems = $state<YouTubeSong[]>([]);
 	let ytContinuation = $state('');
 	let ytSearchTerm = $state('');
 	let contextMenu = $state<ContextMenuState | null>(null);
+	let albumMenu = $state<AlbumMenuState | null>(null);
 
 	type LocalTrack = (typeof data.tracks.items)[number];
 
@@ -67,6 +57,7 @@
 
 	$effect(() => {
 		contextMenu = null;
+		albumMenu = null;
 		localItems = data.tracks.items;
 		localPage = Number(data.tracks.pageNumber);
 		localHasNext = Boolean(data.tracks.hasNextPage);
@@ -99,53 +90,28 @@
 		...ytItems.map((song) => ({ kind: 'youtube' as const, song }))
 	]);
 
-	const hasMore = $derived(showTracks && (localHasNext || ytContinuation !== ''));
+	const hasMore = $derived(localHasNext || ytContinuation !== '');
 
 	const albums = $derived(data.albums);
+	const youtubeAlbums = $derived(data.youtubeAlbums);
 
+	type LocalAlbum = (typeof data.albums)[number];
 	type YouTubeAlbum = (typeof data.youtubeAlbums)[number];
+	type AlbumEntry = { kind: 'local'; album: LocalAlbum } | { kind: 'youtube'; album: YouTubeAlbum };
 
-	let youtubeAlbums = $state<YouTubeAlbum[]>([]);
-	let ytAlbumsContinuation = $state('');
-	let loadingAlbums = $state(false);
-
-	$effect(() => {
-		youtubeAlbums = appendUnique([], data.youtubeAlbums, (album) => album.albumId);
-		ytAlbumsContinuation = data.youtubeAlbumsContinuation;
-	});
-
-	const hasAlbums = $derived(albums.length > 0 || youtubeAlbums.length > 0);
-
-	async function loadMoreAlbums() {
-		if (loadingAlbums || !ytAlbumsContinuation) return;
-		loadingAlbums = true;
-		try {
-			const params = new URLSearchParams({
-				query: data.query,
-				continuation: ytAlbumsContinuation
-			});
-			const res = await fetch(`/api/youtube/albums?${params}`);
-			if (!res.ok) throw new Error(String(res.status));
-			const next = (await res.json()) as {
-				items: YouTubeAlbum[];
-				continuationToken: string;
-			};
-			youtubeAlbums = appendUnique(youtubeAlbums, next.items, (album) => album.albumId);
-			ytAlbumsContinuation = next.continuationToken;
-		} catch {
-			ytAlbumsContinuation = '';
-		} finally {
-			loadingAlbums = false;
-		}
-	}
-
-	const nothingFound = $derived(
-		!!data.query &&
-			!data.ytError &&
-			(showTracks ? items.length === 0 : true) &&
-			(showAlbums ? !hasAlbums : true) &&
-			filters.length > 0
+	const albumEntries = $derived<AlbumEntry[]>(
+		[
+			...albums.map((album) => ({ kind: 'local' as const, album })),
+			...youtubeAlbums.map((album) => ({ kind: 'youtube' as const, album }))
+		].slice(0, EXPLORE_ALBUM_SLOTS)
 	);
+
+	const hasAlbums = $derived(albumEntries.length > 0);
+	const fillerCount = $derived(Math.max(0, EXPLORE_ALBUM_SLOTS - albumEntries.length));
+	const fillerTracks = $derived(items.slice(0, fillerCount));
+	const remainingTracks = $derived(items.slice(fillerCount));
+
+	const nothingFound = $derived(!!data.query && !data.ytError && items.length === 0 && !hasAlbums);
 
 	function buildHref(query: string) {
 		return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
@@ -175,6 +141,18 @@
 
 	function closeContextMenu() {
 		contextMenu = null;
+	}
+
+	function isForeignAlbum(album: LocalAlbum) {
+		return String(album.ownerUserId) !== data.user?.sub;
+	}
+
+	function openAlbumMenu(event: MouseEvent, kind: 'local' | 'youtube', albumId: string) {
+		albumMenu = albumContextMenuStateFor(event, kind, albumId);
+	}
+
+	function closeAlbumMenu() {
+		albumMenu = null;
 	}
 
 	function addToQueue() {
@@ -235,25 +213,9 @@
 			icon={Search}
 			bind:value={searchValue}
 			oninput={onSearchInput}
-			placeholder="Buscar en tu música y en YouTube Music..."
-		/>
-
-		<ChipGroup
-			label="Qué quieres buscar"
-			options={filterOptions}
-			selected={filters}
-			onChange={(next) => (filters = next)}
-			class="mt-4"
+			placeholder="¿Qué quieres reproducir?"
 		/>
 	</div>
-
-	{#if filters.length === 0}
-		<EmptyState
-			icon={Search}
-			title="No has elegido qué buscar"
-			description="Marca al menos un tipo de resultado para verlos aquí."
-		/>
-	{/if}
 
 	{#if form?.message}
 		<Alert class="mt-4">{form.message}</Alert>
@@ -267,68 +229,91 @@
 		/>
 	{/if}
 
-	{#if showAlbums && hasAlbums}
+	{#if hasAlbums}
 		<div class="mt-8">
 			<SectionHeading title="Álbumes" />
-			<MediaGrid class="mt-4">
-				{#each albums as album, i (album.id)}
-					<AlbumCard
-						id={album.id}
-						title={album.title}
-						typeLabel="Álbum"
-						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
-						trackCount={Number(album.trackCount)}
-						trackIds={album.coverTrackIds}
-						index={i}
-					/>
+			<MediaGrid as="ul" class="mt-4">
+				{#each albumEntries as entry, i (entry.kind === 'local' ? entry.album.id : entry.album.albumId)}
+					<li>
+						{#if entry.kind === 'local'}
+							<AlbumCard
+								id={entry.album.id}
+								title={entry.album.title}
+								typeLabel="Álbum"
+								releaseYear={entry.album.releaseYear === null
+									? undefined
+									: Number(entry.album.releaseYear)}
+								trackCount={Number(entry.album.trackCount)}
+								trackIds={entry.album.coverTrackIds}
+								index={i}
+								onContextMenu={isForeignAlbum(entry.album)
+									? (e) => openAlbumMenu(e, 'local', entry.album.id)
+									: undefined}
+							/>
+						{:else}
+							<AlbumCard
+								id={entry.album.albumId}
+								href="/albums/youtube/{entry.album.albumId}"
+								title={entry.album.title}
+								typeLabel="Álbum"
+								subtitle={entry.album.artist}
+								releaseYear={entry.album.releaseYear === null
+									? undefined
+									: Number(entry.album.releaseYear)}
+								coverSrc={entry.album.thumbnailUrl}
+								index={i}
+								onContextMenu={(e) => openAlbumMenu(e, 'youtube', entry.album.albumId)}
+							/>
+						{/if}
+					</li>
 				{/each}
-				{#each youtubeAlbums as album, i (album.albumId)}
-					<AlbumCard
-						id={album.albumId}
-						href="/albums/youtube/{album.albumId}"
-						title={album.title}
-						typeLabel="Álbum"
-						subtitle={album.artist}
-						releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
-						coverSrc={album.thumbnailUrl}
-						index={albums.length + i}
+				{#each fillerTracks as item, i (targetId(item))}
+					<TrackTile
+						id={targetId(item)}
+						title={targetTitle(item)}
+						artist={targetArtist(item)}
+						typeLabel="Canción"
+						coverShape="round"
+						coverSrc={targetCoverSrc(item)}
+						hue={hueFor(targetId(item))}
+						explicit={targetExplicit(item)}
+						active={isTargetCurrent(item)}
+						playing={player.isPlaying}
+						index={albumEntries.length + i}
+						onClick={() => togglePlay(i)}
+						onContextMenu={(e) => openContextMenu(e, item)}
 					/>
 				{/each}
 			</MediaGrid>
-
-			{#if ytAlbumsContinuation}
-				<div class="mt-6 flex justify-center">
-					<Button variant="secondary" onclick={loadMoreAlbums} loading={loadingAlbums}>
-						Ver más álbumes
-					</Button>
-				</div>
-			{/if}
 		</div>
 	{/if}
 
-	{#if showTracks && items.length > 0}
-		{#if showAlbums && hasAlbums}
+	{#if remainingTracks.length > 0}
+		{#if hasAlbums}
 			<SectionHeading title="Canciones" class="mt-10" />
 		{/if}
 		<MediaGrid as="ul" class="mt-6">
-			{#each items as item, i (targetId(item))}
+			{#each remainingTracks as item, i (targetId(item))}
 				<TrackTile
 					id={targetId(item)}
 					title={targetTitle(item)}
 					artist={targetArtist(item)}
 					typeLabel="Canción"
+					coverShape="round"
 					coverSrc={targetCoverSrc(item)}
 					hue={hueFor(targetId(item))}
 					explicit={targetExplicit(item)}
 					active={isTargetCurrent(item)}
 					playing={player.isPlaying}
 					index={i}
-					onClick={() => togglePlay(i)}
+					onClick={() => togglePlay(fillerCount + i)}
 					onContextMenu={(e) => openContextMenu(e, item)}
 				/>
 			{/each}
 		</MediaGrid>
+	{/if}
 
+	{#if hasMore}
 		<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
 	{/if}
 
@@ -347,4 +332,8 @@
 		onClose={closeContextMenu}
 		onAddToQueue={addToQueue}
 	/>
+{/if}
+
+{#if albumMenu}
+	<AlbumContextMenu menu={albumMenu} playlists={data.playlists} onClose={closeAlbumMenu} />
 {/if}

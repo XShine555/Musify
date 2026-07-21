@@ -3,7 +3,7 @@ import { createApiClient, requireUser } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
 import { shuffle } from '$lib/collections';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
-import { HOME_LATEST_PAGE_SIZE, YOUTUBE_FILLER_LIMIT } from '$lib/config';
+import { HOME_ALBUMS_PAGE_SIZE, HOME_LATEST_PAGE_SIZE, YOUTUBE_FILLER_LIMIT } from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
@@ -16,14 +16,21 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const playlistsPromise = api.GET('/playlists/users/{userId}', {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 12 } }
 	});
+	const albumsPromise = api.GET('/albums/users/{userId}', {
+		params: {
+			path: { userId: user.sub },
+			query: { pageNumber: 1, pageSize: HOME_ALBUMS_PAGE_SIZE }
+		}
+	});
 	const mixesPromise = api.GET('/mixes');
 	const recentlyPlayedPromise = api.GET('/users/{id}/listening-history', {
 		params: { path: { id: user.sub } }
 	});
 
-	const [latest, playlists, mixes, recentlyPlayed] = await Promise.all([
+	const [latest, playlists, albums, mixes, recentlyPlayed] = await Promise.all([
 		latestPromise,
 		playlistsPromise,
+		albumsPromise,
 		mixesPromise,
 		recentlyPlayedPromise
 	]);
@@ -41,6 +48,8 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 			user.sub
 		),
 		playlists: playlistItems,
+		albums: albums.data?.items ?? [],
+		albumsHasMore: Boolean(albums.data?.hasNextPage),
 		mixes: mixes.data ?? [],
 		recentlyPlayed: recentlyPlayed.data ?? []
 	};

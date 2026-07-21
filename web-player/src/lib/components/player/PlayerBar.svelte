@@ -3,7 +3,18 @@
 	import TransportControls from './TransportControls.svelte';
 	import SeekBar from './SeekBar.svelte';
 	import VolumeControl from './VolumeControl.svelte';
+	import Alert from '$lib/components/ui/Alert.svelte';
+	import { player } from '$lib/player/player.svelte';
 </script>
+
+{#if player.error}
+	<div
+		class="fixed inset-x-0 z-40 page-x py-2 md:left-[var(--mf-sidebar-w)] md:z-50"
+		style="bottom:calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-player-h))"
+	>
+		<Alert tone="danger">{player.error}</Alert>
+	</div>
+{/if}
 
 <div
 	class="animate-enter fixed right-0 left-0 z-40 h-[var(--mf-player-h)] border-t border-line bg-bg md:left-[var(--mf-sidebar-w)] md:z-50"

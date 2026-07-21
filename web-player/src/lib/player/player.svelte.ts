@@ -75,6 +75,15 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 	});
 }
 
+async function readErrorMessage(res: Response): Promise<string> {
+	try {
+		const body = (await res.json()) as { message?: string };
+		return body?.message || `Error ${res.status}`;
+	} catch {
+		return `Error ${res.status}`;
+	}
+}
+
 const RECENT_LIMIT = 15;
 
 const EMPTY: PlayerTrack = {
@@ -286,13 +295,16 @@ class PlayerState {
 			if (token !== this.#loadToken) return;
 			this.loading = false;
 			this.playing = false;
-			this.error = 'No se pudo reproducir la pista.';
+			this.error =
+				exception instanceof Error && exception.message
+					? exception.message
+					: 'No se pudo reproducir la pista.';
 		}
 	}
 
 	async #resolveLocalSrc(id: string): Promise<string> {
 		const res = await fetch(`/api/tracks/${id}/stream`);
-		if (!res.ok) throw new Error(String(res.status));
+		if (!res.ok) throw new Error(await readErrorMessage(res));
 		const { manifestUrl, ticket } = (await res.json()) as {
 			manifestUrl: string;
 			ticket: string;
@@ -302,7 +314,7 @@ class PlayerState {
 
 	async #resolveYouTubeSrc(videoId: string): Promise<string> {
 		const res = await fetch(`/api/youtube/tracks/${videoId}/stream`);
-		if (!res.ok) throw new Error(String(res.status));
+		if (!res.ok) throw new Error(await readErrorMessage(res));
 		const { mode, streamUrl, ticket } = (await res.json()) as {
 			mode: string;
 			streamUrl: string;

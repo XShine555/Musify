@@ -14,6 +14,7 @@
 		trackIds?: (string | number)[];
 		coverSrc?: string | null;
 		index?: number;
+		onContextMenu?: (event: MouseEvent) => void;
 	}
 
 	let {
@@ -26,7 +27,8 @@
 		trackCount,
 		trackIds = [],
 		coverSrc,
-		index = 0
+		index = 0,
+		onContextMenu
 	}: Props = $props();
 
 	const meta = $derived(
@@ -47,6 +49,7 @@
 	href={href ?? `/albums/${id}`}
 	class="group animate-enter min-w-0 text-left"
 	style="animation-delay:{index * 45}ms"
+	oncontextmenu={onContextMenu}
 >
 	{#if coverSrc}
 		<Cover

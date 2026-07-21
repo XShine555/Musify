@@ -50,15 +50,6 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/youtube/{albumId}", SaveYouTubeAlbum)
-            .WithName("SaveYouTubeAlbum")
-            .WithSummary("Save A YouTube Music Album To Your Library With All Of Its Tracks.")
-            .RequireAuthorization()
-            .Produces<AlbumApplicationResponse>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status409Conflict);
-
         group.MapPut("/{albumId}", UpdateAlbum)
             .WithName("UpdateAlbum")
             .WithSummary("Update An Album.")
@@ -147,19 +138,6 @@ public static class AlbumEndpoints
     {
         var result = await mediator.Send(
             new CreateAlbumCommand(currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear),
-            cancellationToken);
-
-        return result.ToCreatedResult(album => $"/albums/{album.Id}");
-    }
-
-    private static async Task<IResult> SaveYouTubeAlbum(
-        IMediator mediator,
-        CurrentUser currentUser,
-        string albumId,
-        CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(
-            new SaveYouTubeAlbumCommand(currentUser.RequiredId, albumId),
             cancellationToken);
 
         return result.ToCreatedResult(album => $"/albums/{album.Id}");

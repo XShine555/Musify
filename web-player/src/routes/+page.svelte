@@ -14,8 +14,10 @@
 	} from '$lib/tracks';
 	import { hueFor } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
+	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
 	import MixCard from '$lib/components/ui/MixCard.svelte';
+	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
@@ -29,7 +31,7 @@
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
 	import type { YouTubeSong } from '$lib/types';
-	import { appendUnique } from '$lib/collections';
+	import { appendUnique, shuffle } from '$lib/collections';
 
 	let { data } = $props();
 
@@ -107,11 +109,57 @@
 		}
 	}
 	const playlists = $derived(data.playlists);
+	const albums = $derived(data.albums);
 	const mixes = $derived(data.mixes);
 
 	function playLatest(index: number) {
 		player.playOrToggle(latest.map(queueItemForTarget), index);
 	}
+
+	function playShuffledLocal() {
+		if (localLatest.length === 0) return;
+		player.playQueue(shuffle(localLatest).map(queueItemForTarget), 0);
+	}
+
+	function playShuffledYoutube() {
+		if (youtubeFillerItems.length === 0) return;
+		const targets = youtubeFillerItems.map((song) => ({ kind: 'youtube' as const, song }));
+		player.playQueue(shuffle(targets).map(queueItemForTarget), 0);
+	}
+
+	interface QuickMix {
+		key: string;
+		title: string;
+		subtitle: string;
+		coverIds?: (string | number)[];
+		coverSongs?: YouTubeSong[];
+		onClick: () => void;
+	}
+
+	const quickMixes = $derived<QuickMix[]>(
+		(
+			[
+				localLatest.length > 0
+					? {
+							key: 'local',
+							title: 'Mezcla Musify',
+							subtitle: `${localLatest.length} ${localLatest.length === 1 ? 'canción' : 'canciones'}`,
+							coverIds: localLatest.map((item) => targetId(item)),
+							onClick: playShuffledLocal
+						}
+					: null,
+				youtubeFillerItems.length > 0
+					? {
+							key: 'youtube',
+							title: 'Mezcla YouTube Music',
+							subtitle: `${youtubeFillerItems.length} ${youtubeFillerItems.length === 1 ? 'canción' : 'canciones'}`,
+							coverSongs: youtubeFillerItems.slice(0, 4),
+							onClick: playShuffledYoutube
+						}
+					: null
+			] as (QuickMix | null)[]
+		).filter((mix): mix is QuickMix => mix !== null)
+	);
 
 	function openContextMenu(event: MouseEvent, target: TrackTarget) {
 		contextMenu = contextMenuStateFor(event, target);
@@ -225,6 +273,46 @@
 	</section>
 {/if}
 
+{#if quickMixes.length > 0}
+	<section class="page-x pt-5 pb-3 sm:pt-6">
+		<SectionHeading title="Mezclas rápidas" />
+		<MediaGrid>
+			{#each quickMixes as mix, i (mix.key)}
+				<button
+					type="button"
+					onclick={mix.onClick}
+					class="group animate-enter min-w-0 text-left"
+					style="animation-delay:{i * 45}ms"
+				>
+					{#if mix.coverSongs}
+						<div
+							class="grid aspect-square w-full grid-cols-2 grid-rows-2 overflow-hidden rounded-art shadow-art transition group-hover:shadow-art-lg"
+						>
+							{#each mix.coverSongs as song (song.videoId)}
+								<Cover
+									trackId={song.videoId}
+									src={song.thumbnailUrl}
+									hue={hueFor(song.videoId)}
+									size="small"
+									class="h-full w-full"
+								/>
+							{/each}
+						</div>
+					{:else}
+						<PlaylistArt
+							trackIds={mix.coverIds ?? []}
+							hue={hueFor(mix.key)}
+							class="aspect-square w-full rounded-art shadow-art transition group-hover:shadow-art-lg"
+						/>
+					{/if}
+					<div class="mt-2.5 truncate text-fg">{mix.title}</div>
+					<div class="mt-0.5 truncate text-sm text-fg-3">{mix.subtitle}</div>
+				</button>
+			{/each}
+		</MediaGrid>
+	</section>
+{/if}
+
 {#if mixes.length > 0}
 	<section class="page-x pt-5 pb-3 sm:pt-6">
 		<SectionHeading title="Hechas para ti" />
@@ -247,6 +335,32 @@
 					description={playlist.description}
 					trackIds={playlist.coverTrackIds}
 					updatedAt={playlist.updatedAt}
+					index={i}
+				/>
+			{/each}
+		</MediaGrid>
+	</section>
+{/if}
+
+{#if albums.length > 0}
+	<section class="page-x pt-5 pb-3 sm:pt-6">
+		<SectionHeading title="Tus álbumes">
+			{#snippet actions()}
+				{#if data.albumsHasMore}
+					<a href="/albums" class="text-sm text-fg-3 transition hover:text-accent-soft">
+						Ver todos
+					</a>
+				{/if}
+			{/snippet}
+		</SectionHeading>
+		<MediaGrid>
+			{#each albums as album, i (album.id)}
+				<AlbumCard
+					id={album.id}
+					title={album.title}
+					releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
+					trackCount={Number(album.trackCount)}
+					trackIds={album.coverTrackIds}
 					index={i}
 				/>
 			{/each}

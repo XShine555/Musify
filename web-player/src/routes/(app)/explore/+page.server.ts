@@ -1,7 +1,12 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser, unwrapOrError } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
-import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
+import {
+	addAlbumToPlaylistAction,
+	addTrackAction,
+	addYouTubeToPlaylistAction,
+	addYoutubeAlbumToPlaylistAction
+} from '$lib/server/playlistActions';
 import {
 	EXPLORE_ALBUMS_PAGE_SIZE,
 	EXPLORE_PAGE_SIZE as PAGE_SIZE,
@@ -55,7 +60,6 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		tracks,
 		albums: albumsRes?.data?.items ?? [],
 		youtubeAlbums: youtubeAlbumsRes?.data?.items ?? [],
-		youtubeAlbumsContinuation: youtubeAlbumsRes?.data?.continuationToken ?? '',
 		ytResults: searchRes?.data ?? null,
 		ytError: Boolean(searchRes?.error),
 		youtubeFiller: query
@@ -67,5 +71,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 
 export const actions: Actions = {
 	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction
+	addYouTubeToPlaylist: addYouTubeToPlaylistAction,
+	addAlbumToPlaylist: addAlbumToPlaylistAction,
+	addYoutubeAlbumToPlaylist: addYoutubeAlbumToPlaylistAction
 };

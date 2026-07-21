@@ -11,6 +11,7 @@
 		alt?: string;
 		class?: string;
 		children?: Snippet;
+		oncontextmenu?: (event: MouseEvent) => void;
 	}
 
 	let {
@@ -20,7 +21,8 @@
 		src,
 		alt = '',
 		class: klass = '',
-		children
+		children,
+		oncontextmenu
 	}: Props = $props();
 
 	let failed = $state(false);
@@ -40,6 +42,8 @@
 <div
 	class="relative overflow-hidden {klass}"
 	style={loaded && !failed ? undefined : `background:${gradientForHue(hue)}`}
+	role="presentation"
+	{oncontextmenu}
 >
 	{#if !failed}
 		<img

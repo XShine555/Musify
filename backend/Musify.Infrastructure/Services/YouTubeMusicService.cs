@@ -162,7 +162,7 @@ namespace Musify.Infrastructure.Services
 
                 return new YouTubeAlbumDetail(
                     album,
-                    info.Description ?? string.Empty,
+                    StripWikipediaAttribution(info.Description),
                     (int)info.Duration.TotalSeconds,
                     tracks);
             }
@@ -171,6 +171,16 @@ namespace Musify.Infrastructure.Services
                 logger.LogError(exception, "Failed to load YouTube album '{AlbumId}'", albumId);
                 return Error.Failure(description: $"Failed to load YouTube album '{albumId}': {exception.Message}");
             }
+        }
+
+        private static string StripWikipediaAttribution(string? description)
+        {
+            if (string.IsNullOrEmpty(description))
+                return string.Empty;
+
+            var markerIndex = description.IndexOf("From Wikipedia", StringComparison.OrdinalIgnoreCase);
+            var cleaned = markerIndex >= 0 ? description[..markerIndex] : description;
+            return cleaned.TrimEnd();
         }
 
         private YouTubeAlbumResult ToAlbumResult(AlbumSearchResult album) =>

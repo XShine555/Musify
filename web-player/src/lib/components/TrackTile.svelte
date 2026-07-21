@@ -11,6 +11,7 @@
 		typeLabel?: string;
 		coverSrc?: string | null;
 		coverSize?: 'small' | 'medium' | 'large';
+		coverShape?: 'square' | 'round';
 		hue: number;
 		explicit?: boolean;
 		active: boolean;
@@ -28,6 +29,7 @@
 		typeLabel,
 		coverSrc,
 		coverSize = 'large',
+		coverShape = 'square',
 		hue,
 		explicit = false,
 		active,
@@ -58,7 +60,9 @@
 			{hue}
 			size={coverSize}
 			alt={title}
-			class="aspect-square w-full rounded-art shadow-art"
+			class="aspect-square w-full shadow-art {coverShape === 'round'
+				? 'rounded-art-round'
+				: 'rounded-art'}"
 		>
 			<PlayPauseOverlay {active} {playing} />
 		</Cover>
