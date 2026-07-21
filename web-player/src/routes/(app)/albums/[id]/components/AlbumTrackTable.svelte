@@ -30,19 +30,7 @@
 	}
 </script>
 
-<TrackTable
-	columns={isOwner ? '32px 1fr 64px 36px' : '32px 1fr 64px'}
-	columnsMobile={isOwner ? '28px 1fr 52px 32px' : '28px 1fr 52px'}
-	class="mt-6 sm:mt-8"
->
-	{#snippet headers()}
-		<span class="text-center">#</span>
-		<span>Título</span>
-		<span class="hidden text-center sm:block">Duración</span>
-		{#if isOwner}
-			<span></span>
-		{/if}
-	{/snippet}
+<TrackTable index action={isOwner} class="mt-6 sm:mt-8">
 	{#each tracks as track, i (track.id)}
 		<TrackRow>
 			<TrackIndexCell

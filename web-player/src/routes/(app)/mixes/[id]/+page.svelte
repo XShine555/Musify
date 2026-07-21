@@ -119,12 +119,7 @@
 		<Alert tone="danger" class="mt-4">{form.message}</Alert>
 	{/if}
 
-	<TrackTable columns="32px 1fr 64px" columnsMobile="28px 1fr 52px" class="mt-6 sm:mt-8">
-		{#snippet headers()}
-			<span class="text-center">#</span>
-			<span>Título</span>
-			<span class="hidden text-center sm:block">Duración</span>
-		{/snippet}
+	<TrackTable index class="mt-6 sm:mt-8">
 		{#each items as item, i (mixItemKey(item))}
 			<TrackRow oncontextmenu={(e) => (contextMenu = contextMenuStateFor(e, targets[i]))}>
 				<TrackIndexCell

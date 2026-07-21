@@ -32,18 +32,7 @@
 	}
 </script>
 
-<TrackTable
-	columns="32px 1fr 140px 64px 36px"
-	columnsMobile="28px 1fr 52px 32px"
-	class="mt-6 sm:mt-8"
->
-	{#snippet headers()}
-		<span class="text-center">#</span>
-		<span>Título</span>
-		<span class="hidden text-center sm:block">Añadida</span>
-		<span class="hidden text-center sm:block">Duración</span>
-		<span></span>
-	{/snippet}
+<TrackTable index action meta={[{ label: 'Añadida', width: '140px' }]} class="mt-6 sm:mt-8">
 	{#each tracks as track, i (track.id)}
 		<TrackRow>
 			<TrackIndexCell

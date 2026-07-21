@@ -84,12 +84,7 @@
 
 <div class="mt-10 sm:mt-12">
 	<SectionHeading title="Sugerencias" />
-	<TrackTable columns="1fr 64px 36px" columnsMobile="1fr 52px 32px">
-		{#snippet headers()}
-			<span>Título</span>
-			<span class="hidden text-center sm:block">Duración</span>
-			<span></span>
-		{/snippet}
+	<TrackTable action>
 		{#each suggestions as item, i (idFor(item))}
 			<TrackRow oncontextmenu={(e) => openContextMenu(e, item)}>
 				<TrackTitleCell

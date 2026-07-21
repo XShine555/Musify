@@ -49,18 +49,14 @@
 
 	{#if items.length > 0}
 		<TrackTable
-			columns="32px 1fr 100px 100px 64px 36px"
-			columnsMobile="28px 1fr 52px 32px"
+			index
+			action
+			meta={[
+				{ label: 'Subida', width: '100px' },
+				{ label: 'Escuchas', width: '100px' }
+			]}
 			class="mt-6 sm:mt-8"
 		>
-			{#snippet headers()}
-				<span class="text-center">#</span>
-				<span>Título</span>
-				<span class="hidden text-center sm:block">Subida</span>
-				<span class="hidden text-center sm:block">Escuchas</span>
-				<span class="hidden text-center sm:block">Duración</span>
-				<span></span>
-			{/snippet}
 			{#each items as track, i (track.id)}
 				<TrackRow>
 					<TrackIndexCell

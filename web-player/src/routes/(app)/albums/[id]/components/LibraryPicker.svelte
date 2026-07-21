@@ -27,12 +27,7 @@
 
 <div class="mt-10 sm:mt-12">
 	<SectionHeading title="Tus canciones subidas" />
-	<TrackTable columns="1fr 64px 36px" columnsMobile="1fr 52px 32px">
-		{#snippet headers()}
-			<span>Título</span>
-			<span class="hidden text-center sm:block">Duración</span>
-			<span></span>
-		{/snippet}
+	<TrackTable action>
 		{#each library as track, i (track.id)}
 			<TrackRow>
 				<TrackTitleCell

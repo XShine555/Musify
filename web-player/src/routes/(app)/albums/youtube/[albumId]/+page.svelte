@@ -140,12 +140,7 @@
 		<p class="mt-6 text-sm text-fg-3">{data.album.description}</p>
 	{/if}
 
-	<TrackTable columns="32px 1fr 64px" columnsMobile="28px 1fr 52px" class="mt-6 sm:mt-8">
-		{#snippet headers()}
-			<span class="text-center">#</span>
-			<span>Título</span>
-			<span class="hidden text-center sm:block">Duración</span>
-		{/snippet}
+	<TrackTable index class="mt-6 sm:mt-8">
 		{#each tracks as track, i (track.videoId)}
 			<TrackRow oncontextmenu={(e) => (contextMenu = contextMenuStateFor(e, targetFor(i)))}>
 				<TrackIndexCell

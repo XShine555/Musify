@@ -5,6 +5,11 @@
 		readonly columns: string;
 		readonly columnsMobile: string;
 	}
+
+	export interface TrackMetaColumn {
+		label: string;
+		width: string;
+	}
 </script>
 
 <script lang="ts">
@@ -12,23 +17,39 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		columns: string;
-		columnsMobile?: string;
+		index?: boolean;
+		action?: boolean;
+		meta?: TrackMetaColumn[];
 		class?: string;
-		headers: Snippet;
 		children: Snippet;
 	}
 
-	let { columns, columnsMobile, class: klass = '', headers, children }: Props = $props();
+	let { index = false, action = false, meta = [], class: klass = '', children }: Props = $props();
 
-	const mobile = $derived(columnsMobile ?? columns);
+	const columns = $derived(
+		[
+			index ? '32px' : '',
+			'1fr',
+			...meta.map((column) => column.width),
+			'64px',
+			action ? '36px' : ''
+		]
+			.filter((width) => width !== '')
+			.join(' ')
+	);
+
+	const columnsMobile = $derived(
+		[index ? '28px' : '', '1fr', '52px', action ? '32px' : '']
+			.filter((width) => width !== '')
+			.join(' ')
+	);
 
 	setContext<TrackTableContext>(trackTableKey, {
 		get columns() {
 			return columns;
 		},
 		get columnsMobile() {
-			return mobile;
+			return columnsMobile;
 		}
 	});
 </script>
@@ -36,9 +57,19 @@
 <div class={klass}>
 	<div
 		class="grid track-grid items-center gap-3 border-b border-line px-2 pb-2 text-sm font-medium tracking-wide text-muted uppercase sm:gap-8 sm:px-3"
-		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{mobile}"
+		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{columnsMobile}"
 	>
-		{@render headers()}
+		{#if index}
+			<span class="text-center">#</span>
+		{/if}
+		<span>Título</span>
+		{#each meta as column (column.label)}
+			<span class="hidden text-center sm:block">{column.label}</span>
+		{/each}
+		<span class="hidden text-center sm:block">Duración</span>
+		{#if action}
+			<span></span>
+		{/if}
 	</div>
 	<div class="mt-1 flex flex-col">
 		{@render children()}
