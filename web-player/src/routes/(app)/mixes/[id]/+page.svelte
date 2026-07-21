@@ -83,7 +83,7 @@
 			class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44"
 		/>
 		<div class="min-w-0 flex-1">
-			<p class="text-sm tracking-[0.14em] text-fg-3 uppercase">Mix</p>
+			<p class="text-sm tracking-[0.14em] text-fg-3 uppercase">Mezcla</p>
 			<h1
 				class="mt-1.5 text-3xl font-bold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
 			>

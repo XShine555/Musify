@@ -256,7 +256,7 @@ namespace Musify.Application.Mixes
                     continue;
 
                 drafts.Add(new MixDraft(
-                    Truncate($"Mezcla: {seed.Name}", MixTitleLength),
+                    Truncate(seed.Name, MixTitleLength),
                     $"Canciones de {seed.Name} y de artistas parecidos.",
                     items));
             }
