@@ -227,44 +227,52 @@
 	</section>
 {/if}
 
-{#if mixes.length > 0}
-	<section class="page-x pt-5 pb-3 sm:pt-6">
-		<SectionHeading title="Hechas para ti" />
-		<MediaGrid>
-			{#each mixes as mix, i (mix.id)}
-				<MixCard {mix} index={i} />
-			{/each}
-		</MediaGrid>
-	</section>
-{/if}
+{#if mixes.length > 0 || playlists.length > 0}
+	<section class="grid gap-x-8 gap-y-5 page-x pt-5 pb-3 sm:pt-6 lg:grid-cols-2">
+		{#if mixes.length > 0}
+			<div class="min-w-0">
+				<SectionHeading title="Hechas para ti" />
+				<MediaGrid min="140px" minMobile="130px">
+					{#each mixes as mix, i (mix.id)}
+						<MixCard {mix} index={i} />
+					{/each}
+				</MediaGrid>
+			</div>
+		{/if}
 
-{#if playlists.length > 0}
-	<section class="page-x pt-5 pb-3 sm:pt-6">
-		<SectionHeading title="Mis listas" />
-		<MediaGrid>
-			{#each playlists as playlist, i (playlist.id)}
-				<PlaylistCard
-					id={playlist.id}
-					name={playlist.name}
-					description={playlist.description}
-					trackIds={playlist.coverTrackIds}
-					updatedAt={playlist.updatedAt}
-					index={i}
-				/>
-			{/each}
-		</MediaGrid>
+		{#if playlists.length > 0}
+			<div class="min-w-0">
+				<SectionHeading title="Mis listas">
+					{#snippet actions()}
+						{#if data.playlistsHasMore}
+							<a href="/playlists" class="text-sm text-fg-3 transition hover:text-accent-soft">
+								Ver todas
+							</a>
+						{/if}
+					{/snippet}
+				</SectionHeading>
+				<MediaGrid min="140px" minMobile="130px">
+					{#each playlists as playlist, i (playlist.id)}
+						<PlaylistCard
+							id={playlist.id}
+							name={playlist.name}
+							description={playlist.description}
+							trackIds={playlist.coverTrackIds}
+							updatedAt={playlist.updatedAt}
+							index={i}
+						/>
+					{/each}
+				</MediaGrid>
+			</div>
+		{/if}
 	</section>
 {/if}
 
 {#if albums.length > 0}
 	<section class="page-x pt-5 pb-3 sm:pt-6">
-		<SectionHeading title="Tus álbumes">
+		<SectionHeading title="Álbumes escuchados recientemente">
 			{#snippet actions()}
-				{#if data.albumsHasMore}
-					<a href="/albums" class="text-sm text-fg-3 transition hover:text-accent-soft">
-						Ver todos
-					</a>
-				{/if}
+				<a href="/albums" class="text-sm text-fg-3 transition hover:text-accent-soft">Ver todos</a>
 			{/snippet}
 		</SectionHeading>
 		<MediaGrid>
@@ -283,7 +291,7 @@
 {/if}
 
 <section class="page-x pt-5 pb-10 sm:pt-6">
-	<SectionHeading title="Novedades" />
+	<SectionHeading title="Descubrir" />
 	{#if latest.length > 0}
 		<MediaGrid as="ul">
 			{#each latest as item, i (targetId(item))}

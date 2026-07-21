@@ -3,7 +3,12 @@ import { createApiClient, requireUser } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
 import { shuffle } from '$lib/collections';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
-import { HOME_ALBUMS_PAGE_SIZE, HOME_LATEST_PAGE_SIZE, YOUTUBE_FILLER_LIMIT } from '$lib/config';
+import {
+	HOME_ALBUMS_LIMIT,
+	HOME_LATEST_PAGE_SIZE,
+	HOME_SHELF_LIMIT,
+	YOUTUBE_FILLER_LIMIT
+} from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
@@ -14,13 +19,13 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		params: { query: { pageNumber: 1, pageSize: HOME_LATEST_PAGE_SIZE } }
 	});
 	const playlistsPromise = api.GET('/playlists/users/{userId}', {
-		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 12 } }
-	});
-	const albumsPromise = api.GET('/albums/users/{userId}', {
 		params: {
 			path: { userId: user.sub },
-			query: { pageNumber: 1, pageSize: HOME_ALBUMS_PAGE_SIZE }
+			query: { pageNumber: 1, pageSize: HOME_SHELF_LIMIT + 1 }
 		}
+	});
+	const albumsPromise = api.GET('/albums/recent', {
+		params: { query: { limit: HOME_ALBUMS_LIMIT } }
 	});
 	const mixesPromise = api.GET('/mixes');
 	const recentlyPlayedPromise = api.GET('/users/{id}/listening-history', {
@@ -47,10 +52,10 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 			undefined,
 			user.sub
 		),
-		playlists: playlistItems,
-		albums: albums.data?.items ?? [],
-		albumsHasMore: Boolean(albums.data?.hasNextPage),
-		mixes: mixes.data ?? [],
+		playlists: playlistItems.slice(0, HOME_SHELF_LIMIT),
+		playlistsHasMore: playlistItems.length > HOME_SHELF_LIMIT,
+		albums: albums.data ?? [],
+		mixes: (mixes.data ?? []).slice(0, HOME_SHELF_LIMIT),
 		recentlyPlayed: recentlyPlayed.data ?? []
 	};
 };

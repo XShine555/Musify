@@ -34,6 +34,13 @@ public static class AlbumEndpoints
             .Produces<PaginatedResponse<AlbumApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapGet("/recent", GetRecentlyListenedAlbums)
+            .WithName("GetRecentlyListenedAlbums")
+            .WithSummary("Get The Albums The Current User Listened To Most Recently.")
+            .RequireAuthorization()
+            .Produces<IReadOnlyList<AlbumApplicationResponse>>()
+            .Produces(StatusCodes.Status401Unauthorized);
+
         group.MapGet("/{albumId}/tracks", GetAlbumTracks)
             .WithName("GetAlbumTracks")
             .WithSummary("Get The Tracks Of An Album Ordered By Track Number.")
@@ -116,6 +123,16 @@ public static class AlbumEndpoints
         int pageSize = 10)
     {
         var result = await mediator.Send(new GetAlbumsByUserIdQuery(userId, pageNumber, pageSize), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetRecentlyListenedAlbums(
+        IMediator mediator,
+        CurrentUser currentUser,
+        CancellationToken cancellationToken,
+        int limit = 12)
+    {
+        var result = await mediator.Send(new GetRecentlyListenedAlbumsQuery(currentUser.RequiredId, limit), cancellationToken);
         return result.ToHttpResult();
     }
 
