@@ -236,7 +236,7 @@ namespace Musify.Application.Mixes
             {
                 drafts.Add(new MixDraft(
                     "Descubrimiento",
-                    "Canciones nuevas de YouTube Music que todavía no has escuchado.",
+                    "Canciones nuevas que todavía no has escuchado.",
                     discovery));
             }
 
@@ -257,7 +257,7 @@ namespace Musify.Application.Mixes
 
                 drafts.Add(new MixDraft(
                     Truncate($"Mezcla: {seed.Name}", MixTitleLength),
-                    $"Canciones de {seed.Name} en Musify y en YouTube Music.",
+                    $"Canciones de {seed.Name} y de artistas parecidos.",
                     items));
             }
 

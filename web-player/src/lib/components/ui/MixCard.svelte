@@ -26,6 +26,6 @@
 	<div class="mt-2.5 truncate text-fg">{mix.title}</div>
 	<div class="mt-0.5 truncate text-sm text-fg-3">
 		{count}
-		{count === 1 ? 'canción' : 'canciones'} · Musify y YouTube Music
+		{count === 1 ? 'canción' : 'canciones'}
 	</div>
 </a>

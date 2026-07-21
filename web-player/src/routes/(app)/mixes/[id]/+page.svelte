@@ -1,6 +1,5 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
@@ -11,7 +10,6 @@
 	import Page from '$lib/components/ui/Page.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import MixArt from '$lib/components/ui/MixArt.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
@@ -42,8 +40,6 @@
 	const totalSeconds = $derived(
 		items.reduce((total, item) => total + Number(item.durationSeconds), 0)
 	);
-	const fromYouTube = $derived(items.filter((item) => item.source === 'YouTube').length);
-	const fromMusify = $derived(items.length - fromYouTube);
 	const isCurrentQueue = $derived(targets.some(isTargetCurrent));
 
 	let contextMenu = $state<ContextMenuState | null>(null);
@@ -66,10 +62,7 @@
 
 <svelte:head>
 	<title>{mix.title} · Musify</title>
-	<meta
-		name="description"
-		content="Mezcla {mix.title}, hecha para ti con Musify y YouTube Music."
-	/>
+	<meta name="description" content="Mezcla {mix.title}, hecha para ti." />
 </svelte:head>
 
 <Page>
@@ -90,10 +83,6 @@
 			class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44"
 		/>
 		<div class="min-w-0 flex-1">
-			<p class="inline-flex items-center gap-1.5 text-sm tracking-[0.14em] text-fg-3 uppercase">
-				<Sparkles class="h-3.5 w-3.5 text-accent" />
-				Hecha para ti
-			</p>
 			<h1
 				class="mt-1.5 text-3xl font-bold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
 			>
@@ -106,14 +95,6 @@
 				{items.length}
 				{items.length === 1 ? 'canción' : 'canciones'} · {fmtTime(totalSeconds)}
 			</p>
-			<div class="mt-3 flex flex-wrap items-center gap-2">
-				{#if fromMusify > 0}
-					<Badge>{fromMusify} de Musify</Badge>
-				{/if}
-				{#if fromYouTube > 0}
-					<Badge tone="accent">{fromYouTube} de YouTube Music</Badge>
-				{/if}
-			</div>
 		</div>
 	</div>
 
@@ -159,13 +140,7 @@
 					hue={hueFor(mixItemKey(item))}
 					explicit={item.isExplicit}
 					onClick={() => playFrom(i)}
-				>
-					{#snippet badge()}
-						{#if item.source === 'YouTube'}
-							<Badge tone="accent" class="hidden sm:inline">YouTube</Badge>
-						{/if}
-					{/snippet}
-				</TrackTitleCell>
+				/>
 				<TrackMeta>{fmtTime(Number(item.durationSeconds))}</TrackMeta>
 			</TrackRow>
 		{/each}
