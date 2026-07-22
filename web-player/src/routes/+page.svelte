@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
+	import ListMusic from '@lucide/svelte/icons/list-music';
 	import { player, toQueueItems, type QueueItem } from '$lib/player/player.svelte';
 	import {
 		isTargetCurrent,
@@ -14,17 +15,16 @@
 	} from '$lib/tracks';
 	import { hueFor } from '$lib/theme/color';
 	import Cover from '$lib/components/ui/Cover.svelte';
-	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
-	import MixCard from '$lib/components/ui/MixCard.svelte';
-	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
+	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import MixBentoTile from '$lib/components/ui/MixBentoTile.svelte';
+	import Rail from '$lib/components/ui/Rail.svelte';
+	import CoverBadge from '$lib/components/ui/CoverBadge.svelte';
+	import ArtistAvatar from '$lib/components/ui/ArtistAvatar.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
-	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
-	import { HOME_LATEST_PAGE_SIZE } from '$lib/config';
 	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import TrackTile from '$lib/components/TrackTile.svelte';
 	import TrackContextMenu, {
 		contextMenuStateFor,
 		type ContextMenuState
@@ -34,100 +34,32 @@
 
 	let { data } = $props();
 
-	let youtubeFillerItems = $state<YouTubeSong[]>([]);
-	let ytContinuation = $state('');
-	let ytQuery = $state('');
 	let contextMenu = $state<ContextMenuState | null>(null);
-
-	type LocalLatest = (typeof data.latest)[number];
-
-	let localLatest = $state<LocalLatest[]>([]);
-	let localPage = $state(1);
-	let localHasNext = $state(false);
-	let loadingMore = $state(false);
+	let youtubeFillerItems = $state<YouTubeSong[]>([]);
 
 	$effect(() => {
 		youtubeFillerItems = [];
-		ytContinuation = '';
-		ytQuery = '';
-		localLatest = data.latest;
-		localPage = 1;
-		localHasNext = data.latestHasNext;
-
 		let cancelled = false;
 		data.youtubeFiller.then((filler) => {
 			if (cancelled) return;
-			youtubeFillerItems = filler.items;
-			ytContinuation = filler.continuationToken;
-			ytQuery = filler.query;
+			youtubeFillerItems = appendUnique([], filler.items, (song) => song.videoId);
 		});
 		return () => {
 			cancelled = true;
 		};
 	});
 
-	const latest = $derived<TrackTarget[]>([
-		...localLatest,
-		...youtubeFillerItems.map((song) => ({ kind: 'youtube' as const, song }))
-	]);
-
-	const hasMoreLatest = $derived(localHasNext || ytContinuation !== '');
-
-	async function loadMoreLatest() {
-		if (loadingMore) return;
-		loadingMore = true;
-		try {
-			if (localHasNext) {
-				const params = new URLSearchParams({
-					pageNumber: String(localPage + 1),
-					pageSize: String(HOME_LATEST_PAGE_SIZE)
-				});
-				const res = await fetch(`/api/tracks?${params}`);
-				if (!res.ok) throw new Error(String(res.status));
-				const next = await res.json();
-				localLatest = appendUnique(
-					localLatest,
-					next.items.map((track: LocalLatest['track']) => ({ kind: 'local' as const, track })),
-					(item) => item.track.id
-				);
-				localPage = Number(next.pageNumber);
-				localHasNext = Boolean(next.hasNextPage);
-			} else if (ytContinuation && ytQuery) {
-				const params = new URLSearchParams({ query: ytQuery, continuation: ytContinuation });
-				const res = await fetch(`/api/youtube/search?${params}`);
-				if (!res.ok) throw new Error(String(res.status));
-				const next = (await res.json()) as { items: YouTubeSong[]; continuationToken: string };
-				youtubeFillerItems = appendUnique(youtubeFillerItems, next.items, (i) => i.videoId);
-				ytContinuation = next.continuationToken;
-			}
-		} catch {
-			if (localHasNext) localHasNext = false;
-			else ytContinuation = '';
-		} finally {
-			loadingMore = false;
-		}
-	}
-	const playlists = $derived(data.playlists);
 	const albums = $derived(data.albums);
 	const mixes = $derived(data.mixes);
+	const playlists = $derived(data.playlists);
+	const artists = $derived(data.topArtists);
 
-	function playLatest(index: number) {
-		player.playOrToggle(latest.map(queueItemForTarget), index);
-	}
-
-	function openContextMenu(event: MouseEvent, target: TrackTarget) {
-		contextMenu = contextMenuStateFor(event, target);
-	}
-
-	function closeContextMenu() {
-		contextMenu = null;
-	}
-
-	function addToQueue() {
-		if (!contextMenu) return;
-		player.addToQueue(queueItemForTarget(contextMenu));
-		closeContextMenu();
-	}
+	const newTargets = $derived<TrackTarget[]>(
+		data.newReleases.map((track) => ({ kind: 'local' as const, track }))
+	);
+	const recTargets = $derived<TrackTarget[]>(
+		youtubeFillerItems.map((song) => ({ kind: 'youtube' as const, song }))
+	);
 
 	const recentlyPlayed = $derived.by(() => {
 		const seen = new Set<string>();
@@ -158,11 +90,35 @@
 				explicit: item.explicit
 			});
 		}
-		return merged.slice(0, 15);
+		return merged.slice(0, 12);
 	});
 
 	function playRecent(index: number) {
 		player.playOrToggle(recentlyPlayed, index);
+	}
+	function playNew(index: number) {
+		player.playOrToggle(newTargets.map(queueItemForTarget), index);
+	}
+	function playRecommended(index: number) {
+		player.playOrToggle(recTargets.map(queueItemForTarget), index);
+	}
+
+	function openContextMenu(event: MouseEvent, target: TrackTarget) {
+		contextMenu = contextMenuStateFor(event, target);
+	}
+	function addToQueue() {
+		if (!contextMenu) return;
+		player.addToQueue(queueItemForTarget(contextMenu));
+		contextMenu = null;
+	}
+
+	function albumCaption(album: (typeof albums)[number]) {
+		return [
+			album.releaseYear ? String(album.releaseYear) : undefined,
+			`${Number(album.trackCount)} ${Number(album.trackCount) === 1 ? 'canción' : 'canciones'}`
+		]
+			.filter(Boolean)
+			.join(' · ');
 	}
 </script>
 
@@ -178,7 +134,7 @@
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2 sm:gap-2.5">
 		<p class="text-sm tracking-[0.14em] text-fg-2 uppercase sm:text-base">{data.greeting}</p>
-		<h1 class="max-w-160 text-3xl leading-[1.05] font-semibold text-fg sm:text-5xl">
+		<h1 class="text-3xl leading-[1.05] font-semibold text-fg sm:text-6xl">
 			Tu música. Sin límites.
 		</h1>
 	</div>
@@ -186,8 +142,8 @@
 
 {#if recentlyPlayed.length > 0}
 	<section class="page-x pt-6 sm:pt-8">
-		<SectionHeading title="Volver a escuchar" />
-		<MediaGrid min="280px" minMobile="220px">
+		<SectionHeading title="Escuchar otra vez" />
+		<MediaGrid min="260px" minMobile="220px">
 			{#each recentlyPlayed as track, i (track.id)}
 				<button
 					type="button"
@@ -196,7 +152,7 @@
 					aria-label="{player.current.id === track.id && player.playing
 						? 'Pausar'
 						: 'Reproducir'} {track.title}"
-					class="flex min-w-0 items-center gap-3 rounded-control bg-surface p-2 text-left transition hover:bg-surface-hover"
+					class="group/row flex min-w-0 items-center gap-3 rounded-control bg-surface p-2 text-left transition duration-200"
 				>
 					<Cover
 						trackId={track.id}
@@ -204,7 +160,7 @@
 						hue={hueFor(track.id)}
 						size="small"
 						alt={track.title}
-						class="h-14 w-14 shrink-0 rounded-control"
+						class="h-14 w-14 shrink-0 rounded-control shadow-art ring-line transition duration-200"
 					>
 						{#if player.current.id === track.id}
 							<NowPlaying paused={!player.playing} />
@@ -215,7 +171,9 @@
 							{#if track.explicit}
 								<ExplicitBadge />
 							{/if}
-							<span class="truncate text-fg">{track.title}</span>
+							<span class="truncate text-fg transition-colors group-hover/row:text-accent-soft">
+								{track.title}
+							</span>
 						</div>
 						{#if track.artist}
 							<div class="truncate text-sm text-muted">{track.artist}</div>
@@ -227,93 +185,209 @@
 	</section>
 {/if}
 
-{#if mixes.length > 0 || playlists.length > 0}
-	<section class="grid gap-x-8 gap-y-10 page-x pt-10 sm:pt-14 lg:grid-cols-2">
-		{#if mixes.length > 0}
-			<div class="min-w-0">
-				<SectionHeading title="Hechas para ti" />
-				<MediaGrid min="150px" minMobile="130px">
-					{#each mixes as mix, i (mix.id)}
-						<MixCard {mix} index={i} />
-					{/each}
-				</MediaGrid>
-			</div>
-		{/if}
-
-		{#if playlists.length > 0}
-			<div class="min-w-0">
-				<SectionHeading title="Mis listas">
-					{#snippet actions()}
-						{#if data.playlistsHasMore}
-							<a href="/playlists" class="text-sm text-fg-3 transition hover:text-accent-soft">
-								Ver todas
-							</a>
-						{/if}
-					{/snippet}
-				</SectionHeading>
-				<MediaGrid min="150px" minMobile="130px">
-					{#each playlists as playlist, i (playlist.id)}
-						<PlaylistCard
-							id={playlist.id}
-							name={playlist.name}
-							description={playlist.description}
-							trackIds={playlist.coverTrackIds}
-							updatedAt={playlist.updatedAt}
-							index={i}
-						/>
-					{/each}
-				</MediaGrid>
-			</div>
-		{/if}
-	</section>
-{/if}
-
 {#if albums.length > 0}
 	<section class="page-x pt-10 sm:pt-14">
-		<SectionHeading title="Álbumes escuchados recientemente">
+		<SectionHeading title="Álbumes recién escuchados">
 			{#snippet actions()}
 				<a href="/albums" class="text-sm text-fg-3 transition hover:text-accent-soft">Ver todos</a>
 			{/snippet}
 		</SectionHeading>
-		<MediaGrid>
+		<Rail>
 			{#each albums as album, i (album.id)}
-				<AlbumCard
-					id={album.id}
-					title={album.title}
-					releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
-					trackCount={Number(album.trackCount)}
-					trackIds={album.coverTrackIds}
+				<a
+					href="/albums/{album.id}"
+					class="group/card animate-enter block w-[168px] shrink-0 rounded-art focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+					style="animation-delay:{Math.min(i, 10) * 45}ms"
+				>
+					<div class="relative">
+						<PlaylistArt
+							trackIds={album.coverTrackIds}
+							hue={hueFor(album.id)}
+							class="h-[168px] w-[168px] rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:-translate-y-1 group-hover/card:shadow-art-lg"
+						/>
+						<CoverBadge label="Álbum" />
+					</div>
+					<div class="mt-2.5 truncate text-fg transition-colors group-hover/card:text-accent-soft">
+						{album.title}
+					</div>
+					<div class="mt-0.5 truncate text-sm text-fg-3">{albumCaption(album)}</div>
+				</a>
+			{/each}
+		</Rail>
+	</section>
+{/if}
+
+{#if mixes.length > 0}
+	<section class="page-x pt-10 sm:pt-14">
+		<SectionHeading title="Hecho para ti" />
+		<div class="grid grid-cols-2 gap-3 sm:auto-rows-[100px] sm:grid-cols-4 sm:gap-4">
+			{#each mixes as mix, i (mix.id)}
+				<MixBentoTile
+					{mix}
 					index={i}
+					featured={i === 0}
+					banner={i === 4}
+					class={i === 0
+						? 'col-span-2 min-h-[168px] sm:row-span-2 sm:min-h-0'
+						: i === 1
+							? 'col-span-2 min-h-[120px] sm:min-h-0'
+							: i === 4
+								? 'col-span-2 min-h-[96px] sm:col-span-4 sm:min-h-0'
+								: 'min-h-[120px] sm:min-h-0'}
 				/>
 			{/each}
-		</MediaGrid>
+		</div>
+	</section>
+{/if}
+
+{#if playlists.length > 0}
+	<section class="page-x pt-10 sm:pt-14">
+		<SectionHeading title="Tus playlists">
+			{#snippet actions()}
+				{#if data.playlistsHasMore}
+					<a href="/playlists" class="text-sm text-fg-3 transition hover:text-accent-soft">
+						Ver todas
+					</a>
+				{/if}
+			{/snippet}
+		</SectionHeading>
+		<Rail>
+			{#each playlists as playlist, i (playlist.id)}
+				<a
+					href="/playlists/{playlist.id}"
+					class="group/card animate-enter block w-[150px] shrink-0 rounded-art focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+					style="animation-delay:{Math.min(i, 10) * 45}ms"
+				>
+					<PlaylistArt
+						playlistId={playlist.id}
+						trackIds={playlist.coverTrackIds}
+						hue={hueFor(playlist.id)}
+						version={playlist.updatedAt}
+						class="h-[150px] w-[150px] rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:-translate-y-1 group-hover/card:shadow-art-lg"
+					/>
+					<div class="mt-2.5 truncate text-fg transition-colors group-hover/card:text-accent-soft">
+						{playlist.name}
+					</div>
+					<div class="mt-0.5 truncate text-sm text-fg-3">{playlist.description ?? 'Lista'}</div>
+				</a>
+			{/each}
+			<a
+				href="/playlists"
+				class="grid h-[150px] w-[150px] shrink-0 place-items-center rounded-art border border-dashed border-line-strong text-fg-3 transition hover:border-accent hover:text-accent-soft"
+			>
+				<div class="flex flex-col items-center gap-2">
+					<ListMusic class="h-6 w-6" />
+					<span class="text-sm">Ver todas</span>
+				</div>
+			</a>
+		</Rail>
+	</section>
+{/if}
+
+{#if newTargets.length > 0}
+	<section class="page-x pt-10 sm:pt-14">
+		<SectionHeading title="Canciones nuevas" />
+		<Rail>
+			{#each newTargets as target, i (targetId(target))}
+				<button
+					type="button"
+					onclick={() => playNew(i)}
+					oncontextmenu={(e) => openContextMenu(e, target)}
+					aria-label="Reproducir {targetTitle(target)}"
+					class="group/card animate-enter block w-[148px] shrink-0 rounded-art text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+					style="animation-delay:{Math.min(i, 10) * 45}ms"
+				>
+					<div class="relative h-[198px] w-[148px]">
+						<Cover
+							trackId={targetId(target)}
+							src={targetCoverSrc(target)}
+							hue={hueFor(targetId(target))}
+							size="medium"
+							alt={targetTitle(target)}
+							class="h-full w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:-translate-y-1 group-hover/card:shadow-art-lg"
+						>
+							{#if isTargetCurrent(target)}
+								<NowPlaying paused={!player.playing} />
+							{/if}
+						</Cover>
+						<CoverBadge label="Nuevo" />
+					</div>
+					<div class="mt-2.5 flex min-w-0 items-center gap-1.5">
+						{#if targetExplicit(target)}
+							<ExplicitBadge />
+						{/if}
+						<span class="truncate text-fg transition-colors group-hover/card:text-accent-soft">
+							{targetTitle(target)}
+						</span>
+					</div>
+					{#if targetArtist(target)}
+						<div class="mt-0.5 truncate text-sm text-fg-3">{targetArtist(target)}</div>
+					{/if}
+				</button>
+			{/each}
+		</Rail>
+	</section>
+{/if}
+
+{#if artists.length > 0}
+	<section class="page-x pt-10 sm:pt-14">
+		<SectionHeading title="Top artistas del momento" />
+		<Rail>
+			{#each artists as artist, i (artist.id)}
+				<div
+					class="group/artist animate-enter shrink-0"
+					style="animation-delay:{Math.min(i, 10) * 45}ms"
+				>
+					<ArtistAvatar id={artist.id} name={artist.name} />
+				</div>
+			{/each}
+		</Rail>
 	</section>
 {/if}
 
 <section class="page-x pt-10 pb-16 sm:pt-14">
-	<SectionHeading title="Descubrir" />
-	{#if latest.length > 0}
-		<MediaGrid as="ul">
-			{#each latest as item, i (targetId(item))}
-				<TrackTile
-					id={targetId(item)}
-					title={targetTitle(item)}
-					artist={targetArtist(item)}
-					coverShape="round"
-					coverSrc={targetCoverSrc(item)}
-					hue={hueFor(targetId(item))}
-					explicit={targetExplicit(item)}
-					active={isTargetCurrent(item)}
-					playing={player.isPlaying}
-					index={i}
-					onClick={() => playLatest(i)}
-					onContextMenu={(e) => openContextMenu(e, item)}
-				/>
+	<SectionHeading title="Recomendado para ti" />
+	{#if recTargets.length > 0}
+		<Rail>
+			{#each recTargets as target, i (targetId(target))}
+				<button
+					type="button"
+					onclick={() => playRecommended(i)}
+					oncontextmenu={(e) => openContextMenu(e, target)}
+					aria-label="Reproducir {targetTitle(target)}"
+					class="group/card animate-enter block w-[168px] shrink-0 rounded-art text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+					style="animation-delay:{Math.min(i, 10) * 45}ms"
+				>
+					<div class="relative h-[168px] w-[168px]">
+						<Cover
+							trackId={targetId(target)}
+							src={targetCoverSrc(target)}
+							hue={hueFor(targetId(target))}
+							size="medium"
+							alt={targetTitle(target)}
+							class="h-full w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:-translate-y-1 group-hover/card:shadow-art-lg"
+						>
+							{#if isTargetCurrent(target)}
+								<NowPlaying paused={!player.playing} />
+							{/if}
+						</Cover>
+					</div>
+					<div class="mt-2.5 flex min-w-0 items-center gap-1.5">
+						{#if targetExplicit(target)}
+							<ExplicitBadge />
+						{/if}
+						<span class="truncate text-fg transition-colors group-hover/card:text-accent-soft">
+							{targetTitle(target)}
+						</span>
+					</div>
+					{#if targetArtist(target)}
+						<div class="mt-0.5 truncate text-sm text-fg-3">{targetArtist(target)}</div>
+					{/if}
+				</button>
 			{/each}
-		</MediaGrid>
-		<InfiniteScroll onLoadMore={loadMoreLatest} hasMore={hasMoreLatest} loading={loadingMore} />
+		</Rail>
 	{:else}
-		<EmptyState icon={Music} title="Todavía no hay música" />
+		<EmptyState icon={Music} title="Todavía no hay recomendaciones" />
 	{/if}
 </section>
 
@@ -321,7 +395,7 @@
 	<TrackContextMenu
 		menu={contextMenu}
 		{playlists}
-		onClose={closeContextMenu}
+		onClose={() => (contextMenu = null)}
 		onAddToQueue={addToQueue}
 	/>
 {/if}

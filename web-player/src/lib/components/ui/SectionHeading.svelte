@@ -12,11 +12,11 @@
 
 {#if actions}
 	<div class="mb-3 flex items-baseline justify-between gap-4 sm:mb-4 {klass}">
-		<h2 class="text-lg font-semibold tracking-tight text-fg sm:text-xl">{title}</h2>
+		<h2 class="text-lg tracking-tight text-fg sm:text-[28px]">{title}</h2>
 		{@render actions()}
 	</div>
 {:else}
-	<h2 class="mb-3 text-lg font-semibold tracking-tight text-fg sm:mb-4 sm:text-xl {klass}">
+	<h2 class="mb-3 text-lg tracking-tight text-fg sm:mb-4 sm:text-[28px] {klass}">
 		{title}
 	</h2>
 {/if}

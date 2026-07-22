@@ -13,6 +13,7 @@ import {
 	SEARCH_MIN_LENGTH,
 	YOUTUBE_FILLER_LIMIT
 } from '$lib/config';
+import { searchUsers } from '$lib/server/userDirectory';
 
 export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const query = url.searchParams.get('q')?.trim() ?? '';
@@ -62,6 +63,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		youtubeAlbums: youtubeAlbumsRes?.data?.items ?? [],
 		ytResults: searchRes?.data ?? null,
 		ytError: Boolean(searchRes?.error),
+		users: searchUsers(query),
 		youtubeFiller: query
 			? Promise.resolve(null)
 			: fetchYoutubeFiller(api, locals.accessToken, YOUTUBE_FILLER_LIMIT),
