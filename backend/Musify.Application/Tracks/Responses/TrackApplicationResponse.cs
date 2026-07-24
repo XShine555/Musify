@@ -11,7 +11,7 @@ namespace Musify.Application.Tracks.Responses
         TrackSource Source,
         string? ExternalId,
         ProcessingStatus AudioStatus,
-        int Duration,
+        double Duration,
         int ListensCount,
         long? OwnerUserId,
         DateTime CreatedAt,

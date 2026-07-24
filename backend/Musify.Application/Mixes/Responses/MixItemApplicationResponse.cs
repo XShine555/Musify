@@ -10,7 +10,7 @@ namespace Musify.Application.Mixes.Responses
         string Title,
         string? Artist,
         string? ThumbnailUrl,
-        int DurationSeconds,
+        double DurationSeconds,
         bool IsExplicit)
     {
         public static MixItemApplicationResponse FromEntity(MixItem item) =>

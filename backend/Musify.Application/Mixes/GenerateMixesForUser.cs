@@ -22,7 +22,7 @@ namespace Musify.Application.Mixes
     {
         private sealed record SeedArtist(Guid Id, string Name);
 
-        private sealed record LocalCandidate(Guid TrackId, string Title, string? Artist, int DurationSeconds);
+        private sealed record LocalCandidate(Guid TrackId, string Title, string? Artist, double DurationSeconds);
 
         private sealed record MixDraft(string Title, string? Subtitle, IReadOnlyList<MixItem> Items);
 
@@ -99,7 +99,7 @@ namespace Musify.Application.Mixes
                 .AsNoTracking()
                 .Where(trackArtist => historyTrackIds.Contains(trackArtist.TrackId))
                 .GroupBy(trackArtist => trackArtist.ArtistId)
-                .Select(group => new { ArtistId = group.Key, Listens = group.Count() })
+                .Select(group => new { ArtistId = group.Key, Listens = group.Count() } )
                 .OrderByDescending(entry => entry.Listens)
                 .Take(mixConfiguration.SeedArtistCount)
                 .ToListAsync(cancellationToken);
@@ -113,10 +113,10 @@ namespace Musify.Application.Mixes
 
             return [.. ranked
                 .Where(entry => names.ContainsKey(entry.ArtistId))
-                .Select(entry => new SeedArtist(entry.ArtistId, names[entry.ArtistId]))];
+                .Select(entry => new SeedArtist(entry.ArtistId, names[entry.ArtistId])) ];
         }
 
-        private async Task<Dictionary<Guid, List<MixItem>>> SearchYouTubeAsync(
+        private async Task<Dictionary<Guid, List<MixItem>> > SearchYouTubeAsync(
             IReadOnlyList<SeedArtist> seedArtists,
             HashSet<string> excludedVideoIds,
             CancellationToken cancellationToken)
@@ -150,7 +150,7 @@ namespace Musify.Application.Mixes
                         ThumbnailUrl = Truncate(youTubeMusicService.ResolveArtworkUrl(song.ThumbnailUrl), ThumbnailUrlLength),
                         DurationSeconds = song.DurationSeconds,
                         IsExplicit = song.IsExplicit
-                    });
+                    } );
                 }
 
                 byArtist[seed.Id] = songs;
@@ -159,7 +159,7 @@ namespace Musify.Application.Mixes
             return byArtist;
         }
 
-        private async Task<Dictionary<Guid, List<MixItem>>> GetLocalCandidatesAsync(
+        private async Task<Dictionary<Guid, List<MixItem>> > GetLocalCandidatesAsync(
             IReadOnlyList<SeedArtist> seedArtists,
             IReadOnlyList<Guid> historyTrackIds,
             CancellationToken cancellationToken)
@@ -169,7 +169,7 @@ namespace Musify.Application.Mixes
             var links = await database.TrackArtists
                 .AsNoTracking()
                 .Where(trackArtist => artistIds.Contains(trackArtist.ArtistId) && !historyTrackIds.Contains(trackArtist.TrackId))
-                .Select(trackArtist => new { trackArtist.ArtistId, trackArtist.TrackId })
+                .Select(trackArtist => new { trackArtist.ArtistId, trackArtist.TrackId } )
                 .ToListAsync(cancellationToken);
 
             var trackIds = links.Select(link => link.TrackId).Distinct().ToList();
@@ -279,9 +279,9 @@ namespace Musify.Application.Mixes
             for (var index = 0; index < Math.Max(first.Count, second.Count); index++)
             {
                 if (index < first.Count)
-                    merged.Add(first[index]);
+                    merged.Add(first[index] );
                 if (index < second.Count)
-                    merged.Add(second[index]);
+                    merged.Add(second[index] );
             }
 
             return merged;

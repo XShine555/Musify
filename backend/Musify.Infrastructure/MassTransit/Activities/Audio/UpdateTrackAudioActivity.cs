@@ -47,7 +47,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
 
             try
             {
-                var durationSeconds = executeContext.GetVariable<int>(executeContext.Arguments.DurationSecondsVariable)
+                var durationSeconds = executeContext.GetVariable<double>(executeContext.Arguments.DurationSecondsVariable)
                     ?? throw new InvalidOperationException($"Missing routing slip variable {executeContext.Arguments.DurationSecondsVariable}");
 
                 var log = new UpdateTrackAudioLog(

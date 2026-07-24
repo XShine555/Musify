@@ -36,10 +36,10 @@ namespace Musify.Domain.Entities
         public string? ThumbnailUrl { get; set; }
 
         [Required]
-        public int DurationSeconds { get; set; } = 0;
+        public double DurationSeconds { get; set; }
 
         [Required]
-        public bool IsExplicit { get; set; } = false;
+        public bool IsExplicit { get; set; }
 
         [ForeignKey(nameof(MixId))]
         public Mix Mix { get; set; }

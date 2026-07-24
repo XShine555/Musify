@@ -19,7 +19,7 @@ namespace Musify.Domain.Entities
         public required string NormalizedTitle { get; set; }
 
         [Required]
-        public int DurationSeconds { get; set; }
+        public double DurationSeconds { get; set; }
 
         [Required]
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
