@@ -7,9 +7,9 @@ namespace Musify.Application.YouTube.Responses
     }
 
     public record YouTubeStreamResponse(
+        Guid? TrackId,
         YouTubeStreamMode Mode,
         string StreamUrl,
-        string Ticket,
-        int ExpiresInSeconds,
-        Guid TrackId);
+        string? Ticket,
+        int ExpiresInSeconds);
 }

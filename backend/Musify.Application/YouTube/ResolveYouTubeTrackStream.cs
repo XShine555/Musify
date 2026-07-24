@@ -24,22 +24,22 @@ namespace Musify.Application.YouTube
         {
             var track = await provisioner.FindAsync(request.VideoId, cancellationToken);
 
-            if (track is not null && track.Audio.IsProcessed)
+            if (track != null&& track.Audio.IsProcessed)
             {
                 var serverStream = await streamIssuer.IssueAsync(track.Id, track.Audio.FolderName, request.UserId, cancellationToken);
                 return new YouTubeStreamResponse(
+                    track.Id,
                     YouTubeStreamMode.Server,
                     serverStream.ManifestUrl,
                     serverStream.Ticket,
-                    serverStream.ExpiresInSeconds,
-                    track.Id);
+                    serverStream.ExpiresInSeconds);
             }
 
             var streamInfo = await youTubeMusicService.GetAudioStreamAsync(request.VideoId, cancellationToken);
             if (streamInfo.IsError)
                 return streamInfo.Errors;
 
-            if (track is null)
+            if (track == null)
             {
                 var provisionResult = await provisioner.GetOrCreateAsync(request.VideoId, cancellationToken);
                 if (!provisionResult.IsError)
@@ -48,7 +48,7 @@ namespace Musify.Application.YouTube
                     logger.LogWarning("Could not provision YouTube track {VideoId}: {Error}", request.VideoId, provisionResult.FirstError.Description);
             }
 
-            if (track is not null)
+            if (track != null)
             {
                 await database.ListeningHistories.AddAsync(new ListeningHistory
                 {
@@ -67,11 +67,10 @@ namespace Musify.Application.YouTube
             }
 
             return new YouTubeStreamResponse(
+                track?.Id,
                 YouTubeStreamMode.YouTube,
-                streamInfo.Value.Url,
-                string.Empty,
-                streamInfo.Value.ExpiresInSeconds,
-                track?.Id ?? Guid.Empty);
+                streamInfo.Value.Url, null,
+                streamInfo.Value.ExpiresInSeconds);
         }
     }
 }
