@@ -7,7 +7,7 @@ using Musify.Application.Contracts;
 namespace Musify.Application.Albums
 {
     public record GetRecentlyListenedAlbumsQuery(long UserId, int Limit)
-        : IQuery<ErrorOr<IReadOnlyList<AlbumApplicationResponse>>>;
+        : IQuery<ErrorOr<IReadOnlyList<AlbumApplicationResponse> >>;
 
     public class GetRecentlyListenedAlbumsQueryHandler(IDatabase database)
         : IQueryHandler<GetRecentlyListenedAlbumsQuery, ErrorOr<IReadOnlyList<AlbumApplicationResponse>>>
@@ -24,9 +24,9 @@ namespace Musify.Application.Albums
                     listenedTrackIds,
                     albumTrack => albumTrack.TrackId,
                     history => history.TrackId,
-                    (albumTrack, history) => new { albumTrack.AlbumId, history.ListenedAt })
+                    (albumTrack, history) => new { albumTrack.AlbumId, history.ListenedAt } )
                 .GroupBy(entry => entry.AlbumId)
-                .Select(group => new { AlbumId = group.Key, LastListenedAt = group.Max(entry => entry.ListenedAt) })
+                .Select(group => new { AlbumId = group.Key, LastListenedAt = group.Max(entry => entry.ListenedAt) } )
                 .OrderByDescending(entry => entry.LastListenedAt)
                 .Take(request.Limit)
                 .ToListAsync(cancellationToken);
@@ -48,7 +48,7 @@ namespace Musify.Application.Albums
                         .Take(AlbumApplicationResponse.CoverTrackCount)
                         .Select(albumTrack => albumTrack.TrackId)
                         .ToList()
-                })
+                } )
                 .ToDictionaryAsync(entry => entry.Album.Id, cancellationToken);
 
             return ranked

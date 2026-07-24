@@ -21,7 +21,7 @@
 
 <div class="flex flex-col items-center gap-2.5 text-center" style="width:{size}px">
 	<div
-		class="relative grid shrink-0 place-items-center overflow-hidden rounded-full shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/artist:-translate-y-1 group-hover/artist:shadow-art-lg"
+		class="relative grid shrink-0 place-items-center overflow-hidden rounded-full shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/artist:shadow-art-lg"
 		style="width:{size}px;height:{size}px;background:{gradientForHue(hueFor(id))}"
 	>
 		<div

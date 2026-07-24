@@ -591,7 +591,7 @@ export interface components {
         };
         CreatePlayListRequest: {
             name: string;
-            description: string;
+            description: null | string;
             /** Format: uuid */
             pictureIntentId: null | string;
         };

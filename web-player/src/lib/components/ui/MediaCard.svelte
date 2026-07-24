@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	export const mediaCardArt =
-		'aspect-square w-full rounded-art shadow-art transition duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-art-lg';
+		'aspect-square w-full rounded-art shadow-art transition duration-300 ease-out group-hover:shadow-art-lg';
 </script>
 
 <script lang="ts">

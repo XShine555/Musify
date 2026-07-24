@@ -69,13 +69,19 @@ namespace Musify.Application.PlayLists
                     return validation.Errors;
 
                 pictureIntent = validation.Value;
-                playListEntity.Pictures = new PlayListPictures { OriginalName = pictureIntent.ObjectName };
+                playListEntity.Pictures = new PlayListPictures 
+                { 
+                    OriginalName = pictureIntent.ObjectName,
+                    SmallName = playListConfiguration.Routes.PresetSmallPicture,
+                    MediumName = playListConfiguration.Routes.PresetMediumPicture,
+                    LargeName = playListConfiguration.Routes.PresetLargePicture
+                };
                 finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             }
 
             database.PlayLists.Update(playListEntity);
 
-            if (pictureIntent is not null && finalPictureKey is not null)
+            if (pictureIntent != null&& finalPictureKey != null)
             {
                 var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(
                     playListEntity.Id, pictureIntent, finalPictureKey, cancellationToken);

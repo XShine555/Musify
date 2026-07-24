@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '@fontsource-variable/inter/index.css';
+	import '@fontsource-variable/sora/index.css';
 	import '$lib/theme/theme.css';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';

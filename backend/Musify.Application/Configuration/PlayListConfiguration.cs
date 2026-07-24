@@ -34,6 +34,18 @@ namespace Musify.Application.Configuration
         [Required]
         public string LargePicturesFolder { get; set; } = "LargePictures";
 
+        [Required]
+        public string PresetOriginalPicture { get; set; } = "PresetOriginalPicture.webp";
+
+        [Required]
+        public string PresetSmallPicture { get; set; } = "PresetSmallPicture.webp";
+
+        [Required]
+        public string PresetMediumPicture { get; set; } = "PresetMediumPicture.webp";
+
+        [Required]
+        public string PresetLargePicture { get; set; } = "PresetLargePicture.webp";
+
         public string SmallPicturesPath => StorageKey.Combine(ParentFolders, SmallPicturesFolder);
 
         public string MediumPicturesPath => StorageKey.Combine(ParentFolders, MediumPicturesFolder);
@@ -41,6 +53,12 @@ namespace Musify.Application.Configuration
         public string LargePicturesPath => StorageKey.Combine(ParentFolders, LargePicturesFolder);
 
         public string OriginalPicturesPath => StorageKey.Combine(ParentFolders, OriginalPicturesFolder);
+
+        public string PresetSmallPicturePath => StorageKey.Combine(ParentFolders, SmallPicturesFolder, PresetSmallPicture);
+
+        public string PresetMediumPicturePath => StorageKey.Combine(ParentFolders, MediumPicturesFolder, PresetMediumPicture);
+
+        public string PresetLargePicturePath => StorageKey.Combine(ParentFolders, LargePicturesFolder, PresetLargePicture);
 
         public string BuildOriginalPicturePath(string pictureName) => StorageKey.Combine(ParentFolders, OriginalPicturesFolder, pictureName);
 

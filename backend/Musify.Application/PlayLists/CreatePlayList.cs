@@ -30,6 +30,8 @@ namespace Musify.Application.PlayLists
         UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<CreatePlayListCommand, ErrorOr<PlayListApplicationResponse>>
     {
+        private sealed record ResolvedPlayListPictures(PlayListPictures Pictures, UploadIntent? Intent);
+
         public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
         {
             var userExists = await database.Users
@@ -41,35 +43,26 @@ namespace Musify.Application.PlayLists
                 return Error.NotFound(description: $"User {request.UserId} not found");
             }
 
-            UploadIntent? pictureIntent = null;
-            if (request.PictureIntentId.HasValue)
-            {
-                var validation = await uploadIntentValidator.ValidateAndLoadAsync(
-                    uploadIntentConfiguration,
-                    request.PictureIntentId.Value, request.UserId, cancellationToken);
-                if (validation.IsError)
-                    return validation.Errors;
+            var picturesResult = await ResolvePicturesAsync(request, cancellationToken);
+            if (picturesResult.IsError)
+                return picturesResult.Errors;
 
-                pictureIntent = validation.Value;
-            }
+            var resolvedPictures = picturesResult.Value;
 
             var playList = new PlayList
             {
                 UserId = request.UserId,
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
-                Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
-                Pictures = pictureIntent == null ? null
-                    : new PlayListPictures { OriginalName = pictureIntent.ObjectName }
+                Description = string.IsNullOrWhiteSpace(request.Description)? null: request.Description.Trim(),
+                Pictures = resolvedPictures.Pictures
             };
-
             await database.PlayLists.AddAsync(playList, cancellationToken);
 
-            if (pictureIntent != null)
+            if (resolvedPictures.Intent != null)
             {
-                var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
-                var publishResult = await PublishCreatePlayListEventAsync(
-                    playList.Id, pictureIntent, finalPictureKey, cancellationToken);
+                var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, resolvedPictures.Pictures.OriginalName);
+                var publishResult = await PublishCreatePlayListEventAsync(playList.Id, resolvedPictures.Intent, finalPictureKey, cancellationToken);
                 if (publishResult.IsError)
                     return publishResult.Errors;
             }
@@ -86,6 +79,35 @@ namespace Musify.Application.PlayLists
 
             logger.LogInformation("Created playlist {PlayListId} for user {UserId}", playList.Id, request.UserId);
             return PlayListApplicationResponse.FromEntity(playList);
+        }
+
+        private async ValueTask<ErrorOr<ResolvedPlayListPictures>> ResolvePicturesAsync(
+            CreatePlayListCommand request, CancellationToken cancellationToken)
+        {
+            if (!request.PictureIntentId.HasValue)
+            {
+                return new ResolvedPlayListPictures(new PlayListPictures
+                {
+                    OriginalName = playListConfiguration.Routes.PresetOriginalPicture,
+                    SmallName = playListConfiguration.Routes.PresetSmallPicture,
+                    MediumName = playListConfiguration.Routes.PresetMediumPicture,
+                    LargeName = playListConfiguration.Routes.PresetLargePicture
+                }, null);
+            }
+
+            var validation = await uploadIntentValidator.ValidateAndLoadAsync(
+                uploadIntentConfiguration, request.PictureIntentId.Value, request.UserId, cancellationToken);
+
+            if (validation.IsError)
+                return validation.Errors;
+
+            return new ResolvedPlayListPictures(new PlayListPictures 
+            { 
+                OriginalName = validation.Value.ObjectName,
+                SmallName = playListConfiguration.Routes.PresetSmallPicture,
+                MediumName = playListConfiguration.Routes.PresetMediumPicture,
+                LargeName = playListConfiguration.Routes.PresetLargePicture
+            }, validation.Value);
         }
 
         async Task<ErrorOr<Success>> PublishCreatePlayListEventAsync(

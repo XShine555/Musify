@@ -10,7 +10,6 @@ export const EXPLORE_ALBUMS_PAGE_SIZE = 10;
 export const HOME_LATEST_PAGE_SIZE = 10;
 export const HOME_ALBUMS_LIMIT = 12;
 export const HOME_MIXES_BENTO = 5;
-export const HOME_ARTISTS_LIMIT = 10;
 export const HOME_SHELF_LIMIT = 6;
 export const YOUTUBE_FILLER_LIMIT = 27;
 export const PLAYLIST_PICKER_PAGE_SIZE = 50;

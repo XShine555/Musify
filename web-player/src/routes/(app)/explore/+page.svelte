@@ -14,7 +14,6 @@
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
 	import Cover from '$lib/components/ui/Cover.svelte';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
-	import CoverBadge from '$lib/components/ui/CoverBadge.svelte';
 	import ArtistAvatar from '$lib/components/ui/ArtistAvatar.svelte';
 	import Rail from '$lib/components/ui/Rail.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
@@ -223,7 +222,7 @@
 <Page>
 	<PageHeader title="Buscar" subtitle="Encuentra canciones, álbumes y personas." />
 
-	<div class="mt-8">
+	<div class="mt-6">
 		<Input
 			type="search"
 			icon={Search}
@@ -246,8 +245,7 @@
 	{/if}
 
 	{#if hasAlbums}
-		<div class="mt-10">
-			<SectionHeading title="Álbumes" />
+		<div class="mt-8">
 			<MediaGrid as="ul" min="168px" minMobile="150px">
 				{#each albumEntries as entry, i (entry.kind === 'local' ? entry.album.id : entry.album.albumId)}
 					<li>
@@ -264,9 +262,8 @@
 									<PlaylistArt
 										trackIds={entry.album.coverTrackIds}
 										hue={hueFor(entry.album.id)}
-										class="aspect-square w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:-translate-y-1 group-hover/card:shadow-art-lg"
+										class="aspect-square w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:shadow-art-lg"
 									/>
-									<CoverBadge label="Álbum" />
 								</div>
 								<div
 									class="mt-2.5 truncate text-fg transition-colors group-hover/card:text-accent-soft"
@@ -291,9 +288,8 @@
 										hue={hueFor(entry.album.albumId)}
 										size="large"
 										alt={entry.album.title}
-										class="aspect-square w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:-translate-y-1 group-hover/card:shadow-art-lg"
+										class="aspect-square w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:shadow-art-lg"
 									/>
-									<CoverBadge label="Álbum" />
 								</div>
 								<div
 									class="mt-2.5 truncate text-fg transition-colors group-hover/card:text-accent-soft"
@@ -312,7 +308,7 @@
 	{/if}
 
 	{#if hasUsers}
-		<div class="mt-10">
+		<div class="mt-8">
 			<SectionHeading title="Usuarios" />
 			<Rail>
 				{#each users as u, i (u.id)}
@@ -328,8 +324,7 @@
 		</div>
 	{/if}
 
-	<div class="mt-10">
-		<SectionHeading title="Canciones" />
+	<div class="mt-6">
 		{#if songRows.length > 0}
 			<ul class="flex flex-col gap-1">
 				{#each songRows as { target: item, seconds }, i (targetId(item))}
@@ -363,7 +358,7 @@
 									</span>
 								</div>
 								{#if targetArtist(item)}
-									<div class="truncate text-sm text-fg-3">{targetArtist(item)}</div>
+									<div class="truncate text-sm text-fg-3">Canción · {targetArtist(item)}</div>
 								{/if}
 							</div>
 							<span class="shrink-0 text-sm text-muted tabular-nums">{fmtTime(seconds)}</span>

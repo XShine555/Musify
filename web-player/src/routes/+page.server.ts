@@ -4,14 +4,12 @@ import { fetchYoutubeFiller } from '$lib/server/youtube';
 import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
 import {
 	HOME_ALBUMS_LIMIT,
-	HOME_ARTISTS_LIMIT,
 	HOME_LATEST_PAGE_SIZE,
 	HOME_MIXES_BENTO,
 	HOME_SHELF_LIMIT,
 	YOUTUBE_FILLER_LIMIT
 } from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
-import { pickTopArtists } from '$lib/server/topArtists';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
@@ -52,7 +50,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		playlists: playlistItems.slice(0, HOME_SHELF_LIMIT),
 		playlistsHasMore: playlistItems.length > HOME_SHELF_LIMIT,
 		newReleases: latestItems,
-		topArtists: pickTopArtists(latestItems, HOME_ARTISTS_LIMIT),
 		youtubeFiller: fetchYoutubeFiller(
 			api,
 			locals.accessToken,

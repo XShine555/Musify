@@ -1,13 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Musify.Domain.ValueObjects
 {
     public class PlayListPictures
     {
-        public string? OriginalName { get; set; }
+        [Required]
+        public required string OriginalName { get; set; }
 
-        public string? SmallName { get; set; }
+        [Required]
+        public required string SmallName { get; set; }
 
-        public string? MediumName { get; set; }
+        [Required]
+        public required string MediumName { get; set; }
 
-        public string? LargeName { get; set; }
+        [Required]
+        public required string LargeName { get; set; }
     }
 }

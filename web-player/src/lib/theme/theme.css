@@ -5,9 +5,9 @@
 	--mf-text: #c7c6c5;
 	--mf-text-2: #a5a4a3;
 	--mf-text-3: #8c8b8a;
-	--mf-text-4: #7f7e7d;
+	--mf-text-4: rgb(120, 120, 120);
 
-	--mf-surface: rgb(18, 18, 18);
+	--mf-surface: rgb(15, 15, 15);
 	--mf-surface-2: rgba(255, 255, 255, 0.06);
 	--mf-surface-hover: rgba(255, 255, 255, 0.09);
 
