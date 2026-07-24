@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { isSectionActive } from '$lib/navigation.svelte';
 	import Home from '@lucide/svelte/icons/house';
 	import Search from '@lucide/svelte/icons/search';
 	import Music from '@lucide/svelte/icons/music';
@@ -13,7 +14,7 @@
 	];
 
 	function isActive(href: string) {
-		return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
+		return isSectionActive(href, page.url.pathname, page.data.section);
 	}
 </script>
 

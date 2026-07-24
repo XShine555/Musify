@@ -102,7 +102,7 @@
 </script>
 
 <svelte:head>
-	<title>Subir música · Musify</title>
+	<title>Subir música</title>
 	<meta name="description" content="Sube tus canciones a Musify: portada, audio y título." />
 </svelte:head>
 

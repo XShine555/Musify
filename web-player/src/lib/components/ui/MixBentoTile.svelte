@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Cover from './Cover.svelte';
-	import { gradientForHue, hueFor } from '$lib/theme/color';
-	import { mixItemKey, type Mix } from '$lib/mixes';
+	import type { Mix } from '$lib/mixes';
 
 	interface Props {
 		mix: Mix;
@@ -25,40 +24,40 @@
 
 <a
 	href="/mixes/{mix.id}"
-	class="group/tile animate-enter relative block overflow-hidden rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset hover:shadow-art-lg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none {klass}"
-	style="animation-delay:{Math.min(index, 10) * 45}ms;background:{gradientForHue(hueFor(mix.id))}"
+	class="group/tile animate-enter relative block overflow-hidden rounded-art ring-1 ring-line transition duration-300 ease-out [clip-path:inset(0_round_var(--radius-art))] ring-inset focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none {klass}"
+	style="animation-delay:{Math.min(index, 10) * 45}ms"
 >
-{#if tiles.length > 0}
+	{#if tiles.length > 0}
+		<div class="absolute inset-0 flex transition duration-300 ease-out">
+			{#each tiles as item, i (i)}
+				<Cover
+					trackId={item.trackId ?? item.videoId ?? ''}
+					src={item.thumbnailUrl}
+					size="medium"
+					class="aspect-square h-full shrink-0"
+				/>
+			{/each}
+		</div>
+	{/if}
 	<div
-		class="absolute inset-0 flex transition duration-300 ease-out group-hover/tile:scale-[1.01]"
-	>
-		{#each tiles as item, i (i)}
-			<Cover
-				trackId={item.trackId ?? item.videoId ?? ''}
-				src={item.thumbnailUrl}
-				hue={hueFor(mixItemKey(item))}
-				size="medium"
-				class="aspect-square h-full shrink-0"
-			/>
-		{/each}
-	</div>
-{/if}
-<div
-	class="pointer-events-none absolute inset-0 bg-black/10 transition-colors duration-300 group-hover/tile:bg-black/20"
-></div>
+		class="pointer-events-none absolute inset-0 bg-linear-to-t from-scrim/85 via-scrim/65 to-scrim/40 {banner
+			? 'sm:bg-linear-to-r'
+			: ''}"
+	></div>
 	<div
-		class="group relative flex h-full flex-col justify-end p-3 sm:p-4 {banner
+		class="pointer-events-none absolute inset-0 bg-scrim/25 opacity-0 transition-opacity duration-300 group-hover/tile:opacity-100"
+	></div>
+	<div
+		class="relative flex h-full flex-col justify-end p-3 sm:p-4 {banner
 			? 'sm:flex-row sm:items-center sm:justify-between sm:gap-4'
 			: ''}"
 	>
 		<div class="min-w-0">
-			<div
-				class="truncate text-white {featured ? 'text-xl sm:text-2xl' : 'text-base'} group-hover:text-accent-soft transition-colors"
-			>
+			<div class="truncate text-on-art {featured ? 'text-xl sm:text-2xl' : 'text-base'}">
 				{mix.title}
 			</div>
 			{#if mix.subtitle}
-				<div class="mt-0.5 truncate text-xs text-muted sm:text-sm">{mix.subtitle}</div>
+				<div class="mt-0.5 truncate text-xs text-on-art/75 sm:text-sm">{mix.subtitle}</div>
 			{/if}
 		</div>
 	</div>

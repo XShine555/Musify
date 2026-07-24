@@ -41,7 +41,7 @@
 </script>
 
 <svelte:head>
-	<title>Mis listas · Musify</title>
+	<title>Mis listas</title>
 	<meta name="description" content="Mis listas en Musify." />
 </svelte:head>
 

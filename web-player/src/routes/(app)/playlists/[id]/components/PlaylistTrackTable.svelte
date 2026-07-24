@@ -9,7 +9,6 @@
 		youTubeThumbnailUrl,
 		type ApiTrackLike
 	} from '$lib/player/player.svelte';
-	import { hueFor } from '$lib/theme/color';
 	import { fmtTime, fmtDate } from '$lib/format';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
@@ -48,7 +47,6 @@
 				coverSrc={isPendingYouTubeTrack(track) && track.externalId
 					? youTubeThumbnailUrl(track.externalId)
 					: undefined}
-				hue={hueFor(track.id)}
 				explicit={track.isExplicit}
 				onClick={() => playFrom(i)}
 			>

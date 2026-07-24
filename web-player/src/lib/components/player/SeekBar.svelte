@@ -35,7 +35,7 @@
 			type="button"
 			onclick={seek}
 			aria-label="Barra de progreso"
-			class="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-track transition-[height] hover:h-2"
+			class="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-track"
 		>
 			<div
 				class="absolute inset-y-0 left-0 rounded-full bg-accent/60 group-hover:brightness-110"

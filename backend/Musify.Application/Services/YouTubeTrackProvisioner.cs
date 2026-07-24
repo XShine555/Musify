@@ -96,6 +96,108 @@ public sealed class YouTubeTrackProvisioner(
         }
     }
 
+    public async Task MaterializeAlbumAsync(string albumExternalId, YouTubeAlbumDetail detail, CancellationToken cancellationToken)
+    {
+        var validTracks = detail.Tracks
+            .Where(track => !string.IsNullOrEmpty(track.VideoId))
+            .ToList();
+        if (validTracks.Count == 0)
+            return;
+
+        var album = await GetOrCreateExternalAlbumAsync(albumExternalId, detail.Album.Title, detail.Album.ThumbnailUrl, cancellationToken);
+
+        var videoIds = validTracks.Select(track => track.VideoId).ToList();
+
+        var tracksByVideoId = await database.ExternalTracks
+            .Where(track => track.Source == TrackSource.YouTube && videoIds.Contains(track.ExternalId))
+            .ToDictionaryAsync(track => track.ExternalId, cancellationToken);
+
+        var linkedTrackIds = (await database.AlbumHasTracks
+            .Where(albumTrack => albumTrack.AlbumId == album.Id)
+            .Select(albumTrack => albumTrack.TrackId)
+            .ToListAsync(cancellationToken))
+            .ToHashSet();
+
+        if (tracksByVideoId.Count == validTracks.Count && linkedTrackIds.Count >= validTracks.Count)
+            return;
+
+        var artistRefs = detail.Album.Artists
+            .GroupBy(artistRef => artistRef.Id ?? artistRef.Name.ToUpperInvariant())
+            .Select(group => group.First())
+            .ToList();
+
+        var albumArtists = new List<Artist>();
+        foreach (var artistRef in artistRefs)
+            albumArtists.Add(await GetOrCreateArtistAsync(artistRef, cancellationToken));
+
+        foreach (var albumTrack in validTracks)
+        {
+            if (!tracksByVideoId.TryGetValue(albumTrack.VideoId, out var track))
+            {
+                track = BuildStubTrack(albumTrack);
+                await database.ExternalTracks.AddAsync(track, cancellationToken);
+
+                for (var position = 0; position < albumArtists.Count; position++)
+                {
+                    await database.TrackArtists.AddAsync(new TrackArtist
+                    {
+                        TrackId = track.Id,
+                        ArtistId = albumArtists[position].Id,
+                        Position = position
+                    }, cancellationToken);
+                }
+
+                tracksByVideoId[albumTrack.VideoId] = track;
+            }
+
+            if (linkedTrackIds.Contains(track.Id))
+                continue;
+
+            await database.AlbumHasTracks.AddAsync(new AlbumHasTrack
+            {
+                AlbumId = album.Id,
+                TrackId = track.Id,
+                TrackNumber = albumTrack.TrackNumber
+            }, cancellationToken);
+            linkedTrackIds.Add(track.Id);
+        }
+
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Materialized YouTube album {AlbumId} ({TrackCount} tracks)", albumExternalId, validTracks.Count);
+        }
+        catch (DbUpdateException exception)
+        {
+            logger.LogWarning(exception, "Race while materializing YouTube album {AlbumId}", albumExternalId);
+        }
+    }
+
+    private ExternalTrack BuildStubTrack(YouTubeAlbumTrack albumTrack)
+    {
+        var title = Truncate(albumTrack.Title, 200);
+        return new ExternalTrack
+        {
+            Title = title,
+            NormalizedTitle = title.ToUpperInvariant(),
+            Source = TrackSource.YouTube,
+            ExternalId = albumTrack.VideoId,
+            DurationSeconds = albumTrack.DurationSeconds,
+            Pictures = new TrackPictures
+            {
+                SmallName = trackConfiguration.Routes.PresetSmallPicture,
+                MediumName = trackConfiguration.Routes.PresetMediumPicture,
+                LargeName = trackConfiguration.Routes.PresetLargePicture,
+                ProcessingStatus = ProcessingStatus.Pending
+            },
+            Audio = new TrackAudio
+            {
+                DownloadRequested = false,
+                TranscodeStatus = ProcessingStatus.Pending
+            }
+        };
+    }
+
     private async Task<Artist> GetOrCreateArtistAsync(YouTubeArtistRef reference, CancellationToken cancellationToken)
     {
         var name = Truncate(reference.Name, 200);
@@ -124,6 +226,37 @@ public sealed class YouTubeTrackProvisioner(
         {
             database.Artists.Remove(artist);
             return await database.Artists.SingleAsync(a => a.ExternalId == externalId, cancellationToken);
+        }
+    }
+
+    private async Task<ExternalAlbum> GetOrCreateExternalAlbumAsync(string externalId, string name, string? thumbnailUrl, CancellationToken cancellationToken)
+    {
+        var existing = await database.ExternalAlbums
+            .SingleOrDefaultAsync(album => album.Source == TrackSource.YouTube && album.ExternalId == externalId, cancellationToken);
+        if (existing is not null)
+            return existing;
+
+        var title = Truncate(name, 200);
+        var album = new ExternalAlbum
+        {
+            Title = title,
+            NormalizedTitle = title.ToUpperInvariant(),
+            Source = TrackSource.YouTube,
+            ExternalId = externalId,
+            ThumbnailUrl = string.IsNullOrEmpty(thumbnailUrl) ? null : Truncate(thumbnailUrl, 512)
+        };
+
+        await database.ExternalAlbums.AddAsync(album, cancellationToken);
+
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+            return album;
+        }
+        catch (DbUpdateException)
+        {
+            database.ExternalAlbums.Remove(album);
+            return await database.ExternalAlbums.SingleAsync(a => a.Source == TrackSource.YouTube && a.ExternalId == externalId, cancellationToken);
         }
     }
 

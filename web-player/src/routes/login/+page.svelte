@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Iniciar sesión · Musify</title>
+	<title>Iniciar sesión</title>
 	<meta name="description" content="Inicia sesión o crea una cuenta en Musify." />
 </svelte:head>
 

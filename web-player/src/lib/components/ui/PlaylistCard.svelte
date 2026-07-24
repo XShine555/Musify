@@ -1,7 +1,6 @@
 <script lang="ts">
 	import MediaCard from './MediaCard.svelte';
 	import PlaylistArt from './PlaylistArt.svelte';
-	import { hueFor } from '$lib/theme/color';
 
 	interface Props {
 		id: string;
@@ -17,6 +16,6 @@
 
 <MediaCard href="/playlists/{id}" title={name} subtitle={description} {index}>
 	{#snippet art(artClass)}
-		<PlaylistArt playlistId={id} {trackIds} hue={hueFor(id)} version={updatedAt} class={artClass} />
+		<PlaylistArt playlistId={id} {trackIds} version={updatedAt} class={artClass} />
 	{/snippet}
 </MediaCard>

@@ -1,13 +1,10 @@
 <script lang="ts">
-	import { gradientForHue, hueFor } from '$lib/theme/color';
-
 	interface Props {
-		id: string;
 		name: string;
 		size?: number;
 	}
 
-	let { id, name, size = 108 }: Props = $props();
+	let { name, size = 108 }: Props = $props();
 
 	const initials = $derived(
 		name
@@ -21,8 +18,8 @@
 
 <div class="flex flex-col items-center gap-2.5 text-center" style="width:{size}px">
 	<div
-		class="relative grid shrink-0 place-items-center overflow-hidden rounded-full shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/artist:shadow-art-lg"
-		style="width:{size}px;height:{size}px;background:{gradientForHue(hueFor(id))}"
+		class="relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-surface shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/artist:shadow-art-lg"
+		style="width:{size}px;height:{size}px"
 	>
 		<div
 			class="pointer-events-none absolute inset-0"

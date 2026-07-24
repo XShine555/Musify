@@ -19,8 +19,7 @@
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '$lib/config';
-	import { hueFor } from '$lib/theme/color';
+	import { EXPLORE_ALBUMS_LIMIT, EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '$lib/config';
 	import type { YouTubeSong } from '$lib/types';
 	import TrackContextMenu, {
 		contextMenuStateFor,
@@ -113,10 +112,12 @@
 	type YouTubeAlbum = (typeof data.youtubeAlbums)[number];
 	type AlbumEntry = { kind: 'local'; album: LocalAlbum } | { kind: 'youtube'; album: YouTubeAlbum };
 
-	const albumEntries = $derived<AlbumEntry[]>([
-		...albums.map((album) => ({ kind: 'local' as const, album })),
-		...youtubeAlbums.map((album) => ({ kind: 'youtube' as const, album }))
-	]);
+	const albumEntries = $derived<AlbumEntry[]>(
+		[
+			...albums.map((album) => ({ kind: 'local' as const, album })),
+			...youtubeAlbums.map((album) => ({ kind: 'youtube' as const, album }))
+		].slice(0, EXPLORE_ALBUMS_LIMIT)
+	);
 
 	const hasAlbums = $derived(albumEntries.length > 0);
 	const hasUsers = $derived(users.length > 0);
@@ -215,7 +216,7 @@
 </script>
 
 <svelte:head>
-	<title>Buscar · Musify</title>
+	<title>Buscar</title>
 	<meta name="description" content="Busca canciones, álbumes y usuarios en Musify." />
 </svelte:head>
 
@@ -261,7 +262,6 @@
 								<div class="relative">
 									<PlaylistArt
 										trackIds={entry.album.coverTrackIds}
-										hue={hueFor(entry.album.id)}
 										class="aspect-square w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:shadow-art-lg"
 									/>
 								</div>
@@ -285,7 +285,6 @@
 									<Cover
 										trackId={entry.album.albumId}
 										src={entry.album.thumbnailUrl}
-										hue={hueFor(entry.album.albumId)}
 										size="large"
 										alt={entry.album.title}
 										class="aspect-square w-full rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/card:shadow-art-lg"
@@ -316,7 +315,7 @@
 						class="group/artist animate-enter shrink-0"
 						style="animation-delay:{Math.min(i, 10) * 45}ms"
 					>
-						<ArtistAvatar id={u.id} name={u.name} size={96} />
+						<ArtistAvatar name={u.name} size={96} />
 						<div class="mt-1 w-24 truncate text-center text-xs text-fg-3">@{u.handle}</div>
 					</div>
 				{/each}
@@ -339,7 +338,6 @@
 							<Cover
 								trackId={targetId(item)}
 								src={targetCoverSrc(item)}
-								hue={hueFor(targetId(item))}
 								size="small"
 								alt={targetTitle(item)}
 								class="h-11 w-11 shrink-0 rounded-control shadow-art ring-1 ring-line ring-inset"

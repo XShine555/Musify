@@ -14,7 +14,9 @@ namespace Musify.Application.Albums.Responses
         string? LargeImageKeyName,
         DateTime CreatedAt,
         DateTime UpdatedAt,
-        IReadOnlyList<Guid> CoverTrackIds)
+        IReadOnlyList<Guid> CoverTrackIds,
+        string? YouTubeAlbumId = null,
+        string? ThumbnailUrl = null)
     {
         public const int CoverTrackCount = 4;
 
@@ -36,6 +38,29 @@ namespace Musify.Application.Albums.Responses
                 album.CreatedAt,
                 album.UpdatedAt,
                 coverTrackIds ?? []);
+        }
+
+        public static AlbumApplicationResponse FromEntity(
+            Album album,
+            int trackCount,
+            IReadOnlyList<Guid>? coverTrackIds = null)
+        {
+            var externalAlbum = album as ExternalAlbum;
+            return new AlbumApplicationResponse(
+                album.Id,
+                album.Title,
+                album.Description,
+                album.ReleaseYear,
+                album is UserAlbum userAlbum ? userAlbum.OwnerUserId : 0,
+                trackCount,
+                album.Pictures?.SmallName,
+                album.Pictures?.MediumName,
+                album.Pictures?.LargeName,
+                album.CreatedAt,
+                album.UpdatedAt,
+                coverTrackIds ?? [],
+                externalAlbum?.ExternalId,
+                externalAlbum?.ThumbnailUrl);
         }
     }
 }

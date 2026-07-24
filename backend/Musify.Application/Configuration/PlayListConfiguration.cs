@@ -12,6 +12,10 @@ namespace Musify.Application.Configuration
 
         [Required]
         public PlayListPicturesSizes PicturesSizes { get; set; } = new PlayListPicturesSizes();
+
+        public bool SeedPresetPictures { get; set; } = true;
+
+        public bool OverwritePresetPictures { get; set; } = false;
     }
 
     public class PlayListRoutes

@@ -1,15 +1,13 @@
 <script lang="ts">
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
 	import SquarePencil from '@lucide/svelte/icons/square-pen';
 	import Trash from '@lucide/svelte/icons/trash';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { hueFor } from '$lib/theme/color';
 
 	interface Props {
-		id: string;
 		title: string;
 		description?: string;
 		releaseYear?: number;
@@ -22,7 +20,6 @@
 	}
 
 	let {
-		id,
 		title,
 		description,
 		releaseYear,
@@ -44,20 +41,14 @@
 	);
 </script>
 
-<a
-	href="/albums"
-	class="group inline-flex items-center text-fg-3 transition-colors hover:text-accent-soft"
->
-	<span class="grid h-8 w-8 place-items-center transition-colors group-hover:text-accent-soft">
-		<ArrowLeft class="h-4 w-4" />
-	</span>
-	Volver a tus álbumes
-</a>
+<BackLink
+	href={isOwner ? '/albums' : '/'}
+	label={isOwner ? 'Volver a tus álbumes' : 'Volver al inicio'}
+/>
 
 <div class="mt-5 flex flex-col gap-5 sm:mt-6 sm:flex-row sm:items-end sm:gap-6">
 	<PlaylistArt
 		{trackIds}
-		hue={hueFor(id)}
 		size="large"
 		class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44"
 	/>

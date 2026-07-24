@@ -36,7 +36,7 @@ namespace Musify.Application.Albums
 
             var albumIds = ranked.Select(entry => entry.AlbumId).ToList();
 
-            var albums = await database.UserAlbums
+            var albums = await database.Albums
                 .AsNoTracking()
                 .Where(album => albumIds.Contains(album.Id))
                 .Select(album => new

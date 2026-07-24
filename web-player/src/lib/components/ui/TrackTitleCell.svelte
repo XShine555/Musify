@@ -9,7 +9,6 @@
 		artist?: string | null;
 		coverSrc?: string | null;
 		coverSize?: string;
-		hue: number;
 		explicit?: boolean;
 		titleClass?: string;
 		onClick: () => void;
@@ -23,7 +22,6 @@
 		artist,
 		coverSrc,
 		coverSize = 'h-[42px] w-[42px]',
-		hue,
 		explicit = false,
 		titleClass = '',
 		onClick,
@@ -36,7 +34,6 @@
 	<Cover
 		{trackId}
 		src={coverSrc}
-		{hue}
 		size="small"
 		alt={title}
 		class="{coverSize} shrink-0 rounded-control"

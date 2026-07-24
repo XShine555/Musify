@@ -7,7 +7,6 @@
 		toQueueItems,
 		type ApiTrackLike
 	} from '$lib/player/player.svelte';
-	import { hueFor } from '$lib/theme/color';
 	import { fmtTime } from '$lib/format';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
@@ -43,7 +42,6 @@
 				trackId={track.id}
 				title={track.title}
 				artist={track.artist}
-				hue={hueFor(track.id)}
 				explicit={track.isExplicit}
 				onClick={() => playFrom(i)}
 			/>

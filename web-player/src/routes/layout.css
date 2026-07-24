@@ -37,10 +37,10 @@
 }
 
 @utility page-x {
-	padding-inline: --spacing(6);
+	padding-inline: --spacing(4);
 
 	@media (width >= 40rem) {
-		padding-inline: --spacing(10);
+		padding-inline: --spacing(8);
 	}
 }
 

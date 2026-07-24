@@ -22,7 +22,6 @@
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
-	import { hueFor } from '$lib/theme/color';
 
 	interface Props {
 		menu: ContextMenuState;
@@ -105,7 +104,6 @@
 									<PlaylistArt
 										playlistId={playlist.id}
 										trackIds={[]}
-										hue={hueFor(playlist.id)}
 										size="small"
 										class="h-9 w-9 shrink-0 rounded-control"
 									/>

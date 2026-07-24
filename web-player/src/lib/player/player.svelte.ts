@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { HUES, accentForHue, gradientForHue, hueFor } from '$lib/theme/color';
+import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
 import { thumbnailSrc } from '$lib/thumbnails';
 
@@ -10,7 +10,6 @@ export interface PlayerTrack {
 	title: string;
 	artist: string;
 	duration: number;
-	hue: number;
 	source: TrackSourceKind;
 	coverUrl?: string;
 	explicit?: boolean;
@@ -91,7 +90,6 @@ const EMPTY: PlayerTrack = {
 	title: '',
 	artist: '',
 	duration: 0,
-	hue: HUES[0],
 	source: 'local'
 };
 
@@ -101,7 +99,6 @@ function toTrack(item: QueueItem): PlayerTrack {
 		title: item.title,
 		artist: item.artist ?? '',
 		duration: 0,
-		hue: hueFor(item.id),
 		explicit: item.explicit,
 		source: item.source ?? 'local',
 		coverUrl: item.coverUrl
@@ -120,7 +117,6 @@ class PlayerState {
 	playlists = $state<Playlist[]>([]);
 
 	accentColor = $state<string | null>(null);
-	gradientColor = $state<string | null>(null);
 
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
@@ -129,8 +125,7 @@ class PlayerState {
 	#rafId: number | null = null;
 
 	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? EMPTY);
-	accent = $derived(this.accentColor ?? accentForHue(this.current.hue));
-	artGradient = $derived(this.gradientColor ?? gradientForHue(this.current.hue));
+	accent = $derived(this.accentColor ?? DEFAULT_ACCENT);
 	progressPercent = $derived(
 		this.current.duration > 0 ? Math.min(100, (this.progress / this.current.duration) * 100) : 0
 	);
@@ -250,7 +245,6 @@ class PlayerState {
 		const cached = this.#accentCache.get(key);
 		if (cached) {
 			this.accentColor = cached.accent;
-			this.gradientColor = cached.gradient;
 			return;
 		}
 		const result = await extractAccent(
@@ -260,10 +254,8 @@ class PlayerState {
 		if (result) {
 			this.#accentCache.set(key, result);
 			this.accentColor = result.accent;
-			this.gradientColor = result.gradient;
 		} else {
 			this.accentColor = null;
-			this.gradientColor = null;
 		}
 	}
 
@@ -333,14 +325,6 @@ class PlayerState {
 		return ids
 			.map((id) => this.tracks.find((t) => t.id === id))
 			.filter((t): t is PlayerTrack => Boolean(t));
-	}
-
-	mosaicFor(ids: (string | number)[]): string[] {
-		const gradients = this.playlistTracks(ids)
-			.slice(0, 4)
-			.map((t) => gradientForHue(t.hue));
-		while (gradients.length < 4) gradients.push('var(--mf-surface)');
-		return gradients;
 	}
 
 	playQueue(list: QueueItem[], startIndex = 0) {

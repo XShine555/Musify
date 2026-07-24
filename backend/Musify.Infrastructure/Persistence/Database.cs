@@ -117,6 +117,13 @@ namespace Musify.Infrastructure.Persistence
                 .HasForeignKey(album => album.OwnerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<ExternalAlbum>()
+                .ToTable("ExternalAlbums");
+
+            modelBuilder.Entity<ExternalAlbum>()
+                .HasIndex(album => new { album.Source, album.ExternalId })
+                .IsUnique();
+
             modelBuilder.Entity<AlbumHasTrack>()
                 .HasOne(albumTrack => albumTrack.Album)
                 .WithMany(album => album.AlbumTracks)
@@ -175,6 +182,8 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<Album> Albums => Set<Album>();
 
         public DbSet<UserAlbum> UserAlbums => Set<UserAlbum>();
+
+        public DbSet<ExternalAlbum> ExternalAlbums => Set<ExternalAlbum>();
 
         public DbSet<AlbumHasTrack> AlbumHasTracks => Set<AlbumHasTrack>();
 

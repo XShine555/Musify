@@ -34,6 +34,7 @@ services.AddAudioTranscoder(configuration);
 services.AddYouTubeDownloader(configuration);
 services.AddHttpClient();
 services.AddPictureService(configuration);
+services.AddPlayListPresetSeeder(configuration);
 services.AddDatabase(configuration);
 services.AddMassTransitConsumers(configuration);
 services.AddUploadIntentJobs(configuration);

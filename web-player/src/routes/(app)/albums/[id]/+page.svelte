@@ -31,13 +31,12 @@
 </script>
 
 <svelte:head>
-	<title>{album.title} · Musify</title>
-	<meta name="description" content="Álbum {album.title} en Musify." />
+	<title>{album.title}</title>
+	<meta name="description" content="Álbum {album.title}." />
 </svelte:head>
 
 <Page>
 	<AlbumHeader
-		id={album.id}
 		title={album.title}
 		description={album.description ?? undefined}
 		releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}

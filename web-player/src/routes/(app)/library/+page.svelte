@@ -4,7 +4,6 @@
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems } from '$lib/player/player.svelte';
-	import { hueFor } from '$lib/theme/color';
 	import { fmtTime, fmtDate } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -28,7 +27,7 @@
 </script>
 
 <svelte:head>
-	<title>Tus canciones subidas · Musify</title>
+	<title>Tus canciones subidas</title>
 	<meta name="description" content="Todas tus canciones subidas a Musify." />
 </svelte:head>
 
@@ -65,12 +64,7 @@
 						playing={player.playing}
 						onToggle={() => togglePlay(i)}
 					/>
-					<TrackTitleCell
-						trackId={track.id}
-						title={track.title}
-						hue={hueFor(track.id)}
-						onClick={() => togglePlay(i)}
-					/>
+					<TrackTitleCell trackId={track.id} title={track.title} onClick={() => togglePlay(i)} />
 					<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
 					<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>

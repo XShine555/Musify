@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
+using Musify.Infrastructure.Helpers;
 using YouTubeMusicAPI.Client;
 using YouTubeMusicAPI.Models.Search;
 using YouTubeMusicAPI.Models.Streaming;
@@ -260,7 +261,7 @@ namespace Musify.Infrastructure.Services
                     videoId,
                     info.Name,
                     string.Join(", ", info.Artists.Select(artist => artist.Name)),
-                    string.Empty,
+                    info.Album?.Name ?? string.Empty,
                     (int)info.Duration.TotalSeconds,
                     PickThumbnail(info.Thumbnails),
                     info.IsExplicit,
@@ -278,13 +279,13 @@ namespace Musify.Infrastructure.Services
         }
 
         public string ResolveArtworkUrl(string thumbnailUrl) =>
-            YouTubeThumbnail.WithSize(thumbnailUrl, configuration.ArtworkSize);
+            YouTubeThumbNailHelper.WithSize(thumbnailUrl, configuration.ArtworkSize);
 
         private string PickThumbnail(IEnumerable<YouTubeMusicAPI.Models.Thumbnail> thumbnails)
         {
             var ordered = thumbnails.OrderBy(thumbnail => thumbnail.Width).ToList();
 
-            var square = ordered.Where(thumbnail => YouTubeThumbnail.IsSquare(thumbnail.Url)).ToList();
+            var square = ordered.Where(thumbnail => YouTubeThumbNailHelper.IsSquare(thumbnail.Url)).ToList();
             var candidates = square.Count > 0 ? square : ordered;
 
             var chosen = candidates.FirstOrDefault(thumbnail => thumbnail.Width >= configuration.ThumbnailSize)
@@ -292,7 +293,7 @@ namespace Musify.Infrastructure.Services
 
             return chosen is null
                 ? string.Empty
-                : YouTubeThumbnail.WithSize(chosen.Url, configuration.ThumbnailSize);
+                : YouTubeThumbNailHelper.WithSize(chosen.Url, configuration.ThumbnailSize);
         }
 
         private static string SearchCacheKey(string token) => $"yt-search:{token}";

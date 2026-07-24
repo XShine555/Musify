@@ -2,7 +2,6 @@
 	import { enhance } from '$app/forms';
 	import Plus from '@lucide/svelte/icons/plus';
 	import { player, toQueueItems, type ApiTrackLike } from '$lib/player/player.svelte';
-	import { hueFor } from '$lib/theme/color';
 	import { fmtTime } from '$lib/format';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
@@ -34,7 +33,6 @@
 					trackId={track.id}
 					title={track.title}
 					artist={track.artist}
-					hue={hueFor(track.id)}
 					explicit={track.isExplicit}
 					onClick={() => playFrom(i)}
 				>

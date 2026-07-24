@@ -2,7 +2,6 @@
 	import MediaCard from './MediaCard.svelte';
 	import PlaylistArt from './PlaylistArt.svelte';
 	import Cover from './Cover.svelte';
-	import { hueFor } from '$lib/theme/color';
 
 	interface Props {
 		id: string;
@@ -55,16 +54,9 @@
 >
 	{#snippet art(artClass)}
 		{#if coverSrc}
-			<Cover
-				trackId={id}
-				src={coverSrc}
-				hue={hueFor(id)}
-				size="large"
-				alt={title}
-				class={artClass}
-			/>
+			<Cover trackId={id} src={coverSrc} size="large" alt={title} class={artClass} />
 		{:else}
-			<PlaylistArt {trackIds} hue={hueFor(id)} class={artClass} />
+			<PlaylistArt {trackIds} class={artClass} />
 		{/if}
 	{/snippet}
 </MediaCard>

@@ -6,6 +6,10 @@ declare global {
 			user: SessionUser | null;
 			accessToken: string | null;
 		}
+
+		interface PageData {
+			section?: string | null;
+		}
 	}
 }
 

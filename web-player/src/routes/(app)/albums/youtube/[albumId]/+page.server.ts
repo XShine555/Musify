@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 
 	const album = unwrapOrError(albumRes, 'No se pudo cargar el álbum de YouTube Music.', 404);
 
-	return { album, playlists: playlistsRes.data?.items ?? [] };
+	return { album, playlists: playlistsRes.data?.items ?? [], section: null };
 };
 
 export const actions: Actions = {

@@ -1,6 +1,6 @@
-namespace Musify.Infrastructure.Services
+namespace Musify.Infrastructure.Helpers
 {
-    public static class YouTubeThumbnail
+    public static class YouTubeThumbNailHelper
     {
         public static bool IsSquare(string url) =>
             url.Contains("googleusercontent.com", StringComparison.OrdinalIgnoreCase);
@@ -38,7 +38,7 @@ namespace Musify.Infrastructure.Services
             if (lastSlash < 0)
                 return path;
 
-            return $"{path[..lastSlash]}/{YtImgFileName(size)}";
+            return $"{path[..lastSlash] }/{YtImgFileName(size) }";
         }
 
         private static string YtImgFileName(int size) => size switch
@@ -50,6 +50,6 @@ namespace Musify.Infrastructure.Services
         };
 
         private static bool IsSizeSuffix(ReadOnlySpan<char> suffix) =>
-            suffix.Length > 1 && (suffix[0] is 'w' or 's' or 'h') && char.IsDigit(suffix[1]);
+            suffix.Length > 1 && (suffix[0] is 'w' or 's' or 'h') && char.IsDigit(suffix[1] );
     }
 }

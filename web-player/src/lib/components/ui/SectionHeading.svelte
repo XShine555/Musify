@@ -18,9 +18,7 @@
 		{@render actions()}
 	</div>
 {:else}
-	<h2
-		class="mb-3 font-display font-medium text-fg sm:mb-4 sm:text-xl {klass}"
-	>
+	<h2 class="mb-3 font-display font-medium text-fg sm:mb-4 sm:text-xl {klass}">
 		{title}
 	</h2>
 {/if}

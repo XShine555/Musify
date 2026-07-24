@@ -38,7 +38,9 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 		(track) => track.source === 'Local' && !inAlbum.has(track.id)
 	);
 
-	return { album, tracks, library, isOwner: Number(album.ownerUserId) === Number(user.sub) };
+	const isOwner = Number(album.ownerUserId) === Number(user.sub);
+
+	return { album, tracks, library, isOwner, section: isOwner ? '/albums' : null };
 };
 
 export const actions: Actions = {

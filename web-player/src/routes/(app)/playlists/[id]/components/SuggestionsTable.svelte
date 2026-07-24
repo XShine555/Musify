@@ -7,7 +7,6 @@
 		type ApiTrackLike,
 		type QueueItem
 	} from '$lib/player/player.svelte';
-	import { hueFor } from '$lib/theme/color';
 	import { fmtTime } from '$lib/format';
 	import type { YouTubeSong } from '$lib/types';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
@@ -92,7 +91,6 @@
 					title={item.kind === 'youtube' ? item.song.title : item.track.title}
 					artist={item.kind === 'youtube' ? item.song.artist : item.track.artist}
 					coverSrc={item.kind === 'youtube' ? item.song.thumbnailUrl : undefined}
-					hue={hueFor(idFor(item))}
 					explicit={item.kind === 'youtube' && item.song.isExplicit}
 					onClick={() => playFrom(i)}
 				>

@@ -18,7 +18,7 @@
 </script>
 
 <svelte:head>
-	<title>Álbumes · Musify</title>
+	<title>Álbumes</title>
 	<meta name="description" content="Los álbumes que has publicado con tu música subida." />
 </svelte:head>
 

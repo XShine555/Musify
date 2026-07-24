@@ -10,12 +10,27 @@
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { ACCENT_LIGHTNESS, ACCENT_CHROMA, ACCENT_HUE } from '$lib/theme/color';
+	import { trackNavigation } from '$lib/navigation.svelte';
 	import { page } from '$app/state';
 
 	let { children, data } = $props();
 
+	trackNavigation();
+
 	const isAuthPage = $derived(page.url.pathname === '/login');
 	const hasTrack = $derived(player.currentId !== null);
+
+	function isTypingTarget(target: EventTarget | null): boolean {
+		if (!(target instanceof HTMLElement)) return false;
+		if (target.isContentEditable) return true;
+		return ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(target.tagName);
+	}
+
+	function onWindowKeydown(event: KeyboardEvent) {
+		if (event.code !== 'Space' || isTypingTarget(event.target)) return;
+		event.preventDefault();
+		player.toggle();
+	}
 
 	$effect(() => {
 		document.documentElement.classList.toggle('home', page.url.pathname === '/');
@@ -58,6 +73,8 @@
 		return () => cancelAnimationFrame(rafId);
 	});
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 

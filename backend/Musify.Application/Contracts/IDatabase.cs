@@ -13,6 +13,8 @@ namespace Musify.Application.Contracts
 
         DbSet<UserAlbum> UserAlbums { get; }
 
+        DbSet<ExternalAlbum> ExternalAlbums { get; }
+
         DbSet<AlbumHasTrack> AlbumHasTracks { get; }
 
         DbSet<Track> Tracks { get; }

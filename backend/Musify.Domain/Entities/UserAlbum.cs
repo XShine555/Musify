@@ -9,7 +9,7 @@ namespace Musify.Domain.Entities
         [Required]
         public required long OwnerUserId { get; set; }
 
-        [ForeignKey(nameof(OwnerUserId))]
+        [ForeignKey(nameof(OwnerUserId)) ]
         public User Owner { get; set; }
     }
 }

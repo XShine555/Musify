@@ -582,6 +582,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             coverTrackIds: string[];
+            youTubeAlbumId: null | string;
+            thumbnailUrl: null | string;
         };
         CreateAlbumRequest: {
             title: string;

@@ -9,15 +9,13 @@
 		<Cover
 			trackId={player.current.id}
 			src={player.current.coverUrl}
-			hue={player.current.hue}
 			size="small"
 			alt={player.current.title}
 			class="h-11 w-11 shrink-0 rounded-lg shadow-[0_6px_16px_-6px_rgba(0,0,0,0.6)] md:h-13 md:w-13"
 		/>
 	{:else}
 		<div
-			class="h-11 w-11 shrink-0 rounded-lg shadow-[0_6px_16px_-6px_rgba(0,0,0,0.6)] md:h-13 md:w-13"
-			style="background:{player.artGradient}"
+			class="h-11 w-11 shrink-0 rounded-lg bg-surface shadow-[0_6px_16px_-6px_rgba(0,0,0,0.6)] md:h-13 md:w-13"
 		></div>
 	{/if}
 	<div class="min-w-0">

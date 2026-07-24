@@ -1,13 +1,12 @@
 <script lang="ts">
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import { player } from '$lib/player/player.svelte';
-	import { hueFor } from '$lib/theme/color';
 	import { fmtTime } from '$lib/format';
 	import { shuffle } from '$lib/collections';
 	import Page from '$lib/components/ui/Page.svelte';
+	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import MixArt from '$lib/components/ui/MixArt.svelte';
@@ -61,27 +60,15 @@
 </script>
 
 <svelte:head>
-	<title>{mix.title} · Musify</title>
+	<title>{mix.title}</title>
 	<meta name="description" content="Mezcla {mix.title}, hecha para ti." />
 </svelte:head>
 
 <Page>
-	<a
-		href="/"
-		class="group inline-flex items-center text-fg-3 transition-colors hover:text-accent-soft"
-	>
-		<span class="grid h-8 w-8 place-items-center transition-colors group-hover:text-accent-soft">
-			<ArrowLeft class="h-4 w-4" />
-		</span>
-		Volver al inicio
-	</a>
+	<BackLink href="/" label="Volver al inicio" />
 
 	<div class="mt-5 flex flex-col gap-5 sm:mt-6 sm:flex-row sm:items-end sm:gap-6">
-		<MixArt
-			{items}
-			hue={hueFor(mix.id)}
-			class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44"
-		/>
+		<MixArt {items} class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44" />
 		<div class="min-w-0 flex-1">
 			<p class="text-sm tracking-[0.14em] text-fg-3 uppercase">Mezcla</p>
 			<h1
@@ -133,7 +120,6 @@
 					title={targetTitle(targets[i])}
 					artist={targetArtist(targets[i])}
 					coverSrc={targetCoverSrc(targets[i])}
-					hue={hueFor(mixItemKey(item))}
 					explicit={item.isExplicit}
 					onClick={() => playFrom(i)}
 				/>

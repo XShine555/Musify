@@ -36,7 +36,7 @@
 </script>
 
 <svelte:head>
-	<title>{playlist.name} · Musify</title>
+	<title>{playlist.name}</title>
 	<meta name="description" content="Playlist {playlist.name} en Musify." />
 </svelte:head>
 
