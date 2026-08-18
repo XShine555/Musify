@@ -24,6 +24,11 @@
 		contextMenuStateFor,
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
+	import AlbumContextMenu, {
+		albumContextMenuStateFor,
+		type AlbumMenuState
+	} from '$lib/components/AlbumContextMenu.svelte';
+	import { fetchAlbumQueueItems } from '$lib/albums';
 	import type { YouTubeSong } from '$lib/types';
 	import { appendUnique } from '$lib/collections';
 	import { HOME_LATEST_PAGE_SIZE } from '$lib/config';
@@ -33,6 +38,7 @@
 	let { data } = $props();
 
 	let contextMenu = $state<ContextMenuState | null>(null);
+	let albumMenu = $state<AlbumMenuState | null>(null);
 	let youtubeFillerItems = $state<YouTubeSong[]>([]);
 
 	$effect(() => {
@@ -107,6 +113,24 @@
 		if (!contextMenu) return;
 		player.addToQueue(queueItemForTarget(contextMenu));
 		contextMenu = null;
+	}
+
+	function openAlbumMenu(event: MouseEvent, albumId: string) {
+		albumMenu = albumContextMenuStateFor(event, 'local', albumId);
+	}
+
+	async function albumPlayNext() {
+		if (!albumMenu) return;
+		const { kind, albumId } = albumMenu;
+		albumMenu = null;
+		player.playNext(await fetchAlbumQueueItems(kind, albumId));
+	}
+
+	async function albumAddToQueue() {
+		if (!albumMenu) return;
+		const { kind, albumId } = albumMenu;
+		albumMenu = null;
+		player.appendToQueue(await fetchAlbumQueueItems(kind, albumId));
 	}
 
 	function albumCaption(album: (typeof albums)[number]) {
@@ -195,6 +219,7 @@
 							: `/albums/${album.id}`}
 						class="group/card animate-enter block w-42 shrink-0 rounded-art focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
 						style="animation-delay:{Math.min(i, 10) * 45}ms"
+						oncontextmenu={(e) => openAlbumMenu(e, album.id)}
 					>
 						<div class="relative">
 							{#if album.thumbnailUrl}
@@ -266,9 +291,13 @@
 						>
 							{playlist.name}
 						</div>
-						{#if playlist.description}
-							<div class="mt-0.5 truncate text-sm text-muted">{playlist.description}</div>
-						{/if}
+						<div class="mt-0.5 truncate text-sm text-muted">
+							{#if playlist.description}
+								{playlist.description}
+							{:else}
+
+							{/if}
+						</div>
 					</a>
 				{/each}
 				<a
@@ -330,7 +359,11 @@
 		</section>
 	{/if}
 	{#if recentlyPlayed.length === 0 && albums.length === 0 && mixes.length === 0 && playlists.length === 0 && newTargets.length === 0}
-		<EmptyState icon={Music} title="Todavía no hay música" description="Sube tu música o explora nuevas canciones, álbumes y listas de reproducción." />
+		<EmptyState
+			icon={Music}
+			title="Todavía no hay música"
+			description="Sube tu música o explora nuevas canciones, álbumes y listas de reproducción."
+		/>
 	{/if}
 </div>
 
@@ -385,5 +418,15 @@
 		{playlists}
 		onClose={() => (contextMenu = null)}
 		onAddToQueue={addToQueue}
+	/>
+{/if}
+
+{#if albumMenu}
+	<AlbumContextMenu
+		menu={albumMenu}
+		{playlists}
+		onClose={() => (albumMenu = null)}
+		onPlayNext={albumPlayNext}
+		onAddToQueue={albumAddToQueue}
 	/>
 {/if}

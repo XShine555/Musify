@@ -1,7 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser } from '$lib/server/api';
 import { fetchYoutubeFiller } from '$lib/server/youtube';
-import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
+import {
+	addAlbumToPlaylistAction,
+	addTrackAction,
+	addYouTubeToPlaylistAction
+} from '$lib/server/playlistActions';
 import {
 	HOME_ALBUMS_LIMIT,
 	HOME_LATEST_PAGE_SIZE,
@@ -62,5 +66,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 
 export const actions: Actions = {
 	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction
+	addYouTubeToPlaylist: addYouTubeToPlaylistAction,
+	addAlbumToPlaylist: addAlbumToPlaylistAction
 };

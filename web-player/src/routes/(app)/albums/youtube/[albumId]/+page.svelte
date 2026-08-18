@@ -174,5 +174,13 @@
 		menu={albumMenu}
 		playlists={data.playlists}
 		onClose={() => (albumMenu = null)}
+		onPlayNext={() => {
+			player.playNext(queue);
+			albumMenu = null;
+		}}
+		onAddToQueue={() => {
+			player.appendToQueue(queue);
+			albumMenu = null;
+		}}
 	/>
 {/if}

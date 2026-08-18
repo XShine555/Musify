@@ -342,13 +342,27 @@ class PlayerState {
 	}
 
 	addToQueue(item: QueueItem) {
+		this.playNext([item]);
+	}
+
+	playNext(items: QueueItem[]) {
+		if (items.length === 0) return;
 		if (this.currentId === null) {
-			this.playQueue([item], 0);
+			this.playQueue(items, 0);
 			return;
 		}
 		const tracks = [...this.tracks];
-		tracks.splice(this.#index() + 1, 0, toTrack(item));
+		tracks.splice(this.#index() + 1, 0, ...items.map(toTrack));
 		this.tracks = tracks;
+	}
+
+	appendToQueue(items: QueueItem[]) {
+		if (items.length === 0) return;
+		if (this.currentId === null) {
+			this.playQueue(items, 0);
+			return;
+		}
+		this.tracks = [...this.tracks, ...items.map(toTrack)];
 	}
 
 	playTrack(id: string | number) {

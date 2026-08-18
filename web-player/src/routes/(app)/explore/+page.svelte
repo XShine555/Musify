@@ -4,6 +4,7 @@
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { player } from '$lib/player/player.svelte';
+	import { fetchAlbumQueueItems } from '$lib/albums';
 	import { fmtTime } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -163,12 +164,22 @@
 		contextMenu = contextMenuStateFor(event, target);
 	}
 
-	function isForeignAlbum(album: LocalAlbum) {
-		return String(album.ownerUserId) !== data.user?.sub;
-	}
-
 	function openAlbumMenu(event: MouseEvent, kind: 'local' | 'youtube', albumId: string) {
 		albumMenu = albumContextMenuStateFor(event, kind, albumId);
+	}
+
+	async function albumPlayNext() {
+		if (!albumMenu) return;
+		const { kind, albumId } = albumMenu;
+		albumMenu = null;
+		player.playNext(await fetchAlbumQueueItems(kind, albumId));
+	}
+
+	async function albumAddToQueue() {
+		if (!albumMenu) return;
+		const { kind, albumId } = albumMenu;
+		albumMenu = null;
+		player.appendToQueue(await fetchAlbumQueueItems(kind, albumId));
 	}
 
 	function addToQueue() {
@@ -255,9 +266,7 @@
 								href="/albums/{entry.album.id}"
 								class="group/card animate-enter block min-w-0 rounded-art focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
 								style="animation-delay:{Math.min(i, 10) * 45}ms"
-								oncontextmenu={isForeignAlbum(entry.album)
-									? (e) => openAlbumMenu(e, 'local', entry.album.id)
-									: undefined}
+								oncontextmenu={(e) => openAlbumMenu(e, 'local', entry.album.id)}
 							>
 								<div class="relative">
 									<PlaylistArt
@@ -395,5 +404,7 @@
 		menu={albumMenu}
 		playlists={data.playlists}
 		onClose={() => (albumMenu = null)}
+		onPlayNext={albumPlayNext}
+		onAddToQueue={albumAddToQueue}
 	/>
 {/if}

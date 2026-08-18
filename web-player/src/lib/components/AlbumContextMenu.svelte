@@ -25,15 +25,19 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ListPlus from '@lucide/svelte/icons/list-plus';
+	import ListEnd from '@lucide/svelte/icons/list-end';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 
 	interface Props {
 		menu: AlbumMenuState;
 		playlists: { id: string; name: string }[];
 		onClose: () => void;
+		onPlayNext: () => void;
+		onAddToQueue: () => void;
 	}
 
-	let { menu, playlists, onClose }: Props = $props();
+	let { menu, playlists, onClose, onPlayNext, onAddToQueue }: Props = $props();
 
 	function onWindowKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') onClose();
@@ -55,6 +59,22 @@
 	class="fixed z-40 w-60 rounded-panel border border-line bg-elevated p-1.5 shadow-menu"
 	style="left:{menu.x}px; top:{menu.y}px;"
 >
+	<button
+		type="button"
+		onclick={onPlayNext}
+		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm text-fg-2 transition hover:bg-hover"
+	>
+		<ListPlus class="h-5 w-5 shrink-0" strokeWidth={2} />
+		<span class="text-base">Reproducir a continuación</span>
+	</button>
+	<button
+		type="button"
+		onclick={onAddToQueue}
+		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm text-fg-2 transition hover:bg-hover"
+	>
+		<ListEnd class="h-5 w-5 shrink-0" strokeWidth={2} />
+		<span class="text-base">Añadir a la cola</span>
+	</button>
 	{#if playlists.length > 0}
 		<div class="group/addmenu relative">
 			<div

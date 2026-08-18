@@ -15,7 +15,14 @@
 param(
     [string]$ProjectName = "Musify",
     [string]$ApiAppName  = "Musify API (Scalar)",
-    [string]$WebAppName  = "Musify Web"
+    [string]$WebAppName  = "Musify Web",
+    # Alternate .env to read/write (e.g. deploy/.env.share). Defaults to deploy/.env.
+    [string]$EnvFile,
+    # Skip writing Musify.Api user-secrets and web-player/.env: use when the apps
+    # only ever run in Docker for this environment and get their config from compose.
+    [switch]$SkipHostWiring,
+    # Matches the zitadel volume mount for this environment (see compose.share.yml).
+    [string]$OutputDir = ".output"
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,8 +30,8 @@ $deployDir  = Split-Path $PSScriptRoot -Parent
 $repoDir    = Split-Path $deployDir -Parent
 $apiProject = Join-Path $repoDir "backend\Musify.Api"
 $webEnvFile = Join-Path $repoDir "web-player\.env"
-$envFile    = Join-Path $deployDir ".env"
-$patFile    = Join-Path $PSScriptRoot ".output\admin-sa.pat"
+$envFile    = if ($EnvFile) { $EnvFile } else { Join-Path $deployDir ".env" }
+$patFile    = Join-Path $PSScriptRoot "$OutputDir\admin-sa.pat"
 
 . (Join-Path $deployDir "scripts\common.ps1")
 
@@ -148,35 +155,39 @@ Set-DotEnvValue $envFile "AUTH_CLIENT_ID"     $apiClientId
 Set-DotEnvValue $envFile "WEB_CLIENT_ID"      $webClientId
 Set-DotEnvValue $envFile "WEB_CLIENT_SECRET"  $webSecret
 
-# Musify.Api reads these from user-secrets when it runs outside Docker.
-@{
-    "Authentication:ClientId"              = $apiClientId
-    "Authentication:AudienceAddress"       = $apiClientId
-    "Authentication:IssuerAddress"         = $issuer
-    "Authentication:MetadataAddress"       = "$issuer/.well-known/openid-configuration"
-    "Authentication:AuthorizationEndpoint" = "$issuer/oauth/v2/authorize?prompt=login"
-    "Authentication:TokenEndpoint"         = "$issuer/oauth/v2/token"
-    "Authentication:ScalarRedirectUri"     = "$apiUrl/scalar/"
-    "Authentication:RequireHttpsMetadata"  = "false"
-}.GetEnumerator() | ForEach-Object {
-    dotnet user-secrets set $_.Key $_.Value --project $apiProject | Out-Null
-}
+if ($SkipHostWiring) {
+    Write-Host "  wired into $envFile only (-SkipHostWiring: apps run in Docker)"
+} else {
+    # Musify.Api reads these from user-secrets when it runs outside Docker.
+    @{
+        "Authentication:ClientId"              = $apiClientId
+        "Authentication:AudienceAddress"       = $apiClientId
+        "Authentication:IssuerAddress"         = $issuer
+        "Authentication:MetadataAddress"       = "$issuer/.well-known/openid-configuration"
+        "Authentication:AuthorizationEndpoint" = "$issuer/oauth/v2/authorize?prompt=login"
+        "Authentication:TokenEndpoint"         = "$issuer/oauth/v2/token"
+        "Authentication:ScalarRedirectUri"     = "$apiUrl/scalar/"
+        "Authentication:RequireHttpsMetadata"  = "false"
+    }.GetEnumerator() | ForEach-Object {
+        dotnet user-secrets set $_.Key $_.Value --project $apiProject | Out-Null
+    }
 
-# web-player/.env is what `npm run dev` reads (the container gets its config
-# from compose instead).
-if (-not (Test-Path $webEnvFile)) {
-    Copy-Item (Join-Path $repoDir "web-player\.env.example") $webEnvFile
-}
-@{
-    ZITADEL_ISSUER        = $issuer
-    ZITADEL_CLIENT_ID     = $webClientId
-    ZITADEL_CLIENT_SECRET = $webSecret
-    AUTH_REDIRECT_URI     = "$viteUrl/auth/callback"
-    AUTH_POST_LOGOUT_URI  = "$viteUrl/"
-    SESSION_SECRET        = $cfg['SESSION_SECRET']
-    API_BASE_URL          = $apiUrl
-}.GetEnumerator() | ForEach-Object {
-    Set-DotEnvValue $webEnvFile $_.Key $_.Value
-}
+    # web-player/.env is what `npm run dev` reads (the container gets its config
+    # from compose instead).
+    if (-not (Test-Path $webEnvFile)) {
+        Copy-Item (Join-Path $repoDir "web-player\.env.example") $webEnvFile
+    }
+    @{
+        ZITADEL_ISSUER        = $issuer
+        ZITADEL_CLIENT_ID     = $webClientId
+        ZITADEL_CLIENT_SECRET = $webSecret
+        AUTH_REDIRECT_URI     = "$viteUrl/auth/callback"
+        AUTH_POST_LOGOUT_URI  = "$viteUrl/"
+        SESSION_SECRET        = $cfg['SESSION_SECRET']
+        API_BASE_URL          = $apiUrl
+    }.GetEnumerator() | ForEach-Object {
+        Set-DotEnvValue $webEnvFile $_.Key $_.Value
+    }
 
-Write-Host "  wired into deploy/.env, Musify.Api user-secrets and web-player/.env"
+    Write-Host "  wired into deploy/.env, Musify.Api user-secrets and web-player/.env"
+}

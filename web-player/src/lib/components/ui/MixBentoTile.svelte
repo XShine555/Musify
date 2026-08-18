@@ -45,7 +45,7 @@
 			: ''}"
 	></div>
 	<div
-		class="pointer-events-none absolute inset-0 bg-scrim/25 opacity-0 transition-opacity duration-300 group-hover/tile:opacity-100"
+		class="pointer-events-none absolute inset-0 bg-scrim/25 opacity-0 transition-opacity duration-300"
 	></div>
 	<div
 		class="relative flex h-full flex-col justify-end p-3 sm:p-4 {banner
