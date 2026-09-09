@@ -1,7 +1,6 @@
 using ErrorOr;
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
-using Musify.Domain.ValueObjects;
 using Xunit;
 
 namespace Musify.Application.Tests.Tracks;

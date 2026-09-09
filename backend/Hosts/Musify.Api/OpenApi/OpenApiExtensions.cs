@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.OpenApi;
-
 namespace Musify.Api.OpenApi;
 
 public static class OpenApiExtensions

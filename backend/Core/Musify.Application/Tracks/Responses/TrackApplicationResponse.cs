@@ -1,4 +1,3 @@
-using System.Linq;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 

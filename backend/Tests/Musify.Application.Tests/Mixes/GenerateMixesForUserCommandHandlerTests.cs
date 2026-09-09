@@ -3,7 +3,6 @@ using Musify.Application.Contracts;
 using Musify.Application.Mixes;
 using Musify.Application.Tests.TestSupport;
 using Musify.Domain.Entities;
-using Musify.Domain.ValueObjects;
 using NSubstitute;
 using Xunit;
 
@@ -47,7 +46,7 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
         youTubeMusicService
             .SearchSongsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new YouTubeSearchResult(
-                [new YouTubeSongResult("yt-1", "YouTube Song", "Seed Artist", "Album", 200, "https://img/thumb.jpg", false, [])],
+                [new YouTubeSongResult("yt-1", "YouTube Song", "Seed Artist", "Album", 200, "https://img/thumb.jpg", IsExplicit: false, [] )],
                 ContinuationToken: string.Empty));
         youTubeMusicService.ResolveArtworkUrl(Arg.Any<string>()).Returns(callInfo => callInfo.Arg<string>());
 

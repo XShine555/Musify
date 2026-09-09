@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Tests.TestSupport;
 using Xunit;

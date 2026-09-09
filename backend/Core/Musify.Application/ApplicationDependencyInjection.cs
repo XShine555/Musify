@@ -1,4 +1,3 @@
-using Mediator;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Application.Configuration;

@@ -41,20 +41,34 @@ public sealed class CreateAlbumRequestValidatorTests
         Assert.False(result.IsValid);
     }
 
-    [Theory]
-    [InlineData(1876)]
-    [InlineData(1877)]
-    public void Validate_ReleaseYearAtOrBeforeTheEarliestBoundary(int year)
+    [Fact]
+    public void Validate_ReleaseYearBeforeTheEarliestBoundary_Fails()
     {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, year));
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Earliest - 1));
 
-        Assert.Equal(year >= 1877, result.IsValid);
+        Assert.False(result.IsValid);
     }
 
     [Fact]
-    public void Validate_ReleaseYearMoreThanOneYearInTheFuture_Fails()
+    public void Validate_ReleaseYearAtTheEarliestBoundary_Passes()
     {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, DateTime.UtcNow.Year + 2));
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Earliest));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_ReleaseYearAtTheLatestBoundary_Passes()
+    {
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Latest));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_ReleaseYearPastTheLatestBoundary_Fails()
+    {
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Latest + 1));
 
         Assert.False(result.IsValid);
     }

@@ -1,3 +1,4 @@
+using ErrorOr;
 using Musify.Application.Albums;
 using Musify.Application.Tests.TestSupport;
 using Xunit;
@@ -37,7 +38,6 @@ public sealed class CreateAlbumCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsError);
-        Assert.Equal(ErrorOr.ErrorType.NotFound, result.FirstError.Type);
+        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
 }

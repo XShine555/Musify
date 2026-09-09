@@ -27,9 +27,9 @@ public sealed class PictureServiceTests
         await using var resized = await CreateService().ResizePictureAsWebpAsync(source, 200, 200, CancellationToken.None);
 
         using var result = await Image.LoadAsync(resized);
-        Assert.True(result.Width <= 200);
-        Assert.True(result.Height <= 200);
-        Assert.True(result.Width == 200 || result.Height == 200);
+        Assert.InRange(result.Width, 1, 200);
+        Assert.InRange(result.Height, 1, 200);
+        Assert.True(result.Width == 200 || result.Height == 200, "expected the longer side to land exactly on the target box");
     }
 
     [Fact]

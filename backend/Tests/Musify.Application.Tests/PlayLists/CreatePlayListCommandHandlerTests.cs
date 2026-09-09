@@ -1,5 +1,4 @@
 using ErrorOr;
-using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.PlayLists;
 using Musify.Application.Services;

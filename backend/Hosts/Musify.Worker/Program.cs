@@ -1,6 +1,4 @@
 using Hangfire;
-using Mediator;
-using Microsoft.Extensions.DependencyInjection;
 using Musify.Application.Configuration;
 using Musify.Application.Services;
 using Musify.Infrastructure.Jobs;

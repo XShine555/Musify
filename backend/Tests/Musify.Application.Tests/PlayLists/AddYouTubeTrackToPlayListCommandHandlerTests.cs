@@ -5,7 +5,6 @@ using Musify.Application.PlayLists;
 using Musify.Application.Services;
 using Musify.Application.Tests.TestSupport;
 using Musify.Domain.Entities;
-using Musify.Domain.ValueObjects;
 using NSubstitute;
 using Xunit;
 
