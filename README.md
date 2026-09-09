@@ -7,26 +7,32 @@ and stream them without the bytes ever going through the API.
 ```
 backend/      .NET 10 — Domain / Application / Infrastructure / Api / Worker / StreamingGateway
 web-player/   SvelteKit 2 + Svelte 5 + Tailwind 4 web client
-deploy/       Docker Compose stacks and the scripts that bootstrap them
+deploy/       Docker Compose stacks — self-contained, no wrapper scripts
 docs/         What each piece does and why (in Spanish)
 ```
 
 ## Run it
 
-Development (Windows, Docker Desktop):
+Development (Docker Desktop):
 
-```powershell
-./deploy/up.ps1        # infrastructure; the apps run from the IDE
-./deploy/up.ps1 -Apps  # everything in Docker
+```sh
+docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
 ```
+
+Infrastructure plus stream-ticket keys, database migrations and Zitadel OIDC
+provisioning — all as one-shot jobs baked into the compose file. Apps run from
+the IDE by default; add `--profile apps up -d --build` as a second command to
+run them in Docker instead.
 
 Production, on a server with a domain:
 
 ```sh
-./deploy/up.sh         # fill in deploy/.env.prod and the TLS certs when it asks
+cp deploy/.env.prod.example deploy/.env.prod   # fill in the domain and secrets
+docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
+docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
 ```
 
-Both are idempotent and print what they did. See
+Idempotent — run the same commands again to deploy an update. See
 [deploy/README.md](deploy/README.md) for the details, the port map and the
 production prerequisites.
 

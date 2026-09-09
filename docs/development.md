@@ -5,17 +5,15 @@ producción) está en [deploy/README.md](../deploy/README.md).
 
 ## Arranque
 
-```powershell
-./deploy/up.ps1            # infraestructura; las apps se ejecutan desde el IDE
-./deploy/up.ps1 -Apps      # todo en Docker (api, worker, gateway, web player)
+```sh
+docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
 ```
 
-`up.ps1` hace el bootstrap completo: crea `deploy/.env`, genera las claves RS256
-de stream-ticket en `deploy/keys/`, levanta el stack, aplica las migraciones y
-provisiona Zitadel (proyecto + apps OIDC), dejando los client ids en
-`deploy/.env`, en los user-secrets de `Musify.Api` y en `web-player/.env`.
-
-Otros modificadores: `-Tools` (pgAdmin), `-SkipMigrations`, `-Down`, `-Destroy`.
+Ese único comando levanta la infraestructura y corre los jobs *one-shot* de
+bootstrap: genera las claves RS256 de stream-ticket en `deploy/keys/`, aplica
+las migraciones EF Core y provisiona Zitadel (proyecto + apps OIDC), dejando
+los client ids en `deploy/.env`. Detalle completo, incluido cómo arrancar las
+apps en Docker con `--profile apps`, en [deploy/README.md](../deploy/README.md).
 
 ## Aplicaciones
 
@@ -46,21 +44,25 @@ DB: `musify_db`, usuario `postgres`/`postgres`. Bucket S3: `webapi-storage`
 
 ## Migraciones
 
-No hay migración automática al arrancar; `up.ps1` las aplica en el bootstrap.
-A mano, tras cambios de esquema:
+El servicio `migrate` de `deploy/compose.yml` las aplica en cada `docker
+compose up -d` (no-op si el esquema ya está al día). A mano, tras cambios de
+esquema, contra la base local:
 
 ```powershell
 dotnet ef database update --project backend/Core/Musify.Infrastructure --startup-project backend/Core/Musify.Infrastructure --context Database
 ```
 
 `Musify.Infrastructure` es a la vez el proyecto de migraciones y el de arranque:
-tiene el `IDesignTimeDbContextFactory` y el paquete `EFCore.Design`. La cadena de
-conexión se lee de sus user-secrets (`up.ps1` la deja puesta).
+tiene el `IDesignTimeDbContextFactory` y el paquete `EFCore.Design`. La cadena
+de conexión se lee de sus user-secrets, o de la variable de entorno
+`Database__ConnectionString` si no hay user-secrets (así es como la usa el
+contenedor `migrate`, ver `backend/Musify.Migrator.Dockerfile`).
 
 ## Stream-tickets (claves RS256)
 
 La API firma los stream-tickets con la clave privada y el gateway los valida con
-la pública. `up.ps1` las genera en `deploy/keys/`; a mano:
+la pública. El servicio `keys-init` de `deploy/compose.yml` las genera en
+`deploy/keys/` si no existen; a mano:
 
 ```powershell
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out deploy/keys/stream_private.pem
@@ -75,8 +77,10 @@ openssl rsa -in deploy/keys/stream_private.pem -pubout -out deploy/keys/stream_p
 Convención: `AppSettings.json` es la plantilla con valores vacíos o neutros;
 `AppSettings.Development.json` tiene los valores reales de dev; en Docker todo
 se sobreescribe con variables de entorno (`Seccion__Clave`) desde
-`deploy/compose.yml`. Los valores de `Authentication` los deja el provisioning
-en user-secrets, no en el repo.
+`deploy/compose.yml`. Para correr `Musify.Api` desde el IDE, los valores de
+`Authentication` van en user-secrets (no en el repo) — cópialos de
+`deploy/.env` una vez que `zitadel-init` los haya generado (ver
+[deploy/README.md](../deploy/README.md)).
 
 Secciones clave: `Authentication` (Zitadel), `Database`, `MassTransit`,
 `InfrastructureStorage` (S3), `ApplicationStorage` (bucket), `Track`, `PlayList`,

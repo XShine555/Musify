@@ -27,4 +27,3 @@ deploy/keys/
 deploy/secrets/
 deploy/nginx/certs/
 deploy/zitadel/.output/
-deploy/.tmp/

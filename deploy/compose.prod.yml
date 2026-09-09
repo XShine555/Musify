@@ -4,11 +4,13 @@ name: musify-prod
 # Nothing but nginx publishes a port; every other service is reachable only on
 # the internal `musify-prod_default` network.
 #
-#   docker compose --env-file deploy/.env.prod \
-#     -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
+#   docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
+#   docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
 #
-# Use ./up.sh, which also generates the stream keys, provisions Zitadel and
-# applies the database migrations.
+# The first command starts the infrastructure, the nginx edge and the
+# one-shot bootstrap jobs (stream keys, migrations, Zitadel project/apps); the
+# second builds and starts the applications, picking up the OIDC client ids
+# the first command just wrote into deploy/.env.prod. See deploy/README.md.
 
 services:
   worker:
@@ -16,14 +18,23 @@ services:
     volumes:
       - ./secrets:/secrets:ro
 
+  # zitadel-init (compose.yml) edits whichever env file is mounted here.
+  zitadel-init:
+    volumes:
+      - ./.env.prod:/workspace/.env
+
+  # Every vhost proxies through `set $upstream ...; proxy_pass $upstream;`
+  # with the embedded Docker DNS resolver (see nginx/templates), so nginx
+  # does not need api/gateway/web-player to exist at its own startup — only
+  # at request time. That is what lets it start in the FIRST command
+  # (profile-gated services aren't part of that invocation yet) and still be
+  # reachable at the auth domain for zitadel-init to provision through.
   nginx:
     image: nginx:1.27-alpine
     container_name: musify-nginx
     depends_on:
-      - api
-      - gateway
-      - zitadel
-      - web-player
+      zitadel:
+        condition: service_started
     environment:
       # The entrypoint renders /etc/nginx/templates/*.template with envsubst.
       # The filter keeps it from eating nginx's own $host / $remote_addr.

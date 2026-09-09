@@ -12,10 +12,10 @@ npm install
 npm run dev      # :5173
 ```
 
-Configuration lives in `.env` (template in `.env.example`).
-`deploy/zitadel/provision.ps1` fills in the Zitadel values automatically, so the
-usual flow is to bring the stack up first (`./deploy/up.ps1`) and then run the
-dev server.
+Configuration lives in `.env` (template in `.env.example`). Bring the
+infrastructure stack up first (see [../deploy/README.md](../deploy/README.md))
+and copy the `WEB_CLIENT_ID` / `WEB_CLIENT_SECRET` it writes to `deploy/.env`
+into this `.env` once, then run the dev server.
 
 ```sh
 npm run check    # svelte-check — must be clean before closing a change

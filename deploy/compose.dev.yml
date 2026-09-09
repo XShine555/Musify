@@ -40,6 +40,11 @@ services:
       - "4317:4317"     # OTLP gRPC
       - "4318:4318"     # OTLP HTTP
 
+  # zitadel-init (compose.yml) edits whichever env file is mounted here.
+  zitadel-init:
+    volumes:
+      - ./.env:/workspace/.env
+
   # Optional Postgres UI: docker compose ... --profile tools up -d
   pgadmin:
     profiles: [tools]

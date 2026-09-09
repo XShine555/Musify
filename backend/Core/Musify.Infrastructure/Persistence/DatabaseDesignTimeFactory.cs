@@ -11,8 +11,9 @@ namespace Musify.Infrastructure.Persistence
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("DesignSettings.json")
+                .AddJsonFile("DesignSettings.json", optional: true)
                 .AddUserSecrets<DatabaseDesignTimeFactory>()
+                .AddEnvironmentVariables()
                 .Build();
 
             var databaseConfiguration = configuration
