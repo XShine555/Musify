@@ -1,19 +1,20 @@
 using Musify.Domain.ValueObjects;
 using Xunit;
 
-namespace Musify.Domain.Tests.ValueObjects;
-
-public sealed class TrackPicturesTests
+namespace Musify.Domain.Tests.ValueObjects
 {
-    [Theory]
-    [InlineData(ProcessingStatus.Pending, false)]
-    [InlineData(ProcessingStatus.Processing, false)]
-    [InlineData(ProcessingStatus.Completed, true)]
-    [InlineData(ProcessingStatus.Failed, false)]
-    public void IsProcessed_ReflectsProcessingStatus(ProcessingStatus status, bool expected)
+    public sealed class TrackPicturesTests
     {
-        var pictures = new TrackPictures { ProcessingStatus = status };
+        [Theory]
+        [InlineData(ProcessingStatus.Pending, false)]
+        [InlineData(ProcessingStatus.Processing, false)]
+        [InlineData(ProcessingStatus.Completed, true)]
+        [InlineData(ProcessingStatus.Failed, false)]
+        public void IsProcessed_ReflectsProcessingStatus(ProcessingStatus status, bool expected)
+        {
+            var pictures = new TrackPictures { ProcessingStatus = status };
 
-        Assert.Equal(expected, pictures.IsProcessed);
+            Assert.Equal(expected, pictures.IsProcessed);
+        }
     }
 }

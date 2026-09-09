@@ -3,35 +3,36 @@ using Musify.Application.PlayLists;
 using Musify.Application.Tests.TestSupport;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists;
-
-public sealed class GetPlayListCoverQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.PlayLists
 {
-    private GetPlayListCoverQueryHandler CreateHandler() =>
-        new(Database, TestConfigurations.Storage("covers-bucket"), TestConfigurations.PlayList());
-
-    [Theory]
-    [InlineData("small", "small.webp")]
-    [InlineData("large", "large.webp")]
-    [InlineData("medium", "medium.webp")]
-    public async Task Handle_ExistingPlayList_ReturnsRequestedSize(string size, string expectedFileName)
+    public sealed class GetPlayListCoverQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id);
-        await SeedAsync(owner, playList);
+        private GetPlayListCoverQueryHandler CreateHandler() =>
+            new(Database, TestConfigurations.Storage("covers-bucket"), TestConfigurations.PlayList());
 
-        var result = await CreateHandler().Handle(new GetPlayListCoverQuery(playList.Id, size), TestContext.Current.CancellationToken);
+        [Theory]
+        [InlineData("small", "small.webp")]
+        [InlineData("large", "large.webp")]
+        [InlineData("medium", "medium.webp")]
+        public async Task Handle_ExistingPlayList_ReturnsRequestedSize(string size, string expectedFileName)
+        {
+            var owner = TestEntities.User();
+            var playList = TestEntities.PlayList(owner.Id);
+            await SeedAsync(owner, playList);
 
-        Assert.False(result.IsError);
-        Assert.Equal("covers-bucket", result.Value.Bucket);
-        Assert.EndsWith(expectedFileName, result.Value.Key);
-    }
+            var result = await CreateHandler().Handle(new GetPlayListCoverQuery(playList.Id, size), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_PlayListMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetPlayListCoverQuery(Guid.NewGuid(), "small"), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal("covers-bucket", result.Value.Bucket);
+            Assert.EndsWith(expectedFileName, result.Value.Key);
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        [Fact]
+        public async Task Handle_PlayListMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetPlayListCoverQuery(Guid.NewGuid(), "small"), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

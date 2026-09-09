@@ -7,61 +7,62 @@ using Musify.Application.Tracks;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Application.Tests.Tracks;
-
-public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Tracks
 {
-    private readonly IStreamTicketService ticketService = Substitute.For<IStreamTicketService>();
-
-    private GetTrackStreamQueryHandler CreateHandler()
+    public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
     {
-        ticketService.IssueTicket(Arg.Any<long>(), Arg.Any<string>()).Returns(new StreamTicket("ticket-token", 60));
+        private readonly IStreamTicketService ticketService = Substitute.For<IStreamTicketService>();
 
-        var issuer = new TrackStreamIssuer(
-            Database,
-            ticketService,
-            TestConfigurations.Track(),
-            TestConfigurations.StreamGateway("https://stream.musify.test"));
+        private GetTrackStreamQueryHandler CreateHandler()
+        {
+            ticketService.IssueTicket(Arg.Any<long>(), Arg.Any<string>()).Returns(new StreamTicket("ticket-token", 60));
 
-        return new GetTrackStreamQueryHandler(Database, issuer, NoOpLogger<GetTrackStreamQueryHandler>());
-    }
+            var issuer = new TrackStreamIssuer(
+                Database,
+                ticketService,
+                TestConfigurations.Track(),
+                TestConfigurations.StreamGateway("https://stream.musify.test"));
 
-    [Fact]
-    public async Task Handle_ProcessedTrack_IssuesTicketAndRecordsListen()
-    {
-        var owner = TestEntities.User();
-        var track = TestEntities.LocalTrack(owner);
-        await SeedAsync(owner, track);
+            return new GetTrackStreamQueryHandler(Database, issuer, NoOpLogger<GetTrackStreamQueryHandler>());
+        }
 
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ProcessedTrack_IssuesTicketAndRecordsListen()
+        {
+            var owner = TestEntities.User();
+            var track = TestEntities.LocalTrack(owner);
+            await SeedAsync(owner, track);
 
-        Assert.False(result.IsError);
-        Assert.Equal("ticket-token", result.Value.Ticket);
-        Assert.Equal(60, result.Value.ExpiresInSeconds);
-        Assert.Contains("audio-folder", result.Value.ManifestUrl);
+            var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
 
-        var history = Assert.Single(await Database.ListeningHistories.ToListAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(owner.Id, history.UserId);
-        Assert.Equal(track.Id, history.TrackId);
-    }
+            Assert.False(result.IsError);
+            Assert.Equal("ticket-token", result.Value.Ticket);
+            Assert.Equal(60, result.Value.ExpiresInSeconds);
+            Assert.Contains("audio-folder", result.Value.ManifestUrl);
 
-    [Fact]
-    public async Task Handle_TrackMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(Guid.NewGuid(), 1), TestContext.Current.CancellationToken);
+            var history = Assert.Single(await Database.ListeningHistories.ToListAsync(TestContext.Current.CancellationToken));
+            Assert.Equal(owner.Id, history.UserId);
+            Assert.Equal(track.Id, history.TrackId);
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-    }
+        [Fact]
+        public async Task Handle_TrackMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetTrackStreamQuery(Guid.NewGuid(), 1), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_AudioNotProcessedYet_ReturnsConflict()
-    {
-        var owner = TestEntities.User();
-        var track = TestEntities.LocalTrack(owner, audio: TestEntities.PendingAudio());
-        await SeedAsync(owner, track);
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
 
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_AudioNotProcessedYet_ReturnsConflict()
+        {
+            var owner = TestEntities.User();
+            var track = TestEntities.LocalTrack(owner, audio: TestEntities.PendingAudio());
+            await SeedAsync(owner, track);
 
-        Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+            var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+        }
     }
 }

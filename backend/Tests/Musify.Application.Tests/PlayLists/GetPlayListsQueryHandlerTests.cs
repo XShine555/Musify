@@ -2,30 +2,31 @@ using Musify.Application.PlayLists;
 using Musify.Application.Tests.TestSupport;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists;
-
-public sealed class GetPlayListsQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.PlayLists
 {
-    private GetPlayListsQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_ReturnsEveryPlayListPaged()
+    public sealed class GetPlayListsQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        await SeedAsync(owner, TestEntities.PlayList(owner.Id, "One"), TestEntities.PlayList(owner.Id, "Two"));
+        private GetPlayListsQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ReturnsEveryPlayListPaged()
+        {
+            var owner = TestEntities.User();
+            await SeedAsync(owner, TestEntities.PlayList(owner.Id, "One"), TestEntities.PlayList(owner.Id, "Two"));
 
-        Assert.False(result.IsError);
-        Assert.Equal(2, result.Value.TotalItemCount);
-    }
+            var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_NoPlayLists_ReturnsEmptyPage()
-    {
-        var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal(2, result.Value.TotalItemCount);
+        }
 
-        Assert.False(result.IsError);
-        Assert.Empty(result.Value.Items);
+        [Fact]
+        public async Task Handle_NoPlayLists_ReturnsEmptyPage()
+        {
+            var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            Assert.Empty(result.Value.Items);
+        }
     }
 }

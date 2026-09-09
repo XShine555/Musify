@@ -3,45 +3,46 @@ using Musify.Application.Mixes;
 using Musify.Application.Tests.TestSupport;
 using Xunit;
 
-namespace Musify.Application.Tests.Mixes;
-
-public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Mixes
 {
-    private GetMixByIdQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_OwnedMix_ReturnsItWithOrderedItems()
+    public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        var mix = TestEntities.Mix(owner.Id, "Discovery");
-        var second = TestEntities.MixItem(mix.Id, position: 1, title: "Second");
-        var first = TestEntities.MixItem(mix.Id, position: 0, title: "First");
-        await SeedAsync(owner, mix, second, first);
+        private GetMixByIdQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetMixByIdQuery(owner.Id, mix.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_OwnedMix_ReturnsItWithOrderedItems()
+        {
+            var owner = TestEntities.User();
+            var mix = TestEntities.Mix(owner.Id, "Discovery");
+            var second = TestEntities.MixItem(mix.Id, position: 1, title: "Second");
+            var first = TestEntities.MixItem(mix.Id, position: 0, title: "First");
+            await SeedAsync(owner, mix, second, first);
 
-        Assert.False(result.IsError);
-        Assert.Equal("Discovery", result.Value.Title);
-        Assert.Equal(["First", "Second"], result.Value.Items.Select(item => item.Title));
-    }
+            var result = await CreateHandler().Handle(new GetMixByIdQuery(owner.Id, mix.Id), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_MixMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetMixByIdQuery(1, Guid.NewGuid()), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal("Discovery", result.Value.Title);
+            Assert.Equal(["First", "Second"], result.Value.Items.Select(item => item.Title));
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-    }
+        [Fact]
+        public async Task Handle_MixMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetMixByIdQuery(1, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_MixBelongsToAnotherUser_ReturnsNotFound()
-    {
-        var owner = TestEntities.User(1, "owner");
-        var mix = TestEntities.Mix(owner.Id);
-        await SeedAsync(owner, mix);
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
 
-        var result = await CreateHandler().Handle(new GetMixByIdQuery(2, mix.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_MixBelongsToAnotherUser_ReturnsNotFound()
+        {
+            var owner = TestEntities.User(1, "owner");
+            var mix = TestEntities.Mix(owner.Id);
+            await SeedAsync(owner, mix);
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+            var result = await CreateHandler().Handle(new GetMixByIdQuery(2, mix.Id), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

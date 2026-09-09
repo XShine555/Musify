@@ -3,32 +3,33 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
 using Xunit;
 
-namespace Musify.Application.Tests.Tracks;
-
-public sealed class GetTrackByIdQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Tracks
 {
-    private GetTrackByIdQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_LocalTrack_ReturnsItWithOwnerAsArtist()
+    public sealed class GetTrackByIdQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User(1, "artist-name");
-        var track = TestEntities.LocalTrack(owner, "My Song");
-        await SeedAsync(owner, track);
+        private GetTrackByIdQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetTrackByIdQuery(track.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_LocalTrack_ReturnsItWithOwnerAsArtist()
+        {
+            var owner = TestEntities.User(1, "artist-name");
+            var track = TestEntities.LocalTrack(owner, "My Song");
+            await SeedAsync(owner, track);
 
-        Assert.False(result.IsError);
-        Assert.Equal("My Song", result.Value.Title);
-        Assert.Equal(owner.Name, result.Value.Artist);
-        Assert.Equal(owner.Id, result.Value.OwnerUserId);
-    }
+            var result = await CreateHandler().Handle(new GetTrackByIdQuery(track.Id), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_TrackMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetTrackByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal("My Song", result.Value.Title);
+            Assert.Equal(owner.Name, result.Value.Artist);
+            Assert.Equal(owner.Id, result.Value.OwnerUserId);
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        [Fact]
+        public async Task Handle_TrackMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetTrackByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

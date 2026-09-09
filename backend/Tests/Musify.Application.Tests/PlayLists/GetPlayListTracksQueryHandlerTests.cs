@@ -4,35 +4,36 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Domain.Entities;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists;
-
-public sealed class GetPlayListTracksQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.PlayLists
 {
-    private GetPlayListTracksQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_TracksOrderedByPosition_ReturnsThemInOrder()
+    public sealed class GetPlayListTracksQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id);
-        var second = TestEntities.LocalTrack(owner, "Second");
-        var first = TestEntities.LocalTrack(owner, "First");
-        await SeedAsync(
-            owner, playList, second, first,
-            new PlayListHasTrack { PlayListId = playList.Id, TrackId = second.Id, Position = 1 },
-            new PlayListHasTrack { PlayListId = playList.Id, TrackId = first.Id, Position = 0 });
+        private GetPlayListTracksQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetPlayListTracksQuery(playList.Id, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_TracksOrderedByPosition_ReturnsThemInOrder()
+        {
+            var owner = TestEntities.User();
+            var playList = TestEntities.PlayList(owner.Id);
+            var second = TestEntities.LocalTrack(owner, "Second");
+            var first = TestEntities.LocalTrack(owner, "First");
+            await SeedAsync(
+                owner, playList, second, first,
+                new PlayListHasTrack { PlayListId = playList.Id, TrackId = second.Id, Position = 1 },
+                new PlayListHasTrack { PlayListId = playList.Id, TrackId = first.Id, Position = 0 });
 
-        Assert.False(result.IsError);
-        Assert.Equal(["First", "Second"], result.Value.Items.Select(track => track.Title));
-    }
+            var result = await CreateHandler().Handle(new GetPlayListTracksQuery(playList.Id, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_PlayListMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetPlayListTracksQuery(Guid.NewGuid(), PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal(["First", "Second"], result.Value.Items.Select(track => track.Title));
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        [Fact]
+        public async Task Handle_PlayListMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetPlayListTracksQuery(Guid.NewGuid(), PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

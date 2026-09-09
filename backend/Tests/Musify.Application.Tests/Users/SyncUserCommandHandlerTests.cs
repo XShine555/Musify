@@ -2,41 +2,42 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Users;
 using Xunit;
 
-namespace Musify.Application.Tests.Users;
-
-public sealed class SyncUserCommandHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Users
 {
-    private SyncUserCommandHandler CreateHandler() => new(Database, NoOpLogger<SyncUserCommandHandler>());
-
-    [Fact]
-    public async Task Handle_UnknownUser_ProvisionsIt()
+    public sealed class SyncUserCommandHandlerTests : HandlerTestBase
     {
-        var command = new SyncUserCommand(1, "Jane Doe", "Jane", "Doe", "https://avatar.example/jane.png");
+        private SyncUserCommandHandler CreateHandler() => new(Database, NoOpLogger<SyncUserCommandHandler>());
 
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_UnknownUser_ProvisionsIt()
+        {
+            var command = new SyncUserCommand(1, "Jane Doe", "Jane", "Doe", "https://avatar.example/jane.png");
 
-        Assert.False(result.IsError);
-        var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
-        Assert.NotNull(stored);
-        Assert.Equal("Jane Doe", stored.Name);
-        Assert.Equal("https://avatar.example/jane.png", stored.ProfilePictureUrl);
-    }
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_ExistingUser_UpdatesProfileFields()
-    {
-        var user = TestEntities.User(1, "Old Name", profilePictureUrl: null);
-        await SeedAsync(user);
+            Assert.False(result.IsError);
+            var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
+            Assert.NotNull(stored);
+            Assert.Equal("Jane Doe", stored.Name);
+            Assert.Equal("https://avatar.example/jane.png", stored.ProfilePictureUrl);
+        }
 
-        var command = new SyncUserCommand(1, "New Name", "New", "Name", "https://avatar.example/new.png");
+        [Fact]
+        public async Task Handle_ExistingUser_UpdatesProfileFields()
+        {
+            var user = TestEntities.User(1, "Old Name", profilePictureUrl: null);
+            await SeedAsync(user);
 
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+            var command = new SyncUserCommand(1, "New Name", "New", "Name", "https://avatar.example/new.png");
 
-        Assert.False(result.IsError);
-        var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
-        Assert.NotNull(stored);
-        Assert.Equal("New Name", stored.Name);
-        Assert.Equal("NEW NAME", stored.NormalizedName);
-        Assert.Equal("https://avatar.example/new.png", stored.ProfilePictureUrl);
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
+            Assert.NotNull(stored);
+            Assert.Equal("New Name", stored.Name);
+            Assert.Equal("NEW NAME", stored.NormalizedName);
+            Assert.Equal("https://avatar.example/new.png", stored.ProfilePictureUrl);
+        }
     }
 }

@@ -3,29 +3,30 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Users;
 using Xunit;
 
-namespace Musify.Application.Tests.Users;
-
-public sealed class GetUserByIdQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Users
 {
-    private GetUserByIdQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_ExistingUser_ReturnsIt()
+    public sealed class GetUserByIdQueryHandlerTests : HandlerTestBase
     {
-        var user = TestEntities.User(1, "Jane Doe");
-        await SeedAsync(user);
+        private GetUserByIdQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetUserByIdQuery(1), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ExistingUser_ReturnsIt()
+        {
+            var user = TestEntities.User(1, "Jane Doe");
+            await SeedAsync(user);
 
-        Assert.False(result.IsError);
-        Assert.Equal("Jane Doe", result.Value.Name);
-    }
+            var result = await CreateHandler().Handle(new GetUserByIdQuery(1), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_UserMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetUserByIdQuery(404), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal("Jane Doe", result.Value.Name);
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        [Fact]
+        public async Task Handle_UserMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetUserByIdQuery(404), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

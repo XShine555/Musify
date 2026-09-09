@@ -3,40 +3,41 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Domain.ValueObjects;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists;
-
-public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.PlayLists
 {
-    private GetPlayListsByUserIdQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_ReturnsOnlyActivePlayListsForThatUser()
+    public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User(1, "owner");
-        var other = TestEntities.User(2, "other");
-        await SeedAsync(
-            owner, other,
-            TestEntities.PlayList(owner.Id, "Mine"),
-            TestEntities.PlayList(owner.Id, "Being removed", lifeCycleStatus: LifeCycleStatus.Removing),
-            TestEntities.PlayList(other.Id, "Theirs"));
+        private GetPlayListsByUserIdQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ReturnsOnlyActivePlayListsForThatUser()
+        {
+            var owner = TestEntities.User(1, "owner");
+            var other = TestEntities.User(2, "other");
+            await SeedAsync(
+                owner, other,
+                TestEntities.PlayList(owner.Id, "Mine"),
+                TestEntities.PlayList(owner.Id, "Being removed", lifeCycleStatus: LifeCycleStatus.Removing),
+                TestEntities.PlayList(other.Id, "Theirs"));
 
-        Assert.False(result.IsError);
-        var playList = Assert.Single(result.Value.Items);
-        Assert.Equal("Mine", playList.Name);
-    }
+            var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_NameFilter_ReturnsOnlyMatchingPlayLists()
-    {
-        var owner = TestEntities.User();
-        await SeedAsync(owner, TestEntities.PlayList(owner.Id, "Road Trip"), TestEntities.PlayList(owner.Id, "Study Focus"));
+            Assert.False(result.IsError);
+            var playList = Assert.Single(result.Value.Items);
+            Assert.Equal("Mine", playList.Name);
+        }
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_NameFilter_ReturnsOnlyMatchingPlayLists()
+        {
+            var owner = TestEntities.User();
+            await SeedAsync(owner, TestEntities.PlayList(owner.Id, "Road Trip"), TestEntities.PlayList(owner.Id, "Study Focus"));
 
-        Assert.False(result.IsError);
-        var playList = Assert.Single(result.Value.Items);
-        Assert.Equal("Road Trip", playList.Name);
+            var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            var playList = Assert.Single(result.Value.Items);
+            Assert.Equal("Road Trip", playList.Name);
+        }
     }
 }

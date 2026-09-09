@@ -2,50 +2,51 @@ using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Validators.Users;
 using Xunit;
 
-namespace Musify.Api.Tests.Validators;
-
-public sealed class CreateUserRequestValidatorTests
+namespace Musify.Api.Tests.Validators
 {
-    private readonly CreateUserRequestValidator validator = new();
-
-    [Fact]
-    public void Validate_ValidRequest_Passes()
+    public sealed class CreateUserRequestValidatorTests
     {
-        var result = validator.Validate(new CreateUserRequest(1, "Jane Doe", "Jane", "Doe"));
+        private readonly CreateUserRequestValidator validator = new();
 
-        Assert.True(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ValidRequest_Passes()
+        {
+            var result = validator.Validate(new CreateUserRequest(1, "Jane Doe", "Jane", "Doe"));
 
-    [Fact]
-    public void Validate_ZeroId_Fails()
-    {
-        var result = validator.Validate(new CreateUserRequest(0, "Jane Doe", null, null));
+            Assert.True(result.IsValid);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.Id));
-    }
+        [Fact]
+        public void Validate_ZeroId_Fails()
+        {
+            var result = validator.Validate(new CreateUserRequest(0, "Jane Doe", null, null));
 
-    [Fact]
-    public void Validate_BlankName_Fails()
-    {
-        var result = validator.Validate(new CreateUserRequest(1, "", null, null));
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.Id));
+        }
 
-        Assert.False(result.IsValid);
-    }
+        [Fact]
+        public void Validate_BlankName_Fails()
+        {
+            var result = validator.Validate(new CreateUserRequest(1, "", null, null));
 
-    [Fact]
-    public void Validate_NameOverMaxLength_Fails()
-    {
-        var result = validator.Validate(new CreateUserRequest(1, new string('a', 49), null, null));
+            Assert.False(result.IsValid);
+        }
 
-        Assert.False(result.IsValid);
-    }
+        [Fact]
+        public void Validate_NameOverMaxLength_Fails()
+        {
+            var result = validator.Validate(new CreateUserRequest(1, new string('a', 49), null, null));
 
-    [Fact]
-    public void Validate_OptionalNamesOmitted_Passes()
-    {
-        var result = validator.Validate(new CreateUserRequest(1, "Jane Doe", null, null));
+            Assert.False(result.IsValid);
+        }
 
-        Assert.True(result.IsValid);
+        [Fact]
+        public void Validate_OptionalNamesOmitted_Passes()
+        {
+            var result = validator.Validate(new CreateUserRequest(1, "Jane Doe", null, null));
+
+            Assert.True(result.IsValid);
+        }
     }
 }

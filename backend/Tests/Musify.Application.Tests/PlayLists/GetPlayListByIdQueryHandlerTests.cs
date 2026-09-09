@@ -4,32 +4,33 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Domain.Entities;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists;
-
-public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.PlayLists
 {
-    private GetPlayListByIdQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_ExistingPlayList_ReturnsItWithCoverTrackIds()
+    public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id);
-        var track = TestEntities.LocalTrack(owner);
-        await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
+        private GetPlayListByIdQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ExistingPlayList_ReturnsItWithCoverTrackIds()
+        {
+            var owner = TestEntities.User();
+            var playList = TestEntities.PlayList(owner.Id);
+            var track = TestEntities.LocalTrack(owner);
+            await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
-        Assert.False(result.IsError);
-        Assert.Equal(playList.Name, result.Value.Name);
-        Assert.Equal([track.Id], result.Value.CoverTrackIds);
-    }
+            var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_PlayListMissing_ReturnsNotFound()
-    {
-        var result = await CreateHandler().Handle(new GetPlayListByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            Assert.Equal(playList.Name, result.Value.Name);
+            Assert.Equal([track.Id], result.Value.CoverTrackIds);
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        [Fact]
+        public async Task Handle_PlayListMissing_ReturnsNotFound()
+        {
+            var result = await CreateHandler().Handle(new GetPlayListByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

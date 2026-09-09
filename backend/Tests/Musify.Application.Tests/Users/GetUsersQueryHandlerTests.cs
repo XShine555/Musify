@@ -2,32 +2,33 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Users;
 using Xunit;
 
-namespace Musify.Application.Tests.Users;
-
-public sealed class GetUsersQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Users
 {
-    private GetUsersQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_NoSearch_ReturnsEveryUser()
+    public sealed class GetUsersQueryHandlerTests : HandlerTestBase
     {
-        await SeedAsync(TestEntities.User(1, "alice"), TestEntities.User(2, "bob"));
+        private GetUsersQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: null), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_NoSearch_ReturnsEveryUser()
+        {
+            await SeedAsync(TestEntities.User(1, "alice"), TestEntities.User(2, "bob"));
 
-        Assert.False(result.IsError);
-        Assert.Equal(2, result.Value.TotalItemCount);
-    }
+            var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: null), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_UsernameSearch_ReturnsOnlyMatches()
-    {
-        await SeedAsync(TestEntities.User(1, "alice-wonderland"), TestEntities.User(2, "bob-builder"));
+            Assert.False(result.IsError);
+            Assert.Equal(2, result.Value.TotalItemCount);
+        }
 
-        var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: "alice"), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_UsernameSearch_ReturnsOnlyMatches()
+        {
+            await SeedAsync(TestEntities.User(1, "alice-wonderland"), TestEntities.User(2, "bob-builder"));
 
-        Assert.False(result.IsError);
-        var user = Assert.Single(result.Value.Items);
-        Assert.Equal(1, user.Id);
+            var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: "alice"), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            var user = Assert.Single(result.Value.Items);
+            Assert.Equal(1, user.Id);
+        }
     }
 }

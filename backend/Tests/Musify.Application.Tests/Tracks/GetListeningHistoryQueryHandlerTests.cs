@@ -2,37 +2,38 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
 using Xunit;
 
-namespace Musify.Application.Tests.Tracks;
-
-public sealed class GetListeningHistoryQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Tracks
 {
-    private GetListeningHistoryQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_MultipleListens_ReturnsDistinctTracksMostRecentFirst()
+    public sealed class GetListeningHistoryQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        var older = TestEntities.LocalTrack(owner, "Older listen");
-        var newer = TestEntities.LocalTrack(owner, "Newer listen");
-        await SeedAsync(
-            owner, older, newer,
-            TestEntities.ListeningHistory(owner.Id, older.Id, DateTime.UtcNow.AddMinutes(-10)),
-            TestEntities.ListeningHistory(owner.Id, older.Id, DateTime.UtcNow.AddMinutes(-5)),
-            TestEntities.ListeningHistory(owner.Id, newer.Id, DateTime.UtcNow));
+        private GetListeningHistoryQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_MultipleListens_ReturnsDistinctTracksMostRecentFirst()
+        {
+            var owner = TestEntities.User();
+            var older = TestEntities.LocalTrack(owner, "Older listen");
+            var newer = TestEntities.LocalTrack(owner, "Newer listen");
+            await SeedAsync(
+                owner, older, newer,
+                TestEntities.ListeningHistory(owner.Id, older.Id, DateTime.UtcNow.AddMinutes(-10)),
+                TestEntities.ListeningHistory(owner.Id, older.Id, DateTime.UtcNow.AddMinutes(-5)),
+                TestEntities.ListeningHistory(owner.Id, newer.Id, DateTime.UtcNow));
 
-        Assert.Equal(["Newer listen", "Older listen"], result.Select(track => track.Title));
-    }
+            var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_NoHistory_ReturnsEmpty()
-    {
-        var owner = TestEntities.User();
-        await SeedAsync(owner);
+            Assert.Equal(["Newer listen", "Older listen"], result.Select(track => track.Title));
+        }
 
-        var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_NoHistory_ReturnsEmpty()
+        {
+            var owner = TestEntities.User();
+            await SeedAsync(owner);
 
-        Assert.Empty(result);
+            var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), TestContext.Current.CancellationToken);
+
+            Assert.Empty(result);
+        }
     }
 }

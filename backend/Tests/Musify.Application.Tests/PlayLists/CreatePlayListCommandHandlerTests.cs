@@ -6,80 +6,81 @@ using Musify.Application.Tests.TestSupport;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists;
-
-public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.PlayLists
 {
-    private readonly IEventBus eventBus = Substitute.For<IEventBus>();
-    private readonly IStorageService storageService = Substitute.For<IStorageService>();
-
-    private CreatePlayListCommandHandler CreateHandler() => new(
-        eventBus,
-        Database,
-        new UploadIntentValidator(Database, storageService),
-        NoOpLogger<CreatePlayListCommandHandler>(),
-        TestConfigurations.Storage(),
-        TestConfigurations.PlayList(),
-        TestConfigurations.UploadIntent());
-
-    [Fact]
-    public async Task Handle_NoPictureIntent_CreatesPlayListWithPresetPictures()
+    public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
     {
-        var user = TestEntities.User();
-        await SeedAsync(user);
+        private readonly IEventBus eventBus = Substitute.For<IEventBus>();
+        private readonly IStorageService storageService = Substitute.For<IStorageService>();
 
-        var command = new CreatePlayListCommand(user.Id, "My Playlist", "A description", PictureIntentId: null);
+        private CreatePlayListCommandHandler CreateHandler() => new(
+            eventBus,
+            Database,
+            new UploadIntentValidator(Database, storageService),
+            NoOpLogger<CreatePlayListCommandHandler>(),
+            TestConfigurations.Storage(),
+            TestConfigurations.PlayList(),
+            TestConfigurations.UploadIntent());
 
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_NoPictureIntent_CreatesPlayListWithPresetPictures()
+        {
+            var user = TestEntities.User();
+            await SeedAsync(user);
 
-        Assert.False(result.IsError);
-        Assert.Equal("My Playlist", result.Value.Name);
-        Assert.Equal("PresetSmallPicture.webp", result.Value.SmallImageKeyName);
-        await eventBus.DidNotReceive().PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
-    }
+            var command = new CreatePlayListCommand(user.Id, "My Playlist", "A description", PictureIntentId: null);
 
-    [Fact]
-    public async Task Handle_WithValidPictureIntent_PublishesResourcesEvent()
-    {
-        storageService
-            .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ObjectMetaData("image/webp", 1024));
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-        var user = TestEntities.User();
-        var intent = TestEntities.UploadIntent(user.Id, Musify.Domain.ValueObjects.UploadIntentPurpose.PlayListPicture, objectName: "cover.webp");
-        await SeedAsync(user, intent);
+            Assert.False(result.IsError);
+            Assert.Equal("My Playlist", result.Value.Name);
+            Assert.Equal("PresetSmallPicture.webp", result.Value.SmallImageKeyName);
+            await eventBus.DidNotReceive().PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
+        }
 
-        var command = new CreatePlayListCommand(user.Id, "My Playlist", null, intent.Id);
+        [Fact]
+        public async Task Handle_WithValidPictureIntent_PublishesResourcesEvent()
+        {
+            storageService
+                .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(new ObjectMetaData("image/webp", 1024));
 
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+            var user = TestEntities.User();
+            var intent = TestEntities.UploadIntent(user.Id, Musify.Domain.ValueObjects.UploadIntentPurpose.PlayListPicture, objectName: "cover.webp");
+            await SeedAsync(user, intent);
 
-        Assert.False(result.IsError);
-        var stored = await Database.PlayLists.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
-        Assert.NotNull(stored);
-        Assert.Equal("cover.webp", stored.Pictures.OriginalName);
-        await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
-    }
+            var command = new CreatePlayListCommand(user.Id, "My Playlist", null, intent.Id);
 
-    [Fact]
-    public async Task Handle_UserMissing_ReturnsNotFound()
-    {
-        var command = new CreatePlayListCommand(404, "Orphan Playlist", null, null);
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+            Assert.False(result.IsError);
+            var stored = await Database.PlayLists.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
+            Assert.NotNull(stored);
+            Assert.Equal("cover.webp", stored.Pictures.OriginalName);
+            await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
+        }
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-    }
+        [Fact]
+        public async Task Handle_UserMissing_ReturnsNotFound()
+        {
+            var command = new CreatePlayListCommand(404, "Orphan Playlist", null, null);
 
-    [Fact]
-    public async Task Handle_PictureIntentNotFound_ReturnsError()
-    {
-        var user = TestEntities.User();
-        await SeedAsync(user);
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-        var command = new CreatePlayListCommand(user.Id, "My Playlist", null, Guid.NewGuid());
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
 
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_PictureIntentNotFound_ReturnsError()
+        {
+            var user = TestEntities.User();
+            await SeedAsync(user);
 
-        Assert.True(result.IsError);
+            var command = new CreatePlayListCommand(user.Id, "My Playlist", null, Guid.NewGuid());
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.True(result.IsError);
+        }
     }
 }
