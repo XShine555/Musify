@@ -28,7 +28,7 @@ param(
 $ErrorActionPreference = "Stop"
 $deployDir  = Split-Path $PSScriptRoot -Parent
 $repoDir    = Split-Path $deployDir -Parent
-$apiProject = Join-Path $repoDir "backend\Musify.Api"
+$apiProject = Join-Path $repoDir "backend\Hosts\Musify.Api"
 $webEnvFile = Join-Path $repoDir "web-player\.env"
 $envFile    = if ($EnvFile) { $EnvFile } else { Join-Path $deployDir ".env" }
 $patFile    = Join-Path $PSScriptRoot "$OutputDir\admin-sa.pat"

@@ -55,9 +55,9 @@ data), `-Destroy` (stop and wipe the volumes).
 ### Running the apps from the IDE
 
 ```powershell
-dotnet run --project backend/Musify.Api               # :5111
-dotnet run --project backend/Musify.StreamingGateway  # :8081
-dotnet run --project backend/Musify.Worker            # background
+dotnet run --project backend/Hosts/Musify.Api               # :5111
+dotnet run --project backend/Hosts/Musify.StreamingGateway  # :8081
+dotnet run --project backend/Hosts/Musify.Worker            # background
 npm --prefix web-player run dev                       # :5173
 ```
 

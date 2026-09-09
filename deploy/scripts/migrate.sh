@@ -18,7 +18,7 @@ CONN="Host=postgres;Port=5432;Database=$(env_get "$ENV_FILE" POSTGRES_DB);Userna
 docker run --rm \
     --network "$NETWORK" \
     -v "$BACKEND_DIR":/src \
-    -w /src/Musify.Infrastructure \
+    -w /src/Core/Musify.Infrastructure \
     -e CONN="$CONN" \
     mcr.microsoft.com/dotnet/sdk:10.0 \
     sh -c 'dotnet tool install --global dotnet-ef >/dev/null 2>&1 || true

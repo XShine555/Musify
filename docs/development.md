@@ -20,9 +20,9 @@ Otros modificadores: `-Tools` (pgAdmin), `-SkipMigrations`, `-Down`, `-Destroy`.
 ## Aplicaciones
 
 ```powershell
-dotnet run --project backend/Musify.Api               # :5111
-dotnet run --project backend/Musify.StreamingGateway  # :8081
-dotnet run --project backend/Musify.Worker            # background
+dotnet run --project backend/Hosts/Musify.Api               # :5111
+dotnet run --project backend/Hosts/Musify.StreamingGateway  # :8081
+dotnet run --project backend/Hosts/Musify.Worker            # background
 npm --prefix web-player run dev                       # :5173
 ```
 
@@ -50,7 +50,7 @@ No hay migración automática al arrancar; `up.ps1` las aplica en el bootstrap.
 A mano, tras cambios de esquema:
 
 ```powershell
-dotnet ef database update --project backend/Musify.Infrastructure --startup-project backend/Musify.Infrastructure --context Database
+dotnet ef database update --project backend/Core/Musify.Infrastructure --startup-project backend/Core/Musify.Infrastructure --context Database
 ```
 
 `Musify.Infrastructure` es a la vez el proyecto de migraciones y el de arranque:

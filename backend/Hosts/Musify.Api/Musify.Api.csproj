@@ -31,9 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musify.Application\Musify.Application.csproj" />
-    <ProjectReference Include="..\Musify.Domain\Musify.Domain.csproj" />
-    <ProjectReference Include="..\Musify.Infrastructure\Musify.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Application\Musify.Application.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Domain\Musify.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Musify.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

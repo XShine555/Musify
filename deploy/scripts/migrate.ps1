@@ -4,7 +4,7 @@
 param([Parameter(Mandatory)][string]$ConnectionString)
 
 $ErrorActionPreference = "Stop"
-$infraProject = Resolve-Path (Join-Path $PSScriptRoot "..\..\backend\Musify.Infrastructure")
+$infraProject = Resolve-Path (Join-Path $PSScriptRoot "..\..\backend\Core\Musify.Infrastructure")
 
 # The design-time factory reads the connection string from user-secrets.
 dotnet user-secrets set "Database:ConnectionString" $ConnectionString --project $infraProject | Out-Null
