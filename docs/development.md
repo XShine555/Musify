@@ -72,6 +72,31 @@ openssl rsa -in deploy/keys/stream_private.pem -pubout -out deploy/keys/stream_p
 - API: `StreamTicket:PrivateKeyPath`.
 - Gateway: `StreamTicket:PublicKeyPath`.
 
+## Tests
+
+```sh
+dotnet test backend/Musify.slnx
+```
+
+`backend/Tests/` (carpeta `/Tests/` en el `.slnx`) tiene dos proyectos xUnit,
+sin Docker ni Postgres real:
+
+| Proyecto | Cubre |
+|---|---|
+| `Musify.Domain.Tests` | Lógica de los value objects (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Las entidades son en su mayoría anémicas — sin comportamiento propio, nada más que testear ahí. |
+| `Musify.Application.Tests` | Los ~45 handlers y servicios de `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes, YouTube). |
+
+`IDatabase` expone `DbSet<T>` directamente, así que los handlers arman LINQ
+real (`Where`, `Include`, `Select`...) contra él — no se puede mockear eso con
+NSubstitute, no hay `IQueryable` detrás de un mock. En su lugar,
+`TestSupport/TestDatabase.cs` es un `DbContext` real sobre SQLite en memoria
+(una conexión `:memory:` nueva por test, con foreign keys reales — a diferencia
+del proveedor InMemory de EF Core, SQLite además soporta transacciones, que dos
+handlers usan). `TestSupport/TestEntities.cs` y `TestConfigurations.cs`
+construyen entidades y configuración con valores por defecto sensatos.
+`IStorageService`, `IEventBus`, `IYouTubeMusicService`, etc. sí se mockean con
+NSubstitute, al ser interfaces normales.
+
 ## Config (AppSettings)
 
 Convención: `AppSettings.json` es la plantilla con valores vacíos o neutros;

@@ -9,4 +9,8 @@
     <Project Path="Hosts/Musify.Worker/Musify.Worker.csproj" />
     <Project Path="Hosts/Musify.StreamingGateway/Musify.StreamingGateway.csproj" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Musify.Domain.Tests/Musify.Domain.Tests.csproj" />
+    <Project Path="Tests/Musify.Application.Tests/Musify.Application.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -5,10 +5,14 @@ process them asynchronously (audio transcoded to `.m4a`, thumbnails generated)
 and stream them without the bytes ever going through the API.
 
 ```
-backend/      .NET 10 — Domain / Application / Infrastructure / Api / Worker / StreamingGateway
+backend/      .NET 10 — Domain / Application / Infrastructure / Api / Worker / StreamingGateway / Tests
 web-player/   SvelteKit 2 + Svelte 5 + Tailwind 4 web client
 deploy/       Docker Compose stacks — self-contained, no wrapper scripts
 docs/         What each piece does and why (in Spanish)
+```
+
+```sh
+dotnet test backend/Musify.slnx   # backend/Tests/ — no Docker, no database
 ```
 
 ## Run it

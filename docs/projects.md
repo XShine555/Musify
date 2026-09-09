@@ -1,7 +1,7 @@
 # Proyectos
 
-Los seis proyectos .NET viven en `backend/` (solución `Musify.slnx`); el cliente
-web en `web-player/`.
+Los proyectos .NET viven en `backend/` (solución `Musify.slnx`, carpetas
+`Core/`, `Hosts/` y `Tests/`); el cliente web en `web-player/`.
 
 ## Musify.Api  (`:5111`)
 
@@ -59,8 +59,14 @@ Cliente web (SvelteKit 2 + Svelte 5 + Tailwind 4). La sesión OIDC vive en el
 servidor (cookie cifrada); las llamadas al backend salen del servidor con el
 access token, y las subidas se hacen contra las URLs prefirmadas de S3.
 
+## Musify.Domain.Tests + Musify.Application.Tests
+
+`backend/Tests/`, carpeta `/Tests/` en el `.slnx`. xUnit, sin Docker ni Postgres
+real — `Application.Tests` corre los handlers contra SQLite en memoria (ver
+[development.md](development.md#tests)).
+
 ## Otras carpetas
 
-- **`deploy/`** — stacks de Docker Compose (dev y prod) y los scripts de
-  arranque, migraciones y provisioning. Ver [../deploy/README.md](../deploy/README.md).
+- **`deploy/`** — stacks de Docker Compose (dev y prod), autocontenidos. Ver
+  [../deploy/README.md](../deploy/README.md).
 - **`docs/`** — esta documentación.
