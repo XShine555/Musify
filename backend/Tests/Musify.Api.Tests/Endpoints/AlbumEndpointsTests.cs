@@ -24,7 +24,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     public async Task PostAlbums_NoAuthHeader_ReturnsUnauthorized()
     {
         var response = await fixture.CreateAnonymousClient()
-            .PostAsJsonAsync("/albums", new CreateAlbumRequest("Unauthorized Album", null, null));
+            .PostAsJsonAsync("/albums", new CreateAlbumRequest("Unauthorized Album", null, null), TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -35,10 +35,10 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
         var userId = await CreateUserAsync();
         var client = fixture.CreateAuthenticatedClient(userId);
 
-        var response = await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("My Album", "desc", 2024));
+        var response = await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("My Album", "desc", 2024), TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<AlbumApplicationResponse>();
+        var body = await response.Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
         Assert.NotNull(body);
         Assert.Equal("My Album", body.Title);
         Assert.Equal(userId, body.OwnerUserId);
@@ -50,7 +50,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
         var userId = await CreateUserAsync();
         var client = fixture.CreateAuthenticatedClient(userId);
 
-        var response = await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("", null, null));
+        var response = await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("", null, null), TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -60,10 +60,10 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     {
         var userId = await CreateUserAsync();
         var client = fixture.CreateAuthenticatedClient(userId);
-        var created = await (await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("Findable", null, null)))
-            .Content.ReadFromJsonAsync<AlbumApplicationResponse>();
+        var created = await (await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("Findable", null, null), TestContext.Current.CancellationToken))
+            .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
 
-        var response = await fixture.CreateAnonymousClient().GetAsync($"/albums/{created!.Id}");
+        var response = await fixture.CreateAnonymousClient().GetAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -73,10 +73,10 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     {
         var owner = await CreateUserAsync();
         var stranger = await CreateUserAsync();
-        var created = await (await fixture.CreateAuthenticatedClient(owner).PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null)))
-            .Content.ReadFromJsonAsync<AlbumApplicationResponse>();
+        var created = await (await fixture.CreateAuthenticatedClient(owner).PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null), TestContext.Current.CancellationToken))
+            .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
 
-        var response = await fixture.CreateAuthenticatedClient(stranger).DeleteAsync($"/albums/{created!.Id}");
+        var response = await fixture.CreateAuthenticatedClient(stranger).DeleteAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -86,11 +86,11 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     {
         var userId = await CreateUserAsync();
         var client = fixture.CreateAuthenticatedClient(userId);
-        var created = await (await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("Deletable", null, null)))
-            .Content.ReadFromJsonAsync<AlbumApplicationResponse>();
+        var created = await (await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("Deletable", null, null), TestContext.Current.CancellationToken))
+            .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
 
-        var deleteResponse = await client.DeleteAsync($"/albums/{created!.Id}");
-        var getResponse = await fixture.CreateAnonymousClient().GetAsync($"/albums/{created.Id}");
+        var deleteResponse = await client.DeleteAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
+        var getResponse = await fixture.CreateAnonymousClient().GetAsync($"/albums/{created.Id}", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);

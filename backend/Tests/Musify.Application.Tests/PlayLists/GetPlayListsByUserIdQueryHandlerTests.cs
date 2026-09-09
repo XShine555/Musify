@@ -20,7 +20,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
             TestEntities.PlayList(owner.Id, "Being removed", lifeCycleStatus: LifeCycleStatus.Removing),
             TestEntities.PlayList(other.Id, "Theirs"));
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var playList = Assert.Single(result.Value.Items);
@@ -33,7 +33,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(owner, TestEntities.PlayList(owner.Id, "Road Trip"), TestEntities.PlayList(owner.Id, "Study Focus"));
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var playList = Assert.Single(result.Value.Items);

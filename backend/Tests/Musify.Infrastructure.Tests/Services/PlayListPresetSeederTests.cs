@@ -45,7 +45,7 @@ public sealed class PlayListPresetSeederTests(InfrastructureTestFixture fixture)
 
     private static async Task RunToCompletionAsync(PlayListPresetSeeder seeder)
     {
-        await seeder.StartAsync(CancellationToken.None);
+        await seeder.StartAsync(TestContext.Current.CancellationToken);
         await (seeder.ExecuteTask ?? Task.CompletedTask);
     }
 
@@ -66,7 +66,7 @@ public sealed class PlayListPresetSeederTests(InfrastructureTestFixture fixture)
                      routes.PresetLargePicturePath
                  })
         {
-            var metadata = await storage.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, CancellationToken.None);
+            var metadata = await storage.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
             Assert.True(metadata is not null, $"expected {key} to have been seeded");
         }
     }
@@ -82,7 +82,7 @@ public sealed class PlayListPresetSeederTests(InfrastructureTestFixture fixture)
         await RunToCompletionAsync(secondSeeder);
 
         var metadata = await storage.HeadObjectAsync(
-            InfrastructureTestFixture.S3Bucket, configuration.Routes.PresetSmallPicturePath, CancellationToken.None);
+            InfrastructureTestFixture.S3Bucket, configuration.Routes.PresetSmallPicturePath, TestContext.Current.CancellationToken);
         Assert.NotNull(metadata);
     }
 
@@ -96,7 +96,7 @@ public sealed class PlayListPresetSeederTests(InfrastructureTestFixture fixture)
         await RunToCompletionAsync(seeder);
 
         var metadata = await storage.HeadObjectAsync(
-            InfrastructureTestFixture.S3Bucket, configuration.Routes.PresetSmallPicturePath, CancellationToken.None);
+            InfrastructureTestFixture.S3Bucket, configuration.Routes.PresetSmallPicturePath, TestContext.Current.CancellationToken);
         Assert.Null(metadata);
     }
 }

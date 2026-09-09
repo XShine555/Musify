@@ -18,7 +18,7 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
-        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(owner.Id, playList.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(owner.Id, playList.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Empty(Database.PlayListHasTracks);
@@ -27,7 +27,7 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(1, Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(1, Guid.NewGuid(), Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -40,7 +40,7 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, stranger, playList);
 
-        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(stranger.Id, playList.Id, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(stranger.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -52,7 +52,7 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, playList);
 
-        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(owner.Id, playList.Id, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(owner.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

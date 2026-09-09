@@ -15,7 +15,7 @@ public sealed class DatabaseTests(InfrastructureTestFixture fixture)
         await using var database = fixture.CreateDatabase();
 
         var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "roundtrip-user", NormalizedName = "ROUNDTRIP-USER" };
-        await database.Users.AddAsync(user);
+        await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
 
         var track = new LocalTrack
         {
@@ -27,11 +27,11 @@ public sealed class DatabaseTests(InfrastructureTestFixture fixture)
             Pictures = new TrackPictures { OriginalName = "cover.webp", ProcessingStatus = ProcessingStatus.Pending },
             Audio = new TrackAudio { OriginalName = "song.mp3", TranscodeStatus = ProcessingStatus.Pending }
         };
-        await database.LocalTracks.AddAsync(track);
-        await database.SaveChangesAsync(CancellationToken.None);
+        await database.LocalTracks.AddAsync(track, TestContext.Current.CancellationToken);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await using var reloaded = fixture.CreateDatabase();
-        var stored = await reloaded.Tracks.AsNoTracking().SingleAsync(t => t.Id == track.Id);
+        var stored = await reloaded.Tracks.AsNoTracking().SingleAsync(t => t.Id == track.Id, TestContext.Current.CancellationToken);
 
         Assert.IsType<LocalTrack>(stored);
         Assert.Equal("Round Trip Track", stored.Title);
@@ -46,13 +46,13 @@ public sealed class DatabaseTests(InfrastructureTestFixture fixture)
         await using var database = fixture.CreateDatabase();
 
         var videoId = $"dup-{Guid.NewGuid():N}";
-        await database.ExternalTracks.AddAsync(BuildExternalTrack(videoId));
-        await database.SaveChangesAsync(CancellationToken.None);
+        await database.ExternalTracks.AddAsync(BuildExternalTrack(videoId), TestContext.Current.CancellationToken);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await using var second = fixture.CreateDatabase();
-        await second.ExternalTracks.AddAsync(BuildExternalTrack(videoId));
+        await second.ExternalTracks.AddAsync(BuildExternalTrack(videoId), TestContext.Current.CancellationToken);
 
-        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -66,16 +66,16 @@ public sealed class DatabaseTests(InfrastructureTestFixture fixture)
         var link = new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 };
 
         await database.AddRangeAsync(user, album, track, link);
-        await database.SaveChangesAsync(CancellationToken.None);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await using var deleter = fixture.CreateDatabase();
-        var albumToDelete = await deleter.UserAlbums.SingleAsync(a => a.Id == album.Id);
+        var albumToDelete = await deleter.UserAlbums.SingleAsync(a => a.Id == album.Id, TestContext.Current.CancellationToken);
         deleter.UserAlbums.Remove(albumToDelete);
-        await deleter.SaveChangesAsync(CancellationToken.None);
+        await deleter.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await using var verifier = fixture.CreateDatabase();
-        Assert.False(await verifier.AlbumHasTracks.AnyAsync(l => l.AlbumId == album.Id));
-        Assert.True(await verifier.ExternalTracks.AnyAsync(t => t.Id == track.Id));
+        Assert.False(await verifier.AlbumHasTracks.AnyAsync(l => l.AlbumId == album.Id, TestContext.Current.CancellationToken));
+        Assert.True(await verifier.ExternalTracks.AnyAsync(t => t.Id == track.Id, TestContext.Current.CancellationToken));
     }
 
     private static ExternalTrack BuildExternalTrack(string externalId) => new()

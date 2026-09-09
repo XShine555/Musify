@@ -16,7 +16,7 @@ public sealed class GetTrackByIdQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner, "My Song");
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackByIdQuery(track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackByIdQuery(track.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("My Song", result.Value.Title);
@@ -27,7 +27,7 @@ public sealed class GetTrackByIdQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_TrackMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetTrackByIdQuery(Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

@@ -37,7 +37,7 @@ public sealed class ApiTestFixture : WebApplicationFactory<Program>, IAsyncLifet
 
     public IStreamTicketService StreamTicketService { get; } = Substitute.For<IStreamTicketService>();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await postgres.StartAsync();
 
@@ -46,7 +46,11 @@ public sealed class ApiTestFixture : WebApplicationFactory<Program>, IAsyncLifet
         await database.Database.MigrateAsync();
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    // xUnit v3's IAsyncLifetime IS System.IAsyncDisposable (rather than declaring its own
+    // Task-returning DisposeAsync as in v2), so there is a single DisposeAsync slot to fill —
+    // override the one WebApplicationFactory already provides instead of implementing the
+    // interface explicitly alongside it.
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await postgres.DisposeAsync();

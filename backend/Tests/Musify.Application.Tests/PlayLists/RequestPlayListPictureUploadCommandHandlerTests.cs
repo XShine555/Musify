@@ -38,11 +38,11 @@ public sealed class RequestPlayListPictureUploadCommandHandlerTests : HandlerTes
 
         var command = new RequestPlayListPictureUploadCommand(user.Id, "webp", "image/webp");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("https://storage.musify.test/presigned-upload", result.Value.UploadUrl);
-        Assert.Single(await Database.UploadIntents.ToListAsync());
+        Assert.Single(await Database.UploadIntents.ToListAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class RequestPlayListPictureUploadCommandHandlerTests : HandlerTes
     {
         var command = new RequestPlayListPictureUploadCommand(404, "webp", "image/webp");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -66,9 +66,9 @@ public sealed class RequestPlayListPictureUploadCommandHandlerTests : HandlerTes
 
         var command = new RequestPlayListPictureUploadCommand(user.Id, "webp", "image/webp", ExpectedSizeBytes: 1_000_000);
 
-        var result = await CreateHandler(config).Handle(command, CancellationToken.None);
+        var result = await CreateHandler(config).Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-        Assert.Empty(await Database.UploadIntents.ToListAsync());
+        Assert.Empty(await Database.UploadIntents.ToListAsync(TestContext.Current.CancellationToken));
     }
 }

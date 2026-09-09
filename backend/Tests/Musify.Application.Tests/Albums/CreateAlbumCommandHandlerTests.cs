@@ -17,7 +17,7 @@ public sealed class CreateAlbumCommandHandlerTests : HandlerTestBase
 
         var command = new CreateAlbumCommand(owner.Id, "  My Album  ", "A description", 2024);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("My Album", result.Value.Title);
@@ -26,7 +26,7 @@ public sealed class CreateAlbumCommandHandlerTests : HandlerTestBase
         Assert.Equal(owner.Id, result.Value.OwnerUserId);
         Assert.Equal(0, result.Value.TrackCount);
 
-        var stored = await Database.UserAlbums.FindAsync(result.Value.Id);
+        var stored = await Database.UserAlbums.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal("MY ALBUM", stored.NormalizedTitle);
     }
@@ -36,7 +36,7 @@ public sealed class CreateAlbumCommandHandlerTests : HandlerTestBase
     {
         var command = new CreateAlbumCommand(UserId: 404, "Orphan Album", Description: null, ReleaseYear: null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

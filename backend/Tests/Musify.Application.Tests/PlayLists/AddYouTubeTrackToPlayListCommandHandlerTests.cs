@@ -42,10 +42,10 @@ public sealed class AddYouTubeTrackToPlayListCommandHandlerTests : HandlerTestBa
         var track = TestEntities.ExternalTrack(externalId: "abc123");
         await SeedAsync(owner, playList, track);
 
-        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(owner.Id, playList.Id, "abc123"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(owner.Id, playList.Id, "abc123"), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Single(await Database.PlayListHasTracks.ToListAsync());
+        Assert.Single(await Database.PlayListHasTracks.ToListAsync(TestContext.Current.CancellationToken));
         await eventBus.DidNotReceive().PublishAsync(Arg.Any<Musify.Application.Events.DownloadYouTubeTrackEvent>(), Arg.Any<CancellationToken>());
     }
 
@@ -59,11 +59,11 @@ public sealed class AddYouTubeTrackToPlayListCommandHandlerTests : HandlerTestBa
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, playList);
 
-        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(owner.Id, playList.Id, "new-video"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(owner.Id, playList.Id, "new-video"), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("Song Title", result.Value.Title);
-        var track = await Database.ExternalTracks.SingleAsync(t => t.ExternalId == "new-video");
+        var track = await Database.ExternalTracks.SingleAsync(t => t.ExternalId == "new-video", TestContext.Current.CancellationToken);
         Assert.True(track.Audio.DownloadRequested);
         await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.DownloadYouTubeTrackEvent>(), Arg.Any<CancellationToken>());
     }
@@ -71,7 +71,7 @@ public sealed class AddYouTubeTrackToPlayListCommandHandlerTests : HandlerTestBa
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(1, Guid.NewGuid(), "abc123"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(1, Guid.NewGuid(), "abc123"), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -84,7 +84,7 @@ public sealed class AddYouTubeTrackToPlayListCommandHandlerTests : HandlerTestBa
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, stranger, playList);
 
-        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(stranger.Id, playList.Id, "abc123"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(stranger.Id, playList.Id, "abc123"), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -97,7 +97,7 @@ public sealed class AddYouTubeTrackToPlayListCommandHandlerTests : HandlerTestBa
         var track = TestEntities.ExternalTrack(externalId: "abc123");
         await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
-        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(owner.Id, playList.Id, "abc123"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddYouTubeTrackToPlayListCommand(owner.Id, playList.Id, "abc123"), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }

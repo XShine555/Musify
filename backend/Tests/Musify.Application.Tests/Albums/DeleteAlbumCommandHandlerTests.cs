@@ -16,16 +16,16 @@ public sealed class DeleteAlbumCommandHandlerTests : HandlerTestBase
         var album = TestEntities.UserAlbum(owner.Id);
         await SeedAsync(owner, album);
 
-        var result = await CreateHandler().Handle(new DeleteAlbumCommand(owner.Id, album.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteAlbumCommand(owner.Id, album.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Null(await Database.UserAlbums.FindAsync(album.Id));
+        Assert.Null(await Database.UserAlbums.FindAsync([album.Id], TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Handle_AlbumMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new DeleteAlbumCommand(1, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteAlbumCommand(1, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -38,9 +38,9 @@ public sealed class DeleteAlbumCommandHandlerTests : HandlerTestBase
         var album = TestEntities.UserAlbum(owner.Id);
         await SeedAsync(owner, stranger, album);
 
-        var result = await CreateHandler().Handle(new DeleteAlbumCommand(stranger.Id, album.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteAlbumCommand(stranger.Id, album.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
-        Assert.NotNull(await Database.UserAlbums.FindAsync(album.Id));
+        Assert.NotNull(await Database.UserAlbums.FindAsync([album.Id], TestContext.Current.CancellationToken));
     }
 }

@@ -33,14 +33,14 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("ticket-token", result.Value.Ticket);
         Assert.Equal(60, result.Value.ExpiresInSeconds);
         Assert.Contains("audio-folder", result.Value.ManifestUrl);
 
-        var history = Assert.Single(await Database.ListeningHistories.ToListAsync());
+        var history = Assert.Single(await Database.ListeningHistories.ToListAsync(TestContext.Current.CancellationToken));
         Assert.Equal(owner.Id, history.UserId);
         Assert.Equal(track.Id, history.TrackId);
     }
@@ -48,7 +48,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_TrackMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(Guid.NewGuid(), 1), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackStreamQuery(Guid.NewGuid(), 1), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -60,7 +60,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner, audio: TestEntities.PendingAudio());
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }

@@ -21,10 +21,10 @@ public sealed class DeleteTrackCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new DeleteTrackCommand(owner.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteTrackCommand(owner.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var stored = await Database.Tracks.FindAsync(track.Id);
+        var stored = await Database.Tracks.FindAsync([track.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal(LifeCycleStatus.Removing, stored.LifeCycleStatus);
         await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.DeleteTrackEvent>(), Arg.Any<CancellationToken>());
@@ -33,7 +33,7 @@ public sealed class DeleteTrackCommandHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_TrackMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new DeleteTrackCommand(1, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteTrackCommand(1, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -46,7 +46,7 @@ public sealed class DeleteTrackCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, stranger, track);
 
-        var result = await CreateHandler().Handle(new DeleteTrackCommand(stranger.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteTrackCommand(stranger.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -57,7 +57,7 @@ public sealed class DeleteTrackCommandHandlerTests : HandlerTestBase
         var externalTrack = TestEntities.ExternalTrack();
         await SeedAsync(externalTrack);
 
-        var result = await CreateHandler().Handle(new DeleteTrackCommand(1, externalTrack.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteTrackCommand(1, externalTrack.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -69,7 +69,7 @@ public sealed class DeleteTrackCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner, audio: TestEntities.PendingAudio());
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new DeleteTrackCommand(owner.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeleteTrackCommand(owner.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }

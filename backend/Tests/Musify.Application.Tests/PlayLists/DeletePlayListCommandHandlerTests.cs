@@ -21,10 +21,10 @@ public sealed class DeletePlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, playList);
 
-        var result = await CreateHandler().Handle(new DeletePlayListCommand(owner.Id, playList.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeletePlayListCommand(owner.Id, playList.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var stored = await Database.PlayLists.FindAsync(playList.Id);
+        var stored = await Database.PlayLists.FindAsync([playList.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal(LifeCycleStatus.Removing, stored.LifeCycleStatus);
         await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.DeletePlayListEvent>(), Arg.Any<CancellationToken>());
@@ -33,7 +33,7 @@ public sealed class DeletePlayListCommandHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new DeletePlayListCommand(1, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeletePlayListCommand(1, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -46,7 +46,7 @@ public sealed class DeletePlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, stranger, playList);
 
-        var result = await CreateHandler().Handle(new DeletePlayListCommand(stranger.Id, playList.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new DeletePlayListCommand(stranger.Id, playList.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }

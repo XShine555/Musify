@@ -15,11 +15,11 @@ public sealed class SearchYouTubeTracksQueryHandlerTests
     [Fact]
     public async Task Handle_EmptyQuery_ReturnsValidationErrorWithoutCallingTheService()
     {
-        var result = await CreateHandler().Handle(new SearchYouTubeTracksQuery(string.Empty, string.Empty), CancellationToken.None);
+        var result = await CreateHandler().Handle(new SearchYouTubeTracksQuery(string.Empty, string.Empty), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Validation, result.FirstError.Type);
         await youTubeMusicService.DidNotReceiveWithAnyArgs()
-            .SearchSongsAsync(default!, default!, default);
+            .SearchSongsAsync(default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public sealed class SearchYouTubeTracksQueryHandlerTests
         var expected = new YouTubeSearchResult([], "next-token");
         youTubeMusicService.SearchSongsAsync("query", "token", Arg.Any<CancellationToken>()).Returns(expected);
 
-        var result = await CreateHandler().Handle(new SearchYouTubeTracksQuery("query", "token"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new SearchYouTubeTracksQuery("query", "token"), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Same(expected, result.Value);

@@ -14,8 +14,8 @@ public sealed class AuditableEntityInterceptorTests(InfrastructureTestFixture fi
         var before = DateTime.UtcNow;
 
         var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "audit-user", NormalizedName = "AUDIT-USER" };
-        await database.Users.AddAsync(user);
-        await database.SaveChangesAsync(CancellationToken.None);
+        await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var after = DateTime.UtcNow;
 
@@ -29,14 +29,14 @@ public sealed class AuditableEntityInterceptorTests(InfrastructureTestFixture fi
         await using var database = fixture.CreateDatabase();
 
         var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "audit-user-2", NormalizedName = "AUDIT-USER-2" };
-        await database.Users.AddAsync(user);
-        await database.SaveChangesAsync(CancellationToken.None);
+        await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
         var originalCreatedAt = user.CreatedAt;
 
-        await Task.Delay(TimeSpan.FromMilliseconds(50));
+        await Task.Delay(TimeSpan.FromMilliseconds(50), TestContext.Current.CancellationToken);
 
         user.Name = "audit-user-2-renamed";
-        await database.SaveChangesAsync(CancellationToken.None);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(originalCreatedAt, user.CreatedAt);
         Assert.True(user.UpdatedAt > originalCreatedAt,

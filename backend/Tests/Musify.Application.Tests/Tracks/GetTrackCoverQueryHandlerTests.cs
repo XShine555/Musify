@@ -21,7 +21,7 @@ public sealed class GetTrackCoverQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackCoverQuery(track.Id, size), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackCoverQuery(track.Id, size), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("covers-bucket", result.Value.Bucket);
@@ -32,7 +32,7 @@ public sealed class GetTrackCoverQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_TrackMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetTrackCoverQuery(Guid.NewGuid(), "small"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackCoverQuery(Guid.NewGuid(), "small"), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -44,7 +44,7 @@ public sealed class GetTrackCoverQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner, pictures: TestEntities.PendingPictures());
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackCoverQuery(track.Id, "small"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTrackCoverQuery(track.Id, "small"), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

@@ -26,13 +26,13 @@ public sealed class RemoveTrackFromAlbumCommandHandlerTests : HandlerTestBase
             new AlbumHasTrack { AlbumId = album.Id, TrackId = second.Id, TrackNumber = 2 },
             new AlbumHasTrack { AlbumId = album.Id, TrackId = third.Id, TrackNumber = 3 });
 
-        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(owner.Id, album.Id, second.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(owner.Id, album.Id, second.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var remaining = await Database.AlbumHasTracks
             .Where(link => link.AlbumId == album.Id)
             .OrderBy(link => link.TrackNumber)
-            .ToListAsync();
+            .ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal([first.Id, third.Id], remaining.Select(link => link.TrackId));
         Assert.Equal([1, 2], remaining.Select(link => link.TrackNumber));
     }
@@ -40,7 +40,7 @@ public sealed class RemoveTrackFromAlbumCommandHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_AlbumMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(1, Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(1, Guid.NewGuid(), Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -53,7 +53,7 @@ public sealed class RemoveTrackFromAlbumCommandHandlerTests : HandlerTestBase
         var album = TestEntities.UserAlbum(owner.Id);
         await SeedAsync(owner, stranger, album);
 
-        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(stranger.Id, album.Id, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(stranger.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -65,7 +65,7 @@ public sealed class RemoveTrackFromAlbumCommandHandlerTests : HandlerTestBase
         var album = TestEntities.UserAlbum(owner.Id);
         await SeedAsync(owner, album);
 
-        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(owner.Id, album.Id, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(owner.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

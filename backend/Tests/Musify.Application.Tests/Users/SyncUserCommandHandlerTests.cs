@@ -13,10 +13,10 @@ public sealed class SyncUserCommandHandlerTests : HandlerTestBase
     {
         var command = new SyncUserCommand(1, "Jane Doe", "Jane", "Doe", "https://avatar.example/jane.png");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var stored = await Database.Users.FindAsync(1L);
+        var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal("Jane Doe", stored.Name);
         Assert.Equal("https://avatar.example/jane.png", stored.ProfilePictureUrl);
@@ -30,10 +30,10 @@ public sealed class SyncUserCommandHandlerTests : HandlerTestBase
 
         var command = new SyncUserCommand(1, "New Name", "New", "Name", "https://avatar.example/new.png");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var stored = await Database.Users.FindAsync(1L);
+        var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal("New Name", stored.Name);
         Assert.Equal("NEW NAME", stored.NormalizedName);

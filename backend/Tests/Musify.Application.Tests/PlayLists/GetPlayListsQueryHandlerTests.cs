@@ -14,7 +14,7 @@ public sealed class GetPlayListsQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(owner, TestEntities.PlayList(owner.Id, "One"), TestEntities.PlayList(owner.Id, "Two"));
 
-        var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(2, result.Value.TotalItemCount);
@@ -23,7 +23,7 @@ public sealed class GetPlayListsQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_NoPlayLists_ReturnsEmptyPage()
     {
-        var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListsQuery(PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Empty(result.Value.Items);

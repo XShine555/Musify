@@ -39,13 +39,13 @@ public sealed class RequestTrackUploadUrlsCommandHandlerTests : HandlerTestBase
 
         var command = new RequestTrackUploadUrlsCommand(user.Id, "webp", "image/webp", "mp3", "audio/mpeg");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("https://storage.musify.test/presigned-upload", result.Value.PictureUploadUrl);
         Assert.Equal("https://storage.musify.test/presigned-upload", result.Value.AudioUploadUrl);
 
-        var intents = await Database.UploadIntents.Where(intent => intent.UserId == user.Id).ToListAsync();
+        var intents = await Database.UploadIntents.Where(intent => intent.UserId == user.Id).ToListAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, intents.Count);
         Assert.Contains(intents, intent => intent.Purpose == UploadIntentPurpose.TrackPicture);
         Assert.Contains(intents, intent => intent.Purpose == UploadIntentPurpose.TrackAudio);
@@ -56,7 +56,7 @@ public sealed class RequestTrackUploadUrlsCommandHandlerTests : HandlerTestBase
     {
         var command = new RequestTrackUploadUrlsCommand(404, "webp", "image/webp", "mp3", "audio/mpeg");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -72,9 +72,9 @@ public sealed class RequestTrackUploadUrlsCommandHandlerTests : HandlerTestBase
 
         var command = new RequestTrackUploadUrlsCommand(user.Id, "webp", "image/webp", "mp3", "audio/mpeg");
 
-        var result = await CreateHandler(config).Handle(command, CancellationToken.None);
+        var result = await CreateHandler(config).Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-        Assert.Equal(1, await Database.UploadIntents.CountAsync());
+        Assert.Equal(1, await Database.UploadIntents.CountAsync(TestContext.Current.CancellationToken));
     }
 }

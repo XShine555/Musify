@@ -20,7 +20,7 @@ public sealed class GetPlayListCoverQueryHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, playList);
 
-        var result = await CreateHandler().Handle(new GetPlayListCoverQuery(playList.Id, size), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListCoverQuery(playList.Id, size), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("covers-bucket", result.Value.Bucket);
@@ -30,7 +30,7 @@ public sealed class GetPlayListCoverQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetPlayListCoverQuery(Guid.NewGuid(), "small"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListCoverQuery(Guid.NewGuid(), "small"), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

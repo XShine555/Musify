@@ -30,7 +30,7 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
 
         var command = new CreatePlayListCommand(user.Id, "My Playlist", "A description", PictureIntentId: null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("My Playlist", result.Value.Name);
@@ -51,10 +51,10 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
 
         var command = new CreatePlayListCommand(user.Id, "My Playlist", null, intent.Id);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var stored = await Database.PlayLists.FindAsync(result.Value.Id);
+        var stored = await Database.PlayLists.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal("cover.webp", stored.Pictures.OriginalName);
         await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
@@ -65,7 +65,7 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
     {
         var command = new CreatePlayListCommand(404, "Orphan Playlist", null, null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -78,7 +78,7 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
 
         var command = new CreatePlayListCommand(user.Id, "My Playlist", null, Guid.NewGuid());
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.True(result.IsError);
     }

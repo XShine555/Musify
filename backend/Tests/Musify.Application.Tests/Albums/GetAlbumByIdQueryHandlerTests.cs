@@ -18,7 +18,7 @@ public sealed class GetAlbumByIdQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, album, track, new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 });
 
-        var result = await CreateHandler().Handle(new GetAlbumByIdQuery(album.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetAlbumByIdQuery(album.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(album.Id, result.Value.Id);
@@ -29,7 +29,7 @@ public sealed class GetAlbumByIdQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_AlbumMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetAlbumByIdQuery(Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetAlbumByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

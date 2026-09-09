@@ -14,13 +14,13 @@ public sealed class CreateUserCommandHandlerTests : HandlerTestBase
     {
         var command = new CreateUserCommand(1, "Jane Doe", "Jane", "Doe");
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("Jane Doe", result.Value.Name);
         Assert.Equal(1, result.Value.Id);
 
-        var stored = await Database.Users.FindAsync(1L);
+        var stored = await Database.Users.FindAsync([1L], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal("JANE DOE", stored.NormalizedName);
     }
@@ -33,7 +33,7 @@ public sealed class CreateUserCommandHandlerTests : HandlerTestBase
 
         var command = new CreateUserCommand(1, "Someone Else", null, null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }

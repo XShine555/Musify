@@ -22,7 +22,7 @@ public sealed class TrackStreamIssuerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track);
 
-        var response = await CreateIssuer().IssueAsync(track.Id, "folder-42", userId: 7, CancellationToken.None);
+        var response = await CreateIssuer().IssueAsync(track.Id, "folder-42", userId: 7, TestContext.Current.CancellationToken);
 
         Assert.Equal("signed-token", response.Ticket);
         Assert.Equal(120, response.ExpiresInSeconds);
@@ -30,7 +30,7 @@ public sealed class TrackStreamIssuerTests : HandlerTestBase
             "https://stream.musify.test/media/Tracks/ProcessedAudios/folder-42/audio.m4a",
             response.ManifestUrl);
 
-        var history = Assert.Single(await Database.ListeningHistories.ToListAsync());
+        var history = Assert.Single(await Database.ListeningHistories.ToListAsync(TestContext.Current.CancellationToken));
         Assert.Equal(7, history.UserId);
         Assert.Equal(track.Id, history.TrackId);
     }
@@ -43,7 +43,7 @@ public sealed class TrackStreamIssuerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track);
 
-        await CreateIssuer().IssueAsync(track.Id, "folder-42", userId: 1, CancellationToken.None);
+        await CreateIssuer().IssueAsync(track.Id, "folder-42", userId: 1, TestContext.Current.CancellationToken);
 
         ticketService.Received(1).IssueTicket(1, "Tracks/ProcessedAudios/folder-42/");
     }

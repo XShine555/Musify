@@ -18,7 +18,7 @@ public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
         var first = TestEntities.MixItem(mix.Id, position: 0, title: "First");
         await SeedAsync(owner, mix, second, first);
 
-        var result = await CreateHandler().Handle(new GetMixByIdQuery(owner.Id, mix.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetMixByIdQuery(owner.Id, mix.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("Discovery", result.Value.Title);
@@ -28,7 +28,7 @@ public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_MixMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetMixByIdQuery(1, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetMixByIdQuery(1, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -40,7 +40,7 @@ public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
         var mix = TestEntities.Mix(owner.Id);
         await SeedAsync(owner, mix);
 
-        var result = await CreateHandler().Handle(new GetMixByIdQuery(2, mix.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetMixByIdQuery(2, mix.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

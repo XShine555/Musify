@@ -16,9 +16,9 @@ public abstract class HandlerTestBase : IAsyncLifetime
 
     protected TestDatabase Database => database;
 
-    public async Task InitializeAsync() => database = await TestDatabase.CreateAsync();
+    public async ValueTask InitializeAsync() => database = await TestDatabase.CreateAsync();
 
-    public Task DisposeAsync() => database.DisposeAsync().AsTask();
+    public ValueTask DisposeAsync() => database.DisposeAsync();
 
     protected static ILogger<T> NoOpLogger<T>() => NullLogger<T>.Instance;
 

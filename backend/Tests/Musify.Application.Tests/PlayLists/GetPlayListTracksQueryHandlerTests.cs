@@ -22,7 +22,7 @@ public sealed class GetPlayListTracksQueryHandlerTests : HandlerTestBase
             new PlayListHasTrack { PlayListId = playList.Id, TrackId = second.Id, Position = 1 },
             new PlayListHasTrack { PlayListId = playList.Id, TrackId = first.Id, Position = 0 });
 
-        var result = await CreateHandler().Handle(new GetPlayListTracksQuery(playList.Id, PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListTracksQuery(playList.Id, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(["First", "Second"], result.Value.Items.Select(track => track.Title));
@@ -31,7 +31,7 @@ public sealed class GetPlayListTracksQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetPlayListTracksQuery(Guid.NewGuid(), PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListTracksQuery(Guid.NewGuid(), PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

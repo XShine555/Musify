@@ -13,7 +13,7 @@ public sealed class GetUsersQueryHandlerTests : HandlerTestBase
     {
         await SeedAsync(TestEntities.User(1, "alice"), TestEntities.User(2, "bob"));
 
-        var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: null), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: null), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(2, result.Value.TotalItemCount);
@@ -24,7 +24,7 @@ public sealed class GetUsersQueryHandlerTests : HandlerTestBase
     {
         await SeedAsync(TestEntities.User(1, "alice-wonderland"), TestEntities.User(2, "bob-builder"));
 
-        var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: "alice"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: "alice"), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var user = Assert.Single(result.Value.Items);

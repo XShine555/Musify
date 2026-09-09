@@ -18,7 +18,7 @@ public sealed class GetMixesByUserIdQueryHandlerTests : HandlerTestBase
         var theirs = TestEntities.Mix(other.Id, "Theirs");
         await SeedAsync(owner, other, second, first, theirs);
 
-        var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(["First", "Second"], result.Value.Select(mix => mix.Title));
@@ -30,7 +30,7 @@ public sealed class GetMixesByUserIdQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(owner);
 
-        var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Empty(result.Value);

@@ -21,7 +21,7 @@ public sealed class GetTracksByUserIdQueryHandlerTests : HandlerTestBase
             new UserHasTrack { UserId = owner.Id, TrackId = mine.Id },
             new UserHasTrack { UserId = other.Id, TrackId = theirs.Id });
 
-        var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var track = Assert.Single(result.Value.Items);
@@ -37,7 +37,7 @@ public sealed class GetTracksByUserIdQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track, new UserHasTrack { UserId = owner.Id, TrackId = track.Id });
 
-        var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: requestedPageNumber, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: requestedPageNumber, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(expectedPageNumber, result.Value.PageNumber);

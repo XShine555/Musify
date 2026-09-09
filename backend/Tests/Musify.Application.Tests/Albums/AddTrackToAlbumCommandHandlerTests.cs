@@ -19,10 +19,10 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, album, track);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var link = Assert.Single(await Database.AlbumHasTracks.ToListAsync());
+        var link = Assert.Single(await Database.AlbumHasTracks.ToListAsync(TestContext.Current.CancellationToken));
         Assert.Equal(1, link.TrackNumber);
     }
 
@@ -33,7 +33,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, Guid.NewGuid(), track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, Guid.NewGuid(), track.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -47,7 +47,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, stranger, album, track);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(stranger.Id, album.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(stranger.Id, album.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -59,7 +59,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var album = TestEntities.UserAlbum(owner.Id);
         await SeedAsync(owner, album);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -73,7 +73,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var foreignTrack = TestEntities.LocalTrack(otherOwner);
         await SeedAsync(owner, otherOwner, album, foreignTrack);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, foreignTrack.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, foreignTrack.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -87,7 +87,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var link = new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 };
         await SeedAsync(owner, album, track, link);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, track.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }
@@ -102,10 +102,10 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
         var existingLink = new AlbumHasTrack { AlbumId = album.Id, TrackId = firstTrack.Id, TrackNumber = 3 };
         await SeedAsync(owner, album, firstTrack, secondTrack, existingLink);
 
-        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, secondTrack.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, secondTrack.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var newLink = await Database.AlbumHasTracks.SingleAsync(l => l.TrackId == secondTrack.Id);
+        var newLink = await Database.AlbumHasTracks.SingleAsync(l => l.TrackId == secondTrack.Id, TestContext.Current.CancellationToken);
         Assert.Equal(4, newLink.TrackNumber);
     }
 }

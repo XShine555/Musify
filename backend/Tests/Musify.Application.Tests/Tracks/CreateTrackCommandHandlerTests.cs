@@ -43,14 +43,14 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
 
         var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("My Song", result.Value.Title);
         Assert.Equal(user.Id, result.Value.OwnerUserId);
         await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreateTrackResourcesEvent>(), Arg.Any<CancellationToken>());
 
-        var stored = await Database.LocalTracks.FindAsync(result.Value.Id);
+        var stored = await Database.LocalTracks.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal(ProcessingStatus.Pending, stored.Audio.TranscodeStatus);
     }
@@ -60,7 +60,7 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
     {
         var command = new CreateTrackCommand(404, "Orphan Song", Guid.NewGuid(), Guid.NewGuid());
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -75,7 +75,7 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
 
         var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.True(result.IsError);
         await eventBus.DidNotReceive().PublishAsync(Arg.Any<Musify.Application.Events.CreateTrackResourcesEvent>(), Arg.Any<CancellationToken>());
@@ -91,7 +91,7 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
 
         var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }

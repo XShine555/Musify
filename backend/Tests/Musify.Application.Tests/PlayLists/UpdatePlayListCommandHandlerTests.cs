@@ -31,7 +31,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
 
         var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("New Name", result.Value.Name);
@@ -42,7 +42,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
     {
         var command = new UpdatePlayListCommand(1, Guid.NewGuid(), "New Name", null, null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -57,7 +57,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
 
         var command = new UpdatePlayListCommand(stranger.Id, playList.Id, "Hijacked", null, null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -71,7 +71,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
 
         var command = new UpdatePlayListCommand(owner.Id, playList.Id, "   ", "   ", null);
 
-        var result = await CreateHandler().Handle(command, CancellationToken.None);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("Original Name", result.Value.Name);

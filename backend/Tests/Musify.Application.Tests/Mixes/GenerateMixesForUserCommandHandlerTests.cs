@@ -21,10 +21,10 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
         var user = TestEntities.User();
         await SeedAsync(user);
 
-        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Empty(await Database.Mixes.ToListAsync());
+        Assert.Empty(await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -34,10 +34,10 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(user);
         await SeedAsync(user, track, TestEntities.ListeningHistory(user.Id, track.Id));
 
-        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Empty(await Database.Mixes.ToListAsync());
+        Assert.Empty(await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -64,12 +64,12 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
             new TrackArtist { TrackId = otherTrackByArtist.Id, ArtistId = artist.Id, Position = 0 },
             TestEntities.ListeningHistory(user.Id, listenedTrack.Id));
 
-        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        var mixes = await Database.Mixes.ToListAsync();
+        var mixes = await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken);
         Assert.NotEmpty(mixes);
         Assert.DoesNotContain(mixes, mix => mix.Title == "Stale Mix");
-        Assert.Empty(await Database.MixItems.Where(item => item.MixId == staleMix.Id).ToListAsync());
+        Assert.Empty(await Database.MixItems.Where(item => item.MixId == staleMix.Id).ToListAsync(TestContext.Current.CancellationToken));
     }
 }

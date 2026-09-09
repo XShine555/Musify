@@ -24,7 +24,7 @@ public sealed class GetRecentlyListenedAlbumsQueryHandlerTests : HandlerTestBase
             TestEntities.ListeningHistory(owner.Id, olderTrack.Id, DateTime.UtcNow.AddDays(-2)),
             TestEntities.ListeningHistory(owner.Id, newerTrack.Id, DateTime.UtcNow.AddDays(-1)));
 
-        var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(["Newer", "Older"], result.Value.Select(album => album.Title));
@@ -36,7 +36,7 @@ public sealed class GetRecentlyListenedAlbumsQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(owner);
 
-        var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Empty(result.Value);
@@ -52,7 +52,7 @@ public sealed class GetRecentlyListenedAlbumsQueryHandlerTests : HandlerTestBase
         var histories = tracks.Select((track, i) => TestEntities.ListeningHistory(owner.Id, track.Id, DateTime.UtcNow.AddMinutes(-i))).ToList();
         await SeedAsync([owner, .. albums, .. tracks, .. links, .. histories]);
 
-        var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 2), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 2), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(2, result.Value.Count);

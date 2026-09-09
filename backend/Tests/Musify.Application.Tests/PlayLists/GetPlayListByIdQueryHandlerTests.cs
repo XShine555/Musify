@@ -18,7 +18,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
         var track = TestEntities.LocalTrack(owner);
         await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
-        var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal(playList.Name, result.Value.Name);
@@ -28,7 +28,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetPlayListByIdQuery(Guid.NewGuid()), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetPlayListByIdQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

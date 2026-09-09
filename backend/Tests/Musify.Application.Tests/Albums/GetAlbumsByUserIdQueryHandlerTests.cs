@@ -16,7 +16,7 @@ public sealed class GetAlbumsByUserIdQueryHandlerTests : HandlerTestBase
         var other = TestEntities.User(2, "other");
         await SeedAsync(owner, other, TestEntities.UserAlbum(owner.Id, "Mine"), TestEntities.UserAlbum(other.Id, "Theirs"));
 
-        var result = await CreateHandler().Handle(new GetAlbumsByUserIdQuery(owner.Id, PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetAlbumsByUserIdQuery(owner.Id, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var album = Assert.Single(result.Value.Items);
@@ -26,7 +26,7 @@ public sealed class GetAlbumsByUserIdQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_UserMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetAlbumsByUserIdQuery(404, PageNumber: 1, PageSize: 10), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetAlbumsByUserIdQuery(404, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }

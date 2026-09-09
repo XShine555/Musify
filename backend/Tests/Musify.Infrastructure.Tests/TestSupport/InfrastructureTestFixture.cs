@@ -44,7 +44,7 @@ public sealed class InfrastructureTestFixture : IAsyncLifetime
 
     public string S3ServiceUrl => $"http://{seaweedFs.Hostname}:{seaweedFs.GetMappedPublicPort(8333)}";
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await Task.WhenAll(postgres.StartAsync(), seaweedFs.StartAsync());
 
@@ -56,7 +56,7 @@ public sealed class InfrastructureTestFixture : IAsyncLifetime
         await s3.PutBucketAsync(S3Bucket);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await postgres.DisposeAsync();
         await seaweedFs.DisposeAsync();

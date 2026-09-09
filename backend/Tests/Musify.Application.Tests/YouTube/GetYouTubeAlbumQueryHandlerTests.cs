@@ -30,7 +30,7 @@ public sealed class GetYouTubeAlbumQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_EmptyAlbumId_ReturnsValidationError()
     {
-        var result = await CreateHandler().Handle(new GetYouTubeAlbumQuery(string.Empty), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetYouTubeAlbumQuery(string.Empty), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Validation, result.FirstError.Type);
     }
@@ -41,11 +41,11 @@ public sealed class GetYouTubeAlbumQueryHandlerTests : HandlerTestBase
         var detail = BuildDetail();
         youTubeMusicService.GetAlbumAsync("album-1", Arg.Any<CancellationToken>()).Returns(detail);
 
-        var result = await CreateHandler().Handle(new GetYouTubeAlbumQuery("album-1"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetYouTubeAlbumQuery("album-1"), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Same(detail, result.Value);
-        Assert.NotEmpty(await Database.ExternalAlbums.ToListAsync());
+        Assert.NotEmpty(await Database.ExternalAlbums.ToListAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class GetYouTubeAlbumQueryHandlerTests : HandlerTestBase
         youTubeMusicService.GetAlbumAsync("missing", Arg.Any<CancellationToken>())
             .Returns(Error.NotFound(description: "Album not found"));
 
-        var result = await CreateHandler().Handle(new GetYouTubeAlbumQuery("missing"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetYouTubeAlbumQuery("missing"), TestContext.Current.CancellationToken);
 
         Assert.True(result.IsError);
     }

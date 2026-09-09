@@ -20,7 +20,7 @@ public sealed class GetListeningHistoryQueryHandlerTests : HandlerTestBase
             TestEntities.ListeningHistory(owner.Id, older.Id, DateTime.UtcNow.AddMinutes(-5)),
             TestEntities.ListeningHistory(owner.Id, newer.Id, DateTime.UtcNow));
 
-        var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(["Newer listen", "Older listen"], result.Select(track => track.Title));
     }
@@ -31,7 +31,7 @@ public sealed class GetListeningHistoryQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(owner);
 
-        var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetListeningHistoryQuery(owner.Id), TestContext.Current.CancellationToken);
 
         Assert.Empty(result);
     }
