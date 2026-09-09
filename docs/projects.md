@@ -59,11 +59,13 @@ Cliente web (SvelteKit 2 + Svelte 5 + Tailwind 4). La sesión OIDC vive en el
 servidor (cookie cifrada); las llamadas al backend salen del servidor con el
 access token, y las subidas se hacen contra las URLs prefirmadas de S3.
 
-## Musify.Domain.Tests + Musify.Application.Tests
+## Tests
 
-`backend/Tests/`, carpeta `/Tests/` en el `.slnx`. xUnit, sin Docker ni Postgres
-real — `Application.Tests` corre los handlers contra SQLite en memoria (ver
-[development.md](development.md#tests)).
+`backend/Tests/`, carpeta `/Tests/` en el `.slnx`: cinco proyectos xUnit —
+`Musify.Domain.Tests`, `Musify.Application.Tests` (SQLite en memoria, sin
+Docker), `Musify.Infrastructure.Tests` y `Musify.Api.Tests` (Testcontainers:
+Postgres + SeaweedFS reales) y `Musify.StreamingGateway.Tests`. Detalle en
+[development.md](development.md#tests).
 
 ## Otras carpetas
 

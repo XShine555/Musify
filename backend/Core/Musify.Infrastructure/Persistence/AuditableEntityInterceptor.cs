@@ -24,6 +24,13 @@ namespace Musify.Infrastructure.Persistence
             if (context is null)
                 return;
 
+            // SavingChanges(Async) fires before EF's own automatic change detection for this
+            // save, so entities modified through plain property assignment (query, then set a
+            // property, then SaveChanges — the normal case) still show as Unchanged here unless
+            // something already forced detection. Force it explicitly, otherwise UpdatedAt is
+            // never bumped on a real update, only on inserts.
+            context.ChangeTracker.DetectChanges();
+
             var now = DateTime.UtcNow;
 
             foreach (var entry in context.ChangeTracker.Entries<IAuditable>())

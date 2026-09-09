@@ -78,13 +78,21 @@ openssl rsa -in deploy/keys/stream_private.pem -pubout -out deploy/keys/stream_p
 dotnet test backend/Musify.slnx
 ```
 
-`backend/Tests/` (carpeta `/Tests/` en el `.slnx`) tiene dos proyectos xUnit,
-sin Docker ni Postgres real:
+`backend/Tests/` (carpeta `/Tests/` en el `.slnx`) tiene cinco proyectos xUnit:
 
-| Proyecto | Cubre |
-|---|---|
-| `Musify.Domain.Tests` | Lógica de los value objects (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Las entidades son en su mayoría anémicas — sin comportamiento propio, nada más que testear ahí. |
-| `Musify.Application.Tests` | Los ~45 handlers y servicios de `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes, YouTube). |
+| Proyecto | Cubre | Docker |
+|---|---|---|
+| `Musify.Domain.Tests` | Lógica de los value objects (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Las entidades son en su mayoría anémicas — sin comportamiento propio, nada más que testear ahí. | No |
+| `Musify.Application.Tests` | Los ~45 handlers y servicios de `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes, YouTube). | No |
+| `Musify.Infrastructure.Tests` | `Database`/migraciones, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `SingleFlightCache`, `PlayListPresetSeeder`. | **Sí** |
+| `Musify.Api.Tests` | Endpoints HTTP reales (routing, auth, `ValidationFilter`, mapeo `ErrorOr`→HTTP) vía `WebApplicationFactory`, más `ErrorOrHttpExtensions`/`CurrentUser`/validators FluentValidation en aislado. | **Sí** |
+| `Musify.StreamingGateway.Tests` | `TicketValidator` (RS256) y `TicketValidationMiddleware` (traversal, límites de prefijo, extracción de ticket). | No |
+
+`Musify.Worker` no tiene proyecto de test: su `Program.cs` es puro *wiring* de
+DI/host (Hangfire, MassTransit, jobs) — la lógica real que ejecuta vive en
+`Musify.Infrastructure`, ya cubierta ahí.
+
+### Application.Tests: por qué SQLite en memoria y no mocks
 
 `IDatabase` expone `DbSet<T>` directamente, así que los handlers arman LINQ
 real (`Where`, `Include`, `Select`...) contra él — no se puede mockear eso con
@@ -96,6 +104,31 @@ handlers usan). `TestSupport/TestEntities.cs` y `TestConfigurations.cs`
 construyen entidades y configuración con valores por defecto sensatos.
 `IStorageService`, `IEventBus`, `IYouTubeMusicService`, etc. sí se mockean con
 NSubstitute, al ser interfaces normales.
+
+### Infrastructure.Tests y Api.Tests: Testcontainers
+
+Estos dos sí necesitan Docker corriendo. Levantan un Postgres real
+(`Testcontainers.PostgreSql`) y, en `Infrastructure.Tests`, también un
+SeaweedFS real (mismo `chrislusf/seaweedfs:latest` e imagen/comando que
+`deploy/compose.yml`, no MinIO) — así `StorageService` se prueba contra el
+mismo backend S3-compatible que usa producción, no contra AWS S3. Los
+contenedores se levantan una vez por corrida (`ICollectionFixture`), con
+migraciones EF Core reales aplicadas contra el Postgres efímero.
+
+`Api.Tests` usa `WebApplicationFactory<Program>` contra ese mismo Postgres —
+routing, auth y validación reales — pero sustituye por fakes los servicios que
+hablan por red (`IStorageService`, `IEventBus`, `IYouTubeMusicService`,
+`IStreamTicketService`) y el esquema de autenticación JWT real por un handler
+de prueba (ver `TestSupport/FakeAuthenticationHandler.cs`) que autentica según
+un header, sin necesitar un Zitadel real.
+
+Escribir estos tests contra el backend real encontró y arregló dos bugs reales
+(no simulados): `StorageService.RemoveFolderAsync` reventaba con
+`NullReferenceException` contra SeaweedFS (su respuesta `DeleteObjects` omite
+la lista `<Error>` cuando no hay errores, a diferencia de AWS S3), y
+`AuditableEntityInterceptor` nunca actualizaba `UpdatedAt` en una actualización
+normal (carga → modifica → guarda) porque corría antes de que EF detectara los
+cambios pendientes.
 
 ## Config (AppSettings)
 

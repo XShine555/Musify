@@ -12,7 +12,7 @@ docs/         What each piece does and why (in Spanish)
 ```
 
 ```sh
-dotnet test backend/Musify.slnx   # backend/Tests/ — no Docker, no database
+dotnet test backend/Musify.slnx   # backend/Tests/ — Docker running (Testcontainers: Postgres, SeaweedFS)
 ```
 
 ## Run it

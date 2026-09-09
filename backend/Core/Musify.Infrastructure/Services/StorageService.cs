@@ -289,9 +289,13 @@ namespace Musify.Infrastructure.Services
 
                 var deleteResponse = await amazonS3.DeleteObjectsAsync(deleteRequest, cancellationToken);
 
-                if (deleteResponse.DeleteErrors.Count > 0)
+                // Some S3-compatible backends (SeaweedFS included) omit the <Error> list from the
+                // XML response entirely when nothing failed, which the SDK deserializes as null
+                // rather than an empty list — real AWS S3 always returns a (possibly empty) list.
+                var deleteErrors = deleteResponse.DeleteErrors ?? [];
+                if (deleteErrors.Count > 0)
                 {
-                    var errors = string.Join(", ", deleteResponse.DeleteErrors.Select(e => $"{e.Key}: {e.Message}"));
+                    var errors = string.Join(", ", deleteErrors.Select(e => $"{e.Key}: {e.Message}"));
                     throw new InvalidOperationException($"Failed to delete some objects in folder {folderKey}: {errors}");
                 }
 

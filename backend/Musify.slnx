@@ -12,5 +12,8 @@
   <Folder Name="/Tests/">
     <Project Path="Tests/Musify.Domain.Tests/Musify.Domain.Tests.csproj" />
     <Project Path="Tests/Musify.Application.Tests/Musify.Application.Tests.csproj" />
+    <Project Path="Tests/Musify.Infrastructure.Tests/Musify.Infrastructure.Tests.csproj" />
+    <Project Path="Tests/Musify.Api.Tests/Musify.Api.Tests.csproj" />
+    <Project Path="Tests/Musify.StreamingGateway.Tests/Musify.StreamingGateway.Tests.csproj" />
   </Folder>
 </Solution>
