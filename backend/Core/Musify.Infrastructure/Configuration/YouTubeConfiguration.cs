@@ -6,6 +6,11 @@ namespace Musify.Infrastructure.Configuration
     {
         public const string SectionName = "YouTube";
 
+        /// <summary>Turns the whole YouTube Music source on or off: search, albums, streaming
+        /// and adding new YouTube tracks all fail with a clear error while this is <c>false</c>,
+        /// and mix generation silently skips YouTube candidates instead of failing.</summary>
+        public bool Enabled { get; set; } = true;
+
         [Required]
         public string GeographicalLocation { get; set; } = "US";
 

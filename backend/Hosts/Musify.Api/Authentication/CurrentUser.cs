@@ -8,8 +8,7 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
     private CurrentUser(ClaimsPrincipal principal)
     {
         Principal = principal;
-        var isAuthenticated = principal.Identity?.IsAuthenticated;
-        IsAuthenticated = isAuthenticated.HasValue && isAuthenticated.Value;
+        IsAuthenticated = principal.Identity?.IsAuthenticated ?? false;
 
         var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         if (long.TryParse(rawId, out var id) && id != 0)

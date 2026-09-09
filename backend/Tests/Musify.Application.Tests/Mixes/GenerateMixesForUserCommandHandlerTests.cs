@@ -1,8 +1,10 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Mixes;
 using Musify.Application.Tests.TestSupport;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 using NSubstitute;
 using Xunit;
 
@@ -71,5 +73,34 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
         Assert.NotEmpty(mixes);
         Assert.DoesNotContain(mixes, mix => mix.Title == "Stale Mix");
         Assert.Empty(await Database.MixItems.Where(item => item.MixId == staleMix.Id).ToListAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Handle_YouTubeSourceUnavailable_StillCreatesMixesFromLocalCandidatesOnly()
+    {
+        // Simulates IYouTubeMusicService.SearchSongsAsync as it behaves when the YouTube source is
+        // disabled (DisabledYouTubeMusicService, see Infrastructure): every call fails. Mix
+        // generation must degrade to local-only candidates instead of failing the whole command.
+        youTubeMusicService
+            .SearchSongsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Error.Forbidden(description: "The YouTube Music source is disabled."));
+
+        var user = TestEntities.User();
+        var artist = TestEntities.Artist("Seed Artist");
+        var listenedTrack = TestEntities.ExternalTrack(externalId: "listened", title: "Listened Track");
+        var otherTrackByArtist = TestEntities.ExternalTrack(externalId: "not-listened", title: "Other Track");
+
+        await SeedAsync(
+            user, artist, listenedTrack, otherTrackByArtist,
+            new TrackArtist { TrackId = listenedTrack.Id, ArtistId = artist.Id, Position = 0 },
+            new TrackArtist { TrackId = otherTrackByArtist.Id, ArtistId = artist.Id, Position = 0 },
+            TestEntities.ListeningHistory(user.Id, listenedTrack.Id));
+
+        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsError);
+        var items = await Database.MixItems.ToListAsync(TestContext.Current.CancellationToken);
+        Assert.NotEmpty(items);
+        Assert.All(items, item => Assert.Equal(MixItemSource.Musify, item.Source));
     }
 }
