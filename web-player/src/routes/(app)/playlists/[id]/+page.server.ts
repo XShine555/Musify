@@ -2,8 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
 	createApiClient,
+	optionalUser,
 	requireAccessTokenAction,
-	requireUser,
 	unwrapOrError,
 	unwrapOrFail
 } from '$lib/server/api';
@@ -16,8 +16,9 @@ import type { YouTubeSong } from '$lib/types';
 const MAX_NAME = 100;
 const SUGGESTIONS_LIMIT = 20;
 
-export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
-	const user = requireUser(locals, url);
+export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
+	const { allowAnonymousListening } = await parent();
+	const user = optionalUser(locals, url, allowAnonymousListening);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
 	const [playlistRes, tracksRes, libraryRes, playlistsRes] = await Promise.all([
@@ -25,19 +26,23 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 		api.GET('/playlists/{playlistId}/tracks', {
 			params: { path: { playlistId: params.id }, query: { pageNumber: 1, pageSize: 200 } }
 		}),
-		api.GET('/tracks/users/{userId}', {
-			params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
-		}),
-		api.GET('/playlists/users/{userId}', {
-			params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
-		})
+		user
+			? api.GET('/tracks/users/{userId}', {
+					params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
+				})
+			: Promise.resolve(null),
+		user
+			? api.GET('/playlists/users/{userId}', {
+					params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
+				})
+			: Promise.resolve(null)
 	]);
 
 	const playlist = unwrapOrError(playlistRes, 'Playlist no encontrada.', 404);
 
 	const tracks = tracksRes.data?.items ?? [];
 	const inPlaylist = new Set(tracks.map((t) => t.id));
-	const library = (libraryRes.data?.items ?? []).filter((t) => !inPlaylist.has(t.id));
+	const library = (libraryRes?.data?.items ?? []).filter((t) => !inPlaylist.has(t.id));
 
 	const alreadyLinked = new Set(
 		tracks.flatMap((t) => (t.source === 'YouTube' && t.externalId ? [t.externalId] : []))
@@ -64,7 +69,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 		tracks,
 		library,
 		youtube,
-		playlists: playlistsRes.data?.items ?? []
+		playlists: playlistsRes?.data?.items ?? []
 	};
 };
 

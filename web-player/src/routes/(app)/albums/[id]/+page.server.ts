@@ -2,8 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
 	createApiClient,
+	optionalUser,
 	requireAccessTokenAction,
-	requireUser,
 	unwrapOrError,
 	unwrapOrFail
 } from '$lib/server/api';
@@ -11,8 +11,9 @@ import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/albumForm';
 import { uploadPresignedImage } from '$lib/server/upload';
 
-export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
-	const user = requireUser(locals, url);
+export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
+	const { allowAnonymousListening } = await parent();
+	const user = optionalUser(locals, url, allowAnonymousListening);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
 	const [albumRes, tracksRes, libraryRes] = await Promise.all([
@@ -23,23 +24,25 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 				query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE }
 			}
 		}),
-		api.GET('/tracks/users/{userId}', {
-			params: {
-				path: { userId: user.sub },
-				query: { pageNumber: 1, pageSize: LIBRARY_PICKER_PAGE_SIZE }
-			}
-		})
+		user
+			? api.GET('/tracks/users/{userId}', {
+					params: {
+						path: { userId: user.sub },
+						query: { pageNumber: 1, pageSize: LIBRARY_PICKER_PAGE_SIZE }
+					}
+				})
+			: Promise.resolve(null)
 	]);
 
 	const album = unwrapOrError(albumRes, 'Álbum no encontrado.', 404);
 
 	const tracks = tracksRes.data?.items ?? [];
 	const inAlbum = new Set(tracks.map((track) => track.id));
-	const library = (libraryRes.data?.items ?? []).filter(
+	const library = (libraryRes?.data?.items ?? []).filter(
 		(track) => track.source === 'Local' && !inAlbum.has(track.id)
 	);
 
-	const isOwner = Number(album.ownerUserId) === Number(user.sub);
+	const isOwner = user !== null && Number(album.ownerUserId) === Number(user.sub);
 
 	return { album, tracks, library, isOwner, section: isOwner ? '/albums' : null };
 };

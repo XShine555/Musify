@@ -1,0 +1,17 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "musify-web",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["--prefix", "web-player", "run", "dev", "--", "--port", "3000"],
+			"port": 3000
+		},
+		{
+			"name": "musify-api",
+			"runtimeExecutable": "dotnet",
+			"runtimeArgs": ["run", "--project", "backend/Hosts/Musify.Api"],
+			"port": 5111
+		}
+	]
+}

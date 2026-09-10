@@ -13,17 +13,22 @@
 	let { icon: Icon, title, description, class: klass = '', actions }: Props = $props();
 </script>
 
-<div class="flex flex-col items-center px-6 py-14 text-center {klass}">
+<div
+	class="flex flex-col items-center rounded-panel border border-dashed border-line px-6 py-16 text-center {klass}"
+>
 	{#if Icon}
-		<span class="grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-on-accent">
-			<Icon class="h-6 w-6" />
+		<span
+			class="grid h-16 w-16 place-items-center rounded-full text-on-accent"
+			style="background:radial-gradient(circle at 30% 30%, color-mix(in oklch, var(--color-accent), white 15%), var(--color-accent))"
+		>
+			<Icon class="h-7 w-7" />
 		</span>
 	{/if}
 	{#if title}
-		<h3 class="mt-5 font-display text-2xl font-semibold tracking-tight text-fg">{title}</h3>
+		<h3 class="mt-6 font-display text-2xl font-medium tracking-tight text-fg">{title}</h3>
 	{/if}
 	{#if description}
-		<p class="mt-2 text-fg-2">{description}</p>
+		<p class="mt-2 max-w-sm text-fg-2">{description}</p>
 	{/if}
 	{#if actions}
 		<div class="mt-6 flex items-center gap-3">{@render actions()}</div>

@@ -17,9 +17,6 @@ namespace Musify.Application.YouTube
     {
         public async ValueTask<ErrorOr<YouTubeAlbumDetail>> Handle(GetYouTubeAlbumQuery request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(request.AlbumId))
-                return Error.Validation(description: "The album id must not be empty.");
-
             var result = await youTubeMusicService.GetAlbumAsync(request.AlbumId, cancellationToken);
             if (result.IsError)
                 return result;

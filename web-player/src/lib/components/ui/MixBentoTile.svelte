@@ -24,11 +24,13 @@
 
 <a
 	href="/mixes/{mix.id}"
-	class="group/tile animate-enter relative block overflow-hidden rounded-art ring-1 ring-line transition duration-300 ease-out [clip-path:inset(0_round_var(--radius-art))] ring-inset focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none {klass}"
+	class="group/tile animate-enter relative block overflow-hidden rounded-art shadow-art ring-1 ring-line transition duration-300 ease-out [clip-path:inset(0_round_var(--radius-art))] ring-inset hover:shadow-art-lg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none {klass}"
 	style="animation-delay:{Math.min(index, 10) * 45}ms"
 >
 	{#if tiles.length > 0}
-		<div class="absolute inset-0 flex transition duration-300 ease-out">
+		<div
+			class="absolute inset-0 flex scale-105 transition duration-500 ease-out group-hover/tile:scale-110"
+		>
 			{#each tiles as item, i (i)}
 				<Cover
 					trackId={item.trackId ?? item.videoId ?? ''}

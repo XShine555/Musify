@@ -3,22 +3,16 @@
 	import { isSectionActive } from '$lib/navigation.svelte';
 	import type { SessionUser } from '$lib/types';
 	import Home from '@lucide/svelte/icons/house';
-	import Search from '@lucide/svelte/icons/search';
 	import Folder from '@lucide/svelte/icons/folder';
 	import Disc from '@lucide/svelte/icons/disc-2';
 	import Music from '@lucide/svelte/icons/music';
 	import Upload from '@lucide/svelte/icons/upload';
-	import LogOut from '@lucide/svelte/icons/log-out';
-	import MenuItem from './ui/MenuItem.svelte';
 
 	interface Props {
-		user: SessionUser;
+		user: SessionUser | null;
 	}
 
 	let { user }: Props = $props();
-
-	let menuOpen = $state(false);
-	let menuRef: HTMLDivElement | undefined = $state();
 
 	let navBox: HTMLElement | undefined = $state();
 	let pillTop = $state(0);
@@ -26,21 +20,20 @@
 	let pillVisible = $state(false);
 	let animate = $state(false);
 
-	function onDocumentClick(event: MouseEvent) {
-		if (menuRef && !menuRef.contains(event.target as Node)) menuOpen = false;
-	}
-
-	const mainLinks = [
+	const mainLinks = $derived([
 		{ href: '/', label: 'Inicio', icon: Home },
-		{ href: '/explore', label: 'Buscar', icon: Search },
-		{ href: '/playlists', label: 'Listas', icon: Music }
-	];
+		...(user ? [{ href: '/playlists', label: 'Listas', icon: Music }] : [])
+	]);
 
-	const secondaryLinks = [
-		{ href: '/albums', label: 'Mis álbumes', icon: Disc },
-		{ href: '/library', label: 'Canciones subidas', icon: Folder },
-		{ href: '/upload', label: 'Subir música', icon: Upload }
-	];
+	const secondaryLinks = $derived(
+		user
+			? [
+					{ href: '/albums', label: 'Mis álbumes', icon: Disc },
+					{ href: '/library', label: 'Canciones subidas', icon: Folder },
+					{ href: '/upload', label: 'Subir música', icon: Upload }
+				]
+			: []
+	);
 
 	function isActive(href: string) {
 		return isSectionActive(href, page.url.pathname, page.data.section);
@@ -69,24 +62,31 @@
 	<a
 		href={link.href}
 		data-active={active}
-		class="relative flex items-center gap-4 rounded-control px-4 py-3 transition-colors duration-100 {active
+		class="relative flex items-center gap-3.5 rounded-control px-4 py-2.5 text-sm transition-colors duration-100 {active
 			? 'text-fg'
-			: 'text-fg-3 hover:bg-hover hover:text-fg'}"
+			: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 	>
-		<link.icon class="h-6 w-6 shrink-0 {active ? 'text-accent-soft' : ''}" />
+		<link.icon class="h-5 w-5 shrink-0 {active ? 'text-accent-soft' : ''}" />
 		{link.label}
 	</a>
 {/snippet}
 
+{#snippet groupLabel(label: string)}
+	<p class="mb-4 px-4 text-sm font-semibold tracking-[0.12em] text-fg-2 uppercase">
+		{label}
+	</p>
+{/snippet}
+
 <aside
-	class="sticky top-0 hidden h-screen shrink-0 flex-col gap-7 border-r border-line px-4.5 py-6.5 md:flex"
+	class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line bg-bg md:flex"
 	style="width:var(--mf-sidebar-w)"
 >
-	<a href="/" class="px-3 font-display text-xl font-semibold tracking-tight text-fg">Musify</a>
-
-	<div class="relative flex flex-col gap-7" bind:this={navBox}>
+	<div
+		class="relative flex flex-1 flex-col gap-6 overflow-y-auto px-4.5 py-6 md:pt-8"
+		bind:this={navBox}
+	>
 		<div
-			class="pointer-events-none absolute inset-x-0 z-0 overflow-hidden rounded-control bg-surface-hover {animate
+			class="pointer-events-none absolute inset-x-4.5 z-0 overflow-hidden rounded-control border border-line bg-surface {animate
 				? 'transition-[top,height] duration-200 ease-in-out'
 				: ''}"
 			style="top:{pillTop}px; height:{pillHeight}px; opacity:{pillVisible ? 1 : 0}"
@@ -94,48 +94,24 @@
 			<span class="absolute inset-y-0 left-0 w-0.75 rounded-r-full bg-accent-soft"></span>
 		</div>
 
-		<nav class="relative z-10 flex flex-col gap-1">
-			{#each mainLinks as link (link.href)}
-				{@render navLink(link)}
-			{/each}
-		</nav>
+		<div>
+			{@render groupLabel('Navegación')}
+			<nav class="relative z-10 flex flex-col gap-2">
+				{#each mainLinks as link (link.href)}
+					{@render navLink(link)}
+				{/each}
+			</nav>
+		</div>
 
-		<div class="mx-2 border-t border-line"></div>
-
-		<nav class="relative z-10 flex flex-col gap-1">
-			{#each secondaryLinks as link (link.href)}
-				{@render navLink(link)}
-			{/each}
-		</nav>
-	</div>
-
-	<div class="relative mt-auto" bind:this={menuRef}>
-		{#if menuOpen}
-			<div
-				class="animate-pop absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-panel border border-line bg-elevated p-1.5 shadow-menu"
-			>
-				<form method="POST" action="/logout" data-sveltekit-reload>
-					<MenuItem icon={LogOut} label="Salir" type="submit" />
-				</form>
+		{#if secondaryLinks.length > 0}
+			<div>
+				{@render groupLabel('Tu música')}
+				<nav class="relative z-10 flex flex-col gap-1">
+					{#each secondaryLinks as link (link.href)}
+						{@render navLink(link)}
+					{/each}
+				</nav>
 			</div>
 		{/if}
-		<button
-			type="button"
-			onclick={() => (menuOpen = !menuOpen)}
-			class="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left transition hover:bg-hover"
-		>
-			{#if user.picture}
-				<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
-			{:else}
-				<span
-					class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-semibold uppercase"
-				>
-					{user.name.charAt(0)}
-				</span>
-			{/if}
-			<span class="truncate leading-[1.35] text-fg-3">{user.name}</span>
-		</button>
 	</div>
 </aside>
-
-<svelte:window onclick={onDocumentClick} />

@@ -11,14 +11,16 @@
 </script>
 
 {#if actions}
-	<div class="mb-3 flex items-baseline justify-between gap-4 sm:mb-4 {klass}">
-		<h2 class="font-display font-medium tracking-tight text-fg sm:text-xl">
+	<div class="mb-4 flex items-end justify-between gap-4 sm:mb-5 {klass}">
+		<h2 class="font-display text-xl font-medium tracking-tight text-fg sm:text-[1.75rem]">
 			{title}
 		</h2>
 		{@render actions()}
 	</div>
 {:else}
-	<h2 class="mb-3 font-display font-medium tracking-tight text-fg sm:mb-4 sm:text-xl {klass}">
+	<h2
+		class="mb-4 font-display text-xl font-medium tracking-tight text-fg sm:mb-5 sm:text-[1.75rem] {klass}"
+	>
 		{title}
 	</h2>
 {/if}

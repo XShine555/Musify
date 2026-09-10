@@ -177,6 +177,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/config/playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Public Playback Configuration (Whether Anonymous Listening Is Allowed). Works Anonymously. */
+        get: operations["GetPlaybackPublicConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/mixes": {
         parameters: {
             query?: never;
@@ -741,6 +758,11 @@ export interface components {
             totalItemCount: number | string;
             hasNextPage: boolean;
             hasPreviousPage: boolean;
+        };
+        PlaybackPublicConfigResponse: {
+            allowAnonymousListening: boolean;
+            /** Format: int32 */
+            anonymousFragmentSeconds: number | string;
         };
         PlayListApplicationResponse: {
             /** Format: uuid */
@@ -1420,6 +1442,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetPlaybackPublicConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaybackPublicConfigResponse"];
+                };
             };
         };
     };

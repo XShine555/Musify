@@ -14,3 +14,11 @@ export interface YouTubeSong {
 	thumbnailUrl: string;
 	isExplicit: boolean;
 }
+
+export interface YouTubeAlbumResult {
+	albumId: string;
+	title: string;
+	artist: string;
+	thumbnailUrl: string;
+	releaseYear: number | string | null;
+}

@@ -3,10 +3,11 @@
 	import Upload from '@lucide/svelte/icons/upload';
 	import Folder from '@lucide/svelte/icons/folder';
 	import LogOut from '@lucide/svelte/icons/log-out';
+	import LogIn from '@lucide/svelte/icons/log-in';
 	import MenuItem from './ui/MenuItem.svelte';
 
 	interface Props {
-		user: SessionUser;
+		user: SessionUser | null;
 	}
 
 	let { user }: Props = $props();
@@ -25,43 +26,54 @@
 	<a href="/" class="font-display text-lg font-semibold tracking-tight text-fg">Musify</a>
 
 	<div class="relative" bind:this={menuRef}>
-		<button
-			type="button"
-			onclick={() => (menuOpen = !menuOpen)}
-			aria-label="Tu cuenta"
-			aria-expanded={menuOpen}
-			class="flex items-center rounded-full"
-		>
-			{#if user.picture}
-				<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
-			{:else}
-				<span class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm uppercase">
-					{user.name.charAt(0)}
-				</span>
-			{/if}
-		</button>
-
-		{#if menuOpen}
-			<div
-				class="animate-pop absolute top-full right-0 mt-2 w-56 overflow-hidden rounded-panel border border-line bg-elevated p-1.5 shadow-menu"
+		{#if user}
+			<button
+				type="button"
+				onclick={() => (menuOpen = !menuOpen)}
+				aria-label="Tu cuenta"
+				aria-expanded={menuOpen}
+				class="flex items-center rounded-full"
 			>
-				<MenuItem
-					icon={Folder}
-					label="Canciones subidas"
-					href="/library"
-					onclick={() => (menuOpen = false)}
-				/>
-				<MenuItem
-					icon={Upload}
-					label="Subir música"
-					href="/upload"
-					onclick={() => (menuOpen = false)}
-				/>
-				<div class="-mx-1.5 my-1.5 border-t border-line"></div>
-				<form method="POST" action="/logout" data-sveltekit-reload>
-					<MenuItem icon={LogOut} label="Salir" type="submit" />
-				</form>
-			</div>
+				{#if user.picture}
+					<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
+				{:else}
+					<span class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm uppercase">
+						{user.name.charAt(0)}
+					</span>
+				{/if}
+			</button>
+
+			{#if menuOpen}
+				<div
+					class="animate-pop absolute top-full right-0 mt-2 w-56 overflow-hidden rounded-panel border border-line bg-elevated p-1.5 shadow-menu"
+				>
+					<MenuItem
+						icon={Folder}
+						label="Canciones subidas"
+						href="/library"
+						onclick={() => (menuOpen = false)}
+					/>
+					<MenuItem
+						icon={Upload}
+						label="Subir música"
+						href="/upload"
+						onclick={() => (menuOpen = false)}
+					/>
+					<div class="-mx-1.5 my-1.5 border-t border-line"></div>
+					<form method="POST" action="/logout" data-sveltekit-reload>
+						<MenuItem icon={LogOut} label="Salir" type="submit" />
+					</form>
+				</div>
+			{/if}
+		{:else}
+			<a
+				href="/auth/login"
+				data-sveltekit-reload
+				aria-label="Iniciar sesión"
+				class="flex items-center rounded-full p-1.5 text-fg-3 transition hover:bg-hover hover:text-fg"
+			>
+				<LogIn class="h-6 w-6" strokeWidth={2} />
+			</a>
 		{/if}
 	</div>
 </header>

@@ -36,7 +36,7 @@
 
 	const variants = {
 		primary: 'bg-accent-soft text-on-accent active:scale-[0.97]',
-		secondary: 'bg-surface-2 text-fg hover:bg-accent/12',
+		secondary: 'bg-bg text-fg ring-1 ring-line hover:bg-surface',
 		subtle: 'bg-white/10 text-fg hover:bg-accent/18',
 		danger: 'bg-danger text-on-accent hover:brightness-110'
 	};

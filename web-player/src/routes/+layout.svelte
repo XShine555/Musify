@@ -1,11 +1,12 @@
 <script lang="ts">
-	import '@fontsource-variable/inter/index.css';
-	import '@fontsource-variable/sora/index.css';
+	import '@fontsource-variable/manrope/index.css';
+	import '@fontsource-variable/bricolage-grotesque/opsz.css';
 	import '$lib/theme/theme.css';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import PlayerBar from '$lib/components/player/PlayerBar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import TopBar from '$lib/components/TopBar.svelte';
 	import MobileHeader from '$lib/components/MobileHeader.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import { player } from '$lib/player/player.svelte';
@@ -31,10 +32,6 @@
 		event.preventDefault();
 		player.toggle();
 	}
-
-	$effect(() => {
-		document.documentElement.classList.toggle('home', page.url.pathname === '/');
-	});
 
 	function parseAccent(value: string): { c: number; h: number } | null {
 		const m = /oklch\(\s*[\d.]+%?\s+([\d.]+)\s+([\d.]+)/.exec(value);
@@ -78,7 +75,7 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-{#if isAuthPage || !data.user}
+{#if isAuthPage || (!data.user && !data.allowAnonymousListening)}
 	<div class="min-h-screen bg-bg text-fg antialiased">
 		{@render children()}
 	</div>
@@ -87,6 +84,7 @@
 		<Sidebar user={data.user} />
 		<div class="flex min-w-0 flex-1 flex-col">
 			<MobileHeader user={data.user} />
+			<TopBar user={data.user} />
 			<main
 				class="flex-1 transition-[padding]"
 				style="padding-bottom:calc(var(--mf-nav-h) + var(--mf-safe-b) + {hasTrack
@@ -100,7 +98,7 @@
 			{#if hasTrack}
 				<PlayerBar />
 			{/if}
-			<MobileNav />
+			<MobileNav user={data.user} />
 		</div>
 	</div>
 {/if}

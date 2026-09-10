@@ -9,6 +9,7 @@ declare global {
 
 		interface PageData {
 			section?: string | null;
+			allowAnonymousListening?: boolean;
 		}
 	}
 }

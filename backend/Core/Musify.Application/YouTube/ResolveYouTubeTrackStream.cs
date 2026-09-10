@@ -10,8 +10,6 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.YouTube
 {
-    /// <param name="UserId">Null for an anonymous request — allowed only when
-    /// <see cref="PlaybackConfiguration.AllowAnonymousListening"/> is enabled.</param>
     public record ResolveYouTubeTrackStreamCommand(string VideoId, long? UserId)
         : ICommand<ErrorOr<YouTubeStreamResponse>>;
 
@@ -26,7 +24,7 @@ namespace Musify.Application.YouTube
     {
         public async ValueTask<ErrorOr<YouTubeStreamResponse>> Handle(ResolveYouTubeTrackStreamCommand request, CancellationToken cancellationToken)
         {
-            var isAnonymous = request.UserId is null;
+            var isAnonymous = !request.UserId.HasValue;
             if (isAnonymous && !playbackConfiguration.AllowAnonymousListening)
                 return Error.Unauthorized(description: "Sign in to stream music, or ask an administrator to enable anonymous listening.");
 
@@ -43,10 +41,6 @@ namespace Musify.Application.YouTube
                     serverStream.ExpiresInSeconds);
             }
 
-            // Below this point the only option left is streaming straight from YouTube's own CDN,
-            // which bypasses our Gateway (and its stream tickets) entirely — there's no way to cap that
-            // to the configured anonymous fragment, so an anonymous listener simply doesn't get it: they
-            // can retry once the track has been provisioned server-side, where the cap above applies.
             if (isAnonymous && playbackConfiguration.AnonymousFragmentSeconds > 0)
                 return Error.Conflict(description: "This track isn't available for anonymous preview yet. Try again in a moment.");
 
@@ -63,7 +57,7 @@ namespace Musify.Application.YouTube
                     logger.LogWarning("Could not provision YouTube track {VideoId}: {Error}", request.VideoId, provisionResult.FirstError.Description);
             }
 
-            if (track != null && request.UserId is not null)
+            if (track != null&& request.UserId != null)
             {
                 await database.ListeningHistories.AddAsync(new ListeningHistory
                 {

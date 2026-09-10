@@ -26,6 +26,10 @@ export function targetExplicit(target: TrackTarget): boolean {
 	return target.kind === 'youtube' ? target.song.isExplicit : (target.track.isExplicit ?? false);
 }
 
+export function targetDurationSeconds(target: TrackTarget): number | undefined {
+	return target.kind === 'youtube' ? target.song.durationSeconds : undefined;
+}
+
 export function targetCoverSrc(target: TrackTarget): string | undefined {
 	return target.kind === 'youtube' ? target.song.thumbnailUrl : undefined;
 }

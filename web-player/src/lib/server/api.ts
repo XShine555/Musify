@@ -23,9 +23,15 @@ export function requireUser(locals: App.Locals, url: URL): SessionUser {
 	return locals.user;
 }
 
-export function requireAccessToken(locals: App.Locals, message = 'Inicia sesión.'): string {
-	if (!locals.accessToken) error(401, message);
-	return locals.accessToken;
+export function optionalUser(
+	locals: App.Locals,
+	url: URL,
+	allowAnonymousListening: boolean
+): SessionUser | null {
+	if (locals.user) return locals.user;
+	if (!allowAnonymousListening)
+		redirect(302, `/login?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+	return null;
 }
 
 export function requireAccessTokenAction(
