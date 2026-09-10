@@ -14,7 +14,7 @@ namespace Musify.Application.Albums.Responses
         YouTubeAlbumResult? YouTubeAlbum)
     {
         public static AlbumSearchItemResponse FromAlbum(AlbumApplicationResponse album) =>
-            new(album.YouTubeAlbumId is not null ? TrackSource.YouTube : TrackSource.Local, album, null);
+            new(album is ExternalAlbumApplicationResponse ? TrackSource.YouTube : TrackSource.Local, album, null);
 
         public static AlbumSearchItemResponse FromYouTubeAlbum(YouTubeAlbumResult album) =>
             new(TrackSource.YouTube, null, album);

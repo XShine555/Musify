@@ -155,7 +155,9 @@
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2 sm:gap-2.5">
 		<p class="text-sm tracking-[0.14em] text-fg-2 uppercase sm:text-base">{data.greeting}</p>
-		<h1 class="font-display text-3xl leading-[1.05] font-semibold tracking-tight text-fg sm:text-6xl">
+		<h1
+			class="font-display text-3xl leading-[1.05] font-semibold tracking-tight text-fg sm:text-6xl"
+		>
 			Tu música. Sin límites.
 		</h1>
 	</div>
@@ -214,15 +216,15 @@
 			<Rail>
 				{#each albums as album, i (album.id)}
 					<a
-						href={album.youTubeAlbumId
-							? `/albums/external/youtube/${album.youTubeAlbumId}`
+						href={album.source === 'YouTube'
+							? `/albums/external/youtube/${album.externalId}`
 							: `/albums/${album.id}`}
 						class="group/card animate-enter block w-42 shrink-0 rounded-art focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
 						style="animation-delay:{Math.min(i, 10) * 45}ms"
 						oncontextmenu={(e) => openAlbumMenu(e, album.id)}
 					>
 						<div class="relative">
-							{#if album.thumbnailUrl}
+							{#if album.source === 'YouTube' && album.thumbnailUrl}
 								<Cover
 									trackId={album.id}
 									src={album.thumbnailUrl}
