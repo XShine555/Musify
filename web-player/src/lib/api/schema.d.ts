@@ -549,7 +549,10 @@ export interface components {
             source: null | components["schemas"]["TrackSource"];
             externalId: null | string;
         };
-        AlbumApplicationResponse: {
+        AlbumApplicationResponse: components["schemas"]["AlbumApplicationResponseAlbumApplicationResponse"] | components["schemas"]["AlbumApplicationResponseExternalAlbumApplicationResponse"];
+        AlbumApplicationResponseAlbumApplicationResponse: {
+            /** @enum {string} */
+            source?: "Local";
             /** Format: uuid */
             id: string;
             title: string;
@@ -568,8 +571,30 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             coverTrackIds: string[];
-            youTubeAlbumId?: null | string;
-            thumbnailUrl?: null | string;
+        };
+        AlbumApplicationResponseExternalAlbumApplicationResponse: {
+            /** @enum {string} */
+            source?: "YouTube";
+            externalId: string;
+            thumbnailUrl: null | string;
+            /** Format: uuid */
+            id: string;
+            title: string;
+            description: null | string;
+            /** Format: int32 */
+            releaseYear: null | number | string;
+            /** Format: int64 */
+            ownerUserId: number | string;
+            /** Format: int32 */
+            trackCount: number | string;
+            smallImageKeyName: null | string;
+            mediumImageKeyName: null | string;
+            largeImageKeyName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            coverTrackIds: string[];
         };
         AlbumPictureUploadResponse: {
             /** Format: uuid */
@@ -766,20 +791,39 @@ export interface components {
             /** Format: int64 */
             expectedAudioSizeBytes?: null | number | string;
         };
-        TrackApplicationResponse: {
+        TrackApplicationResponse: components["schemas"]["TrackApplicationResponseLocalTrackApplicationResponse"] | components["schemas"]["TrackApplicationResponseExternalTrackApplicationResponse"];
+        TrackApplicationResponseExternalTrackApplicationResponse: {
+            /** @enum {string} */
+            source?: "YouTube";
+            externalId: string;
             /** Format: uuid */
             id: string;
             title: string;
             artist: null | string;
-            source: components["schemas"]["TrackSource"];
-            externalId: null | string;
             audioStatus: components["schemas"]["ProcessingStatus"];
             /** Format: double */
             duration: number | string;
             /** Format: int32 */
             listensCount: number | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TrackApplicationResponseLocalTrackApplicationResponse: {
+            /** @enum {string} */
+            source?: "Local";
             /** Format: int64 */
-            ownerUserId: null | number | string;
+            ownerUserId: number | string;
+            /** Format: uuid */
+            id: string;
+            title: string;
+            artist: null | string;
+            audioStatus: components["schemas"]["ProcessingStatus"];
+            /** Format: double */
+            duration: number | string;
+            /** Format: int32 */
+            listensCount: number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

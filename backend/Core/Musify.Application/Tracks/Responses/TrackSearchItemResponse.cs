@@ -14,7 +14,7 @@ namespace Musify.Application.Tracks.Responses
         YouTubeSongResult? YouTubeSong)
     {
         public static TrackSearchItemResponse FromTrack(TrackApplicationResponse track) =>
-            new(track.Source, track, null);
+            new(track is ExternalTrackApplicationResponse ? TrackSource.YouTube : TrackSource.Local, track, null);
 
         public static TrackSearchItemResponse FromYouTubeSong(YouTubeSongResult song) =>
             new(TrackSource.YouTube, null, song);

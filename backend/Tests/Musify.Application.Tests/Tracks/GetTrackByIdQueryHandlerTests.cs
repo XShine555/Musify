@@ -1,6 +1,7 @@
 using ErrorOr;
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
+using Musify.Application.Tracks.Responses;
 using Xunit;
 
 namespace Musify.Application.Tests.Tracks
@@ -21,7 +22,8 @@ namespace Musify.Application.Tests.Tracks
             Assert.False(result.IsError);
             Assert.Equal("My Song", result.Value.Title);
             Assert.Equal(owner.Name, result.Value.Artist);
-            Assert.Equal(owner.Id, result.Value.OwnerUserId);
+            var localResponse = Assert.IsType<LocalTrackApplicationResponse>(result.Value);
+            Assert.Equal(owner.Id, localResponse.OwnerUserId);
         }
 
         [Fact]

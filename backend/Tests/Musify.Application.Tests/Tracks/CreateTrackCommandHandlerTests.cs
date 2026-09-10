@@ -3,6 +3,7 @@ using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
+using Musify.Application.Tracks.Responses;
 using Musify.Domain.ValueObjects;
 using NSubstitute;
 using Xunit;
@@ -47,7 +48,8 @@ namespace Musify.Application.Tests.Tracks
 
             Assert.False(result.IsError);
             Assert.Equal("My Song", result.Value.Title);
-            Assert.Equal(user.Id, result.Value.OwnerUserId);
+            var localResponse = Assert.IsType<LocalTrackApplicationResponse>(result.Value);
+            Assert.Equal(user.Id, localResponse.OwnerUserId);
             await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreateTrackResourcesEvent>(), Arg.Any<CancellationToken>());
 
             var stored = await Database.LocalTracks.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);

@@ -1,7 +1,6 @@
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
-using Musify.Domain.ValueObjects;
 using Xunit;
 
 namespace Musify.Application.Tests.Shared
@@ -14,10 +13,9 @@ namespace Musify.Application.Tests.Shared
             var owner = TestEntities.User(1, "The Owner");
             var track = TestEntities.LocalTrack(owner);
 
-            var response = TrackApplicationResponse.FromEntity(track, listensCount: 3);
+            var response = Assert.IsType<LocalTrackApplicationResponse>(TrackApplicationResponse.FromEntity(track, listensCount: 3));
 
             Assert.Equal("The Owner", response.Artist);
-            Assert.Equal(TrackSource.Local, response.Source);
             Assert.Equal(owner.Id, response.OwnerUserId);
             Assert.Equal(3, response.ListensCount);
         }
@@ -34,7 +32,7 @@ namespace Musify.Application.Tests.Shared
                 new TrackArtist { TrackId = track.Id, ArtistId = first.Id, Position = 0, Artist = first, Track = track }
             ];
 
-            var response = TrackApplicationResponse.FromEntity(track, listensCount: 0);
+            var response = Assert.IsType<ExternalTrackApplicationResponse>(TrackApplicationResponse.FromEntity(track, listensCount: 0));
 
             Assert.Equal("First Artist, Second Artist", response.Artist);
             Assert.Equal(track.ExternalId, response.ExternalId);
