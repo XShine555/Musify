@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
+    <AssemblyName>Musify.Worker</AssemblyName>
+    <RootNamespace>Musify.Worker</RootNamespace>
     <UserSecretsId>dotnet-PictureWorker-1dfff89f-0602-41b7-8eaf-4da2c3358789</UserSecretsId>
   </PropertyGroup>
 
@@ -18,9 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Musify.Application\Musify.Application.csproj" />
-    <ProjectReference Include="..\..\Core\Musify.Domain\Musify.Domain.csproj" />
-    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Musify.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Application\Application.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

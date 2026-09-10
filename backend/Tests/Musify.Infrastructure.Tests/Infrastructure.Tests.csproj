@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>Musify.Infrastructure.Tests</AssemblyName>
+    <RootNamespace>Musify.Infrastructure.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
@@ -27,9 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Musify.Domain\Musify.Domain.csproj" />
-    <ProjectReference Include="..\..\Core\Musify.Application\Musify.Application.csproj" />
-    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Musify.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Application\Application.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

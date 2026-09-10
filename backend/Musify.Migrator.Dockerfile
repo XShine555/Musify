@@ -9,10 +9,10 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0
 WORKDIR /src
 
 COPY Directory.Build.props Directory.Packages.props nuget.config ./
-COPY Core/Musify.Domain/Musify.Domain.csproj                 Core/Musify.Domain/
-COPY Core/Musify.Application/Musify.Application.csproj        Core/Musify.Application/
-COPY Core/Musify.Infrastructure/Musify.Infrastructure.csproj Core/Musify.Infrastructure/
-RUN dotnet restore Core/Musify.Infrastructure/Musify.Infrastructure.csproj
+COPY Core/Musify.Domain/Domain.csproj                 Core/Musify.Domain/
+COPY Core/Musify.Application/Application.csproj        Core/Musify.Application/
+COPY Core/Musify.Infrastructure/Infrastructure.csproj Core/Musify.Infrastructure/
+RUN dotnet restore Core/Musify.Infrastructure/Infrastructure.csproj
 
 COPY Core/Musify.Domain         Core/Musify.Domain/
 COPY Core/Musify.Application    Core/Musify.Application/

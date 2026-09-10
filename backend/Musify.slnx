@@ -1,19 +1,19 @@
 <Solution>
   <Folder Name="/Core/">
-    <Project Path="Core/Musify.Domain/Musify.Domain.csproj" />
-    <Project Path="Core/Musify.Application/Musify.Application.csproj" />
-    <Project Path="Core/Musify.Infrastructure/Musify.Infrastructure.csproj" />
+    <Project Path="Core/Musify.Domain/Domain.csproj" />
+    <Project Path="Core/Musify.Application/Application.csproj" />
+    <Project Path="Core/Musify.Infrastructure/Infrastructure.csproj" />
   </Folder>
   <Folder Name="/Hosts/">
-    <Project Path="Hosts/Musify.Api/Musify.Api.csproj" />
-    <Project Path="Hosts/Musify.Worker/Musify.Worker.csproj" />
-    <Project Path="Hosts/Musify.StreamingGateway/Musify.StreamingGateway.csproj" />
+    <Project Path="Hosts/Musify.Api/Api.csproj" />
+    <Project Path="Hosts/Musify.Worker/Worker.csproj" />
+    <Project Path="Hosts/Musify.StreamingGateway/StreamingGateway.csproj" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="Tests/Musify.Domain.Tests/Musify.Domain.Tests.csproj" />
-    <Project Path="Tests/Musify.Application.Tests/Musify.Application.Tests.csproj" />
-    <Project Path="Tests/Musify.Infrastructure.Tests/Musify.Infrastructure.Tests.csproj" />
-    <Project Path="Tests/Musify.Api.Tests/Musify.Api.Tests.csproj" />
-    <Project Path="Tests/Musify.StreamingGateway.Tests/Musify.StreamingGateway.Tests.csproj" />
+    <Project Path="Tests/Musify.Domain.Tests/Domain.Tests.csproj" />
+    <Project Path="Tests/Musify.Application.Tests/Application.Tests.csproj" />
+    <Project Path="Tests/Musify.Infrastructure.Tests/Infrastructure.Tests.csproj" />
+    <Project Path="Tests/Musify.Api.Tests/Api.Tests.csproj" />
+    <Project Path="Tests/Musify.StreamingGateway.Tests/StreamingGateway.Tests.csproj" />
   </Folder>
 </Solution>

@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY Directory.Build.props Directory.Packages.props nuget.config ./
-COPY Hosts/Musify.StreamingGateway/Musify.StreamingGateway.csproj Hosts/Musify.StreamingGateway/
-RUN dotnet restore Hosts/Musify.StreamingGateway/Musify.StreamingGateway.csproj
+COPY Hosts/Musify.StreamingGateway/StreamingGateway.csproj Hosts/Musify.StreamingGateway/
+RUN dotnet restore Hosts/Musify.StreamingGateway/StreamingGateway.csproj
 
 COPY . .
-RUN dotnet publish Hosts/Musify.StreamingGateway/Musify.StreamingGateway.csproj -c Release -o /app --no-restore
+RUN dotnet publish Hosts/Musify.StreamingGateway/StreamingGateway.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

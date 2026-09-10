@@ -3,14 +3,14 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY Directory.Build.props Directory.Packages.props nuget.config ./
-COPY Core/Musify.Domain/Musify.Domain.csproj                 Core/Musify.Domain/
-COPY Core/Musify.Application/Musify.Application.csproj        Core/Musify.Application/
-COPY Core/Musify.Infrastructure/Musify.Infrastructure.csproj Core/Musify.Infrastructure/
-COPY Hosts/Musify.Worker/Musify.Worker.csproj                 Hosts/Musify.Worker/
-RUN dotnet restore Hosts/Musify.Worker/Musify.Worker.csproj
+COPY Core/Musify.Domain/Domain.csproj                 Core/Musify.Domain/
+COPY Core/Musify.Application/Application.csproj        Core/Musify.Application/
+COPY Core/Musify.Infrastructure/Infrastructure.csproj Core/Musify.Infrastructure/
+COPY Hosts/Musify.Worker/Worker.csproj                 Hosts/Musify.Worker/
+RUN dotnet restore Hosts/Musify.Worker/Worker.csproj
 
 COPY . .
-RUN dotnet publish Hosts/Musify.Worker/Musify.Worker.csproj -c Release -o /app --no-restore
+RUN dotnet publish Hosts/Musify.Worker/Worker.csproj -c Release -o /app --no-restore
 # AppSettings*.json (PascalCase) -> lowercase copies for case-sensitive Linux.
 RUN cp /app/AppSettings.json /app/appsettings.json \
     && cp /app/AppSettings.Development.json /app/appsettings.Development.json

@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <AssemblyName>Musify.Application</AssemblyName>
+    <RootNamespace>Musify.Application</RootNamespace>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ErrorOr" />
     <PackageReference Include="MassTransit" />
@@ -19,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musify.Domain\Musify.Domain.csproj" />
+    <ProjectReference Include="..\Musify.Domain\Domain.csproj" />
   </ItemGroup>
 
 </Project>

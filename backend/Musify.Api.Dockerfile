@@ -4,14 +4,14 @@ WORKDIR /src
 
 # Restore: copy central config + csproj files first to cache the layer.
 COPY Directory.Build.props Directory.Packages.props nuget.config ./
-COPY Core/Musify.Domain/Musify.Domain.csproj                 Core/Musify.Domain/
-COPY Core/Musify.Application/Musify.Application.csproj        Core/Musify.Application/
-COPY Core/Musify.Infrastructure/Musify.Infrastructure.csproj Core/Musify.Infrastructure/
-COPY Hosts/Musify.Api/Musify.Api.csproj                        Hosts/Musify.Api/
-RUN dotnet restore Hosts/Musify.Api/Musify.Api.csproj
+COPY Core/Musify.Domain/Domain.csproj                 Core/Musify.Domain/
+COPY Core/Musify.Application/Application.csproj        Core/Musify.Application/
+COPY Core/Musify.Infrastructure/Infrastructure.csproj Core/Musify.Infrastructure/
+COPY Hosts/Musify.Api/Api.csproj                        Hosts/Musify.Api/
+RUN dotnet restore Hosts/Musify.Api/Api.csproj
 
 COPY . .
-RUN dotnet publish Hosts/Musify.Api/Musify.Api.csproj -c Release -o /app --no-restore
+RUN dotnet publish Hosts/Musify.Api/Api.csproj -c Release -o /app --no-restore
 # Config files are AppSettings*.json (PascalCase); on case-sensitive Linux the host
 # looks for appsettings*.json. Add lowercase copies so they get loaded.
 RUN cp /app/AppSettings.json /app/appsettings.json \

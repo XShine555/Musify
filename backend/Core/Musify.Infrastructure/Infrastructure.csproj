@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>Musify.Infrastructure</AssemblyName>
+    <RootNamespace>Musify.Infrastructure</RootNamespace>
     <UserSecretsId>07d419fc-9ade-471a-bc0e-aebece785b30</UserSecretsId>
   </PropertyGroup>
 
@@ -35,8 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Musify.Application\Musify.Application.csproj" />
-    <ProjectReference Include="..\Musify.Domain\Musify.Domain.csproj" />
+    <ProjectReference Include="..\Musify.Application\Application.csproj" />
+    <ProjectReference Include="..\Musify.Domain\Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

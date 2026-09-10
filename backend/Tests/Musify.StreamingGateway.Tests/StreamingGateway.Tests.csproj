@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>Musify.StreamingGateway.Tests</AssemblyName>
+    <RootNamespace>Musify.StreamingGateway.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <OutputType>Exe</OutputType>
@@ -20,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Musify.Domain\Musify.Domain.csproj" />
+    <ProjectReference Include="..\..\Hosts\Musify.StreamingGateway\StreamingGateway.csproj" />
   </ItemGroup>
 
 </Project>
