@@ -4,12 +4,14 @@
 	interface Props {
 		name: string;
 		fallbackUrl?: string;
+		required?: boolean;
 		class?: string;
 	}
 
 	let {
 		name,
 		fallbackUrl,
+		required = false,
 		class:
 			klass = 'h-40 w-40 sm:h-52 sm:w-52 rounded-control border border-line bg-surface hover:border-accent/50'
 	}: Props = $props();
@@ -30,6 +32,7 @@
 		type="file"
 		{name}
 		accept="image/*"
+		{required}
 		onchange={onInput}
 		class="absolute inset-0 cursor-pointer opacity-0"
 		aria-label="Seleccionar portada"

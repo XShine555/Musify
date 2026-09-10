@@ -70,6 +70,35 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
             return routingSlipBuilder;
         }
 
+        public RoutingSlipBuilder Build(UpdateAlbumPictureEvent message, Guid? correlationId)
+        {
+            var routingSlipBuilder = BuildPictureWorkflow(
+                message.Bucket,
+                message.SourceKey,
+                message.Small,
+                message.Medium,
+                message.Large,
+                correlationId);
+
+            routingSlipBuilder.AddActivity(
+                ActivityNames.UpdateAlbumPicture,
+                EndpointHelper.BuildExecuteActivityUri(UpdateAlbumPictureActivity.ExecuteEndpointName),
+                new UpdateAlbumPictureArguments(
+                    message.AlbumId,
+                    message.SourceKey,
+                    RoutingSlipVariableNames.Picture.SmallResizedFilePath,
+                    RoutingSlipVariableNames.Picture.MediumResizedFilePath,
+                    RoutingSlipVariableNames.Picture.LargeResizedFilePath));
+
+            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.AlbumId);
+            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.AlbumPicture);
+            routingSlipBuilder.AddSubscription(
+                EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
+                RoutingSlipEvents.Faulted);
+
+            return routingSlipBuilder;
+        }
+
         RoutingSlipBuilder BuildPictureWorkflow(
             string bucket,
             string sourceKey,

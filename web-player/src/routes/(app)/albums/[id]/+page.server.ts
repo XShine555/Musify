@@ -9,6 +9,7 @@ import {
 } from '$lib/server/api';
 import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/albumForm';
+import { uploadPresignedImage } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	const user = requireUser(locals, url);
@@ -80,16 +81,32 @@ export const actions: Actions = {
 		const accessToken = requireAccessTokenAction(locals);
 		if (typeof accessToken !== 'string') return accessToken;
 
-		const parsed = parseAlbumForm(await request.formData());
+		const form = await request.formData();
+		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
 		const api = createApiClient({ fetch, accessToken });
+
+		let newPictureIntentId: string | null = null;
+		const cover = form.get('cover');
+		if (cover instanceof File && cover.size > 0) {
+			const uploaded = await uploadPresignedImage(
+				(args) => api.POST('/albums/upload-picture', { body: args }),
+				cover
+			);
+			if ('failMessage' in uploaded) {
+				return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
+			}
+			newPictureIntentId = uploaded.intentId;
+		}
+
 		const result = await api.PUT('/albums/{albumId}', {
 			params: { path: { albumId: params.id } },
 			body: {
 				newTitle: parsed.body.title,
 				newDescription: parsed.body.description,
-				newReleaseYear: parsed.body.releaseYear
+				newReleaseYear: parsed.body.releaseYear,
+				newPictureIntentId
 			}
 		});
 		const failure = unwrapOrFail(result, 'No se pudo actualizar el álbum.');

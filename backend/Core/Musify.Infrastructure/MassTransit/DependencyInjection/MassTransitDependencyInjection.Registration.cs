@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.MassTransit.Activities.Pictures;
+using Musify.Infrastructure.MassTransit.Activities.Albums;
 using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.PlayLists;
@@ -23,6 +24,7 @@ namespace Musify.Infrastructure.MassTransit
             services.AddScoped<DeletePlayListRoutingSlipBuilder>();
             services.AddScoped<CreateTrackRoutingSlipBuilder>();
             services.AddScoped<PlayListPictureSourceRoutingSlipBuilder>();
+            services.AddScoped<AlbumPictureSourceRoutingSlipBuilder>();
             services.AddScoped<YouTubeTrackRoutingSlipBuilder>();
         }
 
@@ -41,6 +43,10 @@ namespace Musify.Infrastructure.MassTransit
             options.AddConsumer<TrackProcessingFailedConsumer>();
             options.AddConsumer<PlayListProcessingFailedConsumer>();
             options.AddConsumer<DownloadYouTubeTrackConsumer>();
+            options.AddConsumer<CreateAlbumConsumer>();
+            options.AddConsumer<UpdateAlbumPictureSourceConsumer>();
+            options.AddConsumer<UpdateAlbumPictureConsumer>();
+            options.AddConsumer<AlbumProcessingFailedConsumer>();
 
             options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
             options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
@@ -53,9 +59,12 @@ namespace Musify.Infrastructure.MassTransit
             options.AddExecuteActivity<PublishPlayListPictureProcessingEventActivity, PublishPlayListPictureProcessingEventArguments>();
             options.AddExecuteActivity<MarkTrackAsFailedActivity, MarkTrackAsFailedArguments>();
             options.AddExecuteActivity<MarkPlayListAsFailedActivity, MarkPlayListAsFailedArguments>();
+            options.AddExecuteActivity<MarkAlbumAsFailedActivity, MarkAlbumAsFailedArguments>();
+            options.AddExecuteActivity<PublishAlbumPictureProcessingEventActivity, PublishAlbumPictureProcessingEventArguments>();
 
             options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
             options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();
+            options.AddActivity<UpdateAlbumPictureActivity, UpdateAlbumPictureArguments, UpdateAlbumPictureLog>();
             options.AddActivity<UpdateTrackPictureActivity, UpdateTrackPictureArguments, UpdateTrackPictureLog>();
             options.AddActivity<DownloadFileFromBucketActivity, DownloadFileFromBucketArguments, DownloadFileFromBucketLog>();
             options.AddActivity<TranscodeAudioActivity, TranscodeAudioArguments, TranscodeAudioLog>();

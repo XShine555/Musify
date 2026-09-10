@@ -5,5 +5,6 @@ namespace Musify.Domain.ValueObjects
         PlayListPicture,
         TrackPicture,
         TrackAudio,
+        AlbumPicture,
     }
 }

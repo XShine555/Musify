@@ -8,6 +8,7 @@ import {
 } from '$lib/server/api';
 import { ALBUMS_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/albumForm';
+import { uploadPresignedImage } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
@@ -27,11 +28,28 @@ export const actions: Actions = {
 		const accessToken = requireAccessTokenAction(locals);
 		if (typeof accessToken !== 'string') return accessToken;
 
-		const parsed = parseAlbumForm(await request.formData());
+		const form = await request.formData();
+		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
+		const cover = form.get('cover');
+		if (!(cover instanceof File) || cover.size === 0) {
+			return fail(400, { message: 'La portada es obligatoria.' });
+		}
+
 		const api = createApiClient({ fetch, accessToken });
-		const { data, error: err } = await api.POST('/albums', { body: parsed.body });
+
+		const uploaded = await uploadPresignedImage(
+			(args) => api.POST('/albums/upload-picture', { body: args }),
+			cover
+		);
+		if ('failMessage' in uploaded) {
+			return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
+		}
+
+		const { data, error: err } = await api.POST('/albums', {
+			body: { ...parsed.body, pictureIntentId: uploaded.intentId }
+		});
 
 		if (err || !data) return fail(502, { message: 'No se pudo crear el álbum.' });
 

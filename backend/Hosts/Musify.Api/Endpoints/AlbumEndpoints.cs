@@ -5,6 +5,7 @@ using Musify.Api.Extensions;
 using Musify.Api.Filters;
 using Musify.Application.Albums;
 using Musify.Application.Albums.Responses;
+using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.YouTube;
@@ -53,6 +54,22 @@ public static class AlbumEndpoints
             .WithName("GetAlbumTracks")
             .WithSummary("Get The Tracks Of An Album Ordered By Track Number.")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/cover", GetAlbumCover)
+            .WithName("GetAlbumCover")
+            .WithSummary("Get An Album Cover Image.")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/upload-picture", RequestAlbumPictureUpload)
+            .WithName("RequestAlbumPictureUpload")
+            .WithSummary("Request A Pre-Signed URL To Upload An Album Picture.")
+            .AddEndpointFilter<ValidationFilter<RequestAlbumPictureUploadRequest>>()
+            .RequireAuthorization()
+            .Produces<AlbumPictureUploadResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreateAlbum)
@@ -169,6 +186,37 @@ public static class AlbumEndpoints
         return result.ToHttpResult();
     }
 
+    private static async Task<IResult> GetAlbumCover(
+        IMediator mediator,
+        IStorageService storageService,
+        HttpResponse response,
+        Guid id,
+        CancellationToken cancellationToken,
+        string size = "medium")
+    {
+        var result = await mediator.Send(new GetAlbumCoverQuery(id, size), cancellationToken);
+        if (result.IsError)
+            return Results.NotFound();
+
+        var location = result.Value;
+        var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
+        response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        return Results.Stream(stream, location.ContentType);
+    }
+
+    private static async Task<IResult> RequestAlbumPictureUpload(
+        IMediator mediator,
+        CurrentUser currentUser,
+        RequestAlbumPictureUploadRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new RequestAlbumPictureUploadCommand(currentUser.RequiredId, request.FileType, request.ContentType, request.ExpectedSizeBytes),
+            cancellationToken);
+
+        return result.ToHttpResult();
+    }
+
     private static async Task<IResult> CreateAlbum(
         IMediator mediator,
         CurrentUser currentUser,
@@ -176,7 +224,7 @@ public static class AlbumEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new CreateAlbumCommand(currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear),
+            new CreateAlbumCommand(currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear, request.PictureIntentId),
             cancellationToken);
 
         return result.ToCreatedResult(album => $"/albums/{album.Id}");
@@ -190,7 +238,7 @@ public static class AlbumEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new UpdateAlbumCommand(currentUser.RequiredId, albumId, request.NewTitle, request.NewDescription, request.NewReleaseYear),
+            new UpdateAlbumCommand(currentUser.RequiredId, albumId, request.NewTitle, request.NewDescription, request.NewReleaseYear, request.NewPictureIntentId),
             cancellationToken);
 
         return result.ToHttpResult();

@@ -4,7 +4,7 @@ const ALLOWED_SIZES = new Set(['small', 'medium', 'large']);
 
 export async function proxyCoverImage(
 	fetch: typeof globalThis.fetch,
-	kind: 'playlists' | 'tracks',
+	kind: 'playlists' | 'tracks' | 'albums',
 	id: string,
 	size: string | null
 ): Promise<Response> {

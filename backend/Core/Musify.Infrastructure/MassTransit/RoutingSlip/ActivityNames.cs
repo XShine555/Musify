@@ -8,6 +8,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
         internal const string MarkPlayListAsRemoving = "MarkPlayListAsRemoving";
         internal const string MarkPlayListAsFailed = "MarkPlayListAsFailed";
         internal const string DeletePlayListFromDb = "DeletePlayListFromDb";
+        internal const string MarkAlbumAsFailed = "MarkAlbumAsFailed";
 
         internal const string GenerateAudioWorkflowPaths = "GenerateAudioWorkflowPaths";
         internal const string GeneratePictureWorkflowPaths = "GeneratePictureWorkflowPaths";
@@ -30,6 +31,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
 
         internal const string UpdateTrackPicture = "UpdateTrackPicture";
         internal const string UpdatePlayListPicture = "UpdatePlayListPicture";
+        internal const string UpdateAlbumPicture = "UpdateAlbumPicture";
         internal const string UpdateTrackAudio = "UpdateTrackAudio";
 
         internal const string CopyPictureToFinal = "CopyPictureToFinal";
@@ -39,6 +41,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
 
         internal const string PublishTrackProcessingEvents = "PublishTrackProcessingEvents";
         internal const string PublishPlayListPictureProcessingEvent = "PublishPlayListPictureProcessingEvent";
+        internal const string PublishAlbumPictureProcessingEvent = "PublishAlbumPictureProcessingEvent";
 
         internal const string RemoveTrackOriginalPicture = "RemoveTrackOriginalPicture";
         internal const string RemoveTrackSmallPicture = "RemoveTrackSmallPicture";
@@ -51,5 +54,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
         internal const string RemovePlayListSmallPicture = "RemovePlayListSmallPicture";
         internal const string RemovePlayListMediumPicture = "RemovePlayListMediumPicture";
         internal const string RemovePlayListLargePicture = "RemovePlayListLargePicture";
+
+        internal const string RemoveAlbumOriginalPicture = "RemoveAlbumOriginalPicture";
     }
 }

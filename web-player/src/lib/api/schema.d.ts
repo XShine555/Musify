@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Paginated Albums. */
+        /** Get Paginated Albums, Combined With Live YouTube Music Results When A Title Filter Is Given. */
         get: operations["GetAlbums"];
         put?: never;
         /** Create A New Album. */
@@ -31,6 +31,23 @@ export interface paths {
         };
         /** Get An Album By Id. */
         get: operations["GetAlbumById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/external/{source}/{externalId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get An Album From An External Source (Currently Only YouTube Music) With Its Tracklist. */
+        get: operations["GetExternalAlbum"];
         put?: never;
         post?: never;
         delete?: never;
@@ -84,6 +101,40 @@ export interface paths {
         get: operations["GetAlbumTracks"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/{id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get An Album Cover Image. */
+        get: operations["GetAlbumCover"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/albums/upload-picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request A Pre-Signed URL To Upload An Album Picture. */
+        post: operations["RequestAlbumPictureUpload"];
         delete?: never;
         options?: never;
         head?: never;
@@ -222,7 +273,8 @@ export interface paths {
         /** Get Paginated Tracks Of A PlayList. */
         get: operations["GetPlayListTracks"];
         put?: never;
-        post?: never;
+        /** Add A Track To A PlayList, By Id Or By External Source, Provisioning It In The Background If Needed. */
+        post: operations["AddPlayListTrack"];
         delete?: never;
         options?: never;
         head?: never;
@@ -290,27 +342,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add A Track To A PlayList. */
-        post: operations["AddTrackToPlayList"];
+        post?: never;
         /** Remove A Track From A PlayList. */
         delete: operations["RemoveTrackFromPlayList"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/playlists/{playlistId}/youtube-tracks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Add A YouTube Track To A PlayList, Downloading It In The Background If Needed. */
-        post: operations["AddYouTubeTrackToPlayList"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -375,8 +409,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get A Streaming Manifest URL And Ticket For A Track. */
+        /** Get A Streaming Manifest URL And Ticket For A Track. Works Anonymously When The Playback Configuration Allows It. */
         get: operations["GetTrackStream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tracks/external/{source}/{externalId}/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve Playback For A Track From An External Source (Currently Only YouTube Music): Server Stream If Downloaded, Direct Stream From The Source Otherwise. Works Anonymously When The Playback Configuration Allows It. */
+        get: operations["GetExternalTrackStream"];
         put?: never;
         post?: never;
         delete?: never;
@@ -488,63 +539,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/youtube/albums": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search Albums On YouTube Music. */
-        get: operations["SearchYouTubeAlbums"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/youtube/albums/{albumId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get A YouTube Music Album With Its Tracklist. */
-        get: operations["GetYouTubeAlbum"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/youtube/tracks/{videoId}/stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Resolve Playback For A YouTube Track: Server Stream If Downloaded, Direct YouTube Stream Otherwise. */
-        get: operations["GetYouTubeTrackStream"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AddYouTubeTrackRequest: {
-            videoId: string;
+        AddPlayListTrackRequest: {
+            /** Format: uuid */
+            trackId: null | string;
+            source: null | components["schemas"]["TrackSource"];
+            externalId: null | string;
         };
         AlbumApplicationResponse: {
             /** Format: uuid */
@@ -565,14 +568,48 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             coverTrackIds: string[];
-            youTubeAlbumId: null | string;
-            thumbnailUrl: null | string;
+            youTubeAlbumId?: null | string;
+            thumbnailUrl?: null | string;
+        };
+        AlbumPictureUploadResponse: {
+            /** Format: uuid */
+            intentId: string;
+            bucket: string;
+            key: string;
+            pictureName: string;
+            contentType: string;
+            /** Format: int32 */
+            expiresInSeconds: number | string;
+            uploadUrl: string;
+        };
+        AlbumSearchItemResponse: {
+            source: components["schemas"]["TrackSource"];
+            album: null | components["schemas"]["AlbumApplicationResponse"];
+            youTubeAlbum: null | components["schemas"]["YouTubeAlbumResult"];
+        };
+        AlbumsSearchResponse: {
+            items: components["schemas"]["AlbumSearchItemResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasPreviousPage: boolean;
+            hasNextLocalPage: boolean;
+            nextYoutubeContinuationToken: null | string;
+            youtubeUnavailable: boolean;
+            hasNextPage: boolean;
         };
         CreateAlbumRequest: {
             title: string;
             description: null | string;
             /** Format: int32 */
             releaseYear: null | number | string;
+            /** Format: uuid */
+            pictureIntentId: string;
         };
         CreatePlayListRequest: {
             name: string;
@@ -622,7 +659,7 @@ export interface components {
             title: string;
             artist: null | string;
             thumbnailUrl: null | string;
-            /** Format: int32 */
+            /** Format: double */
             durationSeconds: number | string;
             isExplicit: boolean;
         };
@@ -707,6 +744,12 @@ export interface components {
         };
         /** @enum {unknown} */
         ProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed";
+        RequestAlbumPictureUploadRequest: {
+            fileType: string;
+            contentType: string;
+            /** Format: int64 */
+            expectedSizeBytes?: null | number | string;
+        };
         RequestPlayListPictureUploadRequest: {
             fileType: string;
             contentType: string;
@@ -731,7 +774,7 @@ export interface components {
             source: components["schemas"]["TrackSource"];
             externalId: null | string;
             audioStatus: components["schemas"]["ProcessingStatus"];
-            /** Format: int32 */
+            /** Format: double */
             duration: number | string;
             /** Format: int32 */
             listensCount: number | string;
@@ -744,11 +787,27 @@ export interface components {
         };
         TrackSearchItemResponse: {
             source: components["schemas"]["TrackSource"];
-            track: components["schemas"]["TrackApplicationResponse"] | null;
-            youTubeSong: components["schemas"]["YouTubeSongResult"] | null;
+            track: null | components["schemas"]["TrackApplicationResponse"];
+            youTubeSong: null | components["schemas"]["YouTubeSongResult"];
         };
         /** @enum {unknown} */
         TrackSource: "Local" | "YouTube";
+        TracksSearchResponse: {
+            items: components["schemas"]["TrackSearchItemResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasPreviousPage: boolean;
+            hasNextLocalPage: boolean;
+            nextYoutubeContinuationToken: null | string;
+            youtubeUnavailable: boolean;
+            hasNextPage: boolean;
+        };
         TrackStreamResponse: {
             manifestUrl: string;
             ticket: string;
@@ -772,27 +831,13 @@ export interface components {
             /** Format: int32 */
             expiresInSeconds: number | string;
         };
-        TracksSearchResponse: {
-            items: components["schemas"]["TrackSearchItemResponse"][];
-            /** Format: int32 */
-            pageNumber: number | string;
-            /** Format: int32 */
-            pageSize: number | string;
-            /** Format: int32 */
-            pageCount: number | string;
-            /** Format: int32 */
-            totalItemCount: number | string;
-            hasPreviousPage: boolean;
-            hasNextLocalPage: boolean;
-            nextYoutubeContinuationToken: null | string;
-            youtubeUnavailable: boolean;
-            hasNextPage: boolean;
-        };
         UpdateAlbumRequest: {
             newTitle: string;
             newDescription: null | string;
             /** Format: int32 */
             newReleaseYear: null | number | string;
+            /** Format: uuid */
+            newPictureIntentId: null | string;
         };
         UpdatePlayListRequest: {
             newName: null | string;
@@ -830,10 +875,6 @@ export interface components {
             isEp: boolean;
             artists: components["schemas"]["YouTubeArtistRef"][];
         };
-        YouTubeAlbumSearchResult: {
-            items: components["schemas"]["YouTubeAlbumResult"][];
-            continuationToken: string;
-        };
         YouTubeAlbumTrack: {
             videoId: string;
             title: string;
@@ -861,13 +902,13 @@ export interface components {
         /** @enum {unknown} */
         YouTubeStreamMode: "Server" | "YouTube";
         YouTubeStreamResponse: {
+            /** Format: uuid */
+            trackId: null | string;
             mode: components["schemas"]["YouTubeStreamMode"];
             streamUrl: string;
-            ticket: string;
+            ticket: null | string;
             /** Format: int32 */
             expiresInSeconds: number | string;
-            /** Format: uuid */
-            trackId: string;
         };
     };
     responses: never;
@@ -884,6 +925,7 @@ export interface operations {
                 title?: string;
                 pageNumber?: number | string;
                 pageSize?: number | string;
+                youtubeContinuationToken?: string;
             };
             header?: never;
             path?: never;
@@ -897,7 +939,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponseOfAlbumApplicationResponse"];
+                    "application/json": components["schemas"]["AlbumsSearchResponse"];
                 };
             };
         };
@@ -967,6 +1009,36 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AlbumApplicationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetExternalAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source: string;
+                externalId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YouTubeAlbumDetail"];
                 };
             };
             /** @description Not Found */
@@ -1061,6 +1133,82 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PaginatedResponseOfTrackApplicationResponse"];
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAlbumCover: {
+        parameters: {
+            query?: {
+                size?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RequestAlbumPictureUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestAlbumPictureUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlbumPictureUploadResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {
@@ -1451,6 +1599,62 @@ export interface operations {
             };
         };
     };
+    AddPlayListTrack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                playlistId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddPlayListTrackRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackApplicationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetPlayListCover: {
         parameters: {
             query?: {
@@ -1610,48 +1814,6 @@ export interface operations {
             };
         };
     };
-    AddTrackToPlayList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                playlistId: string;
-                trackId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     RemoveTrackFromPlayList: {
         parameters: {
             query?: never;
@@ -1680,62 +1842,6 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AddYouTubeTrackToPlayList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                playlistId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddYouTubeTrackRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrackApplicationResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1909,6 +2015,50 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetExternalTrackStream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source: string;
+                externalId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YouTubeStreamResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2149,117 +2299,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TrackApplicationResponse"][];
                 };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SearchYouTubeAlbums: {
-        parameters: {
-            query: {
-                query: string;
-                continuation?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["YouTubeAlbumSearchResult"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetYouTubeAlbum: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                albumId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["YouTubeAlbumDetail"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetYouTubeTrackStream: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                videoId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["YouTubeStreamResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Not Found */
             404: {

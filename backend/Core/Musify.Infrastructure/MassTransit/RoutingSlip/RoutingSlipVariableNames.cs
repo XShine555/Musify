@@ -15,6 +15,7 @@ namespace Musify.Infrastructure.MassTransit
             internal const string TrackPicture = "TrackPicture";
             internal const string TrackAudio = "TrackAudio";
             internal const string PlayListPicture = "PlayListPicture";
+            internal const string AlbumPicture = "AlbumPicture";
         }
 
         internal static class Audio

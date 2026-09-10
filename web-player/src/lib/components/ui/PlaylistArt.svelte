@@ -3,26 +3,39 @@
 
 	interface Props {
 		playlistId?: string;
+		coverUrl?: string;
 		trackIds: (string | number)[];
 		size?: 'small' | 'medium' | 'large';
 		version?: string;
 		class?: string;
 	}
 
-	let { playlistId, trackIds, size = 'medium', version, class: klass = '' }: Props = $props();
+	let {
+		playlistId,
+		coverUrl,
+		trackIds,
+		size = 'medium',
+		version,
+		class: klass = ''
+	}: Props = $props();
 
 	let coverFailed = $state(false);
 
 	const mosaic = $derived(trackIds.length >= 4);
 	const single = $derived(trackIds.length >= 1 && trackIds.length < 4 ? trackIds[0] : null);
+	const src = $derived(
+		coverUrl
+			? coverUrl
+			: playlistId
+				? `/api/playlists/${playlistId}/cover?size=${size}${version ? `&v=${encodeURIComponent(version)}` : ''}`
+				: undefined
+	);
 </script>
 
-{#if playlistId && !coverFailed}
+{#if src && !coverFailed}
 	<div class="relative overflow-hidden bg-surface {klass}">
 		<img
-			src="/api/playlists/{playlistId}/cover?size={size}{version
-				? `&v=${encodeURIComponent(version)}`
-				: ''}"
+			{src}
 			alt=""
 			loading="lazy"
 			onerror={() => (coverFailed = true)}

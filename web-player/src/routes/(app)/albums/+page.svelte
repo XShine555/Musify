@@ -43,6 +43,7 @@
 					releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 					trackCount={Number(album.trackCount)}
 					trackIds={album.coverTrackIds}
+					coverSrc="/api/albums/{album.id}/cover?size=large"
 					index={i}
 				/>
 			{/each}
@@ -67,6 +68,7 @@
 	<AlbumForm
 		action="?/create"
 		titlePlaceholder="Mi primer disco"
+		requireCover
 		formMessage={form?.message}
 		submitLabel="Crear"
 		submittingLabel="Creando…"

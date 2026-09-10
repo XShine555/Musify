@@ -17,5 +17,8 @@ public sealed class CreateAlbumRequestValidator : AbstractValidator<CreateAlbumR
         RuleFor(x => x.ReleaseYear)
             .InclusiveBetween(AlbumReleaseYear.Earliest, AlbumReleaseYear.Latest)
             .When(x => x.ReleaseYear.HasValue);
+
+        RuleFor(x => x.PictureIntentId)
+            .NotEmpty();
     }
 }

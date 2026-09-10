@@ -41,6 +41,7 @@
 		description={album.description ?? undefined}
 		releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
 		trackIds={tracks.map((track) => track.id)}
+		coverUrl="/api/albums/{album.id}/cover?size=large"
 		playing={isCurrentQueue && player.playing}
 		{isOwner}
 		onPlayAll={playAll}
@@ -67,6 +68,7 @@
 		initialTitle={album.title}
 		initialDescription={album.description ?? ''}
 		initialReleaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
+		coverFallbackUrl="/api/albums/{album.id}/cover?size=medium"
 		formMessage={form?.message}
 		submitLabel="Guardar"
 		submittingLabel="Guardando…"

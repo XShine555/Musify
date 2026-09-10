@@ -11,6 +11,8 @@ namespace Musify.Application.Tests.TestSupport
 
         public static PlayListConfiguration PlayList() => new();
 
+        public static AlbumConfiguration Album() => new();
+
         public static MixConfiguration Mix() => new();
 
         public static UploadIntentConfiguration UploadIntent() => new();

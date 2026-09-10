@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
+	import ImageDropzone from './ImageDropzone.svelte';
 	import Button from './Button.svelte';
 	import Field from './Field.svelte';
 	import Input from './Input.svelte';
@@ -14,6 +15,8 @@
 		initialDescription?: string;
 		initialReleaseYear?: number;
 		titlePlaceholder?: string;
+		coverFallbackUrl?: string;
+		requireCover?: boolean;
 		formMessage?: string;
 		submitLabel: string;
 		submittingLabel: string;
@@ -27,6 +30,8 @@
 		initialDescription = '',
 		initialReleaseYear,
 		titlePlaceholder = '',
+		coverFallbackUrl,
+		requireCover = false,
 		formMessage,
 		submitLabel,
 		submittingLabel,
@@ -45,6 +50,7 @@
 <form
 	method="POST"
 	{action}
+	enctype="multipart/form-data"
 	use:enhance={() => {
 		submitting = true;
 		return async ({ update, result }) => {
@@ -55,28 +61,36 @@
 	}}
 	class="mt-4 w-full max-w-2xl space-y-4"
 >
-	<Field label="Título" for="album-title">
-		<Input
-			id="album-title"
-			name="title"
-			maxlength={200}
-			required
-			bind:value={title}
-			placeholder={titlePlaceholder}
-		/>
-	</Field>
+	<div class="flex flex-col items-stretch gap-5 sm:flex-row sm:gap-8">
+		<Field label="Portada" optional={!requireCover}>
+			<ImageDropzone name="cover" fallbackUrl={coverFallbackUrl} required={requireCover} />
+		</Field>
 
-	<Field label="Año de publicación" for="album-year" optional>
-		<Input
-			id="album-year"
-			name="releaseYear"
-			type="number"
-			min={ALBUM_EARLIEST_YEAR}
-			max={latestYear}
-			bind:value={releaseYear}
-			placeholder={String(new Date().getFullYear())}
-		/>
-	</Field>
+		<div class="flex flex-1 flex-col gap-4">
+			<Field label="Título" for="album-title">
+				<Input
+					id="album-title"
+					name="title"
+					maxlength={200}
+					required
+					bind:value={title}
+					placeholder={titlePlaceholder}
+				/>
+			</Field>
+
+			<Field label="Año de publicación" for="album-year" optional>
+				<Input
+					id="album-year"
+					name="releaseYear"
+					type="number"
+					min={ALBUM_EARLIEST_YEAR}
+					max={latestYear}
+					bind:value={releaseYear}
+					placeholder={String(new Date().getFullYear())}
+				/>
+			</Field>
+		</div>
+	</div>
 
 	<Field label="Descripción" for="album-description" optional>
 		<Textarea

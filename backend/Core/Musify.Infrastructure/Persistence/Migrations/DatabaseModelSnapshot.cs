@@ -657,6 +657,33 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.ToTable("UserHasTrack");
                 });
 
+            modelBuilder.Entity("Musify.Infrastructure.MassTransit.Sagas.AlbumProcessingState", b =>
+                {
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Bucket")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentState")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("PictureKey")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("CorrelationId");
+
+                    b.ToTable("AlbumProcessingState");
+                });
+
             modelBuilder.Entity("Musify.Infrastructure.MassTransit.Sagas.PlayListProcessingState", b =>
                 {
                     b.Property<Guid>("CorrelationId")
@@ -804,21 +831,25 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("LargeName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("LargePictureName");
 
                             b1.Property<string>("MediumName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("MediumPictureName");
 
                             b1.Property<string>("OriginalName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("OriginalPictureName");
 
                             b1.Property<string>("SmallName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("SmallPictureName");

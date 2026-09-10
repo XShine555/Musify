@@ -12,6 +12,7 @@
 		description?: string;
 		releaseYear?: number;
 		trackIds: (string | number)[];
+		coverUrl?: string;
 		playing: boolean;
 		isOwner: boolean;
 		onPlayAll: () => void;
@@ -24,6 +25,7 @@
 		description,
 		releaseYear,
 		trackIds,
+		coverUrl,
 		playing,
 		isOwner,
 		onPlayAll,
@@ -49,6 +51,7 @@
 <div class="mt-5 flex flex-col gap-5 sm:mt-6 sm:flex-row sm:items-end sm:gap-6">
 	<PlaylistArt
 		{trackIds}
+		{coverUrl}
 		size="large"
 		class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44"
 	/>
