@@ -13,14 +13,6 @@ using Xunit;
 
 namespace Musify.Api.Tests.TestSupport
 {
-    /// <summary>
-    /// Boots the real <c>Musify.Api</c> host — real routing, real auth/authorization pipeline,
-    /// real validators, real Mediator handlers — against a private Postgres container (so EF
-    /// queries behave like production, not like a stand-in). The services this API talks to over
-    /// the network (object storage, YouTube, the message bus, stream-ticket signing) are replaced
-    /// with NSubstitute fakes: they are Infrastructure's job to verify against the real thing (see
-    /// Musify.Infrastructure.Tests), not the HTTP layer's.
-    /// </summary>
     public sealed class ApiTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
     {
         private readonly PostgreSqlContainer postgres = new PostgreSqlBuilder("postgres:17-alpine")
@@ -46,20 +38,14 @@ namespace Musify.Api.Tests.TestSupport
             await database.Database.MigrateAsync();
         }
 
-        // xUnit v3's IAsyncLifetime IS System.IAsyncDisposable (rather than declaring its own
-        // Task-returning DisposeAsync as in v2), so there is a single DisposeAsync slot to fill —
-        // override the one WebApplicationFactory already provides instead of implementing the
-        // interface explicitly alongside it.
         public override async ValueTask DisposeAsync()
         {
             await base.DisposeAsync();
             await postgres.DisposeAsync();
         }
 
-        /// <summary>An <see cref="HttpClient"/> with no auth header — every protected endpoint answers 401.</summary>
         public HttpClient CreateAnonymousClient() => CreateClient();
 
-        /// <summary>An <see cref="HttpClient"/> authenticated as the given user id (see <see cref="FakeAuthenticationHandler"/>).</summary>
         public HttpClient CreateAuthenticatedClient(long userId, string userName = "test-user")
         {
             var client = CreateClient();
@@ -105,8 +91,6 @@ namespace Musify.Api.Tests.TestSupport
                 services.Replace(ServiceDescriptor.Singleton(YouTubeMusicService));
                 services.Replace(ServiceDescriptor.Singleton(StreamTicketService));
 
-                // Overrides the real JwtBearer scheme as the default, so requests authenticate via
-                // FakeAuthenticationHandler instead of needing a real token and a reachable IdP.
                 services
                     .AddAuthentication(FakeAuthenticationHandler.SchemeName)
                     .AddScheme<AuthenticationSchemeOptions, FakeAuthenticationHandler>(FakeAuthenticationHandler.SchemeName, _ => { });

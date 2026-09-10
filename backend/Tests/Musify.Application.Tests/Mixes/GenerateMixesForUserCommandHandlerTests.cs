@@ -78,9 +78,6 @@ namespace Musify.Application.Tests.Mixes
         [Fact]
         public async Task Handle_YouTubeSourceUnavailable_StillCreatesMixesFromLocalCandidatesOnly()
         {
-            // Simulates IYouTubeMusicService.SearchSongsAsync as it behaves when the YouTube source is
-            // disabled (DisabledYouTubeMusicService, see Infrastructure): every call fails. Mix
-            // generation must degrade to local-only candidates instead of failing the whole command.
             youTubeMusicService
                 .SearchSongsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
                 .Returns(Error.Forbidden(description: "The YouTube Music source is disabled."));

@@ -8,8 +8,6 @@ namespace Musify.Api.Tests.Extensions
 {
     public sealed class ErrorOrHttpExtensionsTests
     {
-        // The concrete IResult types (NoContent, UnauthorizedHttpResult, ...) resolve logging/problem-
-        // details services from HttpContext.RequestServices when they execute, so it can't be empty.
         private static readonly IServiceProvider Services = new ServiceCollection().AddLogging().AddProblemDetails().BuildServiceProvider();
 
         private static async Task<(int StatusCode, string Body)> ExecuteAsync(IResult result)

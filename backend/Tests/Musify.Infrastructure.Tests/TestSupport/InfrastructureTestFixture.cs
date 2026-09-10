@@ -12,13 +12,6 @@ using Xunit;
 
 namespace Musify.Infrastructure.Tests.TestSupport
 {
-    /// <summary>
-    /// One Postgres container and one SeaweedFS container (same image and startup
-    /// command as <c>deploy/compose.yml</c>), started once for every test in the
-    /// <see cref="InfrastructureCollection"/> and torn down when the run finishes.
-    /// EF Core migrations run once here too, against the real <c>Database</c>
-    /// DbContext, so a broken migration fails the whole run immediately.
-    /// </summary>
     public sealed class InfrastructureTestFixture : IAsyncLifetime
     {
         public const string S3AccessKey = "musify-test";
@@ -51,7 +44,6 @@ namespace Musify.Infrastructure.Tests.TestSupport
             await using var database = new Database(new DatabaseConfiguration { ConnectionString = ConnectionString });
             await database.Database.MigrateAsync();
 
-            // SeaweedFS does not auto-create buckets (see deploy/compose.yml's seaweedfs-init).
             using var s3 = CreateS3Client();
             await s3.PutBucketAsync(S3Bucket);
         }
@@ -62,9 +54,6 @@ namespace Musify.Infrastructure.Tests.TestSupport
             await seaweedFs.DisposeAsync();
         }
 
-        /// <summary>A fresh, DI-wired <see cref="Database"/>, so <c>AuditableEntityInterceptor</c>
-        /// (attached in <c>AddDatabase</c>'s DI registration, not in the class itself) is active —
-        /// same wiring the real app uses, not a bare <c>new Database(...)</c>.</summary>
         public Database CreateDatabase()
         {
             var configuration = new ConfigurationBuilder()
@@ -76,8 +65,6 @@ namespace Musify.Infrastructure.Tests.TestSupport
             return services.BuildServiceProvider().GetRequiredService<Database>();
         }
 
-        /// <summary>An <see cref="IAmazonS3"/> client configured exactly like
-        /// <c>ServicesDependencyInjection.AddStorageService</c>, pointed at the SeaweedFS container.</summary>
         public IAmazonS3 CreateS3Client() =>
             new AmazonS3Client(S3AccessKey, S3SecretKey, new AmazonS3Config
             {

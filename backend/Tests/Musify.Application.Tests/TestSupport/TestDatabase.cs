@@ -5,25 +5,6 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.Tests.TestSupport
 {
-    /// <summary>
-    /// An <see cref="IDatabase"/> backed by a private, in-memory SQLite database.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <see cref="IDatabase"/> exposes raw <see cref="DbSet{TEntity}"/> properties, so handlers
-    /// compose real LINQ queries (<c>Where</c>, <c>Select</c>, <c>Include</c>, ...) against it.
-    /// Substituting <see cref="IDatabase"/> with a mock cannot express that — there is no
-    /// <see cref="IQueryable{T}"/> provider behind a mock. SQLite's in-memory mode gives us a real
-    /// relational engine instead: fast, no external dependency, and — unlike the EF Core InMemory
-    /// provider — it actually supports transactions, which two handlers rely on.
-    /// </para>
-    /// <para>
-    /// The model mirrors the parts of <c>Musify.Infrastructure.Persistence.Database</c> that affect
-    /// query shape (owned types, table-per-type inheritance, unique indexes). MassTransit outbox/saga
-    /// state and Postgres-specific configuration are left out — the Application layer never touches
-    /// them.
-    /// </para>
-    /// </remarks>
     public sealed class TestDatabase : DbContext, IDatabase
     {
         private readonly SqliteConnection connection;
@@ -34,11 +15,6 @@ namespace Musify.Application.Tests.TestSupport
             this.connection = connection;
         }
 
-        /// <summary>
-        /// Creates a fresh, empty database with its own private connection. Call <see cref="Seed"/>
-        /// (via <see cref="Seeding.EntitySeedExtensions"/>) to populate it, then <see cref="DisposeAsync"/>
-        /// when the test is done.
-        /// </summary>
         public static async Task<TestDatabase> CreateAsync()
         {
             var connection = new SqliteConnection("Filename=:memory:");

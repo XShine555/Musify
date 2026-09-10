@@ -2,10 +2,6 @@ using Musify.Application.Configuration;
 
 namespace Musify.Application.Tests.TestSupport
 {
-    /// <summary>
-    /// Configuration POCOs with every <c>required</c> member filled and the rest left at their
-    /// production defaults, so handler tests don't have to know which fields matter for them.
-    /// </summary>
     public static class TestConfigurations
     {
         public static ApplicationStorageConfiguration Storage(string bucket = "test-bucket") =>

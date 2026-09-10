@@ -13,7 +13,8 @@ namespace Musify.Infrastructure.Tests.Persistence
             await using var database = fixture.CreateDatabase();
             var before = DateTime.UtcNow;
 
-            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "audit-user", NormalizedName = "AUDIT-USER" };
+            var name = "audit-user";
+            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = name, NormalizedName = name.ToUpperInvariant() };
             await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
             await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -28,7 +29,8 @@ namespace Musify.Infrastructure.Tests.Persistence
         {
             await using var database = fixture.CreateDatabase();
 
-            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "audit-user-2", NormalizedName = "AUDIT-USER-2" };
+            var name = "audit-user-2";
+            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = name, NormalizedName = name.ToUpperInvariant() };
             await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
             await database.SaveChangesAsync(TestContext.Current.CancellationToken);
             var originalCreatedAt = user.CreatedAt;

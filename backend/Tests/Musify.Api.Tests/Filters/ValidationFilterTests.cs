@@ -12,11 +12,6 @@ namespace Musify.Api.Tests.Filters
     {
         public sealed record Payload(string Name);
 
-        // EndpointFilterInvocationContext.Create has no (HttpContext, object[]) overload — only
-        // Create<T0>, Create<T0,T1>, etc. Passing an object[] to a params-object[] call site binds
-        // to Create<T0> with T0 inferred as object[] itself, so .Arguments ends up with one element
-        // (the array, boxed) instead of the array's contents — OfType<Payload>() then never matches
-        // and the filter silently falls through to "no argument, skip validation" for every case.
         private static EndpointFilterInvocationContext CreateContext<T>(T argument) =>
             EndpointFilterInvocationContext.Create(new DefaultHttpContext(), argument);
 

@@ -26,8 +26,8 @@ namespace Musify.Application.Tests.Shared
         public void FromEntity_ExternalTrackWithArtists_JoinsThemInPositionOrder()
         {
             var track = TestEntities.ExternalTrack();
-            var second = new Artist { Name = "Second Artist", NormalizedName = "SECOND ARTIST", ExternalId = "second" };
-            var first = new Artist { Name = "First Artist", NormalizedName = "FIRST ARTIST", ExternalId = "first" };
+            var second = TestEntities.Artist("Second Artist", externalId: "second");
+            var first = TestEntities.Artist("First Artist", externalId: "first");
             track.TrackArtists =
             [
                 new TrackArtist { TrackId = track.Id, ArtistId = second.Id, Position = 1, Artist = second, Track = track },

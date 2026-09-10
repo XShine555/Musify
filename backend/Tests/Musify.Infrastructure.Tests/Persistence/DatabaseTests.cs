@@ -14,13 +14,15 @@ namespace Musify.Infrastructure.Tests.Persistence
         {
             await using var database = fixture.CreateDatabase();
 
-            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "roundtrip-user", NormalizedName = "ROUNDTRIP-USER" };
+            var userName = "roundtrip-user";
+            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = userName, NormalizedName = userName.ToUpperInvariant() };
             await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
 
+            var trackTitle = "Round Trip Track";
             var track = new LocalTrack
             {
-                Title = "Round Trip Track",
-                NormalizedTitle = "ROUND TRIP TRACK",
+                Title = trackTitle,
+                NormalizedTitle = trackTitle.ToUpperInvariant(),
                 DurationSeconds = 123.4,
                 OwnerUserId = user.Id,
                 Owner = user,
@@ -34,7 +36,7 @@ namespace Musify.Infrastructure.Tests.Persistence
             var stored = await reloaded.Tracks.AsNoTracking().SingleAsync(t => t.Id == track.Id, TestContext.Current.CancellationToken);
 
             Assert.IsType<LocalTrack>(stored);
-            Assert.Equal("Round Trip Track", stored.Title);
+            Assert.Equal(trackTitle, stored.Title);
             Assert.Equal("cover.webp", stored.Pictures.OriginalName);
             Assert.Equal("song.mp3", stored.Audio.OriginalName);
             Assert.Equal(user.Id, ((LocalTrack)stored).OwnerUserId);
@@ -60,8 +62,10 @@ namespace Musify.Infrastructure.Tests.Persistence
         {
             await using var database = fixture.CreateDatabase();
 
-            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = "cascade-user", NormalizedName = "CASCADE-USER" };
-            var album = new UserAlbum { Title = "Cascade Album", NormalizedTitle = "CASCADE ALBUM", OwnerUserId = user.Id };
+            var userName = "cascade-user";
+            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = userName, NormalizedName = userName.ToUpperInvariant() };
+            var albumTitle = "Cascade Album";
+            var album = new UserAlbum { Title = albumTitle, NormalizedTitle = albumTitle.ToUpperInvariant(), OwnerUserId = user.Id };
             var track = BuildExternalTrack($"cascade-{Guid.NewGuid():N}");
             var link = new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 };
 
@@ -78,15 +82,19 @@ namespace Musify.Infrastructure.Tests.Persistence
             Assert.True(await verifier.ExternalTracks.AnyAsync(t => t.Id == track.Id, TestContext.Current.CancellationToken));
         }
 
-        private static ExternalTrack BuildExternalTrack(string externalId) => new()
+        private static ExternalTrack BuildExternalTrack(string externalId)
         {
-            Title = "External",
-            NormalizedTitle = "EXTERNAL",
-            DurationSeconds = 100,
-            Source = TrackSource.YouTube,
-            ExternalId = externalId,
-            Pictures = new TrackPictures(),
-            Audio = new TrackAudio()
-        };
+            var title = "External";
+            return new ExternalTrack
+            {
+                Title = title,
+                NormalizedTitle = title.ToUpperInvariant(),
+                DurationSeconds = 100,
+                Source = TrackSource.YouTube,
+                ExternalId = externalId,
+                Pictures = new TrackPictures(),
+                Audio = new TrackAudio()
+            };
+        }
     }
 }

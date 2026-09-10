@@ -131,15 +131,9 @@ namespace Musify.Infrastructure.Tests.Services
             using var httpClient = new HttpClient();
             using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl)
             {
-                // Not StringContent: it appends "; charset=utf-8" to Content-Type, which no longer
-                // matches the "text/plain" the presigned URL's signature was computed over (SigV4
-                // signs Content-Type byte-for-byte) and the server answers 403 SignatureDoesNotMatch.
                 Content = new ByteArrayContent(Encoding.UTF8.GetBytes("presigned content"))
             };
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
-            // GetUploadUrlAsync defaults preventOverwrite to true, which signs the URL together with
-            // this header (see StorageService.GetUploadUrlAsync) — the actual PUT has to send it too,
-            // or the signature no longer matches and the server answers 403.
             request.Headers.TryAddWithoutValidation("If-None-Match", "*");
             var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 

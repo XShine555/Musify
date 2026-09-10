@@ -6,12 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace Musify.Api.Tests.TestSupport
 {
-    /// <summary>
-    /// Replaces the real JwtBearer handler in the test host: a request carrying the
-    /// <see cref="UserIdHeader"/> header authenticates as that user id, with no real token,
-    /// issuer or JWKS endpoint involved. A request without the header stays anonymous, so
-    /// endpoints under <c>.RequireAuthorization()</c> correctly answer 401.
-    /// </summary>
     public sealed class FakeAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,

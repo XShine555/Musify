@@ -3,11 +3,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tests.TestSupport
 {
-    /// <summary>
-    /// Builds fully-populated domain entities for tests, with sensible defaults for every
-    /// <c>required</c> member. Every factory always returns a valid instance — never null — so
-    /// callers never need a null check on what this class hands back.
-    /// </summary>
     public static class TestEntities
     {
         public static User User(
