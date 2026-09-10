@@ -6,7 +6,7 @@ export const THUMBNAIL_SIZES = {
 
 export type ThumbnailSize = keyof typeof THUMBNAIL_SIZES;
 
-const PROXY_PATH = '/api/youtube/thumbnail';
+const PROXY_PATH = '/api/thumbnail';
 
 export function thumbnailSrc(
 	url: string | undefined,

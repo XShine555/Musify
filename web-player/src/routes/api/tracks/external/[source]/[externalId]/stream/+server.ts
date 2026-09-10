@@ -6,9 +6,9 @@ export const GET: RequestHandler = async ({ params, locals, fetch }) => {
 	const accessToken = requireAccessToken(locals, 'Inicia sesión para reproducir.');
 
 	const api = createApiClient({ fetch, accessToken });
-	const result = await api.GET('/youtube/tracks/{videoId}/stream', {
-		params: { path: { videoId: params.videoId } }
+	const result = await api.GET('/tracks/external/{source}/{externalId}/stream', {
+		params: { path: { source: params.source, externalId: params.externalId } }
 	});
 
-	return json(unwrapOrError(result, 'No se pudo obtener el stream de YouTube.'));
+	return json(unwrapOrError(result, 'No se pudo obtener el stream.'));
 };

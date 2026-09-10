@@ -67,7 +67,7 @@ namespace Musify.Application.Tracks
                 (youtubeItems, nextContinuationToken, youtubeUnavailable) =
                     await SearchYouTubeAsync(request.Name, request.YoutubeContinuationToken, knownVideoIds, cancellationToken);
 
-            return new TracksSearchResponse(
+            return TracksSearchResponse.Create(
                 [.. localItems, .. youtubeItems],
                 pagedEntities.PageNumber,
                 pagedEntities.PageSize,

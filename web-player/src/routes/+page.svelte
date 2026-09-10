@@ -215,7 +215,7 @@
 				{#each albums as album, i (album.id)}
 					<a
 						href={album.youTubeAlbumId
-							? `/albums/youtube/${album.youTubeAlbumId}`
+							? `/albums/external/youtube/${album.youTubeAlbumId}`
 							: `/albums/${album.id}`}
 						class="group/card animate-enter block w-42 shrink-0 rounded-art focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
 						style="animation-delay:{Math.min(i, 10) * 45}ms"

@@ -15,8 +15,9 @@ export async function addTrackAction({ request, params, locals, fetch }: Request
 	}
 
 	const api = createApiClient({ fetch, accessToken });
-	const { error: err, response } = await api.POST('/playlists/{playlistId}/tracks/{trackId}', {
-		params: { path: { playlistId, trackId } }
+	const { error: err, response } = await api.POST('/playlists/{playlistId}/tracks', {
+		params: { path: { playlistId } },
+		body: { trackId, source: null, externalId: null }
 	});
 
 	if (err) {
@@ -36,19 +37,15 @@ export async function addYouTubeToPlaylistAction({ request, params, locals, fetc
 	const form = await request.formData();
 	const playlistId = String(form.get('playlistId') ?? '') || String(params.id ?? '');
 	const videoId = String(form.get('videoId') ?? '');
-	const title = String(form.get('title') ?? '');
-	const artist = String(form.get('artist') ?? '');
-	const durationSeconds = Number(form.get('durationSeconds') ?? 0);
-	const thumbnailUrl = String(form.get('thumbnailUrl') ?? '');
 
-	if (!playlistId || !videoId || !title) {
+	if (!playlistId || !videoId) {
 		return fail(400, { message: 'Faltan datos de la canción.' });
 	}
 
 	const api = createApiClient({ fetch, accessToken });
-	const { error: err, response } = await api.POST('/playlists/{playlistId}/youtube-tracks', {
+	const { error: err, response } = await api.POST('/playlists/{playlistId}/tracks', {
 		params: { path: { playlistId } },
-		body: { videoId, title, artist, durationSeconds, thumbnailUrl }
+		body: { trackId: null, source: 'YouTube', externalId: videoId }
 	});
 
 	if (err) {
@@ -84,8 +81,9 @@ export async function addAlbumToPlaylistAction({ request, params, locals, fetch 
 
 	let added = 0;
 	for (const track of tracks.items) {
-		const { error: err } = await api.POST('/playlists/{playlistId}/tracks/{trackId}', {
-			params: { path: { playlistId, trackId: String(track.id) } }
+		const { error: err } = await api.POST('/playlists/{playlistId}/tracks', {
+			params: { path: { playlistId } },
+			body: { trackId: String(track.id), source: null, externalId: null }
 		});
 		if (!err) added++;
 	}
@@ -111,8 +109,8 @@ export async function addYoutubeAlbumToPlaylistAction({
 	}
 
 	const api = createApiClient({ fetch, accessToken });
-	const { data: detail, error: detailErr } = await api.GET('/youtube/albums/{albumId}', {
-		params: { path: { albumId } }
+	const { data: detail, error: detailErr } = await api.GET('/albums/external/{source}/{externalId}', {
+		params: { path: { source: 'YouTube', externalId: albumId } }
 	});
 
 	if (detailErr || !detail) {
@@ -121,15 +119,9 @@ export async function addYoutubeAlbumToPlaylistAction({
 
 	let added = 0;
 	for (const track of detail.tracks) {
-		const { error: err } = await api.POST('/playlists/{playlistId}/youtube-tracks', {
+		const { error: err } = await api.POST('/playlists/{playlistId}/tracks', {
 			params: { path: { playlistId } },
-			body: {
-				videoId: track.videoId,
-				title: track.title,
-				artist: detail.album.artist,
-				durationSeconds: Number(track.durationSeconds),
-				thumbnailUrl: detail.album.thumbnailUrl
-			}
+			body: { trackId: null, source: 'YouTube', externalId: track.videoId }
 		});
 		if (!err) added++;
 	}

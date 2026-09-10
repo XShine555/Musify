@@ -10,13 +10,15 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
 	const [albumRes, playlistsRes] = await Promise.all([
-		api.GET('/youtube/albums/{albumId}', { params: { path: { albumId: params.albumId } } }),
+		api.GET('/albums/external/{source}/{externalId}', {
+			params: { path: { source: params.source, externalId: params.externalId } }
+		}),
 		api.GET('/playlists/users/{userId}', {
 			params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 		})
 	]);
 
-	const album = unwrapOrError(albumRes, 'No se pudo cargar el álbum de YouTube Music.', 404);
+	const album = unwrapOrError(albumRes, 'No se pudo cargar el álbum.', 404);
 
 	return { album, playlists: playlistsRes.data?.items ?? [], section: null };
 };

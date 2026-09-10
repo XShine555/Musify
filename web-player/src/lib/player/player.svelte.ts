@@ -305,7 +305,7 @@ class PlayerState {
 	}
 
 	async #resolveYouTubeSrc(videoId: string): Promise<string> {
-		const res = await fetch(`/api/youtube/tracks/${videoId}/stream`);
+		const res = await fetch(`/api/tracks/external/youtube/${videoId}/stream`);
 		if (!res.ok) throw new Error(await readErrorMessage(res));
 		const { mode, streamUrl, ticket } = (await res.json()) as {
 			mode: string;

@@ -4,9 +4,9 @@ import { createApiClient, unwrapOrError } from '$lib/server/api';
 
 export const GET: RequestHandler = async ({ params, locals, fetch }) => {
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
-	const result = await api.GET('/youtube/albums/{albumId}', {
-		params: { path: { albumId: params.albumId } }
+	const result = await api.GET('/albums/external/{source}/{externalId}', {
+		params: { path: { source: params.source, externalId: params.externalId } }
 	});
 
-	return json(unwrapOrError(result, 'No se pudo cargar el álbum de YouTube.'));
+	return json(unwrapOrError(result, 'No se pudo cargar el álbum.'));
 };

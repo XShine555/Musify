@@ -10,7 +10,6 @@ import {
 import {
 	EXPLORE_ALBUMS_PAGE_SIZE,
 	EXPLORE_PAGE_SIZE as PAGE_SIZE,
-	SEARCH_MIN_LENGTH,
 	YOUTUBE_FILLER_LIMIT
 } from '$lib/config';
 import { searchUsers } from '$lib/server/userDirectory';
@@ -36,25 +35,21 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 			})
 		: Promise.resolve(null);
 
-	const youtubeAlbumsPromise =
-		query.length >= SEARCH_MIN_LENGTH
-			? api.GET('/youtube/albums', { params: { query: { query } } })
-			: Promise.resolve(null);
-
-	const [tracksRes, playlistsRes, albumsRes, youtubeAlbumsRes] = await Promise.all([
+	const [tracksRes, playlistsRes, albumsRes] = await Promise.all([
 		tracksPromise,
 		playlistsPromise,
-		albumsPromise,
-		youtubeAlbumsPromise
+		albumsPromise
 	]);
 
 	const tracks = unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.');
 
+	const albumItems = albumsRes?.data?.items ?? [];
+
 	return {
 		query,
 		tracks,
-		albums: albumsRes?.data?.items ?? [],
-		youtubeAlbums: youtubeAlbumsRes?.data?.items ?? [],
+		albums: albumItems.flatMap((item) => (item.album ? [item.album] : [])),
+		youtubeAlbums: albumItems.flatMap((item) => (item.youTubeAlbum ? [item.youTubeAlbum] : [])),
 		users: searchUsers(query),
 		youtubeFiller: query
 			? Promise.resolve(null)

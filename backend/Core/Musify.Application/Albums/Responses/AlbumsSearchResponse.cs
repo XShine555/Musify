@@ -1,13 +1,13 @@
-namespace Musify.Application.Tracks.Responses
+namespace Musify.Application.Albums.Responses
 {
-    /// <summary>Result of a combined tracks listing/search: a page of local catalog tracks
-    /// (uploads and previously provisioned YouTube tracks), plus, when a search term was given,
-    /// live YouTube Music hits appended after them. Pagination metadata (<see cref="PageNumber"/>,
+    /// <summary>Result of a combined albums listing/search: a page of local catalog albums
+    /// (user-created and previously materialized external albums), plus, when a search term was
+    /// given, live external hits appended after them. Pagination metadata (<see cref="PageNumber"/>,
     /// <see cref="PageSize"/>, <see cref="PageCount"/>, <see cref="TotalItemCount"/>) describes only
-    /// the local page — YouTube has no stable total, so its continuation is tracked separately via
-    /// <see cref="NextYoutubeContinuationToken"/>.</summary>
-    public record TracksSearchResponse(
-        IReadOnlyList<TrackSearchItemResponse> Items,
+    /// the local page — the external source has no stable total, so its continuation is tracked
+    /// separately via <see cref="NextYoutubeContinuationToken"/>.</summary>
+    public record AlbumsSearchResponse(
+        IReadOnlyList<AlbumSearchItemResponse> Items,
         int PageNumber,
         int PageSize,
         int PageCount,
@@ -21,8 +21,8 @@ namespace Musify.Application.Tracks.Responses
         // HasNextPage is a real field (not a computed property) so it shows up as a required member
         // of the generated OpenAPI schema, same as every other field here — a get-only property added
         // outside the primary constructor gets reflected as optional instead, which is never true here.
-        public static TracksSearchResponse Create(
-            IReadOnlyList<TrackSearchItemResponse> items,
+        public static AlbumsSearchResponse Create(
+            IReadOnlyList<AlbumSearchItemResponse> items,
             int pageNumber,
             int pageSize,
             int pageCount,

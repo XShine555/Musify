@@ -42,8 +42,7 @@ app
     .MapMixEndpoints()
     .MapPlayListEndpoints()
     .MapTrackEndpoints()
-    .MapUserEndpoints()
-    .MapYouTubeEndpoints();
+    .MapUserEndpoints();
 
 app.Run();
 

@@ -16,7 +16,7 @@ export async function fetchAlbumQueueItems(
 		return toQueueItems(data.items ?? []);
 	}
 
-	const res = await fetch(`/api/albums/youtube/${albumId}/tracks`);
+	const res = await fetch(`/api/albums/external/${kind}/${albumId}/tracks`);
 	if (!res.ok) return [];
 	const detail = (await res.json()) as YouTubeAlbumTracksResponse;
 	return detail.tracks.map((track) => ({
