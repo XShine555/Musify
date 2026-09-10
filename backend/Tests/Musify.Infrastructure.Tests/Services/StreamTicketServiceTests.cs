@@ -46,6 +46,43 @@ namespace Musify.Infrastructure.Tests.Services
         }
 
         [Fact]
+        public void IssueTicket_AnonymousUser_OmitsTheSubClaim()
+        {
+            using var service = CreateService();
+
+            var ticket = service.IssueTicket(userId: null, keyPrefix: "Tracks/ProcessedAudios/abc/");
+
+            var handler = new JsonWebTokenHandler();
+            var jwt = handler.ReadJsonWebToken(ticket.Token);
+            Assert.DoesNotContain(jwt.Claims, c => c.Type == "sub");
+            Assert.Equal("Tracks/ProcessedAudios/abc/", jwt.GetClaim("prefix").Value);
+        }
+
+        [Fact]
+        public void IssueTicket_WithMaxBytes_IncludesTheMaxBytesClaim()
+        {
+            using var service = CreateService();
+
+            var ticket = service.IssueTicket(userId: null, keyPrefix: "Tracks/ProcessedAudios/abc/", maxBytes: 480_000);
+
+            var handler = new JsonWebTokenHandler();
+            var jwt = handler.ReadJsonWebToken(ticket.Token);
+            Assert.Equal("480000", jwt.GetClaim("maxBytes").Value);
+        }
+
+        [Fact]
+        public void IssueTicket_WithoutMaxBytes_OmitsTheMaxBytesClaim()
+        {
+            using var service = CreateService();
+
+            var ticket = service.IssueTicket(userId: 1, keyPrefix: "Tracks/ProcessedAudios/abc/");
+
+            var handler = new JsonWebTokenHandler();
+            var jwt = handler.ReadJsonWebToken(ticket.Token);
+            Assert.DoesNotContain(jwt.Claims, c => c.Type == "maxBytes");
+        }
+
+        [Fact]
         public async Task IssueTicket_TokenValidatesAgainstTheMatchingPublicKey()
         {
             using var service = CreateService();

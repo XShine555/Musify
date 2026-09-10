@@ -33,15 +33,19 @@ namespace Musify.StreamingGateway.Tests.Authentication
         }));
 
         private string IssueToken(string prefix = "Tracks/ProcessedAudios/abc/", string issuer = Issuer, string audience = Audience,
-            DateTime? expires = null, DateTime? notBefore = null)
+            DateTime? expires = null, DateTime? notBefore = null, long? maxBytes = null)
         {
+            var claims = new Dictionary<string, object> { ["prefix"] = prefix };
+            if (maxBytes is not null)
+                claims["maxBytes"] = maxBytes.Value.ToString();
+
             var descriptor = new SecurityTokenDescriptor
             {
                 Issuer = issuer,
                 Audience = audience,
                 NotBefore = notBefore ?? DateTime.UtcNow.AddMinutes(-1),
                 Expires = expires ?? DateTime.UtcNow.AddMinutes(5),
-                Claims = new Dictionary<string, object> { ["prefix"] = prefix },
+                Claims = claims,
                 SigningCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256),
             };
             return tokenHandler.CreateToken(descriptor);
@@ -52,62 +56,76 @@ namespace Musify.StreamingGateway.Tests.Authentication
         {
             var token = IssueToken(prefix: "Tracks/ProcessedAudios/xyz/");
 
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal("Tracks/ProcessedAudios/xyz/", prefix);
+            Assert.True(result.IsValid);
+            Assert.Equal("Tracks/ProcessedAudios/xyz/", result.Prefix);
+            Assert.Null(result.MaxBytes);
+        }
+
+        [Fact]
+        public async Task ValidateTicketAsync_TokenWithMaxBytesClaim_ReturnsIt()
+        {
+            var token = IssueToken(maxBytes: 480_000);
+
+            var result = await CreateValidator().ValidateTicketAsync(token);
+
+            Assert.True(result.IsValid);
+            Assert.Equal(480_000, result.MaxBytes);
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        public async Task ValidateTicketAsync_BlankToken_ReturnsEmptyString(string? token)
+        public async Task ValidateTicketAsync_BlankToken_ReturnsInvalid(string? token)
         {
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
+            Assert.Equal(string.Empty, result.Prefix);
         }
 
         [Fact]
-        public async Task ValidateTicketAsync_MalformedToken_ReturnsEmptyString()
+        public async Task ValidateTicketAsync_MalformedToken_ReturnsInvalid()
         {
-            var prefix = await CreateValidator().ValidateTicketAsync("not-a-real-jwt");
+            var result = await CreateValidator().ValidateTicketAsync("not-a-real-jwt");
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
         }
 
         [Fact]
-        public async Task ValidateTicketAsync_ExpiredToken_ReturnsEmptyString()
+        public async Task ValidateTicketAsync_ExpiredToken_ReturnsInvalid()
         {
             var token = IssueToken(expires: DateTime.UtcNow.AddMinutes(-40), notBefore: DateTime.UtcNow.AddMinutes(-50));
 
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
         }
 
         [Fact]
-        public async Task ValidateTicketAsync_WrongIssuer_ReturnsEmptyString()
+        public async Task ValidateTicketAsync_WrongIssuer_ReturnsInvalid()
         {
             var token = IssueToken(issuer: "someone-else");
 
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
         }
 
         [Fact]
-        public async Task ValidateTicketAsync_WrongAudience_ReturnsEmptyString()
+        public async Task ValidateTicketAsync_WrongAudience_ReturnsInvalid()
         {
             var token = IssueToken(audience: "someone-else");
 
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
         }
 
         [Fact]
-        public async Task ValidateTicketAsync_SignedWithADifferentKey_ReturnsEmptyString()
+        public async Task ValidateTicketAsync_SignedWithADifferentKey_ReturnsInvalid()
         {
             using var otherKey = RSA.Create(2048);
             var descriptor = new SecurityTokenDescriptor
@@ -121,13 +139,13 @@ namespace Musify.StreamingGateway.Tests.Authentication
             };
             var token = tokenHandler.CreateToken(descriptor);
 
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
         }
 
         [Fact]
-        public async Task ValidateTicketAsync_MissingPrefixClaim_ReturnsEmptyString()
+        public async Task ValidateTicketAsync_MissingPrefixClaim_ReturnsInvalid()
         {
             var descriptor = new SecurityTokenDescriptor
             {
@@ -139,9 +157,9 @@ namespace Musify.StreamingGateway.Tests.Authentication
             };
             var token = tokenHandler.CreateToken(descriptor);
 
-            var prefix = await CreateValidator().ValidateTicketAsync(token);
+            var result = await CreateValidator().ValidateTicketAsync(token);
 
-            Assert.Equal(string.Empty, prefix);
+            Assert.False(result.IsValid);
         }
     }
 }

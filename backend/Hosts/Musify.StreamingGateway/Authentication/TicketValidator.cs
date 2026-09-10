@@ -6,6 +6,17 @@ using Musify.StreamingGateway.Configuration;
 
 namespace Musify.StreamingGateway.Authentication;
 
+/// <param name="Prefix">The storage key prefix the ticket authorizes reading from. Empty means the
+/// ticket was missing, malformed, expired, or otherwise invalid.</param>
+/// <param name="MaxBytes">When set, the caller is limited to the first <c>MaxBytes</c> bytes of the
+/// object — the anonymous preview fragment cap carried by the <c>maxBytes</c> claim.</param>
+public sealed record TicketValidationResult(string Prefix, long? MaxBytes)
+{
+    public static readonly TicketValidationResult Invalid = new(string.Empty, null);
+
+    public bool IsValid => Prefix.Length > 0;
+}
+
 public sealed class TicketValidator : IDisposable
 {
     private readonly StreamTicketValidationOptions _options;
@@ -34,17 +45,23 @@ public sealed class TicketValidator : IDisposable
         };
     }
 
-    public async Task<string> ValidateTicketAsync(string? token)
+    public async Task<TicketValidationResult> ValidateTicketAsync(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
-            return string.Empty;
+            return TicketValidationResult.Invalid;
 
         var result = await _handler.ValidateTokenAsync(token, _validationParameters);
         if (!result.IsValid)
-            return string.Empty;
+            return TicketValidationResult.Invalid;
 
         var prefix = result.ClaimsIdentity?.FindFirst("prefix")?.Value;
-        return string.IsNullOrEmpty(prefix)? string.Empty : prefix;
+        if (string.IsNullOrEmpty(prefix))
+            return TicketValidationResult.Invalid;
+
+        var maxBytesClaim = result.ClaimsIdentity?.FindFirst("maxBytes")?.Value;
+        var maxBytes = long.TryParse(maxBytesClaim, out var parsed) ? parsed : (long?)null;
+
+        return new TicketValidationResult(prefix, maxBytes);
     }
 
     public void Dispose() => _rsa.Dispose();

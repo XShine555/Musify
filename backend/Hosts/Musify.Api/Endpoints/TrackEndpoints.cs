@@ -36,8 +36,7 @@ public static class TrackEndpoints
 
         group.MapGet("/{id}/stream", GetTrackStream)
             .WithName("GetTrackStream")
-            .WithSummary("Get A Streaming Manifest URL And Ticket For A Track.")
-            .RequireAuthorization()
+            .WithSummary("Get A Streaming Manifest URL And Ticket For A Track. Works Anonymously When The Playback Configuration Allows It.")
             .Produces<TrackStreamResponse>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
@@ -126,7 +125,7 @@ public static class TrackEndpoints
         Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.RequiredId), cancellationToken);
+        var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 

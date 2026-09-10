@@ -24,9 +24,15 @@ namespace Musify.Infrastructure.Services
             signingCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
         }
 
-        public StreamTicket IssueTicket(long userId, string keyPrefix)
+        public StreamTicket IssueTicket(long? userId, string keyPrefix, long? maxBytes = null)
         {
             var now = DateTimeOffset.UtcNow;
+
+            var claims = new Dictionary<string, object> { ["prefix"] = keyPrefix };
+            if (userId is not null)
+                claims["sub"] = userId.Value.ToString();
+            if (maxBytes is not null)
+                claims["maxBytes"] = maxBytes.Value.ToString();
 
             var descriptor = new SecurityTokenDescriptor
             {
@@ -35,11 +41,7 @@ namespace Musify.Infrastructure.Services
                 IssuedAt = now.UtcDateTime,
                 NotBefore = now.UtcDateTime,
                 Expires = now.AddSeconds(configuration.TicketTtlSeconds).UtcDateTime,
-                Claims = new Dictionary<string, object>
-                {
-                    ["sub"] = userId.ToString(),
-                    ["prefix"] = keyPrefix,
-                },
+                Claims = claims,
                 SigningCredentials = signingCredentials,
             };
 

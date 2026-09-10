@@ -9,18 +9,20 @@ public sealed class TrackStreamIssuer(
     IDatabase database,
     IStreamTicketService ticketService,
     TrackConfiguration trackConfiguration,
-    StreamGatewayConfiguration streamGatewayConfiguration)
+    StreamGatewayConfiguration streamGatewayConfiguration,
+    PlaybackConfiguration playbackConfiguration)
 {
     public async Task<TrackStreamResponse> IssueAsync(
         Guid trackId,
         string audioFolderName,
-        long userId,
+        long? userId,
         CancellationToken cancellationToken)
     {
         var folderPath = trackConfiguration.Routes.BuildProcessedAudioPath(audioFolderName);
         var keyPrefix = $"{folderPath}/";
 
-        var ticket = ticketService.IssueTicket(userId, keyPrefix);
+        var maxBytes = AnonymousFragmentBytes(userId);
+        var ticket = ticketService.IssueTicket(userId, keyPrefix, maxBytes);
 
         var manifestUrl = string.Join('/',
             streamGatewayConfiguration.PublicBaseUrl.TrimEnd('/'),
@@ -28,14 +30,27 @@ public sealed class TrackStreamIssuer(
             folderPath,
             streamGatewayConfiguration.AudioFileName);
 
-        var newListeningHistory = new ListeningHistory
+        // Anonymous listeners have no User row to satisfy ListeningHistory's foreign key against, and
+        // their plays aren't "history" anyone can look back on anyway, so there's nothing to record.
+        if (userId is not null)
         {
-            UserId = userId,
-            TrackId = trackId,
-        };
-        await database.ListeningHistories.AddAsync(newListeningHistory, cancellationToken);
-        await database.SaveChangesAsync(cancellationToken);
+            var newListeningHistory = new ListeningHistory
+            {
+                UserId = userId.Value,
+                TrackId = trackId,
+            };
+            await database.ListeningHistories.AddAsync(newListeningHistory, cancellationToken);
+            await database.SaveChangesAsync(cancellationToken);
+        }
 
         return new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds);
+    }
+
+    private long? AnonymousFragmentBytes(long? userId)
+    {
+        if (userId is not null || playbackConfiguration.AnonymousFragmentSeconds <= 0)
+            return null;
+
+        return (long)playbackConfiguration.AnonymousFragmentSeconds * playbackConfiguration.EstimatedAudioBytesPerSecond;
     }
 }

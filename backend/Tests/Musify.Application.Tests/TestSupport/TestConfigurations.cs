@@ -17,5 +17,8 @@ namespace Musify.Application.Tests.TestSupport
 
         public static StreamGatewayConfiguration StreamGateway(string publicBaseUrl = "https://stream.musify.test") =>
             new() { PublicBaseUrl = publicBaseUrl };
+
+        public static PlaybackConfiguration Playback(bool allowAnonymousListening = false, int anonymousFragmentSeconds = 0) =>
+            new() { AllowAnonymousListening = allowAnonymousListening, AnonymousFragmentSeconds = anonymousFragmentSeconds };
     }
 }

@@ -36,15 +36,22 @@ namespace Musify.StreamingGateway.Tests.Middleware
             File.Delete(publicKeyPath);
         }
 
-        private string IssueValidToken(string prefix = Prefix) => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+        private string IssueValidToken(string prefix = Prefix, long? maxBytes = null)
         {
-            Issuer = options.Issuer,
-            Audience = options.Audience,
-            NotBefore = DateTime.UtcNow.AddMinutes(-1),
-            Expires = DateTime.UtcNow.AddMinutes(5),
-            Claims = new Dictionary<string, object> { ["prefix"] = prefix },
-            SigningCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256),
-        });
+            var claims = new Dictionary<string, object> { ["prefix"] = prefix };
+            if (maxBytes is not null)
+                claims["maxBytes"] = maxBytes.Value.ToString();
+
+            return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+            {
+                Issuer = options.Issuer,
+                Audience = options.Audience,
+                NotBefore = DateTime.UtcNow.AddMinutes(-1),
+                Expires = DateTime.UtcNow.AddMinutes(5),
+                Claims = claims,
+                SigningCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256),
+            });
+        }
 
         private (TicketValidationMiddleware Middleware, Func<bool> WasNextCalled) CreateMiddleware()
         {
@@ -149,6 +156,65 @@ namespace Musify.StreamingGateway.Tests.Middleware
             await middleware.InvokeAsync(context);
 
             Assert.True(wasNextCalled());
+        }
+
+        [Fact]
+        public async Task InvokeAsync_TicketWithMaxBytes_NoRangeRequested_SynthesizesABoundedRange()
+        {
+            var (middleware, wasNextCalled) = CreateMiddleware();
+            var context = new DefaultHttpContext();
+            context.Request.Path = $"/media/{Prefix}/audio.m4a";
+            context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+
+            await middleware.InvokeAsync(context);
+
+            Assert.True(wasNextCalled());
+            Assert.Equal("bytes=0-479999", context.Request.Headers.Range.ToString());
+        }
+
+        [Fact]
+        public async Task InvokeAsync_TicketWithMaxBytes_RangeWithinCap_ClampsTheEndOnly()
+        {
+            var (middleware, wasNextCalled) = CreateMiddleware();
+            var context = new DefaultHttpContext();
+            context.Request.Path = $"/media/{Prefix}/audio.m4a";
+            context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+            context.Request.Headers.Range = "bytes=1000-";
+
+            await middleware.InvokeAsync(context);
+
+            Assert.True(wasNextCalled());
+            Assert.Equal("bytes=1000-479999", context.Request.Headers.Range.ToString());
+        }
+
+        [Fact]
+        public async Task InvokeAsync_TicketWithMaxBytes_RangeStartsAtOrPastTheCap_ReturnsRangeNotSatisfiable()
+        {
+            var (middleware, wasNextCalled) = CreateMiddleware();
+            var context = new DefaultHttpContext();
+            context.Request.Path = $"/media/{Prefix}/audio.m4a";
+            context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+            context.Request.Headers.Range = "bytes=480000-";
+
+            await middleware.InvokeAsync(context);
+
+            Assert.False(wasNextCalled());
+            Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, context.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_TicketWithoutMaxBytes_LeavesTheRequestedRangeUntouched()
+        {
+            var (middleware, wasNextCalled) = CreateMiddleware();
+            var context = new DefaultHttpContext();
+            context.Request.Path = $"/media/{Prefix}/audio.m4a";
+            context.Request.QueryString = new QueryString($"?t={IssueValidToken()}");
+            context.Request.Headers.Range = "bytes=1000-2000";
+
+            await middleware.InvokeAsync(context);
+
+            Assert.True(wasNextCalled());
+            Assert.Equal("bytes=1000-2000", context.Request.Headers.Range.ToString());
         }
     }
 }

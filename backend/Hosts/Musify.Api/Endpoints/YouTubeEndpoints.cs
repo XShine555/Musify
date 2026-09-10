@@ -32,11 +32,11 @@ public static class YouTubeEndpoints
 
         group.MapGet("/tracks/{videoId}/stream", GetTrackStream)
             .WithName("GetYouTubeTrackStream")
-            .WithSummary("Resolve Playback For A YouTube Track: Server Stream If Downloaded, Direct YouTube Stream Otherwise.")
-            .RequireAuthorization()
+            .WithSummary("Resolve Playback For A YouTube Track: Server Stream If Downloaded, Direct YouTube Stream Otherwise. Works Anonymously When The Playback Configuration Allows It.")
             .Produces<YouTubeStreamResponse>()
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict);
 
         return app;
     }
@@ -48,7 +48,7 @@ public static class YouTubeEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new ResolveYouTubeTrackStreamCommand(videoId, currentUser.RequiredId),
+            new ResolveYouTubeTrackStreamCommand(videoId, currentUser.Id),
             cancellationToken);
 
         return result.ToHttpResult();

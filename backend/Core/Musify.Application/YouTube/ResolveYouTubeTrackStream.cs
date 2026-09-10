@@ -2,6 +2,7 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Application.YouTube.Responses;
@@ -9,7 +10,9 @@ using Musify.Domain.Entities;
 
 namespace Musify.Application.YouTube
 {
-    public record ResolveYouTubeTrackStreamCommand(string VideoId, long UserId)
+    /// <param name="UserId">Null for an anonymous request — allowed only when
+    /// <see cref="PlaybackConfiguration.AllowAnonymousListening"/> is enabled.</param>
+    public record ResolveYouTubeTrackStreamCommand(string VideoId, long? UserId)
         : ICommand<ErrorOr<YouTubeStreamResponse>>;
 
     public class ResolveYouTubeTrackStreamCommandHandler(
@@ -17,14 +20,19 @@ namespace Musify.Application.YouTube
         IYouTubeMusicService youTubeMusicService,
         YouTubeTrackProvisioner provisioner,
         TrackStreamIssuer streamIssuer,
+        PlaybackConfiguration playbackConfiguration,
         ILogger<ResolveYouTubeTrackStreamCommandHandler> logger)
         : ICommandHandler<ResolveYouTubeTrackStreamCommand, ErrorOr<YouTubeStreamResponse>>
     {
         public async ValueTask<ErrorOr<YouTubeStreamResponse>> Handle(ResolveYouTubeTrackStreamCommand request, CancellationToken cancellationToken)
         {
+            var isAnonymous = request.UserId is null;
+            if (isAnonymous && !playbackConfiguration.AllowAnonymousListening)
+                return Error.Unauthorized(description: "Sign in to stream music, or ask an administrator to enable anonymous listening.");
+
             var track = await provisioner.FindAsync(request.VideoId, cancellationToken);
 
-            if (track != null&& track.Audio.IsProcessed)
+            if (track != null && track.Audio.IsProcessed)
             {
                 var serverStream = await streamIssuer.IssueAsync(track.Id, track.Audio.FolderName, request.UserId, cancellationToken);
                 return new YouTubeStreamResponse(
@@ -34,6 +42,13 @@ namespace Musify.Application.YouTube
                     serverStream.Ticket,
                     serverStream.ExpiresInSeconds);
             }
+
+            // Below this point the only option left is streaming straight from YouTube's own CDN,
+            // which bypasses our Gateway (and its stream tickets) entirely — there's no way to cap that
+            // to the configured anonymous fragment, so an anonymous listener simply doesn't get it: they
+            // can retry once the track has been provisioned server-side, where the cap above applies.
+            if (isAnonymous && playbackConfiguration.AnonymousFragmentSeconds > 0)
+                return Error.Conflict(description: "This track isn't available for anonymous preview yet. Try again in a moment.");
 
             var streamInfo = await youTubeMusicService.GetAudioStreamAsync(request.VideoId, cancellationToken);
             if (streamInfo.IsError)
@@ -48,11 +63,11 @@ namespace Musify.Application.YouTube
                     logger.LogWarning("Could not provision YouTube track {VideoId}: {Error}", request.VideoId, provisionResult.FirstError.Description);
             }
 
-            if (track != null)
+            if (track != null && request.UserId is not null)
             {
                 await database.ListeningHistories.AddAsync(new ListeningHistory
                 {
-                    UserId = request.UserId,
+                    UserId = request.UserId.Value,
                     TrackId = track.Id,
                 }, cancellationToken);
 

@@ -1,5 +1,6 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Application.Tests.TestSupport;
@@ -13,17 +14,18 @@ namespace Musify.Application.Tests.Tracks
     {
         private readonly IStreamTicketService ticketService = Substitute.For<IStreamTicketService>();
 
-        private GetTrackStreamQueryHandler CreateHandler()
+        private GetTrackStreamQueryHandler CreateHandler(PlaybackConfiguration? playback = null)
         {
-            ticketService.IssueTicket(Arg.Any<long>(), Arg.Any<string>()).Returns(new StreamTicket("ticket-token", 60));
+            ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("ticket-token", 60));
 
             var issuer = new TrackStreamIssuer(
                 Database,
                 ticketService,
                 TestConfigurations.Track(),
-                TestConfigurations.StreamGateway("https://stream.musify.test"));
+                TestConfigurations.StreamGateway("https://stream.musify.test"),
+                playback ?? TestConfigurations.Playback());
 
-            return new GetTrackStreamQueryHandler(Database, issuer, NoOpLogger<GetTrackStreamQueryHandler>());
+            return new GetTrackStreamQueryHandler(Database, issuer, playback ?? TestConfigurations.Playback(), NoOpLogger<GetTrackStreamQueryHandler>());
         }
 
         [Fact]
@@ -63,6 +65,36 @@ namespace Musify.Application.Tests.Tracks
             var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
 
             Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+        }
+
+        [Fact]
+        public async Task Handle_AnonymousUser_AnonymousListeningDisabled_ReturnsUnauthorized()
+        {
+            var owner = TestEntities.User();
+            var track = TestEntities.LocalTrack(owner);
+            await SeedAsync(owner, track);
+
+            var handler = CreateHandler(TestConfigurations.Playback(allowAnonymousListening: false));
+
+            var result = await handler.Handle(new GetTrackStreamQuery(track.Id, UserId: null), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        }
+
+        [Fact]
+        public async Task Handle_AnonymousUser_AnonymousListeningEnabled_IssuesTicketWithoutRecordingHistory()
+        {
+            var owner = TestEntities.User();
+            var track = TestEntities.LocalTrack(owner);
+            await SeedAsync(owner, track);
+
+            var handler = CreateHandler(TestConfigurations.Playback(allowAnonymousListening: true));
+
+            var result = await handler.Handle(new GetTrackStreamQuery(track.Id, UserId: null), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            Assert.Equal("ticket-token", result.Value.Ticket);
+            Assert.Empty(await Database.ListeningHistories.ToListAsync(TestContext.Current.CancellationToken));
         }
     }
 }

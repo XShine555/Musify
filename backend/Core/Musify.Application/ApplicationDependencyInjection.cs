@@ -20,6 +20,7 @@ public static class ApplicationDependencyInjection
         services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
         services.AddValidatedOptions<StreamGatewayConfiguration>(configuration, StreamGatewayConfiguration.SectionName);
         services.AddValidatedOptions<UploadIntentConfiguration>(configuration, UploadIntentConfiguration.SectionName);
+        services.AddValidatedOptions<PlaybackConfiguration>(configuration, PlaybackConfiguration.SectionName);
 
         return services;
     }

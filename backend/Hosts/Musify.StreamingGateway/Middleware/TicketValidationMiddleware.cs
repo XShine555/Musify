@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using Musify.StreamingGateway.Authentication;
 using Musify.StreamingGateway.Configuration;
 
@@ -28,15 +30,16 @@ public sealed class TicketValidationMiddleware(
             token = context.Request.Headers[options.HeaderName].ToString();
         }
 
-        var prefix = await ticketValidator.ValidateTicketAsync(token);
+        var validation = await ticketValidator.ValidateTicketAsync(token);
 
-        if (string.IsNullOrEmpty(prefix))
+        if (!validation.IsValid)
         {
             logger.LogWarning("Rejected media request {Path}: missing or invalid ticket", path);
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
 
+        var prefix = validation.Prefix;
         var objectKey = remaining.Value?.TrimStart('/') ?? string.Empty;
 
         if (HasTraversalSegment(objectKey))
@@ -55,8 +58,46 @@ public sealed class TicketValidationMiddleware(
             return;
         }
 
+        if (validation.MaxBytes is { } maxBytes && !TryClampRange(context, maxBytes))
+        {
+            logger.LogInformation(
+                "Rejected media request {ObjectKey}: requested range starts beyond the {MaxBytes}-byte preview limit",
+                objectKey, maxBytes);
+            context.Response.StatusCode = StatusCodes.Status416RangeNotSatisfiable;
+            context.Response.Headers[HeaderNames.ContentRange] = $"bytes */{maxBytes}";
+            return;
+        }
+
         StripQueryParameter(context, options.QueryParameterName);
         await next(context);
+    }
+
+    /// <summary>Rewrites the request's <c>Range</c> header so nothing past <paramref name="maxBytes"/>
+    /// is ever asked of the filer — this is what actually enforces the anonymous preview length,
+    /// downstream of the ticket carrying that cap. A request with no <c>Range</c> header (a plain,
+    /// whole-file GET) gets one synthesized, so the filer always responds with a bounded 206 instead of
+    /// streaming the full object. Returns false when the requested range starts at or past the cap, in
+    /// which case the caller should answer 416 directly instead of proxying anything.</summary>
+    private static bool TryClampRange(HttpContext context, long maxBytes)
+    {
+        var rangeHeader = context.Request.Headers.Range;
+        if (StringValues.IsNullOrEmpty(rangeHeader))
+        {
+            context.Request.Headers.Range = $"bytes=0-{maxBytes - 1}";
+            return true;
+        }
+
+        if (!RangeHeaderValue.TryParse(rangeHeader.ToString(), out var range) || range.Ranges.Count != 1)
+            return true;
+
+        var requested = range.Ranges.Single();
+        var start = requested.From ?? 0;
+        if (start >= maxBytes)
+            return false;
+
+        var end = requested.To is { } requestedEnd ? Math.Min(requestedEnd, maxBytes - 1) : maxBytes - 1;
+        context.Request.Headers.Range = $"bytes={start}-{end}";
+        return true;
     }
 
     private static bool HasTraversalSegment(string objectKey) =>
