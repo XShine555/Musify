@@ -48,42 +48,43 @@
 	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	let ytItems = $state<YouTubeSong[]>([]);
-	let ytContinuation = $state('');
-	let ytSearchTerm = $state('');
+	let ytUnavailable = $state(false);
 	let contextMenu = $state<ContextMenuState | null>(null);
 	let albumMenu = $state<AlbumMenuState | null>(null);
 
-	type LocalTrack = (typeof data.tracks.items)[number];
+	type LocalTrack = NonNullable<(typeof data.tracks.items)[number]['track']>;
 
 	let localItems = $state<LocalTrack[]>([]);
 	let localPage = $state(1);
-	let localHasNext = $state(false);
+	let ytContinuation = $state('');
+	let hasMore = $state(false);
 	let loadingMore = $state(false);
 
 	$effect(() => {
 		contextMenu = null;
 		albumMenu = null;
-		localItems = data.tracks.items;
+		localItems = data.tracks.items.flatMap((item) => (item.track ? [item.track] : []));
 		localPage = Number(data.tracks.pageNumber);
-		localHasNext = Boolean(data.tracks.hasNextPage);
+		ytContinuation = data.tracks.nextYoutubeContinuationToken ?? '';
+		hasMore = data.tracks.hasNextPage;
 
 		if (data.query) {
-			ytItems = appendUnique([], (data.ytResults?.items ?? []) as YouTubeSong[], (i) => i.videoId);
-			ytContinuation = data.ytResults?.continuationToken ?? '';
-			ytSearchTerm = data.query;
+			ytItems = appendUnique(
+				[],
+				data.tracks.items.flatMap((item) => (item.youTubeSong ? [item.youTubeSong as YouTubeSong] : [])),
+				(i) => i.videoId
+			);
+			ytUnavailable = data.tracks.youtubeUnavailable;
 			return;
 		}
 
 		ytItems = [];
-		ytContinuation = '';
-		ytSearchTerm = '';
+		ytUnavailable = false;
 
 		let cancelled = false;
 		data.youtubeFiller?.then((filler) => {
 			if (cancelled || !filler) return;
 			ytItems = appendUnique([], filler.items, (i) => i.videoId);
-			ytContinuation = filler.continuationToken;
-			ytSearchTerm = filler.query;
 		});
 		return () => {
 			cancelled = true;
@@ -102,8 +103,6 @@
 	] satisfies { target: TrackTarget; seconds: number }[]);
 
 	const items = $derived<TrackTarget[]>(songRows.map((row) => row.target));
-
-	const hasMore = $derived(localHasNext || ytContinuation !== '');
 
 	const albums = $derived(data.albums);
 	const youtubeAlbums = $derived(data.youtubeAlbums);
@@ -124,7 +123,7 @@
 	const hasUsers = $derived(users.length > 0);
 
 	const nothingFound = $derived(
-		!!data.query && !data.ytError && items.length === 0 && !hasAlbums && !hasUsers
+		!!data.query && !ytUnavailable && items.length === 0 && !hasAlbums && !hasUsers
 	);
 
 	function localAlbumCaption(album: LocalAlbum) {
@@ -188,38 +187,36 @@
 		contextMenu = null;
 	}
 
-	async function loadMoreLocal() {
-		const params = new URLSearchParams({
-			pageNumber: String(localPage + 1),
-			pageSize: String(EXPLORE_PAGE_SIZE)
-		});
-		if (data.query) params.set('name', data.query);
-		const res = await fetch(`/api/tracks?${params}`);
-		if (!res.ok) throw new Error(String(res.status));
-		const next = (await res.json()) as typeof data.tracks;
-		localItems = appendUnique(localItems, next.items, (track) => track.id);
-		localPage = Number(next.pageNumber);
-		localHasNext = Boolean(next.hasNextPage);
-	}
-
-	async function loadMoreYouTube() {
-		const params = new URLSearchParams({ query: ytSearchTerm, continuation: ytContinuation });
-		const res = await fetch(`/api/youtube/search?${params}`);
-		if (!res.ok) throw new Error(String(res.status));
-		const next = (await res.json()) as { items: YouTubeSong[]; continuationToken: string };
-		ytItems = appendUnique(ytItems, next.items, (i) => i.videoId);
-		ytContinuation = next.continuationToken;
-	}
-
 	async function loadMore() {
 		if (loadingMore) return;
 		loadingMore = true;
 		try {
-			if (localHasNext) await loadMoreLocal();
-			else if (ytContinuation && ytSearchTerm) await loadMoreYouTube();
+			const params = new URLSearchParams({
+				pageNumber: String(localPage + 1),
+				pageSize: String(EXPLORE_PAGE_SIZE)
+			});
+			if (data.query) {
+				params.set('name', data.query);
+				if (ytContinuation) params.set('youtubeContinuationToken', ytContinuation);
+			}
+			const res = await fetch(`/api/tracks?${params}`);
+			if (!res.ok) throw new Error(String(res.status));
+			const next = (await res.json()) as typeof data.tracks;
+			localItems = appendUnique(
+				localItems,
+				next.items.flatMap((item) => (item.track ? [item.track] : [])),
+				(track) => track.id
+			);
+			ytItems = appendUnique(
+				ytItems,
+				next.items.flatMap((item) => (item.youTubeSong ? [item.youTubeSong as YouTubeSong] : [])),
+				(song) => song.videoId
+			);
+			localPage = Number(next.pageNumber);
+			ytContinuation = next.nextYoutubeContinuationToken ?? '';
+			hasMore = next.hasNextPage;
 		} catch {
-			if (localHasNext) localHasNext = false;
-			else ytContinuation = '';
+			hasMore = false;
 		} finally {
 			loadingMore = false;
 		}
@@ -377,12 +374,12 @@
 			{#if hasMore}
 				<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
 			{/if}
-		{:else if data.query && !data.ytError}
+		{:else if data.query && !ytUnavailable}
 			<EmptyState icon={Music} description="No hay canciones que coincidan con «{data.query}»." />
 		{/if}
 	</div>
 
-	{#if data.ytError}
+	{#if ytUnavailable}
 		<EmptyState
 			icon={Music}
 			description="YouTube Music no está disponible ahora mismo. Inténtalo de nuevo."

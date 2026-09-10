@@ -323,7 +323,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Paginated Tracks. */
+        /** Get Paginated Tracks, Combined With Live YouTube Music Results When A Name Filter Is Given. */
         get: operations["GetTracks"];
         put?: never;
         /** Create A New Track. */
@@ -480,23 +480,6 @@ export interface paths {
         };
         /** Get A User'S Listening History. */
         get: operations["GetListeningHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/youtube/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search Songs On YouTube Music. */
-        get: operations["SearchYouTubeTracks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -759,6 +742,11 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        TrackSearchItemResponse: {
+            source: components["schemas"]["TrackSource"];
+            track: components["schemas"]["TrackApplicationResponse"] | null;
+            youTubeSong: components["schemas"]["YouTubeSongResult"] | null;
+        };
         /** @enum {unknown} */
         TrackSource: "Local" | "YouTube";
         TrackStreamResponse: {
@@ -783,6 +771,22 @@ export interface components {
             audioUploadUrl: string;
             /** Format: int32 */
             expiresInSeconds: number | string;
+        };
+        TracksSearchResponse: {
+            items: components["schemas"]["TrackSearchItemResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasPreviousPage: boolean;
+            hasNextLocalPage: boolean;
+            nextYoutubeContinuationToken: null | string;
+            youtubeUnavailable: boolean;
+            hasNextPage: boolean;
         };
         UpdateAlbumRequest: {
             newTitle: string;
@@ -842,10 +846,6 @@ export interface components {
         YouTubeArtistRef: {
             id: null | string;
             name: string;
-        };
-        YouTubeSearchResult: {
-            items: components["schemas"]["YouTubeSongResult"][];
-            continuationToken: string;
         };
         YouTubeSongResult: {
             videoId: string;
@@ -1749,6 +1749,7 @@ export interface operations {
                 name?: string;
                 pageNumber?: number | string;
                 pageSize?: number | string;
+                youtubeContinuationToken?: string;
             };
             header?: never;
             path?: never;
@@ -1762,7 +1763,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponseOfTrackApplicationResponse"];
+                    "application/json": components["schemas"]["TracksSearchResponse"];
                 };
             };
         };
@@ -2151,45 +2152,6 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SearchYouTubeTracks: {
-        parameters: {
-            query: {
-                query: string;
-                continuation?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["YouTubeSearchResult"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };

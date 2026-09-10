@@ -53,10 +53,13 @@ export async function fetchYoutubeFiller(
 	const query =
 		seedQuery?.trim() ||
 		(userId ? pickFillerQueryForUser(userId, new Date()) : pickRandomFillerQuery());
-	const { data } = await api.GET('/youtube/search', { params: { query: { query } } });
+	const { data } = await api.GET('/tracks', { params: { query: { name: query, pageSize: 1 } } });
+	const items = (data?.items ?? [])
+		.map((item) => item.youTubeSong)
+		.filter((song): song is NonNullable<typeof song> => song !== null && song !== undefined);
 	return {
 		query,
-		items: ((data?.items ?? []) as YouTubeSong[]).slice(0, limit),
-		continuationToken: data?.continuationToken ?? ''
+		items: (items as YouTubeSong[]).slice(0, limit),
+		continuationToken: data?.nextYoutubeContinuationToken ?? ''
 	};
 }

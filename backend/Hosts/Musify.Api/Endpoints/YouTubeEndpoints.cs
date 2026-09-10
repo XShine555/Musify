@@ -14,14 +14,6 @@ public static class YouTubeEndpoints
         var group = app.MapGroup("/youtube")
             .WithTags("YouTube");
 
-        group.MapGet("/search", SearchTracks)
-            .WithName("SearchYouTubeTracks")
-            .WithSummary("Search Songs On YouTube Music.")
-            .RequireAuthorization()
-            .Produces<YouTubeSearchResult>()
-            .Produces(StatusCodes.Status401Unauthorized)
-            .ProducesValidationProblem();
-
         group.MapGet("/albums", SearchAlbums)
             .WithName("SearchYouTubeAlbums")
             .WithSummary("Search Albums On YouTube Music.")
@@ -81,19 +73,6 @@ public static class YouTubeEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetYouTubeAlbumQuery(albumId), cancellationToken);
-        return result.ToHttpResult();
-    }
-
-    private static async Task<IResult> SearchTracks(
-        IMediator mediator,
-        CancellationToken cancellationToken,
-        string query,
-        string? continuation = null)
-    {
-        var result = await mediator.Send(
-            new SearchYouTubeTracksQuery(query, continuation ?? string.Empty),
-            cancellationToken);
-
         return result.ToHttpResult();
     }
 }

@@ -26,11 +26,6 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		params: { query: { name: query || undefined, pageNumber: page, pageSize: PAGE_SIZE } }
 	});
 
-	const searchPromise =
-		query.length >= SEARCH_MIN_LENGTH
-			? api.GET('/youtube/search', { params: { query: { query } } })
-			: Promise.resolve(null);
-
 	const playlistsPromise = api.GET('/playlists/users/{userId}', {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
 	});
@@ -46,9 +41,8 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 			? api.GET('/youtube/albums', { params: { query: { query } } })
 			: Promise.resolve(null);
 
-	const [tracksRes, searchRes, playlistsRes, albumsRes, youtubeAlbumsRes] = await Promise.all([
+	const [tracksRes, playlistsRes, albumsRes, youtubeAlbumsRes] = await Promise.all([
 		tracksPromise,
-		searchPromise,
 		playlistsPromise,
 		albumsPromise,
 		youtubeAlbumsPromise
@@ -61,8 +55,6 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		tracks,
 		albums: albumsRes?.data?.items ?? [],
 		youtubeAlbums: youtubeAlbumsRes?.data?.items ?? [],
-		ytResults: searchRes?.data ?? null,
-		ytError: Boolean(searchRes?.error),
 		users: searchUsers(query),
 		youtubeFiller: query
 			? Promise.resolve(null)

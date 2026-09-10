@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		recentlyPlayedPromise
 	]);
 	const playlistItems = playlists.data?.items ?? [];
-	const latestItems = latest.data?.items ?? [];
+	const latestItems = (latest.data?.items ?? []).flatMap((item) => (item.track ? [item.track] : []));
 
 	return {
 		greeting: pickGreeting(new Date().getHours()),

@@ -19,8 +19,8 @@ public static class TrackEndpoints
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
-            .WithSummary("Get Paginated Tracks.")
-            .Produces<PaginatedResponse<TrackApplicationResponse>>();
+            .WithSummary("Get Paginated Tracks, Combined With Live YouTube Music Results When A Name Filter Is Given.")
+            .Produces<TracksSearchResponse>();
 
         group.MapGet("/{id}", GetTrackById)
             .WithName("GetTrackById")
@@ -86,9 +86,10 @@ public static class TrackEndpoints
         CancellationToken cancellationToken,
         string? name,
         int pageNumber = 1,
-        int pageSize = 10)
+        int pageSize = 10,
+        string? youtubeContinuationToken = null)
     {
-        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize, youtubeContinuationToken), cancellationToken);
         return result.ToHttpResult();
     }
 
