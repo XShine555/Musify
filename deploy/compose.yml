@@ -355,9 +355,35 @@ services:
           echo "  created (clientId $$WEB_CLIENT_ID)"
         fi
 
+        echo "==> native app (KMP client: desktop loopback + mobile custom scheme)"
+        NATIVE_APP_NAME="Musify Native"
+        NATIVE_APP_ID=$$(find_app "$$NATIVE_APP_NAME")
+        if [ -n "$$NATIVE_APP_ID" ]; then
+          NATIVE_CLIENT_ID=$$(api_call GET "/projects/$$PROJECT_ID/apps/$$NATIVE_APP_ID" | jq -r '.app.oidcConfig.clientId')
+          echo "  reused (clientId $$NATIVE_CLIENT_ID)"
+        else
+          NATIVE_CLIENT_ID=$$(api_call POST "/projects/$$PROJECT_ID/apps/oidc" '{
+            "name": "Musify Native",
+            "redirectUris": ["http://127.0.0.1:17453/callback", "musify://callback"],
+            "postLogoutRedirectUris": ["http://127.0.0.1:17453/logout", "musify://logout"],
+            "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
+            "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
+            "appType": "OIDC_APP_TYPE_NATIVE",
+            "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
+            "version": "OIDC_VERSION_1_0",
+            "devMode": true,
+            "accessTokenType": "OIDC_TOKEN_TYPE_JWT",
+            "accessTokenRoleAssertion": true,
+            "idTokenRoleAssertion": true,
+            "idTokenUserinfoAssertion": true
+          }' | jq -r '.clientId')
+          echo "  created (clientId $$NATIVE_CLIENT_ID)"
+        fi
+
         env_set "$$ENV_FILE" AUTH_CLIENT_ID "$$API_CLIENT_ID"
         env_set "$$ENV_FILE" WEB_CLIENT_ID "$$WEB_CLIENT_ID"
         env_set "$$ENV_FILE" WEB_CLIENT_SECRET "$$WEB_CLIENT_SECRET"
+        env_set "$$ENV_FILE" NATIVE_CLIENT_ID "$$NATIVE_CLIENT_ID"
         echo "==> wired into $$ENV_FILE"
     restart: "no"
 
