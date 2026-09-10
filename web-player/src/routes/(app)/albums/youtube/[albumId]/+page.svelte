@@ -93,7 +93,7 @@
 				{album.isSingle ? 'Single' : album.isEp ? 'EP' : 'Álbum'}
 			</p>
 			<h1
-				class="mt-1.5 text-3xl font-semibold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
+				class="mt-1.5 font-display text-3xl font-semibold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
 			>
 				{album.title}
 			</h1>

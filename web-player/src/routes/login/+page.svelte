@@ -11,18 +11,30 @@
 	<meta name="description" content="Inicia sesión o crea una cuenta en Musify." />
 </svelte:head>
 
-<div class="grid min-h-screen place-items-center bg-bg px-6 text-fg">
-	<div class="flex w-full max-w-110 flex-col items-center gap-9 text-center">
-		<div class="text-3xl font-semibold tracking-tight">Musify</div>
+<div class="relative grid min-h-screen place-items-center overflow-hidden bg-bg px-6 text-fg">
+	<div
+		class="pointer-events-none absolute inset-0"
+		style="background:radial-gradient(ellipse 46rem 28rem at 50% 36%, color-mix(in oklch, var(--color-accent), transparent 82%), transparent 70%)"
+	></div>
 
-		<div>
-			<h1 class="text-4xl font-semibold tracking-tight">Tu música. Sin límites.</h1>
-			<p class="mt-3 text-base text-fg-2">Inicia sesión para continuar.</p>
+	<div class="relative flex w-full max-w-4xl flex-col items-center gap-12 text-center">
+		<div class="font-display text-[clamp(1.5rem,3vw,2.5rem)] font-semibold tracking-tight">
+			Musify
 		</div>
 
-		<div class="flex w-full flex-col gap-5">
+		<div class="animate-enter flex flex-col items-center gap-5">
+			<h1
+				class="font-display text-[clamp(2.75rem,9vw,8rem)] leading-[1.05] font-semibold tracking-tight"
+			>
+				<span class="block">Tu música.</span>
+				<span class="block">Sin límites.</span>
+			</h1>
+			<p class="text-lg text-fg-2">Inicia sesión para continuar.</p>
+		</div>
+
+		<div class="flex w-full max-w-80 flex-col gap-3">
 			<Button href={`/auth/login?${returnParam}`} reload size="lg" class="w-full">
-				Iniciar Sesión
+				Iniciar sesión
 			</Button>
 			<Button
 				href={`/auth/login?mode=register&${returnParam}`}
@@ -31,7 +43,7 @@
 				size="lg"
 				class="w-full"
 			>
-				Crear Cuenta
+				Crear cuenta
 			</Button>
 		</div>
 	</div>

@@ -22,7 +22,7 @@
 	--color-on-accent: var(--mf-on-art);
 	--color-scrim: var(--mf-scrim);
 	--color-on-art: var(--mf-on-art);
-	--color-danger: oklch(63.7% 0.237 25.331);
+	--color-danger: oklch(63.7% 0.15 25.331);
 	--color-danger-fg: oklch(88.5% 0.062 18.334);
 
 	--radius-control: 0.625rem;

@@ -36,13 +36,13 @@
 
 	const variants = {
 		primary: 'bg-accent-soft text-on-accent active:scale-[0.97]',
-		secondary: 'border border-line text-fg hover:bg-hover',
-		subtle: 'bg-surface-2 text-fg hover:bg-surface-hover',
+		secondary: 'bg-surface-2 text-fg hover:bg-accent/12',
+		subtle: 'bg-white/10 text-fg hover:bg-accent/18',
 		danger: 'bg-danger text-on-accent hover:brightness-110'
 	};
 
 	const classes = $derived(
-		`inline-flex items-center justify-center gap-2 rounded-control transition disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
+		`inline-flex items-center justify-center gap-2 rounded-control font-medium transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
 	);
 </script>
 

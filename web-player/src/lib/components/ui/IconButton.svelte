@@ -29,7 +29,7 @@
 	{onclick}
 	aria-label={label}
 	title={label}
-	class="grid place-items-center rounded-control text-muted transition hover:bg-hover hover:text-fg {sizes[
+	class="grid place-items-center rounded-control text-muted transition hover:bg-hover hover:text-fg focus-visible:bg-hover focus-visible:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none {sizes[
 		size
 	]} {revealOnHover
 		? 'sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100'

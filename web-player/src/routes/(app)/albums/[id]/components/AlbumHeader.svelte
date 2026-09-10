@@ -55,7 +55,7 @@
 	<div class="min-w-0 flex-1">
 		<p class="text-sm tracking-[0.14em] text-fg-3 uppercase">Álbum</p>
 		<h1
-			class="mt-1.5 text-3xl font-semibold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
+			class="mt-1.5 font-display text-3xl font-semibold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
 		>
 			{title}
 		</h1>

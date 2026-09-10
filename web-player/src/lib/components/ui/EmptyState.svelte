@@ -20,7 +20,7 @@
 		</span>
 	{/if}
 	{#if title}
-		<h3 class="mt-5 text-2xl font-semibold tracking-tight text-fg">{title}</h3>
+		<h3 class="mt-5 font-display text-2xl font-semibold tracking-tight text-fg">{title}</h3>
 	{/if}
 	{#if description}
 		<p class="mt-2 text-fg-2">{description}</p>

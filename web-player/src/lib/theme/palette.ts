@@ -100,7 +100,7 @@ export async function extractAccent(url: string): Promise<Accent | null> {
 	if (best < 0) return null;
 
 	const hue = ((Math.atan2(hueSin[best], hueCos[best]) * 180) / Math.PI + 360) % 360;
-	const chroma = Math.min(0.19, Math.max(0.1, chromaSum[best] / weight[best]));
+	const chroma = Math.min(0.11, Math.max(0.045, chromaSum[best] / weight[best]));
 
 	const h = hue.toFixed(1);
 	const c = chroma.toFixed(3);

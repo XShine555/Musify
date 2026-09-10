@@ -155,7 +155,7 @@
 	></div>
 	<div class="animate-enter relative flex flex-col gap-2 sm:gap-2.5">
 		<p class="text-sm tracking-[0.14em] text-fg-2 uppercase sm:text-base">{data.greeting}</p>
-		<h1 class="text-3xl leading-[1.05] font-semibold text-fg sm:text-6xl">
+		<h1 class="font-display text-3xl leading-[1.05] font-semibold tracking-tight text-fg sm:text-6xl">
 			Tu música. Sin límites.
 		</h1>
 	</div>

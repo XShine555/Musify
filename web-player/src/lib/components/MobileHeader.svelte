@@ -22,7 +22,7 @@
 <header
 	class="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg/85 page-x backdrop-blur-md md:hidden"
 >
-	<a href="/" class="text-lg font-semibold tracking-wide">Musify</a>
+	<a href="/" class="font-display text-lg font-semibold tracking-tight text-fg">Musify</a>
 
 	<div class="relative" bind:this={menuRef}>
 		<button

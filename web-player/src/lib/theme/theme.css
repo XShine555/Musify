@@ -15,7 +15,7 @@
 	--mf-border-strong: rgba(255, 255, 255, 0.12);
 	--mf-track: rgba(255, 255, 255, 0.12);
 
-	--mf-accent: oklch(60% 0.17 145);
+	--mf-accent: oklch(60% 0.1 145);
 	--mf-accent-soft: color-mix(in oklch, var(--mf-accent) 80%, transparent);
 
 	--mf-scrim: #000000;

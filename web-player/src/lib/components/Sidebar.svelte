@@ -82,7 +82,7 @@
 	class="sticky top-0 hidden h-screen shrink-0 flex-col gap-7 border-r border-line px-4.5 py-6.5 md:flex"
 	style="width:var(--mf-sidebar-w)"
 >
-	<a href="/" class="px-3 text-xl font-medium tracking-wide">Musify</a>
+	<a href="/" class="px-3 font-display text-xl font-semibold tracking-tight text-fg">Musify</a>
 
 	<div class="relative flex flex-col gap-7" bind:this={navBox}>
 		<div
