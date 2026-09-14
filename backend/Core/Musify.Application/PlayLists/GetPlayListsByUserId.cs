@@ -14,7 +14,8 @@ namespace Musify.Application.PlayLists
         long UserId,
         string? Name,
         int PageNumber,
-        int PageSize)
+        int PageSize,
+        bool OnlyPublic = false)
         : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>> >;
 
     public class GetPlayListsByUserIdQueryHandler(IDatabase database)
@@ -25,6 +26,11 @@ namespace Musify.Application.PlayLists
             var playListsQuery = database.PlayLists
                 .AsNoTracking()
                 .Where(p => p.UserId == request.UserId);
+
+            if (request.OnlyPublic)
+            {
+                playListsQuery = playListsQuery.Where(p => p.Visibility == PlaylistVisibility.Public);
+            }
 
             if (!string.IsNullOrEmpty(request.Name))
             {

@@ -111,7 +111,8 @@ namespace Musify.Application.Tests.TestSupport
             string name = "Test Playlist",
             string? description = null,
             PlayListPictures? pictures = null,
-            LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active) =>
+            LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active,
+            PlaylistVisibility visibility = PlaylistVisibility.Private) =>
             new()
             {
                 UserId = userId,
@@ -119,7 +120,8 @@ namespace Musify.Application.Tests.TestSupport
                 NormalizedName = name.ToUpperInvariant(),
                 Description = description,
                 Pictures = pictures ?? PlayListPictures(),
-                LifeCycleStatus = lifeCycleStatus
+                LifeCycleStatus = lifeCycleStatus,
+                Visibility = visibility
             };
 
         public static AlbumPictures AlbumPictures() => new()

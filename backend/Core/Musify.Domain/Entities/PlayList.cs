@@ -34,6 +34,9 @@ namespace Musify.Domain.Entities
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
 
         [Required]
+        public PlaylistVisibility Visibility { get; set; } = PlaylistVisibility.Private;
+
+        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]

@@ -1,30 +1,21 @@
 <script lang="ts">
+	import ListMusic from '@lucide/svelte/icons/list-music';
 	import { player, queueIdForTrack, toQueueItems } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import PlaylistHeader from './components/PlaylistHeader.svelte';
 	import PlaylistTrackTable from './components/PlaylistTrackTable.svelte';
-	import SuggestionsTable from './components/SuggestionsTable.svelte';
-	import type { YouTubeSong } from '$lib/types';
 
 	let { data, form } = $props();
 
 	const playlist = $derived(data.playlist);
 	const tracks = $derived(data.tracks);
-	const library = $derived(data.library);
 
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
-	let youtubeSuggestions = $state<YouTubeSong[]>([]);
-
-	$effect(() => {
-		youtubeSuggestions = [];
-		data.youtube.then((result) => {
-			youtubeSuggestions = result.items;
-		});
-	});
 
 	const isCurrentQueue = $derived(tracks.some((t) => queueIdForTrack(t) === player.current.id));
 
@@ -47,6 +38,7 @@
 		description={playlist.description}
 		trackIds={tracks.map((t) => t.id)}
 		updatedAt={playlist.updatedAt}
+		visibility={playlist.visibility}
 		playing={isCurrentQueue && player.playing}
 		onPlayAll={playAll}
 		onEdit={() => (editing = true)}
@@ -55,10 +47,17 @@
 
 	{#if tracks.length > 0}
 		<PlaylistTrackTable {tracks} />
-	{/if}
-
-	{#if library.length > 0 || youtubeSuggestions.length > 0}
-		<SuggestionsTable {library} youtube={youtubeSuggestions} playlists={data.playlists} />
+	{:else}
+		<EmptyState
+			icon={ListMusic}
+			title="Esta playlist todavía está vacía"
+			description="Añade canciones desde tu biblioteca o explora música nueva para empezar."
+			class="mt-6 sm:mt-8"
+		>
+			{#snippet actions()}
+				<Button href="/explore" variant="secondary">Explorar música</Button>
+			{/snippet}
+		</EmptyState>
 	{/if}
 </Page>
 
@@ -67,6 +66,7 @@
 		action="?/rename"
 		initialName={playlist.name}
 		initialDescription={playlist.description ?? ''}
+		initialVisibility={playlist.visibility === 'Public' ? 'public' : 'private'}
 		coverFallbackUrl="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
 			playlist.updatedAt
 		)}"
@@ -79,10 +79,10 @@
 </Modal>
 
 <Modal open={confirmingDelete} onClose={() => (confirmingDelete = false)} maxWidth="max-w-sm">
-	<h2 class="text-lg font-semibold tracking-tight text-fg">
+	<h2 class="font-display text-xl font-semibold tracking-[-0.02em] text-fg">
 		¿Eliminar «{playlist.name}»?
 	</h2>
-	<p class="mt-2 text-base text-fg-3">
+	<p class="mt-2.5 text-[13px] leading-[1.65] text-fg-2">
 		Esta acción no se puede deshacer, la playlist se eliminará de tu biblioteca y de todos los
 		dispositivos donde la tengas guardada.
 	</p>

@@ -19,7 +19,30 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 
 	const data = unwrapOrError(result, 'No se pudieron cargar tus playlists.');
 
-	return { playlists: data };
+	const tracksByPlaylist = await Promise.all(
+		data.items.map((playlist) =>
+			api
+				.GET('/playlists/{playlistId}/tracks', {
+					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 500 } }
+				})
+				.then((res) => res.data?.items ?? [])
+		)
+	);
+
+	const items = data.items.map((playlist, i) => {
+		const tracks = tracksByPlaylist[i];
+		const trackCount = tracks.length;
+		const durationSeconds = tracks.reduce((sum, t) => sum + Number(t.duration || 0), 0);
+		return { ...playlist, trackCount, durationSeconds };
+	});
+
+	const totals = {
+		playlistCount: items.length,
+		trackCount: items.reduce((sum, p) => sum + p.trackCount, 0),
+		durationSeconds: items.reduce((sum, p) => sum + p.durationSeconds, 0)
+	};
+
+	return { playlists: { ...data, items }, totals };
 };
 
 export const actions: Actions = {
@@ -30,6 +53,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const name = String(form.get('name') ?? '').trim();
 		const description = String(form.get('description') ?? '').trim();
+		const visibility = form.get('visibility') === 'public' ? 'Public' : 'Private';
 		const cover = form.get('cover');
 
 		if (name === '' || name.length > MAX_NAME) {
@@ -55,7 +79,7 @@ export const actions: Actions = {
 		}
 
 		const { data, error: err } = await api.POST('/playlists', {
-			body: { name, description, pictureIntentId }
+			body: { name, description, pictureIntentId, visibility }
 		});
 
 		if (err || !data)

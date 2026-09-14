@@ -1,4 +1,5 @@
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists.Responses
 {
@@ -9,6 +10,7 @@ namespace Musify.Application.PlayLists.Responses
         string? SmallImageKeyName,
         string? MediumImageKeyName,
         string? LargeImageKeyName,
+        PlaylistVisibility Visibility,
         DateTime CreatedAt,
         DateTime UpdatedAt,
         IReadOnlyList<Guid> CoverTrackIds)
@@ -26,6 +28,7 @@ namespace Musify.Application.PlayLists.Responses
                 playList.Pictures?.SmallName,
                 playList.Pictures?.MediumName,
                 playList.Pictures?.LargeName,
+                playList.Visibility,
                 playList.CreatedAt,
                 playList.UpdatedAt,
                 coverTrackIds ?? []);

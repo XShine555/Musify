@@ -61,6 +61,34 @@ namespace Musify.Application.Tests.PlayLists
         }
 
         [Fact]
+        public async Task Handle_NoVisibilitySpecified_DefaultsToPrivate()
+        {
+            var user = TestEntities.User();
+            await SeedAsync(user);
+
+            var command = new CreatePlayListCommand(user.Id, "My Playlist", null, PictureIntentId: null);
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Private, result.Value.Visibility);
+        }
+
+        [Fact]
+        public async Task Handle_PublicVisibility_PersistsIt()
+        {
+            var user = TestEntities.User();
+            await SeedAsync(user);
+
+            var command = new CreatePlayListCommand(user.Id, "My Playlist", null, PictureIntentId: null, Visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+        }
+
+        [Fact]
         public async Task Handle_UserMissing_ReturnsNotFound()
         {
             var command = new CreatePlayListCommand(404, "Orphan Playlist", null, null);

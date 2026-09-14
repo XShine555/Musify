@@ -1,10 +1,11 @@
 <script lang="ts">
 	interface Props {
 		name: string;
+		imageUrl?: string | null;
 		size?: number;
 	}
 
-	let { name, size = 108 }: Props = $props();
+	let { name, imageUrl, size = 108 }: Props = $props();
 
 	const initials = $derived(
 		name
@@ -21,11 +22,15 @@
 		class="relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-surface shadow-art ring-1 ring-line transition duration-300 ease-out ring-inset group-hover/artist:shadow-art-lg"
 		style="width:{size}px;height:{size}px"
 	>
-		<div
-			class="pointer-events-none absolute inset-0"
-			style="background:repeating-linear-gradient(135deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 10px)"
-		></div>
-		<span class="relative text-lg font-semibold text-white/90">{initials}</span>
+		{#if imageUrl}
+			<img src={imageUrl} alt="" class="h-full w-full object-cover" />
+		{:else}
+			<div
+				class="pointer-events-none absolute inset-0"
+				style="background:repeating-linear-gradient(135deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 10px)"
+			></div>
+			<span class="relative text-lg font-semibold text-white/90">{initials}</span>
+		{/if}
 	</div>
 	<div class="w-full truncate text-sm text-fg">{name}</div>
 </div>

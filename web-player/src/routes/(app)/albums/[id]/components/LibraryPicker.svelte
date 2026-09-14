@@ -28,12 +28,15 @@
 	<SectionHeading title="Tus canciones subidas" />
 	<TrackTable action>
 		{#each library as track, i (track.id)}
-			<TrackRow>
+			{@const active = player.current.id === track.id}
+			<TrackRow {active}>
 				<TrackTitleCell
 					trackId={track.id}
 					title={track.title}
 					artist={track.artist}
+					ownerUserId={track.ownerUserId}
 					explicit={track.isExplicit}
+					{active}
 					onClick={() => playFrom(i)}
 				>
 					{#snippet overlay()}

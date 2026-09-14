@@ -1,4 +1,5 @@
 using Mediator;
+using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
@@ -33,6 +34,40 @@ public static class UserEndpoints
             .WithSummary("Get A User'S Listening History.")
             .Produces<IEnumerable<TrackApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/listening-stats", GetListeningStats)
+            .WithName("GetListeningStats")
+            .WithSummary("Get A User'S Listening Stats For The Current Week And Streak.")
+            .Produces<ListeningStatsResponse>();
+
+        group.MapGet("/{id}/profile", GetUserProfile)
+            .WithName("GetUserProfile")
+            .WithSummary("Get A User'S Public Profile, Including Follower Counts.")
+            .Produces<UserProfileResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/is-following", IsFollowing)
+            .WithName("IsFollowingUser")
+            .WithSummary("Check Whether The Current User Follows Another User.")
+            .RequireAuthorization()
+            .Produces<bool>()
+            .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapPost("/{id}/follow", FollowUser)
+            .WithName("FollowUser")
+            .WithSummary("Follow A User.")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesValidationProblem();
+
+        group.MapDelete("/{id}/follow", UnfollowUser)
+            .WithName("UnfollowUser")
+            .WithSummary("Unfollow A User.")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/", CreateUser)
             .WithName("CreateUser")
@@ -71,6 +106,52 @@ public static class UserEndpoints
         CancellationToken cancellationToken)
     {
         return await mediator.Send(new GetListeningHistoryQuery(id), cancellationToken);
+    }
+
+    private static async Task<ListeningStatsResponse> GetListeningStats(
+        IMediator mediator,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(new GetListeningStatsQuery(id), cancellationToken);
+    }
+
+    private static async Task<IResult> GetUserProfile(
+        IMediator mediator,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetUserProfileQuery(id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<bool> IsFollowing(
+        IMediator mediator,
+        CurrentUser currentUser,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(new IsFollowingUserQuery(currentUser.RequiredId, id), cancellationToken);
+    }
+
+    private static async Task<IResult> FollowUser(
+        IMediator mediator,
+        CurrentUser currentUser,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new FollowUserCommand(currentUser.RequiredId, id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> UnfollowUser(
+        IMediator mediator,
+        CurrentUser currentUser,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new UnfollowUserCommand(currentUser.RequiredId, id), cancellationToken);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> CreateUser(

@@ -6,6 +6,7 @@
 	interface Props {
 		open: boolean;
 		onClose: () => void;
+		eyebrow?: string;
 		title?: string;
 		maxWidth?: string;
 		panelClass?: string;
@@ -15,9 +16,10 @@
 	let {
 		open,
 		onClose,
+		eyebrow,
 		title,
 		maxWidth = 'max-w-2xl',
-		panelClass = 'border border-line bg-elevated',
+		panelClass = '',
 		children
 	}: Props = $props();
 
@@ -74,16 +76,26 @@
 	>
 		<div
 			bind:this={panel}
-			class="animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 shadow-2xl outline-none sm:p-6 {panelClass}"
+			class="animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 shadow-2xl backdrop-blur-[22px] transition-[background] duration-[600ms] outline-none sm:p-6 {panelClass}"
+			style="background-color:var(--mf-panel-bg); background-image:var(--mf-modal-glow)"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}
 			tabindex="-1"
 		>
 			{#if title}
-				<div class="flex items-center justify-between">
-					<h2 class="text-lg font-semibold tracking-tight text-fg">{title}</h2>
-					<IconButton label="Cerrar" onclick={onClose}>
+				<div class="flex items-center justify-between gap-4">
+					<div class="min-w-0">
+						{#if eyebrow}
+							<p class="mb-2.5 text-xs font-semibold tracking-[0.1em] text-muted uppercase">
+								{eyebrow}
+							</p>
+						{/if}
+						<h2 class="font-display text-xl font-semibold tracking-[-0.02em] text-fg">
+							{title}
+						</h2>
+					</div>
+					<IconButton label="Cerrar" onclick={onClose} class="shrink-0">
 						<X class="h-4 w-4" />
 					</IconButton>
 				</div>

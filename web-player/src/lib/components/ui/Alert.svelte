@@ -11,10 +11,14 @@
 
 	const tones = {
 		neutral: 'border-line bg-surface text-fg-2',
-		danger: 'border-danger/40 bg-danger/10 text-danger-fg'
+		danger: 'border-danger/20 bg-danger/10 text-danger-fg'
 	};
 </script>
 
-<p class="rounded-control border px-4 py-3 text-base {tones[tone]} {klass}">
+<p
+	class="rounded-control border px-4 py-3 text-sm shadow-menu backdrop-blur-md {tones[
+		tone
+	]} {klass}"
+>
 	{@render children()}
 </p>

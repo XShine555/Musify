@@ -12,14 +12,15 @@
 </svelte:head>
 
 <div class="relative grid min-h-screen place-items-center overflow-hidden bg-bg px-6 text-fg">
-	<div
-		class="pointer-events-none absolute inset-0"
-		style="background:radial-gradient(ellipse 46rem 28rem at 50% 36%, color-mix(in oklch, var(--color-accent), transparent 82%), transparent 70%)"
-	></div>
+	<div class="pointer-events-none absolute inset-0" style="background:var(--mf-ambient)"></div>
 
 	<div class="relative flex w-full max-w-4xl flex-col items-center gap-12 text-center">
-		<div class="font-display text-[clamp(1.5rem,3vw,2.5rem)] font-semibold tracking-tight">
-			Musify
+		<div class="flex items-center gap-3">
+			<span class="h-8 w-8 rounded-xl bg-[image:var(--mf-logo-grad)] shadow-[var(--mf-logo-glow)]"
+			></span>
+			<span class="font-display text-[clamp(1.5rem,3vw,2.5rem)] font-semibold tracking-tight">
+				Musify
+			</span>
 		</div>
 
 		<div class="animate-enter flex flex-col items-center gap-5">
@@ -39,7 +40,7 @@
 			<Button
 				href={`/auth/login?mode=register&${returnParam}`}
 				reload
-				variant="subtle"
+				variant="secondary"
 				size="lg"
 				class="w-full"
 			>

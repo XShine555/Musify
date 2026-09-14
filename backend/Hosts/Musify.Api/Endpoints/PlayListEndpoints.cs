@@ -120,10 +120,11 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> GetPlayListById(
         IMediator mediator,
+        CurrentUser currentUser,
         Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetPlayListByIdQuery(id), cancellationToken);
+        var result = await mediator.Send(new GetPlayListByIdQuery(id, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -133,9 +134,10 @@ public static class PlayListEndpoints
         CancellationToken cancellationToken,
         string? name,
         int pageNumber = 1,
-        int pageSize = 10)
+        int pageSize = 10,
+        bool onlyPublic = false)
     {
-        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize, onlyPublic), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -175,7 +177,7 @@ public static class PlayListEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId),
+            new CreatePlayListCommand(currentUser.RequiredId, request.Name, request.Description, request.PictureIntentId, request.Visibility),
             cancellationToken);
 
         return result.ToCreatedResult(playList => $"/playlists/{playList.Id}");
@@ -189,7 +191,7 @@ public static class PlayListEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new UpdatePlayListCommand(currentUser.RequiredId, playlistId, request.NewName, request.NewDescription, request.NewPictureIntentId),
+            new UpdatePlayListCommand(currentUser.RequiredId, playlistId, request.NewName, request.NewDescription, request.NewPictureIntentId, request.NewVisibility),
             cancellationToken);
 
         return result.ToHttpResult();

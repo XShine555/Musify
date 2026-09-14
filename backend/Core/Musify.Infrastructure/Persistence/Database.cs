@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using MassTransit;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Sagas;
 using AppIDatabase = Musify.Application.Contracts.IDatabase;
@@ -89,6 +90,10 @@ namespace Musify.Infrastructure.Persistence
                 .IsUnique();
 
             modelBuilder.Entity<PlayList>()
+                .Property(playList => playList.Visibility)
+                .HasDefaultValue(PlaylistVisibility.Private);
+
+            modelBuilder.Entity<PlayList>()
                 .OwnsOne(playList => playList.Pictures, pictures =>
                 {
                     pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
@@ -159,6 +164,26 @@ namespace Musify.Infrastructure.Persistence
             modelBuilder.Entity<MixItem>()
                 .HasIndex(item => new { item.MixId, item.Position });
 
+            modelBuilder.Entity<TrackLike>()
+                .HasIndex(like => new { like.UserId, like.TrackId })
+                .IsUnique();
+
+            modelBuilder.Entity<UserFollow>()
+                .HasOne(follow => follow.Follower)
+                .WithMany()
+                .HasForeignKey(follow => follow.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollow>()
+                .HasOne(follow => follow.Followed)
+                .WithMany()
+                .HasForeignKey(follow => follow.FollowedId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollow>()
+                .HasIndex(follow => new { follow.FollowerId, follow.FollowedId })
+                .IsUnique();
+
             var playListProcessing = modelBuilder.Entity<PlayListProcessingState>();
             playListProcessing.HasKey(state => state.CorrelationId);
             playListProcessing.Property(state => state.CorrelationId).ValueGeneratedNever();
@@ -205,6 +230,10 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<UploadIntent> UploadIntents => Set<UploadIntent>();
 
         public DbSet<ListeningHistory> ListeningHistories => Set<ListeningHistory>();
+
+        public DbSet<TrackLike> TrackLikes => Set<TrackLike>();
+
+        public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 
         public async Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken)
         {

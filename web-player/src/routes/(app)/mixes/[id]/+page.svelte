@@ -67,12 +67,15 @@
 <Page>
 	<BackLink href="/" label="Volver al inicio" />
 
-	<div class="mt-5 flex flex-col gap-5 sm:mt-6 sm:flex-row sm:items-end sm:gap-6">
-		<MixArt {items} class="h-36 w-36 shrink-0 rounded-art-lg shadow-art-lg sm:h-44 sm:w-44" />
+	<div class="mt-3 flex flex-col gap-5 sm:mt-4 sm:flex-row sm:items-end sm:gap-6">
+		<MixArt
+			{items}
+			class="h-36 w-36 shrink-0 rounded-[18px] shadow-[0_24px_56px_rgba(0,0,0,.55)] sm:h-41 sm:w-41"
+		/>
 		<div class="min-w-0 flex-1">
-			<p class="text-sm tracking-[0.14em] text-fg-3 uppercase">Mezcla</p>
+			<p class="text-[10.5px] font-semibold tracking-[0.16em] text-fg-2 uppercase">Mezcla</p>
 			<h1
-				class="mt-1.5 font-display text-3xl font-semibold tracking-tight break-words text-fg sm:text-5xl md:text-7xl"
+				class="mt-1.5 font-display text-[28px] font-semibold tracking-[-0.035em] break-words text-fg sm:text-[33px]"
 			>
 				{mix.title}
 			</h1>
@@ -89,10 +92,10 @@
 	<div class="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-7">
 		<Button size="sm" onclick={playAll} disabled={queue.length === 0}>
 			{#if isCurrentQueue && player.playing}
-				<Pause class="h-4 w-4" fill="currentColor" strokeWidth={1.5} />
+				<Pause class="h-4 w-4" strokeWidth={1.5} />
 				Pausar
 			{:else}
-				<Play class="h-4 w-4" fill="currentColor" strokeWidth={1.5} />
+				<Play class="h-4 w-4" strokeWidth={1.5} />
 				Reproducir
 			{/if}
 		</Button>
@@ -108,19 +111,16 @@
 
 	<TrackTable index class="mt-6 sm:mt-8">
 		{#each items as item, i (mixItemKey(item))}
-			<TrackRow oncontextmenu={(e) => (contextMenu = contextMenuStateFor(e, targets[i]))}>
-				<TrackIndexCell
-					index={i}
-					active={isTargetCurrent(targets[i])}
-					playing={player.playing}
-					onToggle={() => playFrom(i)}
-				/>
+			{@const active = isTargetCurrent(targets[i])}
+			<TrackRow {active} oncontextmenu={(e) => (contextMenu = contextMenuStateFor(e, targets[i]))}>
+				<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
 				<TrackTitleCell
 					trackId={targetId(targets[i])}
 					title={targetTitle(targets[i])}
 					artist={targetArtist(targets[i])}
 					coverSrc={targetCoverSrc(targets[i])}
 					explicit={item.isExplicit}
+					{active}
 					onClick={() => playFrom(i)}
 				/>
 				<TrackMeta>{fmtTime(Number(item.durationSeconds))}</TrackMeta>

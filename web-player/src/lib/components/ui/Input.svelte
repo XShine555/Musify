@@ -52,7 +52,7 @@
 		{autocomplete}
 		{oninput}
 		bind:value
-		class="w-full rounded-control border border-line bg-surface py-3 text-base text-fg transition placeholder:text-muted focus:border-accent/60 focus:outline-none {Icon
+		class="w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-muted focus:bg-surface-2 focus:outline-none {Icon
 			? 'pr-4 pl-11'
 			: 'px-4'} {klass}"
 	/>

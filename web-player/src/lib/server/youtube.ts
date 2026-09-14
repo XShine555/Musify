@@ -1,7 +1,7 @@
 import type { createApiClient } from '$lib/server/api';
 import type { YouTubeAlbumResult, YouTubeSong } from '$lib/types';
 
-const YOUTUBE_FILLER_QUERIES = [
+export const YOUTUBE_FILLER_QUERIES = [
 	'pop',
 	'rock',
 	'reggaeton',

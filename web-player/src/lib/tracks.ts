@@ -22,6 +22,10 @@ export function targetArtist(target: TrackTarget): string | undefined {
 	return (target.kind === 'youtube' ? target.song.artist : target.track.artist) ?? undefined;
 }
 
+export function targetOwnerUserId(target: TrackTarget): string | number | undefined {
+	return target.kind === 'youtube' ? undefined : (target.track.ownerUserId ?? undefined);
+}
+
 export function targetExplicit(target: TrackTarget): boolean {
 	return target.kind === 'youtube' ? target.song.isExplicit : (target.track.isExplicit ?? false);
 }
@@ -76,7 +80,8 @@ export function targetForQueueItem(item: QueueItem): TrackTarget {
 					title: item.title,
 					artist: item.artist,
 					source: 'Local',
-					isExplicit: item.explicit
+					isExplicit: item.explicit,
+					ownerUserId: item.ownerUserId
 				}
 			};
 }

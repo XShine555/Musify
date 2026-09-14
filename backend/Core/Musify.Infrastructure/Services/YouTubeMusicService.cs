@@ -13,8 +13,8 @@ namespace Musify.Infrastructure.Services
 {
     public class YouTubeMusicService(YouTubeConfiguration configuration, IMemoryCache cache, ILogger<YouTubeMusicService> logger) : IYouTubeMusicService
     {
-        private readonly YouTubeMusicClient client = new(geographicalLocation: configuration.GeographicalLocation);
-        private readonly SingleFlightCache singleFlight = new(cache);
+        private readonly YouTubeMusicClient client = new YouTubeMusicClient(geographicalLocation: configuration.GeographicalLocation);
+        private readonly SingleFlightCache singleFlight = new SingleFlightCache(cache);
 
         private sealed record CachedStreamInfo(string Url, DateTime ExpiresAtUtc);
 
@@ -89,7 +89,7 @@ namespace Musify.Infrastructure.Services
                     song.IsExplicit,
                     song.Artists
                         .Select(artist => new YouTubeArtistRef(
-                            string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                            string.IsNullOrEmpty(artist.Id)? null: artist.Id,
                             artist.Name))
                         .ToList()))
                 .ToList();
@@ -147,7 +147,7 @@ namespace Musify.Infrastructure.Services
                     info.IsEp,
                     info.Artists
                         .Select(artist => new YouTubeArtistRef(
-                            string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                            string.IsNullOrEmpty(artist.Id)? null: artist.Id,
                             artist.Name))
                         .ToList());
 
@@ -203,7 +203,7 @@ namespace Musify.Infrastructure.Services
         {
             var now = DateTime.UtcNow;
             if (cache.TryGetValue(StreamCacheKey(videoId), out CachedStreamInfo? cached)
-                && cached is not null
+                && cached != null
                 && cached.ExpiresAtUtc > now)
             {
                 return new YouTubeStreamInfo(cached.Url, (int)(cached.ExpiresAtUtc - now).TotalSeconds);
@@ -267,7 +267,7 @@ namespace Musify.Infrastructure.Services
                     info.IsExplicit,
                     info.Artists
                         .Select(artist => new YouTubeArtistRef(
-                            string.IsNullOrEmpty(artist.Id) ? null : artist.Id,
+                            string.IsNullOrEmpty(artist.Id)? null: artist.Id,
                             artist.Name))
                         .ToList());
             }
@@ -291,8 +291,7 @@ namespace Musify.Infrastructure.Services
             var chosen = candidates.FirstOrDefault(thumbnail => thumbnail.Width >= configuration.ThumbnailSize)
                 ?? candidates.LastOrDefault();
 
-            return chosen is null
-                ? string.Empty
+            return chosen ==null? string.Empty
                 : YouTubeThumbNailHelper.WithSize(chosen.Url, configuration.ThumbnailSize);
         }
 

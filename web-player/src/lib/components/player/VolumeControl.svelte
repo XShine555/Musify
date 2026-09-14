@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
+	import Volume2 from '@lucide/svelte/icons/volume-2';
 
 	function handleVolumeChange(event: Event) {
 		const target = event.currentTarget as HTMLInputElement;
-		const newVolume = Number(target.value);
-		player.setVolume(newVolume);
+		player.setVolume(Number(target.value));
 	}
 </script>
 
-<div class="flex items-center justify-end gap-3.5">
+<div class="flex items-center gap-2.25">
+	<Volume2 class="h-[15px] w-[15px] shrink-0 text-fg-3" strokeWidth={1.8} />
 	<input
 		type="range"
 		min="0"
@@ -17,7 +18,7 @@
 		oninput={handleVolumeChange}
 		aria-label="Volumen"
 		class="mf-volume"
-		style="background:linear-gradient(to right, var(--color-accent-soft) {player.volume}%, var(--color-track) {player.volume}%)"
+		style="background:linear-gradient(to right, var(--mf-text-2) {player.volume}%, var(--mf-track) {player.volume}%)"
 	/>
 </div>
 
@@ -25,8 +26,8 @@
 	.mf-volume {
 		-webkit-appearance: none;
 		appearance: none;
-		width: 80px;
-		height: 4px;
+		width: 84px;
+		height: 3.5px;
 		border-radius: 100px;
 		outline: none;
 		cursor: pointer;
@@ -34,17 +35,17 @@
 	.mf-volume::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
-		width: 12px;
-		height: 12px;
+		width: 11px;
+		height: 11px;
 		border-radius: 50%;
-		background: var(--color-fg);
+		background: var(--mf-text);
 		cursor: pointer;
 	}
 	.mf-volume::-moz-range-thumb {
-		width: 12px;
-		height: 12px;
+		width: 11px;
+		height: 11px;
 		border-radius: 50%;
-		background: var(--color-fg);
+		background: var(--mf-text);
 		border: none;
 		cursor: pointer;
 	}

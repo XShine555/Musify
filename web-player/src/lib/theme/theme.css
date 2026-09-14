@@ -1,39 +1,150 @@
 :root {
-	--mf-bg: oklch(12.5% 0.004 95);
-	--mf-elevated: oklch(16% 0.005 95);
+	/* Dynamic tokens: overwritten at runtime from the playing track's hue.
+	   These are the fallback values for the default accent (hue 145) so the
+	   page never flashes unstyled before hydration. See theme/tokens.ts. */
+	--mf-bg: oklch(0.068 0.008 145);
+	--mf-elevated: oklch(0.11 0.012 145);
+	--mf-sidebar-bg: linear-gradient(180deg, oklch(0.095 0.012 145), oklch(0.068 0.007 145));
+	--mf-panel-bg: oklch(0.09 0.01 145 / 0.28);
+	--mf-bar-bg: oklch(0.105 0.012 145 / 0.9);
+	--mf-hairline: oklch(0.62 0.03 145 / 0.08);
+	--mf-ambient:
+		radial-gradient(52% 38% at 14% 0%, oklch(0.2611 0.0913 145 / 0.26), transparent 54%),
+		radial-gradient(46% 34% at 78% 0%, oklch(0.2347 0.085 145 / 0.2), transparent 56%);
+	--mf-hero-bg: linear-gradient(
+		105deg,
+		oklch(0.2295 0.0838 145 / 0.34) 0%,
+		oklch(0.1558 0.0663 145 / 0.11) 37%,
+		oklch(0.1084 0.055 145 / 0.03) 65%,
+		rgba(6, 6, 9, 0) 92%
+	);
+	--mf-spotlight-bg: linear-gradient(
+		100deg,
+		oklch(0.2189 0.0813 145 / 0.28) 0%,
+		oklch(0.1453 0.0638 145 / 0.1) 40%,
+		oklch(0.1084 0.055 145 / 0.03) 69%,
+		rgba(6, 6, 9, 0) 96%
+	);
+	--mf-modal-glow: linear-gradient(
+		135deg,
+		oklch(0.2295 0.0838 145 / 0.34) 0%,
+		oklch(0.1558 0.0663 145 / 0.11) 28%,
+		oklch(0.1084 0.055 145 / 0.03) 50%,
+		rgba(6, 6, 9, 0) 70%
+	);
+	--mf-logo-grad: linear-gradient(140deg, oklch(0.78 0.15 145), oklch(0.62 0.13 185) 92%);
+	--mf-logo-glow: 0 0 20px oklch(0.74 0.145 145 / 0.3);
+	--mf-cover-grad: linear-gradient(150deg, oklch(0.5 0.13 145), oklch(0.16 0.035 145));
 
-	--mf-text: oklch(93% 0.004 95);
-	--mf-text-2: oklch(78% 0.006 95);
-	--mf-text-3: oklch(62% 0.007 95);
-	--mf-text-4: oklch(46% 0.006 95);
-
-	--mf-surface: oklch(15.5% 0.005 95);
-	--mf-surface-2: rgba(255, 255, 255, 0.05);
-	--mf-surface-hover: rgba(255, 255, 255, 0.08);
-
-	--mf-border: rgba(255, 255, 255, 0.07);
-	--mf-border-strong: rgba(255, 255, 255, 0.13);
-	--mf-track: rgba(255, 255, 255, 0.12);
-
-	--mf-accent: oklch(60% 0.1 145);
-	--mf-accent-soft: color-mix(in oklch, var(--mf-accent) 80%, transparent);
+	--mf-accent: oklch(0.74 0.145 145);
+	--mf-accent-title: oklch(0.87 0.07 145);
+	--mf-accent-muted: oklch(0.79 0.035 145);
+	--mf-accent-soft-bg: oklch(0.74 0.145 145 / 0.08);
+	--mf-accent-line: oklch(0.74 0.145 145 / 0.2);
+	--mf-accent-hair: oklch(0.74 0.145 145 / 0.09);
+	--mf-accent-btn-bg: oklch(0.74 0.145 145 / 0.15);
+	--mf-accent-btn-bg-hover: oklch(0.74 0.145 145 / 0.24);
 	--mf-accent-glow: color-mix(in oklch, var(--mf-accent) 45%, transparent);
 	--mf-accent-dim: color-mix(in oklch, var(--mf-accent) 22%, transparent);
 
+	/* Fixed neutrals: deliberately hue-less, so only the accent carries color. */
+	--mf-text: #d9d8dc;
+	--mf-text-2: #8a8a8e;
+	--mf-text-3: #7d7d81;
+	--mf-text-4: #646468;
+
+	--mf-surface: rgba(255, 255, 255, 0.022);
+	--mf-surface-2: rgba(255, 255, 255, 0.045);
+	--mf-surface-hover: rgba(255, 255, 255, 0.06);
+
+	--mf-border: rgba(255, 255, 255, 0.04);
+	--mf-border-strong: rgba(255, 255, 255, 0.09);
+	--mf-track: rgba(255, 255, 255, 0.09);
+
 	--mf-scrim: #000000;
 	--mf-on-art: #fefdfb;
+	--mf-ink: #0a0a0d;
+	--mf-cta-strong-bg: #ffffff;
 
 	--mf-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
-	--mf-sidebar-w: 288px;
-	--mf-nav-h: 60px;
-	--mf-player-h: 64px;
+	--mf-sidebar-w: 254px;
+	--mf-queue-w: 304px;
+	--mf-nav-h: 66px;
+	--mf-player-h: 78px;
 	--mf-safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-@media (width >= 48rem) {
+/* PlayerBar switches from its compact row to the full layout at `sm` (640px). */
+@media (width >= 40rem) {
+	:root {
+		--mf-player-h: 100px;
+	}
+}
+
+/* TabsBar (mobile/tablet nav) is replaced by the Sidebar at `lg` (1024px). */
+@media (width >= 64rem) {
 	:root {
 		--mf-nav-h: 0px;
-		--mf-player-h: 92px;
 	}
+}
+
+@media (width < 73.75rem) {
+	:root {
+		--mf-queue-w: 258px;
+	}
+}
+
+/* "Modo blanco" — flips the neutral canvas/surface/text tokens to a light
+   palette. Components that reference these tokens re-theme correctly;
+   components hardcoding literal dark-mode hex colors do not. */
+:root[data-theme='light'] {
+	--mf-bg: oklch(0.97 0.006 90);
+	--mf-elevated: oklch(0.99 0.003 90);
+	--mf-sidebar-bg: linear-gradient(180deg, oklch(0.985 0.004 90), oklch(0.965 0.006 90));
+	--mf-panel-bg: oklch(0.97 0.006 90 / 0.7);
+	--mf-bar-bg: oklch(0.97 0.006 90 / 0.9);
+	--mf-hairline: rgba(0, 0, 0, 0.08);
+
+	--mf-text: #17171a;
+	--mf-text-2: #4a4a4e;
+	--mf-text-3: #6b6b6f;
+	--mf-text-4: #8c8c90;
+
+	--mf-surface: rgba(0, 0, 0, 0.035);
+	--mf-surface-2: rgba(0, 0, 0, 0.06);
+	--mf-surface-hover: rgba(0, 0, 0, 0.08);
+
+	--mf-border: rgba(0, 0, 0, 0.08);
+	--mf-border-strong: rgba(0, 0, 0, 0.14);
+	--mf-track: rgba(0, 0, 0, 0.12);
+
+	--mf-scrim: #ffffff;
+	--mf-ink: #ffffff;
+	--mf-cta-strong-bg: #17171a;
+
+	--mf-ambient:
+		radial-gradient(52% 38% at 14% 0%, oklch(0.9 0.06 145 / 0.26), transparent 54%),
+		radial-gradient(46% 34% at 78% 0%, oklch(0.9121 0.0497 145 / 0.2), transparent 56%);
+	--mf-hero-bg: linear-gradient(
+		105deg,
+		oklch(0.9145 0.0476 145 / 0.34) 0%,
+		oklch(0.9483 0.0186 145 / 0.11) 37%,
+		oklch(0.97 0 145 / 0.03) 65%,
+		rgba(255, 255, 255, 0) 92%
+	);
+	--mf-spotlight-bg: linear-gradient(
+		100deg,
+		oklch(0.9193 0.0434 145 / 0.28) 0%,
+		oklch(0.9531 0.0145 145 / 0.1) 40%,
+		oklch(0.97 0 145 / 0.03) 69%,
+		rgba(255, 255, 255, 0) 96%
+	);
+	--mf-modal-glow: linear-gradient(
+		135deg,
+		oklch(0.9145 0.0476 145 / 0.34) 0%,
+		oklch(0.9483 0.0186 145 / 0.11) 28%,
+		oklch(0.97 0 145 / 0.03) 50%,
+		rgba(255, 255, 255, 0) 70%
+	);
 }

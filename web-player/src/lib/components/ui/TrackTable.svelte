@@ -29,7 +29,7 @@
 	const columns = $derived(
 		[
 			index ? '32px' : '',
-			'1fr',
+			'minmax(180px,1fr)',
 			...meta.map((column) => column.width),
 			'64px',
 			action ? '36px' : ''
@@ -39,7 +39,7 @@
 	);
 
 	const columnsMobile = $derived(
-		[index ? '28px' : '', '1fr', '52px', action ? '32px' : '']
+		[index ? '28px' : '', 'minmax(120px,1fr)', '52px', action ? '32px' : '']
 			.filter((width) => width !== '')
 			.join(' ')
 	);
@@ -54,9 +54,9 @@
 	});
 </script>
 
-<div class={klass}>
+<div class="overflow-x-auto {klass}">
 	<div
-		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-2 pl-2 text-sm font-medium tracking-wide text-muted uppercase sm:gap-8 sm:pr-6 sm:pl-3"
+		class="grid track-grid items-center gap-3 border-b border-white/5 pr-4 pb-3 pl-2 text-[10.5px] font-semibold tracking-[0.12em] text-muted uppercase sm:gap-8 sm:pr-6 sm:pl-3"
 		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{columnsMobile}"
 	>
 		{#if index}
@@ -71,7 +71,7 @@
 			<span></span>
 		{/if}
 	</div>
-	<div class="mt-1 flex flex-col">
+	<div class="mt-1 flex flex-col gap-0.5">
 		{@render children()}
 	</div>
 </div>

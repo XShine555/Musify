@@ -5,16 +5,18 @@
 	interface Props {
 		id: string;
 		name: string;
-		description?: string | null;
+		trackCount: number;
 		trackIds: (string | number)[];
 		updatedAt: string;
 		index?: number;
 	}
 
-	let { id, name, description, trackIds, updatedAt, index = 0 }: Props = $props();
+	let { id, name, trackCount, trackIds, updatedAt, index = 0 }: Props = $props();
+
+	const subtitle = $derived(`${trackCount} ${trackCount === 1 ? 'canción' : 'canciones'}`);
 </script>
 
-<MediaCard href="/playlists/{id}" title={name} subtitle={description} {index}>
+<MediaCard href="/playlists/{id}" title={name} {subtitle} {index}>
 	{#snippet art(artClass)}
 		<PlaylistArt playlistId={id} {trackIds} version={updatedAt} class={artClass} />
 	{/snippet}

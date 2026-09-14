@@ -18,7 +18,8 @@ namespace Musify.Application.PlayLists
         Guid PlayListId,
         string? NewName,
         string? NewDescription,
-        Guid? NewPictureIntentId)
+        Guid? NewPictureIntentId,
+        PlaylistVisibility? NewVisibility = null)
         : ICommand<ErrorOr<PlayListApplicationResponse>>;
 
     public class UpdatePlayListCommandHandler(
@@ -55,6 +56,11 @@ namespace Musify.Application.PlayLists
             if (!string.IsNullOrWhiteSpace(request.NewDescription))
             {
                 playListEntity.Description = request.NewDescription;
+            }
+
+            if (request.NewVisibility.HasValue)
+            {
+                playListEntity.Visibility = request.NewVisibility.Value;
             }
 
             UploadIntent? pictureIntent = null;

@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.PlayLists.Responses;
 using Mediator;
 using Musify.Application.Contracts;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists
 {
-    public record GetPlayListByIdQuery(Guid Id)
+    public record GetPlayListByIdQuery(Guid Id, long? RequestingUserId = null)
         : IQuery<ErrorOr<PlayListApplicationResponse>>;
 
     public class GetPlayListByIdQueryHandler(IDatabase database)
@@ -29,6 +30,10 @@ namespace Musify.Application.PlayLists
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (entry is null)
+                return Error.NotFound();
+
+            if (entry.PlayList.Visibility == PlaylistVisibility.Private
+                && entry.PlayList.UserId != request.RequestingUserId)
                 return Error.NotFound();
 
             return PlayListApplicationResponse.FromEntity(entry.PlayList, entry.CoverTrackIds);

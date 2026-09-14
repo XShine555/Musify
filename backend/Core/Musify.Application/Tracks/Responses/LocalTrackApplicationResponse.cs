@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using Musify.Application.Serialization;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
@@ -12,7 +14,7 @@ namespace Musify.Application.Tracks.Responses
         int ListensCount,
         DateTime CreatedAt,
         DateTime UpdatedAt,
-        long OwnerUserId)
+        [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId)
         : TrackApplicationResponse(Id, Title, Artist, AudioStatus, Duration, ListensCount, CreatedAt, UpdatedAt)
     {
         public static LocalTrackApplicationResponse FromEntity(LocalTrack track, int listensCount) =>

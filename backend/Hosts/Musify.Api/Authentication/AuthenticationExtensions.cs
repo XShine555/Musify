@@ -18,6 +18,7 @@ public static class AuthenticationExtensions
             serviceProvider.GetRequiredService<IOptions<AuthenticationConfiguration>>().Value);
 
         services.AddMemoryCache();
+        services.AddHttpClient();
         services.AddScoped<JwtBearerEventsHandler>();
         services.ConfigureOptions<JwtBearerOptionsSetup>();
 

@@ -126,6 +126,26 @@ namespace Musify.Application.Tests.TestSupport
 
             modelBuilder.Entity<MixItem>()
                 .HasIndex(item => new { item.MixId, item.Position });
+
+            modelBuilder.Entity<TrackLike>()
+                .HasIndex(like => new { like.UserId, like.TrackId })
+                .IsUnique();
+
+            modelBuilder.Entity<UserFollow>()
+                .HasOne(follow => follow.Follower)
+                .WithMany()
+                .HasForeignKey(follow => follow.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollow>()
+                .HasOne(follow => follow.Followed)
+                .WithMany()
+                .HasForeignKey(follow => follow.FollowedId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFollow>()
+                .HasIndex(follow => new { follow.FollowerId, follow.FollowedId })
+                .IsUnique();
         }
 
         public DbSet<User> Users => Set<User>();
@@ -163,6 +183,10 @@ namespace Musify.Application.Tests.TestSupport
         public DbSet<UploadIntent> UploadIntents => Set<UploadIntent>();
 
         public DbSet<ListeningHistory> ListeningHistories => Set<ListeningHistory>();
+
+        public DbSet<TrackLike> TrackLikes => Set<TrackLike>();
+
+        public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 
         public async Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken)
         {

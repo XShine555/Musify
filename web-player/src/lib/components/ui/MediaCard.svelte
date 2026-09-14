@@ -25,8 +25,8 @@
 	{oncontextmenu}
 >
 	{@render art(mediaCardArt)}
-	<div class="mt-2.5 truncate text-fg transition-colors group-hover:text-accent-soft">{title}</div>
+	<div class="mt-2.5 truncate text-sm font-medium text-fg">{title}</div>
 	{#if subtitle}
-		<div class="mt-0.5 truncate text-sm text-fg-3">{subtitle}</div>
+		<div class="mt-0.5 truncate text-[12.5px] text-fg-3">{subtitle}</div>
 	{/if}
 </a>

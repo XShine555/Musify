@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Musify.Api.Authentication;
+using Musify.Application.Serialization;
 
 namespace Musify.Api.OpenApi;
 
@@ -34,6 +35,24 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
                     },
                 },
             };
+
+            return Task.CompletedTask;
+        } );
+
+        // Properties annotated with [JsonConverter(typeof(LongAsStringConverter))] (id-shaped
+        // `long` fields — see that converter for why) serialize as a JSON string, but the
+        // schema generator still reflects the declared CLR `long`/`long?` type as a bare
+        // int64 number. Reconcile the declared schema so generated clients (openapi-typescript)
+        // type exactly those properties as `string`, matching what actually goes over the wire —
+        // scoped to the attribute, not the CLR type, so unrelated `long` fields (byte sizes, …)
+        // are left alone.
+        options.AddSchemaTransformer((schema, context, _) =>
+        {
+            if (context.JsonPropertyInfo?.CustomConverter is LongAsStringConverter or NullableLongAsStringConverter)
+            {
+                schema.Type = JsonSchemaType.String;
+                schema.Format = null;
+            }
 
             return Task.CompletedTask;
         } );

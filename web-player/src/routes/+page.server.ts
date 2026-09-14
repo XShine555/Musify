@@ -1,21 +1,14 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser } from '$lib/server/api';
-import { fetchYoutubeAlbumFiller, fetchYoutubeFiller } from '$lib/server/youtube';
+import { fetchYoutubeFiller } from '$lib/server/youtube';
+import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
 import {
-	addAlbumToPlaylistAction,
-	addTrackAction,
-	addYouTubeToPlaylistAction
-} from '$lib/server/playlistActions';
-import {
-	HOME_ALBUM_FILLER_LIMIT,
-	HOME_ALBUMS_LIMIT,
 	HOME_LATEST_PAGE_SIZE,
-	HOME_MIXES_BENTO,
+	HOME_MIXES_LIMIT,
 	HOME_POPULAR_FILLER_LIMIT,
 	HOME_SHELF_LIMIT,
-	HOME_TOP_MUSIC_FILLER_LIMIT,
-	YOUTUBE_FILLER_LIMIT
+	HOME_SPOTLIGHT_TRACKS_LIMIT
 } from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
 
@@ -34,18 +27,18 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 			query: { pageNumber: 1, pageSize: HOME_SHELF_LIMIT + 1 }
 		}
 	});
-	const albumsPromise = api.GET('/albums/recent', {
-		params: { query: { limit: HOME_ALBUMS_LIMIT } }
-	});
 	const mixesPromise = api.GET('/mixes');
 	const recentlyPlayedPromise = api.GET('/users/{id}/listening-history', {
 		params: { path: { id: user.sub } }
 	});
+	const listeningStatsPromise = api
+		.GET('/users/{id}/listening-stats', { params: { path: { id: user.sub } } })
+		.then((res) => res.data ?? { tracksThisWeek: 0, secondsThisWeek: 0, streakDays: 0 })
+		.catch(() => ({ tracksThisWeek: 0, secondsThisWeek: 0, streakDays: 0 }));
 
-	const [latest, playlists, albums, mixes, recentlyPlayed] = await Promise.all([
+	const [latest, playlists, mixes, recentlyPlayed] = await Promise.all([
 		latestPromise,
 		playlistsPromise,
-		albumsPromise,
 		mixesPromise,
 		recentlyPlayedPromise
 	]);
@@ -54,30 +47,32 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		item.track ? [item.track] : []
 	);
 
+	const spotlightPlaylist = playlistItems[0] ?? null;
+	const spotlightTracksPromise = spotlightPlaylist
+		? api
+				.GET('/playlists/{playlistId}/tracks', {
+					params: {
+						path: { playlistId: spotlightPlaylist.id },
+						query: { pageNumber: 1, pageSize: HOME_SPOTLIGHT_TRACKS_LIMIT }
+					}
+				})
+				.then((res) => ({
+					items: res.data?.items ?? [],
+					totalCount: Number(res.data?.totalItemCount ?? 0)
+				}))
+				.catch(() => ({ items: [], totalCount: 0 }))
+		: Promise.resolve({ items: [], totalCount: 0 });
+
 	return {
-		greeting: pickGreeting(new Date().getHours()),
+		greeting: pickGreeting(new Date()),
 		recentlyPlayed: recentlyPlayed.data ?? [],
-		albums: albums.data ?? [],
-		mixes: (mixes.data ?? []).slice(0, HOME_MIXES_BENTO),
+		mixes: (mixes.data ?? []).slice(0, HOME_MIXES_LIMIT),
 		playlists: playlistItems.slice(0, HOME_SHELF_LIMIT),
 		playlistsHasMore: playlistItems.length > HOME_SHELF_LIMIT,
 		newReleases: latestItems,
-		topMusicFiller: fetchYoutubeFiller(
-			api,
-			locals.accessToken,
-			HOME_TOP_MUSIC_FILLER_LIMIT,
-			undefined,
-			user.sub,
-			3
-		),
-		youtubeFiller: fetchYoutubeFiller(
-			api,
-			locals.accessToken,
-			YOUTUBE_FILLER_LIMIT,
-			undefined,
-			user.sub,
-			0
-		),
+		spotlightPlaylist,
+		spotlightTracks: spotlightTracksPromise,
+		listeningStats: listeningStatsPromise,
 		popularFiller: fetchYoutubeFiller(
 			api,
 			locals.accessToken,
@@ -85,20 +80,11 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 			undefined,
 			user.sub,
 			1
-		),
-		albumFiller: fetchYoutubeAlbumFiller(
-			api,
-			locals.accessToken,
-			HOME_ALBUM_FILLER_LIMIT,
-			undefined,
-			user.sub,
-			2
 		)
 	};
 };
 
 export const actions: Actions = {
 	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction,
-	addAlbumToPlaylist: addAlbumToPlaylistAction
+	addYouTubeToPlaylist: addYouTubeToPlaylistAction
 };

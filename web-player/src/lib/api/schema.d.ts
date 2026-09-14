@@ -194,6 +194,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/likes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Current User'S Liked Tracks. */
+        get: operations["GetLikedTracks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/likes/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Like Or Unlike A Track, By Id Or By External Source, Provisioning It In The Background If Needed. */
+        post: operations["ToggleTrackLike"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/mixes": {
         parameters: {
             query?: never;
@@ -556,6 +590,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{id}/listening-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get A User'S Listening Stats For The Current Week And Streak. */
+        get: operations["GetListeningStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get A User'S Public Profile, Including Follower Counts. */
+        get: operations["GetUserProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/is-following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check Whether The Current User Follows Another User. */
+        get: operations["IsFollowingUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow A User. */
+        post: operations["FollowUser"];
+        /** Unfollow A User. */
+        delete: operations["UnfollowUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -576,8 +679,7 @@ export interface components {
             description: null | string;
             /** Format: int32 */
             releaseYear: null | number | string;
-            /** Format: int64 */
-            ownerUserId: number | string;
+            ownerUserId: string;
             /** Format: int32 */
             trackCount: number | string;
             smallImageKeyName: null | string;
@@ -600,8 +702,7 @@ export interface components {
             description: null | string;
             /** Format: int32 */
             releaseYear: null | number | string;
-            /** Format: int64 */
-            ownerUserId: number | string;
+            ownerUserId: string;
             /** Format: int32 */
             trackCount: number | string;
             smallImageKeyName: null | string;
@@ -658,6 +759,7 @@ export interface components {
             description: null | string;
             /** Format: uuid */
             pictureIntentId: null | string;
+            visibility?: components["schemas"]["PlaylistVisibility"];
         };
         CreateTrackRequest: {
             title: string;
@@ -683,6 +785,14 @@ export interface components {
             errors?: {
                 [key: string]: string[];
             };
+        };
+        ListeningStatsResponse: {
+            /** Format: int32 */
+            tracksThisWeek: number | string;
+            /** Format: int32 */
+            secondsThisWeek: number | string;
+            /** Format: int32 */
+            streakDays: number | string;
         };
         MixApplicationResponse: {
             /** Format: uuid */
@@ -772,6 +882,7 @@ export interface components {
             smallImageKeyName: null | string;
             mediumImageKeyName: null | string;
             largeImageKeyName: null | string;
+            visibility: components["schemas"]["PlaylistVisibility"];
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -789,6 +900,8 @@ export interface components {
             expiresInSeconds: number | string;
             uploadUrl: string;
         };
+        /** @enum {unknown} */
+        PlaylistVisibility: "Private" | "Public";
         /** @enum {unknown} */
         ProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed";
         RequestAlbumPictureUploadRequest: {
@@ -813,6 +926,12 @@ export interface components {
             /** Format: int64 */
             expectedAudioSizeBytes?: null | number | string;
         };
+        ToggleLikeRequest: {
+            /** Format: uuid */
+            trackId: null | string;
+            source: null | components["schemas"]["TrackSource"];
+            externalId: null | string;
+        };
         TrackApplicationResponse: components["schemas"]["TrackApplicationResponseLocalTrackApplicationResponse"] | components["schemas"]["TrackApplicationResponseExternalTrackApplicationResponse"];
         TrackApplicationResponseExternalTrackApplicationResponse: {
             /** @enum {string} */
@@ -835,8 +954,7 @@ export interface components {
         TrackApplicationResponseLocalTrackApplicationResponse: {
             /** @enum {string} */
             source?: "Local";
-            /** Format: int64 */
-            ownerUserId: number | string;
+            ownerUserId: string;
             /** Format: uuid */
             id: string;
             title: string;
@@ -910,10 +1028,10 @@ export interface components {
             newDescription: null | string;
             /** Format: uuid */
             newPictureIntentId: null | string;
+            newVisibility?: null | components["schemas"]["PlaylistVisibility"];
         };
         UserApplicationResponse: {
-            /** Format: int64 */
-            id: number | string;
+            id: string;
             name: string;
             firstName: null | string;
             secondName: null | string;
@@ -922,6 +1040,19 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        UserProfileResponse: {
+            id: string;
+            name: string;
+            firstName: null | string;
+            secondName: null | string;
+            profilePictureUrl: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: int32 */
+            followersCount: number | string;
+            /** Format: int32 */
+            followingCount: number | string;
         };
         YouTubeAlbumDetail: {
             album: components["schemas"]["YouTubeAlbumResult"];
@@ -1465,6 +1596,83 @@ export interface operations {
             };
         };
     };
+    GetLikedTracks: {
+        parameters: {
+            query?: {
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfTrackApplicationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ToggleTrackLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToggleLikeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetMixes: {
         parameters: {
             query?: never;
@@ -1633,6 +1841,7 @@ export interface operations {
                 name?: string;
                 pageNumber?: number | string;
                 pageSize?: number | string;
+                onlyPublic?: boolean;
             };
             header?: never;
             path: {
@@ -2388,6 +2597,156 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetListeningStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListeningStatsResponse"];
+                };
+            };
+        };
+    };
+    GetUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IsFollowingUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FollowUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UnfollowUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

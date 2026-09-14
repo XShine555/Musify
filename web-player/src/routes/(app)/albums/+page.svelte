@@ -35,7 +35,7 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<MediaGrid class="mt-9">
+		<MediaGrid class="mt-7 sm:mt-8">
 			{#each items as album, i (album.id)}
 				<AlbumCard
 					id={album.id}
@@ -55,10 +55,7 @@
 			description="Crea el primero y añádele las canciones que hayas subido."
 		>
 			{#snippet actions()}
-				<Button onclick={() => (creating = true)}>
-					<Plus class="h-4 w-4" strokeWidth={2} />
-					Crear álbum
-				</Button>
+				<Button onclick={() => (creating = true)}>Crear álbum</Button>
 			{/snippet}
 		</EmptyState>
 	{/if}

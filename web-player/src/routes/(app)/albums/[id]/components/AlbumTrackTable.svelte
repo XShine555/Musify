@@ -31,18 +31,16 @@
 
 <TrackTable index action={isOwner} class="mt-6 sm:mt-8">
 	{#each tracks as track, i (track.id)}
-		<TrackRow>
-			<TrackIndexCell
-				index={i}
-				active={player.current.id === queueIdForTrack(track)}
-				playing={player.playing}
-				onToggle={() => playFrom(i)}
-			/>
+		{@const active = player.current.id === queueIdForTrack(track)}
+		<TrackRow {active}>
+			<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
 			<TrackTitleCell
 				trackId={track.id}
 				title={track.title}
 				artist={track.artist}
+				ownerUserId={track.ownerUserId}
 				explicit={track.isExplicit}
+				{active}
 				onClick={() => playFrom(i)}
 			/>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>

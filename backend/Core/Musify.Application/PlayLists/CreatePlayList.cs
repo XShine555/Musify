@@ -17,7 +17,8 @@ namespace Musify.Application.PlayLists
         long UserId,
         string Name,
         string? Description,
-        Guid? PictureIntentId)
+        Guid? PictureIntentId,
+        PlaylistVisibility Visibility = PlaylistVisibility.Private)
         : ICommand<ErrorOr<PlayListApplicationResponse>>;
 
     public class CreatePlayListCommandHandler(
@@ -55,7 +56,8 @@ namespace Musify.Application.PlayLists
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
                 Description = string.IsNullOrWhiteSpace(request.Description)? null: request.Description.Trim(),
-                Pictures = resolvedPictures.Pictures
+                Pictures = resolvedPictures.Pictures,
+                Visibility = request.Visibility
             };
             await database.PlayLists.AddAsync(playList, cancellationToken);
 

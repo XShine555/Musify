@@ -31,23 +31,29 @@
 	}
 </script>
 
-<TrackTable index action meta={[{ label: 'Añadida', width: '140px' }]} class="mt-6 sm:mt-8">
+<TrackTable
+	index
+	action
+	meta={[
+		{ label: 'Álbum', width: '160px' },
+		{ label: 'Añadida', width: '140px' }
+	]}
+	class="mt-6 sm:mt-8"
+>
 	{#each tracks as track, i (track.id)}
-		<TrackRow>
-			<TrackIndexCell
-				index={i}
-				active={player.current.id === queueIdForTrack(track)}
-				playing={player.playing}
-				onToggle={() => playFrom(i)}
-			/>
+		{@const active = player.current.id === queueIdForTrack(track)}
+		<TrackRow {active}>
+			<TrackIndexCell index={i} playing={player.playing} onToggle={() => playFrom(i)} {active} />
 			<TrackTitleCell
 				trackId={track.id}
 				title={track.title}
 				artist={track.artist}
+				ownerUserId={track.ownerUserId}
 				coverSrc={isPendingYouTubeTrack(track) && track.externalId
 					? youTubeThumbnailUrl(track.externalId)
 					: undefined}
 				explicit={track.isExplicit}
+				{active}
 				onClick={() => playFrom(i)}
 			>
 				{#snippet badge()}
@@ -58,6 +64,7 @@
 					{/if}
 				{/snippet}
 			</TrackTitleCell>
+			<TrackMeta class="hidden sm:block">—</TrackMeta>
 			<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 			<form

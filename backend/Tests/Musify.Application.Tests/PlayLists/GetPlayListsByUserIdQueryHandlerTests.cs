@@ -28,6 +28,22 @@ namespace Musify.Application.Tests.PlayLists
         }
 
         [Fact]
+        public async Task Handle_OnlyPublic_ReturnsOnlyPublicPlayLists()
+        {
+            var owner = TestEntities.User();
+            await SeedAsync(
+                owner,
+                TestEntities.PlayList(owner.Id, "Public one", visibility: PlaylistVisibility.Public),
+                TestEntities.PlayList(owner.Id, "Private one", visibility: PlaylistVisibility.Private));
+
+            var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, OnlyPublic: true), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            var playList = Assert.Single(result.Value.Items);
+            Assert.Equal("Public one", playList.Name);
+        }
+
+        [Fact]
         public async Task Handle_NameFilter_ReturnsOnlyMatchingPlayLists()
         {
             var owner = TestEntities.User();

@@ -27,26 +27,21 @@
 		></div>
 	</button>
 {:else}
-	<div class="flex w-full max-w-172 items-center gap-3">
-		<span class="text-right text-xs text-muted tabular-nums">
+	<div class="flex w-full max-w-135 items-center gap-2.75">
+		<span class="min-w-8 text-right text-[10.5px] text-fg-3 tabular-nums">
 			{fmtTime(player.progress)}
 		</span>
 		<button
 			type="button"
 			onclick={seek}
 			aria-label="Barra de progreso"
-			class="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-track"
+			class="group relative h-3.5 flex-1 cursor-pointer"
 		>
-			<div
-				class="absolute inset-y-0 left-0 rounded-full bg-accent/60 group-hover:brightness-110"
-				style="width:{player.progressPercent}%"
-			></div>
-			<span
-				class="pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-on-art opacity-0 shadow-[0_1px_4px_rgba(0,0,0,0.5)] transition-opacity duration-75 group-hover:opacity-100"
-				style="left:{player.progressPercent}%"
-			></span>
+			<div class="h-[3.5px] w-full overflow-hidden rounded-full bg-track">
+				<div class="h-full rounded-full bg-accent" style="width:{player.progressPercent}%"></div>
+			</div>
 		</button>
-		<span class="text-xs text-muted tabular-nums">
+		<span class="min-w-8 text-[10.5px] text-fg-3 tabular-nums">
 			{fmtTime(player.current.duration)}
 		</span>
 	</div>

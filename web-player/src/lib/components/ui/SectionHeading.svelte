@@ -3,24 +3,30 @@
 
 	interface Props {
 		title: string;
+		subtitle?: string;
 		class?: string;
 		actions?: Snippet;
 	}
 
-	let { title, class: klass = '', actions }: Props = $props();
+	let { title, subtitle, class: klass = '', actions }: Props = $props();
 </script>
 
+{#snippet heading()}
+	<h2 class="font-display text-[17.5px] font-semibold tracking-[-0.025em] text-fg">
+		{title}
+	</h2>
+	{#if subtitle}
+		<p class="mt-1.25 text-xs text-fg-3">{subtitle}</p>
+	{/if}
+{/snippet}
+
 {#if actions}
-	<div class="mb-4 flex items-end justify-between gap-4 sm:mb-5 {klass}">
-		<h2 class="font-display text-xl font-medium tracking-tight text-fg sm:text-[1.75rem]">
-			{title}
-		</h2>
+	<div class="mb-4 flex items-end justify-between gap-4 sm:mb-4.5 {klass}">
+		<div>{@render heading()}</div>
 		{@render actions()}
 	</div>
 {:else}
-	<h2
-		class="mb-4 font-display text-xl font-medium tracking-tight text-fg sm:mb-5 sm:text-[1.75rem] {klass}"
-	>
-		{title}
-	</h2>
+	<div class="mb-4 sm:mb-4.5 {klass}">
+		{@render heading()}
+	</div>
 {/if}

@@ -13,6 +13,7 @@ export interface PlayerTrack {
 	source: TrackSourceKind;
 	coverUrl?: string;
 	explicit?: boolean;
+	ownerUserId?: string | number | null;
 }
 
 export interface Playlist {
@@ -28,6 +29,7 @@ export interface QueueItem {
 	source?: TrackSourceKind;
 	coverUrl?: string;
 	explicit?: boolean;
+	ownerUserId?: string | number | null;
 }
 
 export interface ApiTrackLike {
@@ -38,6 +40,7 @@ export interface ApiTrackLike {
 	externalId?: string | null;
 	audioStatus?: 'Pending' | 'Processing' | 'Completed' | 'Failed';
 	isExplicit?: boolean;
+	ownerUserId?: string | number | null;
 }
 
 function isYouTubeTrack(track: ApiTrackLike): boolean {
@@ -69,7 +72,8 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 					? youTubeThumbnailUrl(track.externalId)
 					: `/api/tracks/${track.id}/cover?size=small`
 				: undefined,
-			explicit: track.isExplicit
+			explicit: track.isExplicit,
+			ownerUserId: youTube ? undefined : track.ownerUserId
 		};
 	});
 }
@@ -101,7 +105,8 @@ function toTrack(item: QueueItem): PlayerTrack {
 		duration: 0,
 		explicit: item.explicit,
 		source: item.source ?? 'local',
-		coverUrl: item.coverUrl
+		coverUrl: item.coverUrl,
+		ownerUserId: item.ownerUserId
 	};
 }
 
@@ -115,6 +120,8 @@ class PlayerState {
 	error = $state('');
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
+	shuffle = $state(false);
+	repeat = $state(false);
 
 	accentColor = $state<string | null>(null);
 
@@ -154,6 +161,11 @@ class PlayerState {
 		});
 		audio.addEventListener('ended', () => {
 			this.#stopProgressLoop();
+			if (this.repeat) {
+				audio.currentTime = 0;
+				audio.play().catch(() => {});
+				return;
+			}
 			this.next();
 		});
 		audio.addEventListener('error', () => {
@@ -397,8 +409,37 @@ class PlayerState {
 	next() {
 		if (this.tracks.length === 0) return;
 		const idx = this.#index();
-		this.currentId = this.tracks[(idx + 1) % this.tracks.length].id;
+		let nextIdx = (idx + 1) % this.tracks.length;
+		if (this.shuffle && this.tracks.length > 1) {
+			do {
+				nextIdx = Math.floor(Math.random() * this.tracks.length);
+			} while (nextIdx === idx);
+		}
+		this.currentId = this.tracks[nextIdx].id;
 		this.#loadCurrent();
+	}
+
+	toggleShuffle() {
+		this.shuffle = !this.shuffle;
+	}
+
+	toggleRepeat() {
+		this.repeat = !this.repeat;
+	}
+
+	playQueueIndex(index: number) {
+		const track = this.tracks[index];
+		if (!track) return;
+		if (this.currentId === track.id) {
+			this.toggle();
+			return;
+		}
+		this.currentId = track.id;
+		this.#loadCurrent();
+	}
+
+	clearUpcoming() {
+		this.tracks = this.currentId === null ? [] : [this.current];
 	}
 
 	previous() {

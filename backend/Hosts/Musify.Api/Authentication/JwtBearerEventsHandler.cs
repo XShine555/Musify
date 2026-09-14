@@ -2,16 +2,29 @@ using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Musify.Application.Users;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace Musify.Api.Authentication;
 
 public sealed class JwtBearerEventsHandler(
     IMediator mediator,
     IMemoryCache cache,
+    IHttpClientFactory httpClientFactory,
+    AuthenticationConfiguration authenticationConfiguration,
     ILogger<JwtBearerEventsHandler> logger) : JwtBearerEvents
 {
     private static readonly TimeSpan UserSyncCacheTtl = TimeSpan.FromMinutes(15);
+
+    private sealed record UserInfoResponse(
+        [property: JsonPropertyName("name")] string? Name,
+        [property: JsonPropertyName("preferred_username")] string? PreferredUsername,
+        [property: JsonPropertyName("email")] string? Email,
+        [property: JsonPropertyName("given_name")] string? GivenName,
+        [property: JsonPropertyName("family_name")] string? FamilyName,
+        [property: JsonPropertyName("picture")] string? Picture);
 
     public override async Task TokenValidated(TokenValidatedContext tokenValidatedContext)
     {
@@ -28,14 +41,30 @@ public sealed class JwtBearerEventsHandler(
         if (cache.TryGetValue(cacheKey, out _))
             return;
 
-        var username = principal.FindFirstValue(ClaimTypes.Name)
+        // Access tokens from the IdP are minimal (just sub/scope/aud) — profile attributes live on
+        // the userinfo endpoint, so ask for them there instead of relying on token claims alone.
+        var userInfo = await FetchUserInfoAsync(tokenValidatedContext, tokenValidatedContext.HttpContext.RequestAborted);
+
+        // Zitadel also issues short-form JWT claim names ("name", "given_name", "family_name", "email"),
+        // but the newer JsonWebTokenHandler (default since .NET 8) no longer auto-maps those to the
+        // legacy ClaimTypes.* URIs the way JwtSecurityTokenHandler used to — so check both forms too.
+        var username = userInfo?.Name
+            ?? userInfo?.PreferredUsername
+            ?? principal.FindFirstValue("name")
+            ?? principal.FindFirstValue(ClaimTypes.Name)
             ?? principal.FindFirstValue("preferred_username")
+            ?? userInfo?.Email
+            ?? principal.FindFirstValue("email")
             ?? principal.FindFirstValue(ClaimTypes.Email)
             ?? rawId!;
 
-        var firstName = principal.FindFirstValue(ClaimTypes.GivenName);
-        var lastName = principal.FindFirstValue(ClaimTypes.Surname);
-        var profilePictureUrl = principal.FindFirstValue("picture");
+        var firstName = userInfo?.GivenName
+            ?? principal.FindFirstValue("given_name")
+            ?? principal.FindFirstValue(ClaimTypes.GivenName);
+        var lastName = userInfo?.FamilyName
+            ?? principal.FindFirstValue("family_name")
+            ?? principal.FindFirstValue(ClaimTypes.Surname);
+        var profilePictureUrl = userInfo?.Picture ?? principal.FindFirstValue("picture");
 
         try
         {
@@ -48,6 +77,43 @@ public sealed class JwtBearerEventsHandler(
         catch (Exception exception)
         {
             logger.LogError(exception, "Failed to sync user {UserId} during token validation", userId);
+        }
+    }
+
+    private async Task<UserInfoResponse?> FetchUserInfoAsync(
+        TokenValidatedContext tokenValidatedContext, CancellationToken cancellationToken)
+    {
+        var authorizationHeader = tokenValidatedContext.HttpContext.Request.Headers.Authorization.ToString();
+        if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var accessToken = authorizationHeader["Bearer ".Length..].Trim();
+        if (accessToken.Length == 0)
+            return null;
+
+        try
+        {
+            var client = httpClientFactory.CreateClient();
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{authenticationConfiguration.IssuerAddress.TrimEnd('/')}/oidc/v1/userinfo")
+            {
+                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
+            };
+
+            var response = await client.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogDebug("Userinfo request returned {StatusCode}", response.StatusCode);
+                return null;
+            }
+
+            return await response.Content.ReadFromJsonAsync<UserInfoResponse>(cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Failed to fetch userinfo from identity provider");
+            return null;
         }
     }
 

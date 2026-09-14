@@ -51,20 +51,28 @@
 			index
 			action
 			meta={[
+				{ label: 'Álbum', width: '160px' },
 				{ label: 'Subida', width: '100px' },
 				{ label: 'Escuchas', width: '100px' }
 			]}
-			class="mt-6 sm:mt-8"
+			class="mt-7 sm:mt-8"
 		>
 			{#each items as track, i (track.id)}
-				<TrackRow>
+				{@const active = player.current.id === track.id}
+				<TrackRow {active}>
 					<TrackIndexCell
 						index={i}
-						active={player.current.id === track.id}
+						{active}
 						playing={player.playing}
 						onToggle={() => togglePlay(i)}
 					/>
-					<TrackTitleCell trackId={track.id} title={track.title} onClick={() => togglePlay(i)} />
+					<TrackTitleCell
+						trackId={track.id}
+						title={track.title}
+						{active}
+						onClick={() => togglePlay(i)}
+					/>
+					<TrackMeta class="hidden sm:block">—</TrackMeta>
 					<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
 					<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>

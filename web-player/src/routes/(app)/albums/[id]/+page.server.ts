@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		(track) => track.source === 'Local' && !inAlbum.has(track.id)
 	);
 
-	const isOwner = user !== null && Number(album.ownerUserId) === Number(user.sub);
+	const isOwner = user !== null && String(album.ownerUserId) === user.sub;
 
 	return { album, tracks, library, isOwner, section: isOwner ? '/albums' : null };
 };

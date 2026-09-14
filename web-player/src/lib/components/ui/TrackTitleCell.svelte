@@ -2,14 +2,17 @@
 	import type { Snippet } from 'svelte';
 	import Cover from './Cover.svelte';
 	import ExplicitBadge from './ExplicitBadge.svelte';
+	import ArtistLink from './ArtistLink.svelte';
 
 	interface Props {
 		trackId: string | number;
 		title: string;
 		artist?: string | null;
+		ownerUserId?: string | number | null;
 		coverSrc?: string | null;
 		coverSize?: string;
 		explicit?: boolean;
+		active?: boolean;
 		titleClass?: string;
 		onClick: () => void;
 		overlay?: Snippet;
@@ -20,17 +23,31 @@
 		trackId,
 		title,
 		artist,
+		ownerUserId,
 		coverSrc,
 		coverSize = 'h-[42px] w-[42px]',
 		explicit = false,
+		active = false,
 		titleClass = '',
 		onClick,
 		overlay,
 		badge
 	}: Props = $props();
+
+	function onKeydown(event: KeyboardEvent) {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		onClick();
+	}
 </script>
 
-<button type="button" onclick={onClick} class="flex min-w-0 items-center gap-3.5 text-left">
+<div
+	role="button"
+	tabindex="0"
+	onclick={onClick}
+	onkeydown={onKeydown}
+	class="flex min-w-0 items-center gap-3.5 text-left"
+>
 	<Cover
 		{trackId}
 		src={coverSrc}
@@ -45,11 +62,13 @@
 			{#if explicit}
 				<ExplicitBadge />
 			{/if}
-			<span class="min-w-0 truncate text-fg {titleClass}">{title}</span>
+			<span
+				class="min-w-0 truncate text-sm font-medium {active
+					? 'text-accent-soft'
+					: 'text-fg'} {titleClass}">{title}</span
+			>
 			{@render badge?.()}
 		</div>
-		{#if artist}
-			<div class="truncate text-left text-sm text-fg-3">{artist}</div>
-		{/if}
+		<ArtistLink name={artist} {ownerUserId} class="mt-0.5 text-[12.5px] text-fg-3" />
 	</div>
-</button>
+</div>

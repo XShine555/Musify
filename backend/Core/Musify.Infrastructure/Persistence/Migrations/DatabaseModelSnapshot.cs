@@ -431,6 +431,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Visibility")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -516,6 +521,31 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasIndex("ArtistId");
 
                     b.ToTable("TrackArtist");
+                });
+
+            modelBuilder.Entity("Musify.Domain.Entities.TrackLike", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrackId");
+
+                    b.HasIndex("UserId", "TrackId")
+                        .IsUnique();
+
+                    b.ToTable("TrackLikes");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Upload", b =>
@@ -634,6 +664,31 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User");
+                });
+
+            modelBuilder.Entity("Musify.Domain.Entities.UserFollow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("FollowedId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FollowerId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FollowedId");
+
+                    b.HasIndex("FollowerId", "FollowedId")
+                        .IsUnique();
+
+                    b.ToTable("UserFollows");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.UserHasTrack", b =>
@@ -1105,6 +1160,25 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("Track");
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.TrackLike", b =>
+                {
+                    b.HasOne("Musify.Domain.Entities.Track", "Track")
+                        .WithMany()
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Musify.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Track");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.UploadIntent", b =>
                 {
                     b.HasOne("Musify.Domain.Entities.User", "User")
@@ -1114,6 +1188,25 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Musify.Domain.Entities.UserFollow", b =>
+                {
+                    b.HasOne("Musify.Domain.Entities.User", "Followed")
+                        .WithMany()
+                        .HasForeignKey("FollowedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Musify.Domain.Entities.User", "Follower")
+                        .WithMany()
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Followed");
+
+                    b.Navigation("Follower");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.UserHasTrack", b =>

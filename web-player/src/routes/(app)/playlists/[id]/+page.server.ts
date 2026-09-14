@@ -8,75 +8,28 @@ import {
 	unwrapOrFail
 } from '$lib/server/api';
 import { uploadPresignedImage } from '$lib/server/upload';
-import { fetchYoutubeFiller } from '$lib/server/youtube';
-import { shuffle } from '$lib/collections';
-import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
-import type { YouTubeSong } from '$lib/types';
 
 const MAX_NAME = 100;
-const SUGGESTIONS_LIMIT = 20;
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
-	const user = optionalUser(locals, url, allowAnonymousListening);
+	optionalUser(locals, url, allowAnonymousListening);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
-	const [playlistRes, tracksRes, libraryRes, playlistsRes] = await Promise.all([
+	const [playlistRes, tracksRes] = await Promise.all([
 		api.GET('/playlists/{id}', { params: { path: { id: params.id } } }),
 		api.GET('/playlists/{playlistId}/tracks', {
 			params: { path: { playlistId: params.id }, query: { pageNumber: 1, pageSize: 200 } }
-		}),
-		user
-			? api.GET('/tracks/users/{userId}', {
-					params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
-				})
-			: Promise.resolve(null),
-		user
-			? api.GET('/playlists/users/{userId}', {
-					params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
-				})
-			: Promise.resolve(null)
+		})
 	]);
 
 	const playlist = unwrapOrError(playlistRes, 'Playlist no encontrada.', 404);
-
 	const tracks = tracksRes.data?.items ?? [];
-	const inPlaylist = new Set(tracks.map((t) => t.id));
-	const library = (libraryRes?.data?.items ?? []).filter((t) => !inPlaylist.has(t.id));
 
-	const alreadyLinked = new Set(
-		tracks.flatMap((t) => (t.source === 'YouTube' && t.externalId ? [t.externalId] : []))
-	);
-	const seeds = [...new Set(tracks.map((t) => t.artist).filter((a): a is string => !!a))];
-	const seed = seeds.length > 0 ? shuffle(seeds)[0] : undefined;
-
-	const youtube = fetchYoutubeFiller(
-		api,
-		locals.accessToken,
-		SUGGESTIONS_LIMIT + alreadyLinked.size,
-		seed
-	)
-		.then((filler) => ({
-			query: filler.query,
-			items: (filler.items as YouTubeSong[])
-				.filter((song) => !alreadyLinked.has(song.videoId))
-				.slice(0, SUGGESTIONS_LIMIT)
-		}))
-		.catch(() => ({ query: '', items: [] as YouTubeSong[] }));
-
-	return {
-		playlist,
-		tracks,
-		library,
-		youtube,
-		playlists: playlistsRes?.data?.items ?? []
-	};
+	return { playlist, tracks };
 };
 
 export const actions: Actions = {
-	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction,
-
 	removeTrack: async ({ request, params, locals, fetch }) => {
 		const accessToken = requireAccessTokenAction(locals);
 		if (typeof accessToken !== 'string') return accessToken;
@@ -98,6 +51,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const name = String(form.get('name') ?? '').trim();
 		const description = String(form.get('description') ?? '').trim();
+		const newVisibility = form.get('visibility') === 'public' ? 'Public' : 'Private';
 		const cover = form.get('cover');
 		if (name === '' || name.length > MAX_NAME) {
 			return fail(400, { message: 'El nombre es obligatorio (máx. 100 caracteres).' });
@@ -119,7 +73,7 @@ export const actions: Actions = {
 
 		const result = await api.PUT('/playlists/{playlistId}', {
 			params: { path: { playlistId: params.id } },
-			body: { newName: name, newDescription: description, newPictureIntentId }
+			body: { newName: name, newDescription: description, newPictureIntentId, newVisibility }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo actualizar la playlist.');
 		if (failure) return failure;

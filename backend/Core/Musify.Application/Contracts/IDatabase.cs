@@ -41,6 +41,10 @@ namespace Musify.Application.Contracts
 
         DbSet<ListeningHistory> ListeningHistories { get; }
 
+        DbSet<TrackLike> TrackLikes { get; }
+
+        DbSet<UserFollow> UserFollows { get; }
+
         Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);

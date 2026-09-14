@@ -1,117 +1,129 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { isSectionActive } from '$lib/navigation.svelte';
+	import { liked } from '$lib/player/liked.svelte';
+	import { createPlaylistModal } from '$lib/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
+	import PlaylistArt from './ui/PlaylistArt.svelte';
 	import Home from '@lucide/svelte/icons/house';
-	import Folder from '@lucide/svelte/icons/folder';
+	import Compass from '@lucide/svelte/icons/compass';
+	import ListMusic from '@lucide/svelte/icons/list-music';
+	import Heart from '@lucide/svelte/icons/heart';
 	import Disc from '@lucide/svelte/icons/disc-2';
-	import Music from '@lucide/svelte/icons/music';
+	import Folder from '@lucide/svelte/icons/folder';
 	import Upload from '@lucide/svelte/icons/upload';
+	import Plus from '@lucide/svelte/icons/plus';
+
+	interface SidebarPlaylist {
+		id: string;
+		name: string;
+		coverTrackIds: (string | number)[];
+		updatedAt: string;
+	}
 
 	interface Props {
 		user: SessionUser | null;
+		playlists: SidebarPlaylist[];
 	}
 
-	let { user }: Props = $props();
+	let { user, playlists }: Props = $props();
 
-	let navBox: HTMLElement | undefined = $state();
-	let pillTop = $state(0);
-	let pillHeight = $state(0);
-	let pillVisible = $state(false);
-	let animate = $state(false);
-
-	const mainLinks = $derived([
-		{ href: '/', label: 'Inicio', icon: Home },
-		...(user ? [{ href: '/playlists', label: 'Listas', icon: Music }] : [])
-	]);
-
-	const secondaryLinks = $derived(
+	const navLinks = $derived(
 		user
 			? [
+					{ href: '/', label: 'Inicio', icon: Home },
+					{ href: '/explore', label: 'Descubrir', icon: Compass },
+					{ href: '/playlists', label: 'Playlists', icon: ListMusic },
+					{ href: '/liked', label: 'Me gusta', icon: Heart, count: liked.count },
 					{ href: '/albums', label: 'Mis álbumes', icon: Disc },
 					{ href: '/library', label: 'Canciones subidas', icon: Folder },
 					{ href: '/upload', label: 'Subir música', icon: Upload }
 				]
-			: []
+			: [{ href: '/explore', label: 'Descubrir', icon: Compass }]
 	);
 
 	function isActive(href: string) {
 		return isSectionActive(href, page.url.pathname, page.data.section);
 	}
-
-	$effect(() => {
-		void page.url.pathname;
-		const box = navBox;
-		if (!box) return;
-		const active = box.querySelector<HTMLElement>('[data-active="true"]');
-		if (!active) {
-			pillVisible = false;
-			return;
-		}
-		const boxRect = box.getBoundingClientRect();
-		const rect = active.getBoundingClientRect();
-		pillTop = rect.top - boxRect.top;
-		pillHeight = rect.height;
-		pillVisible = true;
-		if (!animate) requestAnimationFrame(() => (animate = true));
-	});
 </script>
 
-{#snippet navLink(link: { href: string; label: string; icon: typeof Home })}
-	{@const active = isActive(link.href)}
-	<a
-		href={link.href}
-		data-active={active}
-		class="relative flex items-center gap-3.5 rounded-control px-4 py-2.5 text-sm transition-colors duration-100 {active
-			? 'text-fg'
-			: 'text-fg-2 hover:bg-hover hover:text-fg'}"
-	>
-		<link.icon class="h-5 w-5 shrink-0 {active ? 'text-accent-soft' : ''}" />
-		{link.label}
-	</a>
-{/snippet}
-
-{#snippet groupLabel(label: string)}
-	<p class="mb-4 px-4 text-sm font-semibold tracking-[0.12em] text-fg-2 uppercase">
-		{label}
-	</p>
-{/snippet}
-
 <aside
-	class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line bg-bg md:flex"
+	class="hidden shrink-0 flex-col border-r border-hairline bg-[image:var(--mf-sidebar-bg)] pt-5.5 pr-3 pl-5 transition-[background] duration-[600ms] ease-out lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
-	<div
-		class="relative flex flex-1 flex-col gap-6 overflow-y-auto px-4.5 py-6 md:pt-8"
-		bind:this={navBox}
-	>
-		<div
-			class="pointer-events-none absolute inset-x-4.5 z-0 overflow-hidden rounded-control border border-line bg-surface {animate
-				? 'transition-[top,height] duration-200 ease-in-out'
-				: ''}"
-			style="top:{pillTop}px; height:{pillHeight}px; opacity:{pillVisible ? 1 : 0}"
-		>
-			<span class="absolute inset-y-0 left-0 w-0.75 rounded-r-full bg-accent-soft"></span>
+	<a href="/" class="flex items-center gap-2.5 px-1.5 pb-6.5">
+		<span class="font-display text-[17.5px] font-semibold tracking-[-0.02em] text-fg">Musify</span>
+	</a>
+
+	<nav class="flex flex-col gap-0.5">
+		{#each navLinks as link (link.href)}
+			{@const active = isActive(link.href)}
+			<a
+				href={link.href}
+				aria-current={active ? 'page' : undefined}
+				class="flex items-center gap-3 rounded-[10px] px-3 py-2.25 text-[13.5px] font-medium transition-colors duration-150 {active
+					? 'bg-surface-hover text-fg'
+					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
+			>
+				<link.icon class="h-[17px] w-[17px] shrink-0" strokeWidth={1.6} />
+				<span class="flex-1 truncate">{link.label}</span>
+				{#if link.count}
+					<span class="text-[11px] text-muted tabular-nums">{link.count}</span>
+				{/if}
+			</a>
+		{/each}
+	</nav>
+
+	{#if user}
+		<div class="mx-3 mt-6 mb-3.5 h-px bg-white/5"></div>
+		<div class="flex items-center justify-between px-3 pb-1.5">
+			<span class="text-[10.5px] font-semibold tracking-[0.13em] text-muted uppercase"
+				>Tus playlists</span
+			>
+			{#if playlists.length > 0}
+				<button
+					type="button"
+					onclick={() => createPlaylistModal.show()}
+					aria-label="Crear playlist"
+					class="text-base text-muted transition-colors hover:text-fg"
+				>
+					+
+				</button>
+			{/if}
 		</div>
 
-		<div>
-			{@render groupLabel('Navegación')}
-			<nav class="relative z-10 flex flex-col gap-2">
-				{#each mainLinks as link (link.href)}
-					{@render navLink(link)}
-				{/each}
-			</nav>
+		<div class="flex flex-1 flex-col gap-px overflow-y-auto pb-4.5">
+			{#each playlists as playlist (playlist.id)}
+				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
+				<a
+					href="/playlists/{playlist.id}"
+					class="flex items-center gap-2.75 rounded-[10px] px-3 py-1.75 transition-colors duration-150 {active
+						? 'bg-surface-hover'
+						: 'hover:bg-hover'}"
+				>
+					<PlaylistArt
+						playlistId={playlist.id}
+						trackIds={playlist.coverTrackIds}
+						version={playlist.updatedAt}
+						size="small"
+						class="h-8.5 w-8.5 shrink-0 overflow-hidden rounded-lg opacity-90"
+					/>
+					<div class="min-w-0 flex-1">
+						<div class="truncate text-[13.5px] font-medium {active ? 'text-fg' : 'text-fg-2'}">
+							{playlist.name}
+						</div>
+					</div>
+				</a>
+			{:else}
+				<button
+					type="button"
+					onclick={() => createPlaylistModal.show()}
+					class="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[12px] text-muted transition-colors hover:bg-hover hover:text-fg-2"
+				>
+					<Plus class="h-3.5 w-3.5" strokeWidth={1.8} />
+					Crear tu primera lista
+				</button>
+			{/each}
 		</div>
-
-		{#if secondaryLinks.length > 0}
-			<div>
-				{@render groupLabel('Tu música')}
-				<nav class="relative z-10 flex flex-col gap-1">
-					{#each secondaryLinks as link (link.href)}
-						{@render navLink(link)}
-					{/each}
-				</nav>
-			</div>
-		{/if}
-	</div>
+	{/if}
 </aside>

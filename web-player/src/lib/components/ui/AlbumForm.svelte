@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
+	import Disc3 from '@lucide/svelte/icons/disc-3';
 	import ImageDropzone from './ImageDropzone.svelte';
 	import Button from './Button.svelte';
 	import Field from './Field.svelte';
@@ -59,11 +60,18 @@
 			if (result.type === 'success') onSuccess?.();
 		};
 	}}
-	class="mt-4 w-full max-w-2xl space-y-4"
+	class="mt-5 w-full max-w-2xl space-y-5"
 >
 	<div class="flex flex-col items-stretch gap-5 sm:flex-row sm:gap-8">
-		<Field label="Portada" optional={!requireCover}>
-			<ImageDropzone name="cover" fallbackUrl={coverFallbackUrl} required={requireCover} />
+		<Field>
+			<ImageDropzone
+				name="cover"
+				fallbackUrl={coverFallbackUrl}
+				required={requireCover}
+				icon={Disc3}
+				gradient
+				class="h-36 w-36 rounded-[16px]"
+			/>
 		</Field>
 
 		<div class="flex flex-1 flex-col gap-4">
@@ -78,7 +86,7 @@
 				/>
 			</Field>
 
-			<Field label="Año de publicación" for="album-year" optional>
+			<Field label="Año de publicación" for="album-year">
 				<Input
 					id="album-year"
 					name="releaseYear"
@@ -92,7 +100,7 @@
 		</div>
 	</div>
 
-	<Field label="Descripción" for="album-description" optional>
+	<Field label="Descripción" for="album-description">
 		<Textarea
 			id="album-description"
 			name="description"
