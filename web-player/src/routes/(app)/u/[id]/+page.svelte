@@ -8,11 +8,13 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ArtistAvatar from '$lib/components/ui/ArtistAvatar.svelte';
+	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 
 	let { data, form } = $props();
 
 	const profile = $derived(data.profile);
 	const playlists = $derived(data.playlists);
+	const canFollow = $derived(!data.isOwnProfile && !data.isAnonymous);
 
 	let following = $state(untrack(() => data.isFollowing));
 	let submitting = $state(false);
@@ -28,47 +30,43 @@
 	<meta name="description" content="Perfil de {profile.name} en Musify." />
 </svelte:head>
 
-<Page>
-	<div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
-		<ArtistAvatar name={profile.name} imageUrl={profile.profilePictureUrl} size={144} />
-		<div class="min-w-0 flex-1">
-			<p class="text-xs font-semibold tracking-[0.16em] text-fg-2 uppercase">Perfil</p>
-			<h1
-				class="mt-3 font-display text-3xl font-semibold tracking-[-0.035em] break-words text-fg sm:text-4xl"
-			>
-				{profile.name}
-			</h1>
-			<p class="mt-3.25 text-sm text-fg-2">
-				{profile.followersCount}
-				{profile.followersCount === 1 ? 'seguidor' : 'seguidores'} · {profile.followingCount} siguiendo
-			</p>
-		</div>
-	</div>
+{#snippet followAction()}
+	<form
+		method="POST"
+		action={following ? '?/unfollow' : '?/follow'}
+		use:enhance={() => {
+			submitting = true;
+			return async ({ update }) => {
+				await update();
+				submitting = false;
+			};
+		}}
+	>
+		<Button
+			type="submit"
+			size="sm"
+			variant={following ? 'secondary' : 'primary'}
+			disabled={submitting}
+		>
+			{following ? 'Dejar de seguir' : 'Seguir'}
+		</Button>
+	</form>
+{/snippet}
 
-	{#if !data.isOwnProfile && !data.isAnonymous}
-		<div class="mt-6 flex items-center gap-2.5 sm:mt-7">
-			<form
-				method="POST"
-				action={following ? '?/unfollow' : '?/follow'}
-				use:enhance={() => {
-					submitting = true;
-					return async ({ update }) => {
-						await update();
-						submitting = false;
-					};
-				}}
-			>
-				<Button
-					type="submit"
-					size="sm"
-					variant={following ? 'secondary' : 'primary'}
-					disabled={submitting}
-				>
-					{following ? 'Dejar de seguir' : 'Seguir'}
-				</Button>
-			</form>
-		</div>
-	{/if}
+<Page>
+	<CollectionHeader
+		eyebrow="Perfil"
+		title={profile.name}
+		meta="{profile.followersCount} {profile.followersCount === 1
+			? 'seguidor'
+			: 'seguidores'} · {profile.followingCount} siguiendo"
+		align="center"
+		actions={canFollow ? followAction : undefined}
+	>
+		{#snippet cover()}
+			<ArtistAvatar name={profile.name} imageUrl={profile.profilePictureUrl} size={144} />
+		{/snippet}
+	</CollectionHeader>
 
 	<div class="mt-9">
 		<h2 class="font-display text-lg font-semibold tracking-[-0.02em] text-fg">

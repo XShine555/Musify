@@ -20,15 +20,31 @@
 > sobre el "chrome" de la app o sobre arte/gradiente saturado, se extrajeron
 > `lib/components/ui/CollectionHeader.svelte` (portada + título + meta + acciones, usado
 > en `AlbumHeader`, `PlaylistHeader`, `liked/+page.svelte`, `mixes/[id]/+page.svelte`,
-> `albums/external/.../+page.svelte`) y `lib/components/AccountMenu.svelte` (estado de
-> apertura + panel del menú de cuenta, usado en `TopBar`/`MobileHeader`), y se corrigió
-> `--color-hover` en `layout.css`, que estaba hardcodeado en vez de apuntar a
-> `--mf-surface-2` (rompía el modo claro para cualquier `hover:bg-hover`). Pendiente de
-> quien retome esto: verificación visual en el navegador con una sesión autenticada real
-> (esta sesión no tenía credenciales del IdP de Zitadel ni acceso para activar
-> `allowAnonymousListening`), y `lib/components/ui/Rail.svelte`, que el grep de
-> huérfanos de §5 marca sin importadores — no se tocó porque no forma parte de este
-> barrido, pero conviene confirmarlo a mano y borrarlo si procede.
+> `albums/external/.../+page.svelte` y `u/[id]/+page.svelte`) y
+> `lib/components/ui/AccountMenu.svelte` (estado de apertura + panel del menú de cuenta,
+> usado en `TopBar`/`MobileHeader`), y se corrigió `--color-hover` en `layout.css`, que
+> estaba hardcodeado en vez de apuntar a `--mf-surface-2` (rompía el modo claro para
+> cualquier `hover:bg-hover`).
+>
+> **Repaso posterior a la verificación visual** (ya con sesión autenticada): se detectó
+> que el fix de §2 anterior para la tarjeta de género de `explore/+page.svelte` estaba
+> mal — usaba `var(--mf-ink)` como extremo oscuro del degradado, pero `--mf-ink` es el
+> token de "texto sobre botón de acento" y se invierte a blanco en modo claro, rompiendo
+> la tarjeta (fondo blanco en vez de degradado oscuro). Se creó un token nuevo,
+> `--mf-tile-shade` (deliberadamente **sin** variante de modo claro, igual que
+> `--mf-cover-grad`/`--mf-liked-grad`, porque es "arte" decorativo, no "chrome"), y se usa
+> ahí en su lugar. También se cambió la línea de meta de `CollectionHeader` de
+> `text-muted` a `text-fg-2` (mejor contraste en modo claro; `text-muted` rondaba ~3:1,
+> por debajo de WCAG AA para texto normal) y se hizo `actions` opcional para poder migrar
+> páginas sin acciones condicionales (como `u/[id]/+page.svelte`) sin renderizar un
+> `<div>` vacío.
+>
+> Pendiente de quien retome esto: `lib/components/ui/Rail.svelte` no tiene importadores
+> (confirmado con el mismo método de §5, no porque §5 lo listara — ese hallazgo es nuevo)
+> — no se tocó porque no forma parte de este barrido, pero conviene confirmarlo a mano y
+> borrarlo si procede. También queda pendiente repetir la verificación visual (§6) sobre
+> los cambios de este repaso: tarjetas de género de Explorar, cabeceras de colección
+> (contraste de la línea de meta) y `u/[id]/+page.svelte`.
 
 ## 0. Objetivo
 

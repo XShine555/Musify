@@ -4,7 +4,7 @@
 	import Folder from '@lucide/svelte/icons/folder';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import MenuItem from './ui/MenuItem.svelte';
-	import AccountMenu from './AccountMenu.svelte';
+	import AccountMenu from './ui/AccountMenu.svelte';
 
 	interface Props {
 		user: SessionUser | null;

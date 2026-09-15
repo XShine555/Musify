@@ -6,8 +6,8 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
-	import MenuItem from './ui/MenuItem.svelte';
-	import GlassMenu from './ui/GlassMenu.svelte';
+	import MenuItem from './MenuItem.svelte';
+	import GlassMenu from './GlassMenu.svelte';
 	import { themeMode } from '$lib/theme/mode.svelte';
 
 	interface Props {

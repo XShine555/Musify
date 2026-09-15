@@ -8,7 +8,7 @@
 		meta?: string;
 		align?: 'center' | 'end';
 		cover: Snippet;
-		actions: Snippet;
+		actions?: Snippet;
 	}
 
 	let { eyebrow, title, description, meta, align = 'end', cover, actions }: Props = $props();
@@ -33,11 +33,13 @@
 			<p class="mt-3 max-w-2xl text-sm text-fg-2 sm:text-base">{description}</p>
 		{/if}
 		{#if meta}
-			<p class="mt-3 text-sm text-muted">{meta}</p>
+			<p class="mt-3 text-sm text-fg-2">{meta}</p>
 		{/if}
 	</div>
 </div>
 
-<div class="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-7">
-	{@render actions()}
-</div>
+{#if actions}
+	<div class="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-7">
+		{@render actions()}
+	</div>
+{/if}

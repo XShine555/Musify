@@ -7,7 +7,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import AccountMenu from './AccountMenu.svelte';
+	import AccountMenu from './ui/AccountMenu.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -107,11 +107,12 @@
 				{accountUrl}
 				panelClass="absolute top-full right-0 z-20 mt-2 w-52 overflow-hidden"
 			>
-				{#snippet trigger({ toggle })}
+				{#snippet trigger({ toggle, open })}
 					<button
 						type="button"
 						onclick={toggle}
 						aria-label="Tu cuenta"
+						aria-expanded={open}
 						class="block h-8.25 w-8.25 shrink-0 overflow-hidden rounded-full border border-line-strong transition active:scale-95"
 					>
 						{#if user.picture}

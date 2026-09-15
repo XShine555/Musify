@@ -477,7 +477,7 @@
 					href={buildHref(genre.query)}
 					class="animate-enter group relative block h-28 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-125"
 					style="animation-delay:{Math.min(i, 10) *
-						40}ms; background:linear-gradient(140deg, oklch(0.24 0.07 {genre.hue}), var(--mf-ink))"
+						40}ms; background:linear-gradient(140deg, oklch(0.24 0.07 {genre.hue}), var(--mf-tile-shade))"
 				>
 					<div class="font-display text-base font-semibold tracking-[-0.02em] text-fg">
 						{genre.label}
