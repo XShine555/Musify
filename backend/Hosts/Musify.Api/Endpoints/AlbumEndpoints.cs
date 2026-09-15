@@ -8,8 +8,6 @@ using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
-using Musify.Application.YouTube;
-using Musify.Domain.ValueObjects;
 
 namespace Musify.Api.Endpoints;
 
@@ -22,19 +20,13 @@ public static class AlbumEndpoints
 
         group.MapGet("/", GetAlbums)
             .WithName("GetAlbums")
-            .WithSummary("Get Paginated Albums, Combined With Live YouTube Music Results When A Title Filter Is Given.")
+            .WithSummary("Get Paginated Albums, Optionally Filtered By Title.")
             .Produces<AlbumsSearchResponse>();
 
         group.MapGet("/{id}", GetAlbumById)
             .WithName("GetAlbumById")
             .WithSummary("Get An Album By Id.")
             .Produces<AlbumApplicationResponse>()
-            .Produces(StatusCodes.Status404NotFound);
-
-        group.MapGet("/external/{source}/{externalId}", GetExternalAlbum)
-            .WithName("GetExternalAlbum")
-            .WithSummary("Get An Album From An External Source (Currently Only YouTube Music) With Its Tracklist.")
-            .Produces<YouTubeAlbumDetail>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/users/{userId}", GetAlbumsByUserId)
@@ -125,10 +117,9 @@ public static class AlbumEndpoints
         CancellationToken cancellationToken,
         string? title,
         int pageNumber = 1,
-        int pageSize = 10,
-        string? youtubeContinuationToken = null)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetAlbumsQuery(title, pageNumber, pageSize, youtubeContinuationToken), cancellationToken);
+        var result = await mediator.Send(new GetAlbumsQuery(title, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -138,19 +129,6 @@ public static class AlbumEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetAlbumByIdQuery(id), cancellationToken);
-        return result.ToHttpResult();
-    }
-
-    private static async Task<IResult> GetExternalAlbum(
-        IMediator mediator,
-        string source,
-        string externalId,
-        CancellationToken cancellationToken)
-    {
-        if (!Enum.TryParse<TrackSource>(source, ignoreCase: true, out var trackSource) || trackSource != TrackSource.YouTube)
-            return Results.NotFound($"Unknown or unsupported source '{source}'.");
-
-        var result = await mediator.Send(new GetYouTubeAlbumQuery(externalId), cancellationToken);
         return result.ToHttpResult();
     }
 

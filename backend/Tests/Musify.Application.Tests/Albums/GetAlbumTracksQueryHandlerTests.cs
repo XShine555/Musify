@@ -14,9 +14,9 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_AlbumWithTracks_ReturnsThemOrderedByTrackNumber()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
-            var second = TestEntities.LocalTrack(owner, "Second");
-            var first = TestEntities.LocalTrack(owner, "First");
+            var album = TestEntities.Album(owner.Id);
+            var second = TestEntities.Track(owner, "Second");
+            var first = TestEntities.Track(owner, "First");
             await SeedAsync(
                 owner, album, second, first,
                 new AlbumHasTrack { AlbumId = album.Id, TrackId = second.Id, TrackNumber = 2 },

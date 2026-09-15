@@ -15,8 +15,8 @@ namespace Musify.Application.Tests.PlayLists
         {
             var owner = TestEntities.User();
             var playList = TestEntities.PlayList(owner.Id);
-            var second = TestEntities.LocalTrack(owner, "Second");
-            var first = TestEntities.LocalTrack(owner, "First");
+            var second = TestEntities.Track(owner, "Second");
+            var first = TestEntities.Track(owner, "First");
             await SeedAsync(
                 owner, playList, second, first,
                 new PlayListHasTrack { PlayListId = playList.Id, TrackId = second.Id, Position = 1 },

@@ -1,24 +1,18 @@
-using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-using Musify.Application.Contracts;
 using Musify.Application.Mixes;
 using Musify.Application.Tests.TestSupport;
 using Musify.Domain.Entities;
-using Musify.Domain.ValueObjects;
-using NSubstitute;
 using Xunit;
 
 namespace Musify.Application.Tests.Mixes
 {
     public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
     {
-        private readonly IYouTubeMusicService youTubeMusicService = Substitute.For<IYouTubeMusicService>();
-
         private GenerateMixesForUserCommandHandler CreateHandler() => new(
-            Database, youTubeMusicService, TestConfigurations.Mix(), NoOpLogger<GenerateMixesForUserCommandHandler>());
+            Database, TestConfigurations.Mix(), NoOpLogger<GenerateMixesForUserCommandHandler>());
 
         [Fact]
-        public async Task Handle_NoListeningHistory_DoesNotCreateAnyMix()
+        public async Task Handle_NoTracks_DoesNotCreateAnyMix()
         {
             var user = TestEntities.User();
             await SeedAsync(user);
@@ -30,75 +24,53 @@ namespace Musify.Application.Tests.Mixes
         }
 
         [Fact]
-        public async Task Handle_HistoryWithNoKnownArtists_DoesNotCreateAnyMix()
+        public async Task Handle_AllTracksAlreadyListenedTo_CreatesOnlyTheDailyMix()
         {
             var user = TestEntities.User();
-            var track = TestEntities.LocalTrack(user);
-            await SeedAsync(user, track, TestEntities.ListeningHistory(user.Id, track.Id));
+            var track = TestEntities.Track(user);
+            await SeedAsync(
+                user, track,
+                new UserHasTrack { UserId = user.Id, TrackId = track.Id },
+                TestEntities.ListeningHistory(user.Id, track.Id));
 
             var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
 
             Assert.False(result.IsError);
-            Assert.Empty(await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken));
+            var mixes = await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken);
+            Assert.Single(mixes);
+            Assert.Equal("Tu mezcla diaria", mixes[0].Title);
         }
 
         [Fact]
-        public async Task Handle_SeedArtistWithYouTubeAndLocalCandidates_ReplacesPreviousMixes()
+        public async Task Handle_UnheardTracksInLibrary_CreatesDiscoveryAndDailyMixes_AndReplacesPreviousMixes()
         {
-            youTubeMusicService
-                .SearchSongsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(new YouTubeSearchResult(
-                    [new YouTubeSongResult("yt-1", "YouTube Song", "Seed Artist", "Album", 200, "https://img/thumb.jpg", IsExplicit: false, [] )],
-                    ContinuationToken: string.Empty));
-            youTubeMusicService.ResolveArtworkUrl(Arg.Any<string>()).Returns(callInfo => callInfo.Arg<string>());
-
             var user = TestEntities.User();
-            var artist = TestEntities.Artist("Seed Artist");
-            var listenedTrack = TestEntities.ExternalTrack(externalId: "listened", title: "Listened Track");
-            var otherTrackByArtist = TestEntities.ExternalTrack(externalId: "not-listened", title: "Other Track");
+            var listenedTrack = TestEntities.Track(user, "Listened Track");
+            var unheardTrack = TestEntities.Track(user, "Unheard Track");
 
             var staleMix = TestEntities.Mix(user.Id, "Stale Mix");
-            var staleItem = TestEntities.MixItem(staleMix.Id, title: "Stale Item");
+            var staleItem = TestEntities.MixItem(staleMix.Id, listenedTrack.Id);
 
             await SeedAsync(
-                user, artist, listenedTrack, otherTrackByArtist, staleMix, staleItem,
-                new TrackArtist { TrackId = listenedTrack.Id, ArtistId = artist.Id, Position = 0 },
-                new TrackArtist { TrackId = otherTrackByArtist.Id, ArtistId = artist.Id, Position = 0 },
+                user, listenedTrack, unheardTrack, staleMix, staleItem,
+                new UserHasTrack { UserId = user.Id, TrackId = listenedTrack.Id },
+                new UserHasTrack { UserId = user.Id, TrackId = unheardTrack.Id },
                 TestEntities.ListeningHistory(user.Id, listenedTrack.Id));
 
             var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
 
             Assert.False(result.IsError);
             var mixes = await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken);
-            Assert.NotEmpty(mixes);
             Assert.DoesNotContain(mixes, mix => mix.Title == "Stale Mix");
+            Assert.Contains(mixes, mix => mix.Title == "Descubrimiento");
+            Assert.Contains(mixes, mix => mix.Title == "Tu mezcla diaria");
             Assert.Empty(await Database.MixItems.Where(item => item.MixId == staleMix.Id).ToListAsync(TestContext.Current.CancellationToken));
-        }
 
-        [Fact]
-        public async Task Handle_YouTubeSourceUnavailable_StillCreatesMixesFromLocalCandidatesOnly()
-        {
-            youTubeMusicService
-                .SearchSongsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(Error.Forbidden(description: "The YouTube Music source is disabled."));
-
-            var user = TestEntities.User();
-            var artist = TestEntities.Artist("Seed Artist");
-            var listenedTrack = TestEntities.ExternalTrack(externalId: "listened", title: "Listened Track");
-            var otherTrackByArtist = TestEntities.ExternalTrack(externalId: "not-listened", title: "Other Track");
-
-            await SeedAsync(
-                user, artist, listenedTrack, otherTrackByArtist,
-                new TrackArtist { TrackId = listenedTrack.Id, ArtistId = artist.Id, Position = 0 },
-                new TrackArtist { TrackId = otherTrackByArtist.Id, ArtistId = artist.Id, Position = 0 },
-                TestEntities.ListeningHistory(user.Id, listenedTrack.Id));
-
-            var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
-
-            Assert.False(result.IsError);
-            var items = await Database.MixItems.ToListAsync(TestContext.Current.CancellationToken);
-            Assert.NotEmpty(items);
-            Assert.All(items, item => Assert.Equal(MixItemSource.Musify, item.Source));
+            var discoveryMix = mixes.Single(mix => mix.Title == "Descubrimiento");
+            var discoveryItems = await Database.MixItems
+                .Where(item => item.MixId == discoveryMix.Id)
+                .ToListAsync(TestContext.Current.CancellationToken);
+            Assert.All(discoveryItems, item => Assert.Equal(unheardTrack.Id, item.TrackId));
         }
     }
 }

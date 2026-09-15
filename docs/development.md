@@ -83,7 +83,7 @@ dotnet test backend/Musify.slnx
 | Proyecto | Cubre | Docker |
 |---|---|---|
 | `Musify.Domain.Tests` | Lógica de los value objects (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Las entidades son en su mayoría anémicas — sin comportamiento propio, nada más que testear ahí. | No |
-| `Musify.Application.Tests` | Los ~45 handlers y servicios de `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes, YouTube). | No |
+| `Musify.Application.Tests` | Los ~45 handlers y servicios de `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes). | No |
 | `Musify.Infrastructure.Tests` | `Database`/migraciones, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `SingleFlightCache`, `PlayListPresetSeeder`. | **Sí** |
 | `Musify.Api.Tests` | Endpoints HTTP reales (routing, auth, `ValidationFilter`, mapeo `ErrorOr`→HTTP) vía `WebApplicationFactory`, más `ErrorOrHttpExtensions`/`CurrentUser`/validators FluentValidation en aislado. | **Sí** |
 | `Musify.StreamingGateway.Tests` | `TicketValidator` (RS256) y `TicketValidationMiddleware` (traversal, límites de prefijo, extracción de ticket). | No |
@@ -102,8 +102,8 @@ NSubstitute, no hay `IQueryable` detrás de un mock. En su lugar,
 del proveedor InMemory de EF Core, SQLite además soporta transacciones, que dos
 handlers usan). `TestSupport/TestEntities.cs` y `TestConfigurations.cs`
 construyen entidades y configuración con valores por defecto sensatos.
-`IStorageService`, `IEventBus`, `IYouTubeMusicService`, etc. sí se mockean con
-NSubstitute, al ser interfaces normales.
+`IStorageService`, `IEventBus`, etc. sí se mockean con NSubstitute, al ser
+interfaces normales.
 
 ### Infrastructure.Tests y Api.Tests: Testcontainers
 
@@ -117,8 +117,8 @@ migraciones EF Core reales aplicadas contra el Postgres efímero.
 
 `Api.Tests` usa `WebApplicationFactory<Program>` contra ese mismo Postgres —
 routing, auth y validación reales — pero sustituye por fakes los servicios que
-hablan por red (`IStorageService`, `IEventBus`, `IYouTubeMusicService`,
-`IStreamTicketService`) y el esquema de autenticación JWT real por un handler
+hablan por red (`IStorageService`, `IEventBus`, `IStreamTicketService`) y el
+esquema de autenticación JWT real por un handler
 de prueba (ver `TestSupport/FakeAuthenticationHandler.cs`) que autentica según
 un header, sin necesitar un Zitadel real.
 
@@ -142,11 +142,10 @@ se sobreescribe con variables de entorno (`Seccion__Clave`) desde
 
 Secciones clave: `Authentication` (Zitadel), `Database`, `MassTransit`,
 `InfrastructureStorage` (S3), `ApplicationStorage` (bucket), `Track`, `PlayList`,
-`UploadIntent`, `AudioTranscoder`, `YtDlp`, `Workers`, `StreamGateway` /
-`StreamTicket`.
+`UploadIntent`, `AudioTranscoder`, `Workers`, `StreamGateway` / `StreamTicket`.
 
 ## Requisitos del host
 
 - .NET 10 SDK y Node 22.
-- **ffmpeg** y **yt-dlp** en el PATH (transcode y descarga de audio del Worker).
+- **ffmpeg** en el PATH (transcode de audio del Worker).
 - Docker Desktop.

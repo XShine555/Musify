@@ -13,8 +13,8 @@ namespace Musify.Application.Tests.Likes
         public async Task Handle_MultipleLikes_ReturnsMostRecentFirst()
         {
             var owner = TestEntities.User();
-            var older = TestEntities.LocalTrack(owner, "Older like");
-            var newer = TestEntities.LocalTrack(owner, "Newer like");
+            var older = TestEntities.Track(owner, "Older like");
+            var newer = TestEntities.Track(owner, "Newer like");
             await SeedAsync(
                 owner, older, newer,
                 new TrackLike { UserId = owner.Id, TrackId = older.Id, CreatedAt = DateTime.UtcNow.AddMinutes(-10) },
@@ -43,7 +43,7 @@ namespace Musify.Application.Tests.Likes
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, stranger, track, new TrackLike { UserId = stranger.Id, TrackId = track.Id });
 
             var result = await CreateHandler().Handle(new GetLikedTracksQuery(owner.Id, 1, 10), TestContext.Current.CancellationToken);

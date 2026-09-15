@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
-using Musify.Domain.Entities;
 using X.PagedList;
 using X.PagedList.EF;
 
@@ -23,9 +22,7 @@ namespace Musify.Application.Likes
         {
             var likesQuery = database.TrackLikes
                 .AsNoTracking()
-                .Include(like => ((ExternalTrack)like.Track).TrackArtists)
-                    .ThenInclude(trackArtist => trackArtist.Artist)
-                .Include(like => ((LocalTrack)like.Track).Owner)
+                .Include(like => like.Track.Owner)
                 .Where(like => like.UserId == request.UserId);
 
             var totalCount = await likesQuery.CountAsync(cancellationToken);

@@ -1,8 +1,8 @@
 # Musify
 
-Music streaming platform: upload your own tracks (or import them from YouTube),
-process them asynchronously (audio transcoded to `.m4a`, thumbnails generated)
-and stream them without the bytes ever going through the API.
+Music streaming platform: upload your own tracks, process them asynchronously
+(audio transcoded to `.m4a`, thumbnails generated) and stream them without the
+bytes ever going through the API.
 
 ```
 backend/      .NET 10 — Domain / Application / Infrastructure / Api / Worker / StreamingGateway / Tests
@@ -46,7 +46,7 @@ production prerequisites.
 |---|---|---|
 | `Musify.Api` | 5111 | REST API, issues presigned upload URLs and stream tickets |
 | `Musify.StreamingGateway` | 8081 | YARP proxy that validates the stream ticket and serves the audio |
-| `Musify.Worker` | — | MassTransit consumers: transcoding, thumbnails, YouTube downloads |
+| `Musify.Worker` | — | MassTransit consumers: transcoding, thumbnails |
 | `web-player` | 5173 / 3000 | Web client (SvelteKit, server-side OIDC session) |
 | Zitadel | 8080 | Identity (OIDC/OAuth2) |
 | PostgreSQL / RabbitMQ / SeaweedFS / Jaeger | 59000 / 5672 / 8333 / 16686 | Metadata, messaging, object storage, traces |

@@ -50,7 +50,7 @@ namespace Musify.Application.Albums
             var intent = pictureIntent.Value;
             var title = request.Title.Trim();
 
-            var album = new UserAlbum
+            var album = new Album
             {
                 OwnerUserId = request.UserId,
                 Title = title,
@@ -66,7 +66,7 @@ namespace Musify.Application.Albums
                 }
             };
 
-            await database.UserAlbums.AddAsync(album, cancellationToken);
+            await database.Albums.AddAsync(album, cancellationToken);
 
             var finalPictureKey = albumConfiguration.Routes.BuildOriginalPicturePath(request.UserId, intent.ObjectName);
             var publishResult = await PublishCreateAlbumEventAsync(album.Id, intent, finalPictureKey, cancellationToken);

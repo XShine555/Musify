@@ -13,10 +13,12 @@ namespace Musify.Application.Tests.Mixes
         public async Task Handle_OwnedMix_ReturnsItWithOrderedItems()
         {
             var owner = TestEntities.User();
+            var firstTrack = TestEntities.Track(owner, "First");
+            var secondTrack = TestEntities.Track(owner, "Second");
             var mix = TestEntities.Mix(owner.Id, "Discovery");
-            var second = TestEntities.MixItem(mix.Id, position: 1, title: "Second");
-            var first = TestEntities.MixItem(mix.Id, position: 0, title: "First");
-            await SeedAsync(owner, mix, second, first);
+            var second = TestEntities.MixItem(mix.Id, secondTrack.Id, position: 1);
+            var first = TestEntities.MixItem(mix.Id, firstTrack.Id, position: 0);
+            await SeedAsync(owner, firstTrack, secondTrack, mix, second, first);
 
             var result = await CreateHandler().Handle(new GetMixByIdQuery(owner.Id, mix.Id), TestContext.Current.CancellationToken);
 

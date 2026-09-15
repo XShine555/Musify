@@ -13,10 +13,10 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_ListenedTracks_ReturnsTheirAlbumsMostRecentFirst()
         {
             var owner = TestEntities.User();
-            var olderAlbum = TestEntities.UserAlbum(owner.Id, "Older");
-            var newerAlbum = TestEntities.UserAlbum(owner.Id, "Newer");
-            var olderTrack = TestEntities.LocalTrack(owner, "In older album");
-            var newerTrack = TestEntities.LocalTrack(owner, "In newer album");
+            var olderAlbum = TestEntities.Album(owner.Id, "Older");
+            var newerAlbum = TestEntities.Album(owner.Id, "Newer");
+            var olderTrack = TestEntities.Track(owner, "In older album");
+            var newerTrack = TestEntities.Track(owner, "In newer album");
             await SeedAsync(
                 owner, olderAlbum, newerAlbum, olderTrack, newerTrack,
                 new AlbumHasTrack { AlbumId = olderAlbum.Id, TrackId = olderTrack.Id, TrackNumber = 1 },
@@ -46,8 +46,8 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_LimitLowerThanCandidates_ReturnsOnlyThatManyAlbums()
         {
             var owner = TestEntities.User();
-            var albums = Enumerable.Range(1, 3).Select(i => TestEntities.UserAlbum(owner.Id, $"Album {i}")).ToList();
-            var tracks = albums.Select((_, i) => TestEntities.LocalTrack(owner, $"Track {i}")).ToList();
+            var albums = Enumerable.Range(1, 3).Select(i => TestEntities.Album(owner.Id, $"Album {i}")).ToList();
+            var tracks = albums.Select((_, i) => TestEntities.Track(owner, $"Track {i}")).ToList();
             var links = albums.Zip(tracks, (album, track) => new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 }).ToList();
             var histories = tracks.Select((track, i) => TestEntities.ListeningHistory(owner.Id, track.Id, DateTime.UtcNow.AddMinutes(-i))).ToList();
             await SeedAsync([owner, .. albums, .. tracks, .. links, .. histories]);

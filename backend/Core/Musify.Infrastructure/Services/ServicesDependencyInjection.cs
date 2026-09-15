@@ -1,7 +1,6 @@
 using Amazon.S3;
 using Hangfire;
 using Hangfire.PostgreSql;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -96,33 +95,6 @@ namespace Musify.Infrastructure.Services
                 serviceProvider.GetRequiredService<IOptions<StreamTicketConfiguration>>().Value);
 
             serviceDescriptors.AddSingleton<IStreamTicketService, StreamTicketService>();
-            return serviceDescriptors;
-        }
-
-        public static IServiceCollection AddYouTubeMusicService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddValidatedOptions<YouTubeConfiguration>(configuration, YouTubeConfiguration.SectionName);
-
-            serviceDescriptors.AddMemoryCache();
-            serviceDescriptors.AddSingleton<IYouTubeMusicService>(serviceProvider =>
-            {
-                var youTubeConfiguration = serviceProvider.GetRequiredService<YouTubeConfiguration>();
-                if (!youTubeConfiguration.Enabled)
-                    return new DisabledYouTubeMusicService();
-
-                return new YouTubeMusicService(
-                    youTubeConfiguration,
-                    serviceProvider.GetRequiredService<IMemoryCache>(),
-                    serviceProvider.GetRequiredService<ILogger<YouTubeMusicService>>());
-            } );
-            return serviceDescriptors;
-        }
-
-        public static IServiceCollection AddYouTubeDownloader(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddValidatedOptions<YtDlpConfiguration>(configuration, YtDlpConfiguration.SectionName);
-
-            serviceDescriptors.AddScoped<IYouTubeDownloaderService, YouTubeDownloaderService>();
             return serviceDescriptors;
         }
 

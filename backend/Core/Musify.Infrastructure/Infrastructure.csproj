@@ -33,7 +33,6 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="SixLabors.ImageSharp" />
-    <PackageReference Include="YouTubeMusicAPI" />
   </ItemGroup>
 
   <ItemGroup>

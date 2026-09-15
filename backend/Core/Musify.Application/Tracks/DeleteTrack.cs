@@ -29,7 +29,7 @@ namespace Musify.Application.Tracks
                 return Error.NotFound();
             }
 
-            if (track is not LocalTrack localTrack || localTrack.OwnerUserId != request.UserId)
+            if (track.OwnerUserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
                 return Error.Unauthorized();

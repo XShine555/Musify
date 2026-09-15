@@ -12,8 +12,8 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_MultipleListens_ReturnsDistinctTracksMostRecentFirst()
         {
             var owner = TestEntities.User();
-            var older = TestEntities.LocalTrack(owner, "Older listen");
-            var newer = TestEntities.LocalTrack(owner, "Newer listen");
+            var older = TestEntities.Track(owner, "Older listen");
+            var newer = TestEntities.Track(owner, "Newer listen");
             await SeedAsync(
                 owner, older, newer,
                 TestEntities.ListeningHistory(owner.Id, older.Id, DateTime.UtcNow.AddMinutes(-10)),

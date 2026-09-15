@@ -17,7 +17,7 @@ namespace Musify.Application.Albums
     {
         public async ValueTask<ErrorOr<Success>> Handle(AddTrackToAlbumCommand request, CancellationToken cancellationToken)
         {
-            var album = await database.UserAlbums
+            var album = await database.Albums
                 .AsNoTracking()
                 .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
             if (album is null)
@@ -32,19 +32,16 @@ namespace Musify.Application.Albums
                 return Error.Unauthorized();
             }
 
-            var trackExists = await database.Tracks
+            var track = await database.Tracks
                 .AsNoTracking()
-                .AnyAsync(t => t.Id == request.TrackId, cancellationToken);
-            if (!trackExists)
+                .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
+            if (track is null)
             {
                 logger.LogInformation("Track {TrackId} not found", request.TrackId);
                 return Error.NotFound(description: $"Track {request.TrackId} not found");
             }
 
-            var localTrack = await database.LocalTracks
-                .AsNoTracking()
-                .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
-            if (localTrack is not null && localTrack.OwnerUserId != request.UserId)
+            if (track.OwnerUserId != request.UserId)
             {
                 logger.LogWarning("User {UserId} does not own track {TrackId}", request.UserId, request.TrackId);
                 return Error.Unauthorized();

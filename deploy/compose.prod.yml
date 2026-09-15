@@ -13,11 +13,6 @@ name: musify-prod
 # the first command just wrote into deploy/.env.prod. See deploy/README.md.
 
 services:
-  worker:
-    # yt-dlp reads the YouTube cookie jar from here (see YTDLP_ADDITIONAL_ARGUMENTS).
-    volumes:
-      - ./secrets:/secrets:ro
-
   # zitadel-init (compose.yml) edits whichever env file is mounted here.
   zitadel-init:
     volumes:
@@ -40,7 +35,6 @@ services:
       # The filter keeps it from eating nginx's own $host / $remote_addr.
       MUSIFY_ROOT_DOMAIN: ${ROOT_DOMAIN}
       MUSIFY_MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-1024m}
-      MUSIFY_THUMBNAIL_CACHE_SIZE: ${THUMBNAIL_CACHE_SIZE:-2g}
       NGINX_ENVSUBST_FILTER: ^MUSIFY_
     ports:
       - "80:80"

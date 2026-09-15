@@ -34,7 +34,7 @@ namespace Musify.Application.Albums
     {
         public async ValueTask<ErrorOr<AlbumApplicationResponse>> Handle(UpdateAlbumCommand request, CancellationToken cancellationToken)
         {
-            var album = await database.UserAlbums
+            var album = await database.Albums
                 .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
             if (album is null)
             {
@@ -77,7 +77,7 @@ namespace Musify.Application.Albums
                 finalPictureKey = albumConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             }
 
-            database.UserAlbums.Update(album);
+            database.Albums.Update(album);
 
             if (pictureIntent != null && finalPictureKey != null)
             {

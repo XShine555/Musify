@@ -12,7 +12,6 @@ public static class ApplicationDependencyInjection
         services.AddMediator();
         services.AddScoped<UploadIntentValidator>();
         services.AddScoped<TrackStreamIssuer>();
-        services.AddScoped<YouTubeTrackProvisioner>();
 
         services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
         services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);

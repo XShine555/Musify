@@ -15,8 +15,8 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_FirstTrack_AddsItAtNumberOne()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
-            var track = TestEntities.LocalTrack(owner);
+            var album = TestEntities.Album(owner.Id);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, album, track);
 
             var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, track.Id), TestContext.Current.CancellationToken);
@@ -30,7 +30,7 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_AlbumMissing_ReturnsNotFound()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, Guid.NewGuid(), track.Id), TestContext.Current.CancellationToken);
@@ -43,8 +43,8 @@ namespace Musify.Application.Tests.Albums
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
-            var album = TestEntities.UserAlbum(owner.Id);
-            var track = TestEntities.LocalTrack(owner);
+            var album = TestEntities.Album(owner.Id);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, stranger, album, track);
 
             var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(stranger.Id, album.Id, track.Id), TestContext.Current.CancellationToken);
@@ -56,7 +56,7 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_TrackMissing_ReturnsNotFound()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
+            var album = TestEntities.Album(owner.Id);
             await SeedAsync(owner, album);
 
             var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
@@ -69,8 +69,8 @@ namespace Musify.Application.Tests.Albums
         {
             var owner = TestEntities.User(1, "owner");
             var otherOwner = TestEntities.User(2, "other");
-            var album = TestEntities.UserAlbum(owner.Id);
-            var foreignTrack = TestEntities.LocalTrack(otherOwner);
+            var album = TestEntities.Album(owner.Id);
+            var foreignTrack = TestEntities.Track(otherOwner);
             await SeedAsync(owner, otherOwner, album, foreignTrack);
 
             var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, foreignTrack.Id), TestContext.Current.CancellationToken);
@@ -82,8 +82,8 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_AlreadyInAlbum_ReturnsConflict()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
-            var track = TestEntities.LocalTrack(owner);
+            var album = TestEntities.Album(owner.Id);
+            var track = TestEntities.Track(owner);
             var link = new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 };
             await SeedAsync(owner, album, track, link);
 
@@ -96,9 +96,9 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_AlbumAlreadyHasTracks_AppendsAtNextNumber()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
-            var firstTrack = TestEntities.LocalTrack(owner, "First");
-            var secondTrack = TestEntities.LocalTrack(owner, "Second");
+            var album = TestEntities.Album(owner.Id);
+            var firstTrack = TestEntities.Track(owner, "First");
+            var secondTrack = TestEntities.Track(owner, "Second");
             var existingLink = new AlbumHasTrack { AlbumId = album.Id, TrackId = firstTrack.Id, TrackNumber = 3 };
             await SeedAsync(owner, album, firstTrack, secondTrack, existingLink);
 

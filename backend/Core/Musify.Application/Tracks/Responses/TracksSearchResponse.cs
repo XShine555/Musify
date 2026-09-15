@@ -1,11 +1,6 @@
 namespace Musify.Application.Tracks.Responses
 {
-    /// <summary>Result of a combined tracks listing/search: a page of local catalog tracks
-    /// (uploads and previously provisioned YouTube tracks), plus, when a search term was given,
-    /// live YouTube Music hits appended after them. Pagination metadata (<see cref="PageNumber"/>,
-    /// <see cref="PageSize"/>, <see cref="PageCount"/>, <see cref="TotalItemCount"/>) describes only
-    /// the local page — YouTube has no stable total, so its continuation is tracked separately via
-    /// <see cref="NextYoutubeContinuationToken"/>.</summary>
+    /// <summary>A page of the user's catalog tracks (their own uploads).</summary>
     public record TracksSearchResponse(
         IReadOnlyList<TrackSearchItemResponse> Items,
         int PageNumber,
@@ -13,26 +8,5 @@ namespace Musify.Application.Tracks.Responses
         int PageCount,
         int TotalItemCount,
         bool HasPreviousPage,
-        bool HasNextLocalPage,
-        string? NextYoutubeContinuationToken,
-        bool YoutubeUnavailable,
-        bool HasNextPage)
-    {
-        // HasNextPage is a real field (not a computed property) so it shows up as a required member
-        // of the generated OpenAPI schema, same as every other field here — a get-only property added
-        // outside the primary constructor gets reflected as optional instead, which is never true here.
-        public static TracksSearchResponse Create(
-            IReadOnlyList<TrackSearchItemResponse> items,
-            int pageNumber,
-            int pageSize,
-            int pageCount,
-            int totalItemCount,
-            bool hasPreviousPage,
-            bool hasNextLocalPage,
-            string? nextYoutubeContinuationToken,
-            bool youtubeUnavailable) =>
-            new(items, pageNumber, pageSize, pageCount, totalItemCount, hasPreviousPage, hasNextLocalPage,
-                nextYoutubeContinuationToken, youtubeUnavailable,
-                HasNextPage: hasNextLocalPage || !string.IsNullOrEmpty(nextYoutubeContinuationToken));
-    }
+        bool HasNextPage);
 }

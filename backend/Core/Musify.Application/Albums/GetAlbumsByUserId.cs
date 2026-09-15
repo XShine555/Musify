@@ -23,7 +23,7 @@ namespace Musify.Application.Albums
             if (!userExists)
                 return Error.NotFound(description: $"User {request.UserId} not found");
 
-            var albumsQuery = database.UserAlbums
+            var albumsQuery = database.Albums
                 .AsNoTracking()
                 .Where(album => album.OwnerUserId == request.UserId);
 

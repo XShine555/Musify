@@ -39,38 +39,11 @@ namespace Musify.Application.Tests.TestSupport
             modelBuilder.Entity<Track>().OwnsOne(track => track.Audio);
             modelBuilder.Entity<Track>().Navigation(track => track.Audio).IsRequired();
 
-            modelBuilder.Entity<LocalTrack>().ToTable("LocalTracks");
-
-            modelBuilder.Entity<LocalTrack>()
+            modelBuilder.Entity<Track>()
                 .HasOne(track => track.Owner)
                 .WithMany()
                 .HasForeignKey(track => track.OwnerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ExternalTrack>().ToTable("ExternalTracks");
-
-            modelBuilder.Entity<ExternalTrack>()
-                .HasIndex(track => new { track.Source, track.ExternalId })
-                .IsUnique();
-
-            modelBuilder.Entity<TrackArtist>()
-                .HasKey(trackArtist => new { trackArtist.TrackId, trackArtist.ArtistId });
-
-            modelBuilder.Entity<TrackArtist>()
-                .HasOne(trackArtist => trackArtist.Track)
-                .WithMany(track => track.TrackArtists)
-                .HasForeignKey(trackArtist => trackArtist.TrackId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<TrackArtist>()
-                .HasOne(trackArtist => trackArtist.Artist)
-                .WithMany(artist => artist.TrackArtists)
-                .HasForeignKey(trackArtist => trackArtist.ArtistId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Artist>()
-                .HasIndex(artist => artist.ExternalId)
-                .IsUnique();
 
             modelBuilder.Entity<PlayList>().OwnsOne(playList => playList.Pictures);
             modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired();
@@ -78,19 +51,11 @@ namespace Musify.Application.Tests.TestSupport
             modelBuilder.Entity<Album>().OwnsOne(album => album.Pictures);
             modelBuilder.Entity<Album>().Navigation(album => album.Pictures).IsRequired(false);
 
-            modelBuilder.Entity<UserAlbum>().ToTable("UserAlbums");
-
-            modelBuilder.Entity<UserAlbum>()
+            modelBuilder.Entity<Album>()
                 .HasOne(album => album.Owner)
                 .WithMany()
                 .HasForeignKey(album => album.OwnerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ExternalAlbum>().ToTable("ExternalAlbums");
-
-            modelBuilder.Entity<ExternalAlbum>()
-                .HasIndex(album => new { album.Source, album.ExternalId })
-                .IsUnique();
 
             modelBuilder.Entity<AlbumHasTrack>()
                 .HasOne(albumTrack => albumTrack.Album)
@@ -121,7 +86,6 @@ namespace Musify.Application.Tests.TestSupport
                 .HasOne(item => item.Track)
                 .WithMany()
                 .HasForeignKey(item => item.TrackId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MixItem>()
@@ -154,21 +118,9 @@ namespace Musify.Application.Tests.TestSupport
 
         public DbSet<Album> Albums => Set<Album>();
 
-        public DbSet<UserAlbum> UserAlbums => Set<UserAlbum>();
-
-        public DbSet<ExternalAlbum> ExternalAlbums => Set<ExternalAlbum>();
-
         public DbSet<AlbumHasTrack> AlbumHasTracks => Set<AlbumHasTrack>();
 
         public DbSet<Track> Tracks => Set<Track>();
-
-        public DbSet<LocalTrack> LocalTracks => Set<LocalTrack>();
-
-        public DbSet<ExternalTrack> ExternalTracks => Set<ExternalTrack>();
-
-        public DbSet<Artist> Artists => Set<Artist>();
-
-        public DbSet<TrackArtist> TrackArtists => Set<TrackArtist>();
 
         public DbSet<UserHasTrack> UserHasTracks => Set<UserHasTrack>();
 

@@ -3,9 +3,6 @@ using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Shared;
 using Musify.Application.Contracts;
-using Musify.Application.YouTube;
-using Musify.Application.YouTube.Responses;
-using Musify.Domain.ValueObjects;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
@@ -22,7 +19,7 @@ public static class TrackEndpoints
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
-            .WithSummary("Get Paginated Tracks, Combined With Live YouTube Music Results When A Name Filter Is Given.")
+            .WithSummary("Get Paginated Tracks, Optionally Filtered By Name.")
             .Produces<TracksSearchResponse>();
 
         group.MapGet("/{id}", GetTrackById)
@@ -43,14 +40,6 @@ public static class TrackEndpoints
             .Produces<TrackStreamResponse>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
-
-        group.MapGet("/external/{source}/{externalId}/stream", GetExternalTrackStream)
-            .WithName("GetExternalTrackStream")
-            .WithSummary("Resolve Playback For A Track From An External Source (Currently Only YouTube Music): Server Stream If Downloaded, Direct Stream From The Source Otherwise. Works Anonymously When The Playback Configuration Allows It.")
-            .Produces<YouTubeStreamResponse>()
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status409Conflict);
 
         group.MapGet("/users/{userId}", GetTracksByUserId)
             .WithName("GetTracksByUserId")
@@ -96,10 +85,9 @@ public static class TrackEndpoints
         CancellationToken cancellationToken,
         string? name,
         int pageNumber = 1,
-        int pageSize = 10,
-        string? youtubeContinuationToken = null)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize, youtubeContinuationToken), cancellationToken);
+        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -137,20 +125,6 @@ public static class TrackEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.Id), cancellationToken);
-        return result.ToHttpResult();
-    }
-
-    private static async Task<IResult> GetExternalTrackStream(
-        IMediator mediator,
-        CurrentUser currentUser,
-        string source,
-        string externalId,
-        CancellationToken cancellationToken)
-    {
-        if (!Enum.TryParse<TrackSource>(source, ignoreCase: true, out var trackSource) || trackSource != TrackSource.YouTube)
-            return Results.NotFound($"Unknown or unsupported source '{source}'.");
-
-        var result = await mediator.Send(new ResolveYouTubeTrackStreamCommand(externalId, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 

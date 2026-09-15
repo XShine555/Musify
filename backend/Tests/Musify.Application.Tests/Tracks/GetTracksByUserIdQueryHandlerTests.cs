@@ -14,8 +14,8 @@ namespace Musify.Application.Tests.Tracks
         {
             var owner = TestEntities.User(1, "owner");
             var other = TestEntities.User(2, "other");
-            var mine = TestEntities.LocalTrack(owner, "Mine");
-            var theirs = TestEntities.LocalTrack(other, "Theirs");
+            var mine = TestEntities.Track(owner, "Mine");
+            var theirs = TestEntities.Track(other, "Theirs");
             await SeedAsync(
                 owner, other, mine, theirs,
                 new UserHasTrack { UserId = owner.Id, TrackId = mine.Id },
@@ -34,7 +34,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_NonPositivePageNumber_FallsBackToFirstPage(int requestedPageNumber, int expectedPageNumber)
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track, new UserHasTrack { UserId = owner.Id, TrackId = track.Id });
 
             var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: requestedPageNumber, PageSize: 10), TestContext.Current.CancellationToken);

@@ -14,7 +14,7 @@ namespace Musify.Application.Tests.Albums
         {
             var owner = TestEntities.User(1, "owner");
             var other = TestEntities.User(2, "other");
-            await SeedAsync(owner, other, TestEntities.UserAlbum(owner.Id, "Mine"), TestEntities.UserAlbum(other.Id, "Theirs"));
+            await SeedAsync(owner, other, TestEntities.Album(owner.Id, "Mine"), TestEntities.Album(other.Id, "Theirs"));
 
             var result = await CreateHandler().Handle(new GetAlbumsByUserIdQuery(owner.Id, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 

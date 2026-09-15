@@ -49,7 +49,6 @@
     <PackageVersion Include="X.PagedList" Version="10.5.9" />
     <PackageVersion Include="X.PagedList.EF" Version="10.5.9" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
-    <PackageVersion Include="YouTubeMusicAPI" Version="3.0.7" />
 
     <!-- Test-only -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />

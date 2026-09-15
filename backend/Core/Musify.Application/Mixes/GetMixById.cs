@@ -22,9 +22,10 @@ namespace Musify.Application.Mixes
             if (mix is null)
                 return Error.NotFound(description: $"Mix {request.MixId} was not found");
 
-            var items = mix.Items.OrderBy(item => item.Position).ToList();
+            var orderedItems = mix.Items.OrderBy(item => item.Position).ToList();
+            var items = await MixItemMapper.ToResponsesAsync(database, orderedItems, cancellationToken);
 
-            return MixApplicationResponse.FromEntity(mix, items.Count, items);
+            return new MixApplicationResponse(mix.Id, mix.Title, mix.Subtitle, items.Count, items);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_Owner_MarksTrackAsRemovingAndPublishesEvent()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new DeleteTrackCommand(owner.Id, track.Id), TestContext.Current.CancellationToken);
@@ -43,7 +43,7 @@ namespace Musify.Application.Tests.Tracks
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, stranger, track);
 
             var result = await CreateHandler().Handle(new DeleteTrackCommand(stranger.Id, track.Id), TestContext.Current.CancellationToken);
@@ -52,21 +52,10 @@ namespace Musify.Application.Tests.Tracks
         }
 
         [Fact]
-        public async Task Handle_ExternalTrack_ReturnsUnauthorized()
-        {
-            var externalTrack = TestEntities.ExternalTrack();
-            await SeedAsync(externalTrack);
-
-            var result = await CreateHandler().Handle(new DeleteTrackCommand(1, externalTrack.Id), TestContext.Current.CancellationToken);
-
-            Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
-        }
-
-        [Fact]
         public async Task Handle_AudioStillProcessing_ReturnsConflict()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner, audio: TestEntities.PendingAudio());
+            var track = TestEntities.Track(owner, audio: TestEntities.PendingAudio());
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new DeleteTrackCommand(owner.Id, track.Id), TestContext.Current.CancellationToken);

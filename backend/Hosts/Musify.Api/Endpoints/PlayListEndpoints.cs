@@ -5,7 +5,6 @@ using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Shared;
 using Musify.Application.Contracts;
-using Musify.Domain.ValueObjects;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;
@@ -88,11 +87,9 @@ public static class PlayListEndpoints
 
         group.MapPost("/{playlistId}/tracks", AddPlayListTrack)
             .WithName("AddPlayListTrack")
-            .WithSummary("Add A Track To A PlayList, By Id Or By External Source, Provisioning It In The Background If Needed.")
-            .AddEndpointFilter<ValidationFilter<AddPlayListTrackRequest>>()
+            .WithSummary("Add One Of Your Tracks To A PlayList.")
             .RequireAuthorization()
             .Produces<TrackApplicationResponse>(StatusCodes.Status201Created)
-            .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
@@ -227,25 +224,14 @@ public static class PlayListEndpoints
         AddPlayListTrackRequest request,
         CancellationToken cancellationToken)
     {
-        if (request.TrackId is { } trackId)
-        {
-            var addResult = await mediator.Send(
-                new AddTrackToPlayListCommand(currentUser.RequiredId, playlistId, trackId),
-                cancellationToken);
-            if (addResult.IsError)
-                return addResult.ToHttpResult();
-
-            var trackResult = await mediator.Send(new GetTrackByIdQuery(trackId), cancellationToken);
-            return trackResult.ToCreatedResult(track => $"/tracks/{track.Id}");
-        }
-
-        // The validator guarantees Source/ExternalId are set whenever TrackId isn't, and that Source
-        // is one of the currently supported external sources (only YouTube for now).
-        var result = await mediator.Send(
-            new AddYouTubeTrackToPlayListCommand(currentUser.RequiredId, playlistId, request.ExternalId!),
+        var addResult = await mediator.Send(
+            new AddTrackToPlayListCommand(currentUser.RequiredId, playlistId, request.TrackId),
             cancellationToken);
+        if (addResult.IsError)
+            return addResult.ToHttpResult();
 
-        return result.ToCreatedResult(track => $"/tracks/{track.Id}");
+        var trackResult = await mediator.Send(new GetTrackByIdQuery(request.TrackId), cancellationToken);
+        return trackResult.ToCreatedResult(track => $"/tracks/{track.Id}");
     }
 
     private static async Task<IResult> RemoveTrackFromPlayList(

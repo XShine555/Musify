@@ -16,7 +16,7 @@ namespace Musify.Application.Albums
     {
         public async ValueTask<ErrorOr<Success>> Handle(RemoveTrackFromAlbumCommand request, CancellationToken cancellationToken)
         {
-            var album = await database.UserAlbums
+            var album = await database.Albums
                 .AsNoTracking()
                 .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
             if (album is null)

@@ -25,8 +25,6 @@ namespace Musify.Api.Tests.TestSupport
 
         public IEventBus EventBus { get; } = Substitute.For<IEventBus>();
 
-        public IYouTubeMusicService YouTubeMusicService { get; } = Substitute.For<IYouTubeMusicService>();
-
         public IStreamTicketService StreamTicketService { get; } = Substitute.For<IStreamTicketService>();
 
         public async ValueTask InitializeAsync()
@@ -88,7 +86,6 @@ namespace Musify.Api.Tests.TestSupport
             {
                 services.Replace(ServiceDescriptor.Singleton(StorageService));
                 services.Replace(ServiceDescriptor.Scoped(_ => EventBus));
-                services.Replace(ServiceDescriptor.Singleton(YouTubeMusicService));
                 services.Replace(ServiceDescriptor.Singleton(StreamTicketService));
 
                 services

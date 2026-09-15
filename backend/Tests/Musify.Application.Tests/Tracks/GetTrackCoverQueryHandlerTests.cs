@@ -18,7 +18,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_ProcessedTrack_ReturnsRequestedSize(string size, string expectedFileName)
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new GetTrackCoverQuery(track.Id, size), TestContext.Current.CancellationToken);
@@ -41,7 +41,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_PictureNotProcessedYet_ReturnsNotFound()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner, pictures: TestEntities.PendingPictures());
+            var track = TestEntities.Track(owner, pictures: TestEntities.PendingPictures());
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new GetTrackCoverQuery(track.Id, "small"), TestContext.Current.CancellationToken);

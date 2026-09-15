@@ -32,7 +32,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_ProcessedTrack_IssuesTicketAndRecordsListen()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
@@ -59,7 +59,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_AudioNotProcessedYet_ReturnsConflict()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner, audio: TestEntities.PendingAudio());
+            var track = TestEntities.Track(owner, audio: TestEntities.PendingAudio());
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
@@ -71,7 +71,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_AnonymousUser_AnonymousListeningDisabled_ReturnsUnauthorized()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var handler = CreateHandler(TestConfigurations.Playback(allowAnonymousListening: false));
@@ -85,7 +85,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_AnonymousUser_AnonymousListeningEnabled_IssuesTicketWithoutRecordingHistory()
         {
             var owner = TestEntities.User();
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var handler = CreateHandler(TestConfigurations.Playback(allowAnonymousListening: true));

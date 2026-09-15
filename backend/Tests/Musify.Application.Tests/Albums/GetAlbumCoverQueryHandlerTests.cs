@@ -17,7 +17,7 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_ExistingAlbum_ReturnsRequestedSize(string size, string expectedFileName)
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
+            var album = TestEntities.Album(owner.Id);
             await SeedAsync(owner, album);
 
             var result = await CreateHandler().Handle(new GetAlbumCoverQuery(album.Id, size), TestContext.Current.CancellationToken);

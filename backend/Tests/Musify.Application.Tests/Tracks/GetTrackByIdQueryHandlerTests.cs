@@ -14,7 +14,7 @@ namespace Musify.Application.Tests.Tracks
         public async Task Handle_LocalTrack_ReturnsItWithOwnerAsArtist()
         {
             var owner = TestEntities.User(1, "artist-name");
-            var track = TestEntities.LocalTrack(owner, "My Song");
+            var track = TestEntities.Track(owner, "My Song");
             await SeedAsync(owner, track);
 
             var result = await CreateHandler().Handle(new GetTrackByIdQuery(track.Id), TestContext.Current.CancellationToken);
@@ -22,7 +22,7 @@ namespace Musify.Application.Tests.Tracks
             Assert.False(result.IsError);
             Assert.Equal("My Song", result.Value.Title);
             Assert.Equal(owner.Name, result.Value.Artist);
-            var localResponse = Assert.IsType<LocalTrackApplicationResponse>(result.Value);
+            var localResponse = Assert.IsType<TrackApplicationResponse>(result.Value);
             Assert.Equal(owner.Id, localResponse.OwnerUserId);
         }
 

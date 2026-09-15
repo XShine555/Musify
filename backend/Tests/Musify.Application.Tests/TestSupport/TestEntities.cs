@@ -49,7 +49,7 @@ namespace Musify.Application.Tests.TestSupport
             TranscodeStatus = ProcessingStatus.Pending
         };
 
-        public static LocalTrack LocalTrack(
+        public static Track Track(
             User owner,
             string title = "Test Track",
             double durationSeconds = 180,
@@ -66,36 +66,6 @@ namespace Musify.Application.Tests.TestSupport
                 Owner = owner,
                 Pictures = pictures ?? ProcessedPictures(),
                 Audio = audio ?? ProcessedAudio()
-            };
-
-        public static ExternalTrack ExternalTrack(
-            string externalId = "video-id",
-            string title = "Test External Track",
-            double durationSeconds = 180,
-            TrackSource source = TrackSource.YouTube,
-            TrackPictures? pictures = null,
-            TrackAudio? audio = null,
-            LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active) =>
-            new()
-            {
-                Title = title,
-                NormalizedTitle = title.ToUpperInvariant(),
-                DurationSeconds = durationSeconds,
-                LifeCycleStatus = lifeCycleStatus,
-                Source = source,
-                ExternalId = externalId,
-                Pictures = pictures ?? ProcessedPictures(),
-                Audio = audio ?? ProcessedAudio()
-            };
-
-        public static Artist Artist(
-            string name = "Test Artist",
-            string externalId = "artist-id") =>
-            new()
-            {
-                Name = name,
-                NormalizedName = name.ToUpperInvariant(),
-                ExternalId = externalId
             };
 
         public static PlayListPictures PlayListPictures() => new()
@@ -132,7 +102,7 @@ namespace Musify.Application.Tests.TestSupport
             LargeName = "large.webp"
         };
 
-        public static UserAlbum UserAlbum(
+        public static Album Album(
             long ownerUserId,
             string title = "Test Album",
             string? description = null,
@@ -146,20 +116,6 @@ namespace Musify.Application.Tests.TestSupport
                 ReleaseYear = releaseYear,
                 OwnerUserId = ownerUserId,
                 Pictures = pictures ?? AlbumPictures()
-            };
-
-        public static ExternalAlbum ExternalAlbum(
-            string externalId = "album-id",
-            string title = "Test External Album",
-            TrackSource source = TrackSource.YouTube,
-            string? thumbnailUrl = null) =>
-            new()
-            {
-                Title = title,
-                NormalizedTitle = title.ToUpperInvariant(),
-                Source = source,
-                ExternalId = externalId,
-                ThumbnailUrl = thumbnailUrl
             };
 
         public static UploadIntent UploadIntent(
@@ -200,25 +156,13 @@ namespace Musify.Application.Tests.TestSupport
 
         public static MixItem MixItem(
             Guid mixId,
-            int position = 0,
-            MixItemSource source = MixItemSource.Musify,
-            Guid? trackId = null,
-            string? videoId = null,
-            string title = "Test Mix Item",
-            string? artist = "Test Artist",
-            double durationSeconds = 180,
-            bool isExplicit = false) =>
+            Guid trackId,
+            int position = 0) =>
             new()
             {
                 MixId = mixId,
                 Position = position,
-                Source = source,
-                TrackId = trackId,
-                VideoId = videoId,
-                Title = title,
-                Artist = artist,
-                DurationSeconds = durationSeconds,
-                IsExplicit = isExplicit
+                TrackId = trackId
             };
 
         public static ListeningHistory ListeningHistory(

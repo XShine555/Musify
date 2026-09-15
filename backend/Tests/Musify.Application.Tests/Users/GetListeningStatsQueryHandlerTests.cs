@@ -25,8 +25,8 @@ namespace Musify.Application.Tests.Users
         public async Task Handle_ListensThisWeek_CountsDistinctTracksAndTotalSeconds()
         {
             var user = TestEntities.User();
-            var trackA = TestEntities.LocalTrack(user, "Track A", durationSeconds: 200);
-            var trackB = TestEntities.LocalTrack(user, "Track B", durationSeconds: 100);
+            var trackA = TestEntities.Track(user, "Track A", durationSeconds: 200);
+            var trackB = TestEntities.Track(user, "Track B", durationSeconds: 100);
             await SeedAsync(
                 user, trackA, trackB,
                 TestEntities.ListeningHistory(user.Id, trackA.Id, DateTime.UtcNow.AddDays(-1)),
@@ -44,7 +44,7 @@ namespace Musify.Application.Tests.Users
         public async Task Handle_ListenedTodayAndYesterday_StreakIsTwo()
         {
             var user = TestEntities.User();
-            var track = TestEntities.LocalTrack(user);
+            var track = TestEntities.Track(user);
             await SeedAsync(
                 user, track,
                 TestEntities.ListeningHistory(user.Id, track.Id, DateTime.UtcNow),
@@ -59,7 +59,7 @@ namespace Musify.Application.Tests.Users
         public async Task Handle_GapBeforeToday_StopsStreakAtGap()
         {
             var user = TestEntities.User();
-            var track = TestEntities.LocalTrack(user);
+            var track = TestEntities.Track(user);
             await SeedAsync(
                 user, track,
                 TestEntities.ListeningHistory(user.Id, track.Id, DateTime.UtcNow),
@@ -74,7 +74,7 @@ namespace Musify.Application.Tests.Users
         public async Task Handle_NoListenToday_StreakIsZero()
         {
             var user = TestEntities.User();
-            var track = TestEntities.LocalTrack(user);
+            var track = TestEntities.Track(user);
             await SeedAsync(
                 user, track,
                 TestEntities.ListeningHistory(user.Id, track.Id, DateTime.UtcNow.AddDays(-1)));

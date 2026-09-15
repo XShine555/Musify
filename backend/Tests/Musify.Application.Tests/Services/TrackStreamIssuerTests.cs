@@ -24,7 +24,7 @@ namespace Musify.Application.Tests.Services
         {
             ticketService.IssueTicket(7, Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("signed-token", 120));
             var owner = TestEntities.User(7);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var response = await CreateIssuer().IssueAsync(track.Id, "folder-42", userId: 7, TestContext.Current.CancellationToken);
@@ -45,7 +45,7 @@ namespace Musify.Application.Tests.Services
         {
             ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("token", 60));
             var owner = TestEntities.User(1);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             await CreateIssuer().IssueAsync(track.Id, "folder-42", userId: 1, TestContext.Current.CancellationToken);
@@ -58,7 +58,7 @@ namespace Musify.Application.Tests.Services
         {
             ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("token", 60));
             var owner = TestEntities.User(1);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var response = await CreateIssuer(TestConfigurations.Playback(allowAnonymousListening: true))
@@ -73,7 +73,7 @@ namespace Musify.Application.Tests.Services
         {
             ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("token", 60));
             var owner = TestEntities.User(1);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var playback = TestConfigurations.Playback(allowAnonymousListening: true, anonymousFragmentSeconds: 30);
@@ -87,7 +87,7 @@ namespace Musify.Application.Tests.Services
         {
             ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("token", 60));
             var owner = TestEntities.User(1);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, track);
 
             var playback = TestConfigurations.Playback(allowAnonymousListening: true, anonymousFragmentSeconds: 30);

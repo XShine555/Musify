@@ -9,7 +9,6 @@ namespace Musify.Infrastructure.MassTransit.Sagas
         public State Failed { get; private set; } = null!;
 
         public Event<CreateTrackResourcesEvent> ProcessingStarted { get; private set; } = null!;
-        public Event<DownloadYouTubeTrackEvent> YouTubeDownloadStarted { get; private set; } = null!;
         public Event<TrackPictureProcessed> PictureProcessed { get; private set; } = null!;
         public Event<TrackAudioProcessed> AudioProcessed { get; private set; } = null!;
         public Event<TrackPictureProcessingFailed> PictureFailed { get; private set; } = null!;
@@ -20,7 +19,6 @@ namespace Musify.Infrastructure.MassTransit.Sagas
             InstanceState(state => state.CurrentState);
 
             Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.TrackId));
-            Event(() => YouTubeDownloadStarted, config => config.CorrelateById(context => context.Message.TrackId));
             Event(() => PictureProcessed, config => config.CorrelateById(context => context.Message.TrackId));
             Event(() => AudioProcessed, config => config.CorrelateById(context => context.Message.TrackId));
             Event(() => PictureFailed, config => config.CorrelateById(context => context.Message.TrackId));
@@ -36,20 +34,9 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                         context.Saga.PictureKey = context.Message.PictureDestinationKey;
                         context.Saga.AudioKey = context.Message.AudioDestinationKey;
                     } )
-                    .TransitionTo(Processing),
-                When(YouTubeDownloadStarted)
-                    .Then(context =>
-                    {
-                        context.Saga.CreatedAt = DateTime.UtcNow;
-                        context.Saga.UpdatedAt = DateTime.UtcNow;
-                        context.Saga.Bucket = context.Message.Bucket;
-                        context.Saga.PictureKey = string.Empty;
-                        context.Saga.AudioKey = string.Empty;
-                    } )
                     .TransitionTo(Processing));
 
             During(Processing,
-                Ignore(YouTubeDownloadStarted),
                 When(PictureProcessed)
                     .Then(context =>
                     {
@@ -85,18 +72,7 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                 Ignore(PictureProcessed),
                 Ignore(AudioProcessed),
                 Ignore(PictureFailed),
-                Ignore(AudioFailed),
-                When(YouTubeDownloadStarted)
-                    .Then(context =>
-                    {
-                        context.Saga.UpdatedAt = DateTime.UtcNow;
-                        context.Saga.PictureProcessed = false;
-                        context.Saga.AudioProcessed = false;
-                        context.Saga.Bucket = context.Message.Bucket;
-                        context.Saga.PictureKey = string.Empty;
-                        context.Saga.AudioKey = string.Empty;
-                    } )
-                    .TransitionTo(Processing));
+                Ignore(AudioFailed));
 
             SetCompletedWhenFinalized();
         }

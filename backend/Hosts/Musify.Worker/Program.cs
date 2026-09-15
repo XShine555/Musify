@@ -1,6 +1,5 @@
 using Hangfire;
 using Musify.Application.Configuration;
-using Musify.Application.Services;
 using Musify.Infrastructure.Jobs;
 using Musify.Infrastructure.MassTransit;
 using Musify.Infrastructure.Persistence;
@@ -29,7 +28,6 @@ services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfigurati
 services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
 services.AddStorageService(configuration);
 services.AddAudioTranscoder(configuration);
-services.AddYouTubeDownloader(configuration);
 services.AddHttpClient();
 services.AddPictureService(configuration);
 services.AddPlayListPresetSeeder(configuration);
@@ -37,8 +35,6 @@ services.AddDatabase(configuration);
 services.AddMassTransitConsumers(configuration);
 services.AddUploadIntentJobs(configuration);
 services.AddMediator();
-services.AddScoped<YouTubeTrackProvisioner>();
-services.AddYouTubeMusicService(configuration);
 services.AddDailyMixGenerationJob(configuration);
 
 var host = builder.Build();

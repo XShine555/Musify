@@ -14,7 +14,7 @@ namespace Musify.Application.Albums
     {
         public async ValueTask<ErrorOr<AlbumApplicationResponse>> Handle(GetAlbumByIdQuery request, CancellationToken cancellationToken)
         {
-            var album = await database.UserAlbums
+            var album = await database.Albums
                 .AsNoTracking()
                 .Where(a => a.Id == request.Id)
                 .Select(a => new

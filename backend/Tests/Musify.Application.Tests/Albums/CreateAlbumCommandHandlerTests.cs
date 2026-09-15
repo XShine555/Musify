@@ -44,7 +44,7 @@ namespace Musify.Application.Tests.Albums
             Assert.Equal(owner.Id, result.Value.OwnerUserId);
             Assert.Equal(0, result.Value.TrackCount);
 
-            var stored = await Database.UserAlbums.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
+            var stored = await Database.Albums.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
             Assert.NotNull(stored);
             Assert.Equal("MY ALBUM", stored.NormalizedTitle);
             Assert.Equal("cover.webp", stored.Pictures.OriginalName);

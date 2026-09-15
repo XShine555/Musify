@@ -14,8 +14,8 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_ExistingAlbum_ReturnsItWithTrackCountAndCovers()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
-            var track = TestEntities.LocalTrack(owner);
+            var album = TestEntities.Album(owner.Id);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, album, track, new AlbumHasTrack { AlbumId = album.Id, TrackId = track.Id, TrackNumber = 1 });
 
             var result = await CreateHandler().Handle(new GetAlbumByIdQuery(album.Id), TestContext.Current.CancellationToken);

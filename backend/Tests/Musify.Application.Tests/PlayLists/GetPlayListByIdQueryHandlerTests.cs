@@ -15,7 +15,7 @@ namespace Musify.Application.Tests.PlayLists
         {
             var owner = TestEntities.User();
             var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
             var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id), TestContext.Current.CancellationToken);

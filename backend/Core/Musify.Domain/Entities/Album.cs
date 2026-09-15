@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Musify.Domain.Abstractions;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Domain.Entities
 {
 #pragma warning disable CS8618
-    public abstract class Album : IAuditable
+    public class Album : IAuditable
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -24,6 +25,12 @@ namespace Musify.Domain.Entities
         public int? ReleaseYear { get; set; }
 
         public AlbumPictures? Pictures { get; set; }
+
+        [Required]
+        public required long OwnerUserId { get; set; }
+
+        [ForeignKey(nameof(OwnerUserId))]
+        public User Owner { get; set; }
 
         [Required]
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;

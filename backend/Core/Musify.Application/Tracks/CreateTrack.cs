@@ -59,7 +59,7 @@ namespace Musify.Application.Tracks
             var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
             var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
-            var trackEntity = new LocalTrack
+            var trackEntity = new Track
             {
                 Title = request.Title,
                 NormalizedTitle = request.Title.ToUpperInvariant(),
@@ -80,7 +80,7 @@ namespace Musify.Application.Tracks
                 }
             };
 
-            await database.LocalTracks.AddAsync(trackEntity, cancellationToken);
+            await database.Tracks.AddAsync(trackEntity, cancellationToken);
 
             await database.UserHasTracks.AddAsync(new UserHasTrack
             {

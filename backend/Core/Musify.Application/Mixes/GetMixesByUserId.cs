@@ -14,24 +14,24 @@ namespace Musify.Application.Mixes
     {
         public async ValueTask<ErrorOr<IReadOnlyList<MixApplicationResponse>>> Handle(GetMixesByUserIdQuery request, CancellationToken cancellationToken)
         {
-            var entries = await database.Mixes
+            var mixes = await database.Mixes
                 .AsNoTracking()
                 .Where(mix => mix.UserId == request.UserId)
+                .Include(mix => mix.Items)
                 .OrderBy(mix => mix.Position)
-                .Select(mix => new
-                {
-                    Mix = mix,
-                    ItemCount = mix.Items.Count,
-                    CoverItems = mix.Items
-                        .OrderBy(item => item.Position)
-                        .Take(MixApplicationResponse.CoverItemCount)
-                        .ToList()
-                })
                 .ToListAsync(cancellationToken);
 
-            return entries
-                .Select(entry => MixApplicationResponse.FromEntity(entry.Mix, entry.ItemCount, entry.CoverItems))
-                .ToList();
+            var responses = new List<MixApplicationResponse>(mixes.Count);
+            foreach (var mix in mixes)
+            {
+                var orderedItems = mix.Items.OrderBy(item => item.Position).ToList();
+                var coverItems = await MixItemMapper.ToResponsesAsync(
+                    database, orderedItems.Take(MixApplicationResponse.CoverItemCount).ToList(), cancellationToken);
+
+                responses.Add(new MixApplicationResponse(mix.Id, mix.Title, mix.Subtitle, orderedItems.Count, coverItems));
+            }
+
+            return responses;
         }
     }
 }

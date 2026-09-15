@@ -25,10 +25,8 @@ public static class LikeEndpoints
 
         group.MapPost("/toggle", ToggleTrackLike)
             .WithName("ToggleTrackLike")
-            .WithSummary("Like Or Unlike A Track, By Id Or By External Source, Provisioning It In The Background If Needed.")
-            .AddEndpointFilter<ValidationFilter<ToggleLikeRequest>>()
+            .WithSummary("Like Or Unlike A Track By Id.")
             .Produces<bool>()
-            .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -53,7 +51,7 @@ public static class LikeEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new ToggleTrackLikeCommand(currentUser.RequiredId, request.TrackId, request.Source, request.ExternalId),
+            new ToggleTrackLikeCommand(currentUser.RequiredId, request.TrackId),
             cancellationToken);
 
         return result.ToHttpResult();

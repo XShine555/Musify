@@ -7,7 +7,7 @@ same set of compose files — no wrapper scripts, just `docker compose`.
 |---|---|
 | `compose.yml` | Every service, including the one-shot bootstrap jobs. No published ports, no domains, no environment-specific values. |
 | `compose.dev.yml` | Development overlay: publishes the ports to the host, adds pgAdmin. |
-| `compose.prod.yml` | Production overlay: adds the nginx edge and the mounted secrets. |
+| `compose.prod.yml` | Production overlay: adds the nginx edge. |
 | `.env` / `.env.prod` | The values compose interpolates. Not versioned; templates in `.env.example` / `.env.prod.example`. |
 
 The four applications (`api`, `worker`, `gateway`, `web-player`) sit behind the
@@ -76,9 +76,9 @@ Add `--profile tools` to also start pgAdmin.
 | pgAdmin (`--profile tools`) | `5050` | Postgres UI |
 | API, gateway, web player (`--profile apps`) | `5111` / `8081` / `3000` | |
 
-Host requirements: .NET 10 SDK, Node 22, Docker Desktop. (ffmpeg and yt-dlp
-are only needed on the host if you run the Worker outside Docker — inside
-Docker its image already has them.)
+Host requirements: .NET 10 SDK, Node 22, Docker Desktop. (ffmpeg is only
+needed on the host if you run the Worker outside Docker — inside Docker its
+image already has it.)
 
 ### Why `host.docker.internal`
 
@@ -136,13 +136,6 @@ infra containers and only rebuilds and restarts the apps).
 Only nginx publishes ports (80/443); everything else is reachable only on the
 internal compose network.
 
-### Optional secrets
-
-`deploy/secrets/` is mounted read-only at `/secrets` in the Worker. Drop a
-`youtube_cookies.txt` there if you want yt-dlp to use a cookie jar — it is
-referenced from `YTDLP_ADDITIONAL_ARGUMENTS` in `.env.prod`, which you can
-empty if you do not have one.
-
 ---
 
 ## Layout
@@ -151,10 +144,9 @@ empty if you do not have one.
 deploy/
 ├─ compose.yml                     # all services, incl. keys-init / migrate / zitadel-init
 ├─ compose.dev.yml                 # dev overlay: host ports, pgAdmin
-├─ compose.prod.yml                # prod overlay: nginx edge, secrets
+├─ compose.prod.yml                # prod overlay: nginx edge
 ├─ .env.example / .env.prod.example
 ├─ keys/                           # RS256 stream-ticket key pair (generated)
-├─ secrets/                        # mounted into the Worker (prod, optional)
 ├─ nginx/
 │  ├─ templates/default.conf.template # vhosts, rendered with the domain by envsubst
 │  ├─ snippets/proxy.conf             # proxy headers shared by every vhost

@@ -16,10 +16,10 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_TrackInAlbum_RemovesItAndRenumbersTheRest()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
-            var first = TestEntities.LocalTrack(owner, "First");
-            var second = TestEntities.LocalTrack(owner, "Second");
-            var third = TestEntities.LocalTrack(owner, "Third");
+            var album = TestEntities.Album(owner.Id);
+            var first = TestEntities.Track(owner, "First");
+            var second = TestEntities.Track(owner, "Second");
+            var third = TestEntities.Track(owner, "Third");
             await SeedAsync(
                 owner, album, first, second, third,
                 new AlbumHasTrack { AlbumId = album.Id, TrackId = first.Id, TrackNumber = 1 },
@@ -50,7 +50,7 @@ namespace Musify.Application.Tests.Albums
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
-            var album = TestEntities.UserAlbum(owner.Id);
+            var album = TestEntities.Album(owner.Id);
             await SeedAsync(owner, stranger, album);
 
             var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(stranger.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
@@ -62,7 +62,7 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_TrackNotInAlbum_ReturnsNotFound()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
+            var album = TestEntities.Album(owner.Id);
             await SeedAsync(owner, album);
 
             var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(owner.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);

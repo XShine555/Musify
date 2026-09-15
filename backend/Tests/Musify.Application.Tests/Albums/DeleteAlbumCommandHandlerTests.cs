@@ -13,13 +13,13 @@ namespace Musify.Application.Tests.Albums
         public async Task Handle_Owner_RemovesAlbum()
         {
             var owner = TestEntities.User();
-            var album = TestEntities.UserAlbum(owner.Id);
+            var album = TestEntities.Album(owner.Id);
             await SeedAsync(owner, album);
 
             var result = await CreateHandler().Handle(new DeleteAlbumCommand(owner.Id, album.Id), TestContext.Current.CancellationToken);
 
             Assert.False(result.IsError);
-            Assert.Null(await Database.UserAlbums.FindAsync([album.Id], TestContext.Current.CancellationToken));
+            Assert.Null(await Database.Albums.FindAsync([album.Id], TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -35,13 +35,13 @@ namespace Musify.Application.Tests.Albums
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
-            var album = TestEntities.UserAlbum(owner.Id);
+            var album = TestEntities.Album(owner.Id);
             await SeedAsync(owner, stranger, album);
 
             var result = await CreateHandler().Handle(new DeleteAlbumCommand(stranger.Id, album.Id), TestContext.Current.CancellationToken);
 
             Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
-            Assert.NotNull(await Database.UserAlbums.FindAsync([album.Id], TestContext.Current.CancellationToken));
+            Assert.NotNull(await Database.Albums.FindAsync([album.Id], TestContext.Current.CancellationToken));
         }
     }
 }

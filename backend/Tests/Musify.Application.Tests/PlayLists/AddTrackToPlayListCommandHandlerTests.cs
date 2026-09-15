@@ -16,7 +16,7 @@ namespace Musify.Application.Tests.PlayLists
         {
             var owner = TestEntities.User();
             var playList = TestEntities.PlayList(owner.Id);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, playList, track);
 
             var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, track.Id), TestContext.Current.CancellationToken);
@@ -31,8 +31,8 @@ namespace Musify.Application.Tests.PlayLists
         {
             var owner = TestEntities.User();
             var playList = TestEntities.PlayList(owner.Id);
-            var existingTrack = TestEntities.LocalTrack(owner, "Existing");
-            var newTrack = TestEntities.LocalTrack(owner, "New");
+            var existingTrack = TestEntities.Track(owner, "Existing");
+            var newTrack = TestEntities.Track(owner, "New");
             await SeedAsync(
                 owner, playList, existingTrack, newTrack,
                 new PlayListHasTrack { PlayListId = playList.Id, TrackId = existingTrack.Id, Position = 0 });
@@ -82,7 +82,7 @@ namespace Musify.Application.Tests.PlayLists
         {
             var owner = TestEntities.User();
             var playList = TestEntities.PlayList(owner.Id);
-            var track = TestEntities.LocalTrack(owner);
+            var track = TestEntities.Track(owner);
             await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
             var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, track.Id), TestContext.Current.CancellationToken);

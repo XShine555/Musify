@@ -447,7 +447,6 @@ services:
       DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
       AudioTranscoder__Routes__WorkingDirectory: /tmp/musify
       Workers__Routes__TemporaryFilesDirectory: /tmp/musify
-      YtDlp__AdditionalArguments: ${YTDLP_ADDITIONAL_ARGUMENTS:-}
     restart: unless-stopped
 
   # YARP in front of the SeaweedFS filer: validates the RS256 stream ticket and
