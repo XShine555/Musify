@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { thumbnailSrc } from '$lib/thumbnails';
 
 	interface Props {
 		trackId: string | number;
@@ -24,9 +23,7 @@
 
 	let failed = $state(false);
 
-	const imageSrc = $derived(
-		src ? (thumbnailSrc(src, size) ?? src) : `/api/tracks/${trackId}/cover?size=${size}`
-	);
+	const imageSrc = $derived(src ?? `/api/tracks/${trackId}/cover?size=${size}`);
 
 	$effect(() => {
 		imageSrc;

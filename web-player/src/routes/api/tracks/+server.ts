@@ -7,11 +7,10 @@ export const GET: RequestHandler = async ({ url, locals, fetch }) => {
 	const name = url.searchParams.get('name')?.trim() || undefined;
 	const pageNumber = Math.max(1, Number(url.searchParams.get('pageNumber')) || 1);
 	const pageSize = Math.max(1, Number(url.searchParams.get('pageSize')) || EXPLORE_PAGE_SIZE);
-	const youtubeContinuationToken = url.searchParams.get('youtubeContinuationToken') || undefined;
 
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 	const result = await api.GET('/tracks', {
-		params: { query: { name, pageNumber, pageSize, youtubeContinuationToken } }
+		params: { query: { name, pageNumber, pageSize } }
 	});
 
 	return json(unwrapOrError(result, 'No se pudieron cargar las canciones.'));

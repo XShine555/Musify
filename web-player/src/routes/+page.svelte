@@ -10,8 +10,6 @@
 		isTargetCurrent,
 		queueItemForTarget,
 		targetArtist,
-		targetCoverSrc,
-		targetDurationSeconds,
 		targetExplicit,
 		targetForQueueItem,
 		targetId,
@@ -19,12 +17,11 @@
 		targetTitle,
 		type TrackTarget
 	} from '$lib/tracks';
-	import Cover from '$lib/components/ui/Cover.svelte';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import MixTile from '$lib/components/ui/MixTile.svelte';
 	import EqBars from '$lib/components/ui/EqBars.svelte';
-	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
+	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -32,36 +29,26 @@
 		contextMenuStateFor,
 		type ContextMenuState
 	} from '$lib/components/TrackContextMenu.svelte';
-	import type { YouTubeSong } from '$lib/types';
-	import { appendUnique } from '$lib/collections';
 	import { HOME_CONTINUE_LIMIT, HOME_POPULAR_MAX } from '$lib/config';
 
 	let { data } = $props();
 
 	let contextMenu = $state<ContextMenuState | null>(null);
-	let popularFillerItems = $state<YouTubeSong[]>([]);
-	let spotlightItems = $state<TrackTarget[]>([]);
+
+	type SpotlightRow = { target: TrackTarget; seconds: number };
+	let spotlightRows = $state<SpotlightRow[]>([]);
 	let spotlightTotal = $state(0);
 
 	$effect(() => {
-		popularFillerItems = [];
-		let cancelled = false;
-		data.popularFiller.then((filler) => {
-			if (cancelled) return;
-			popularFillerItems = appendUnique([], filler.items, (song) => song.videoId);
-		});
-		return () => {
-			cancelled = true;
-		};
-	});
-
-	$effect(() => {
-		spotlightItems = [];
+		spotlightRows = [];
 		spotlightTotal = 0;
 		let cancelled = false;
 		data.spotlightTracks.then(({ items, totalCount }) => {
 			if (cancelled) return;
-			spotlightItems = items.map((track) => ({ kind: 'local' as const, track }));
+			spotlightRows = items.map((track) => ({
+				target: { track },
+				seconds: Number(track.duration)
+			}));
 			spotlightTotal = totalCount;
 		});
 		return () => {
@@ -72,10 +59,9 @@
 	const mixes = $derived(data.mixes);
 	const playlists = $derived(data.playlists);
 	const spotlight = $derived(data.spotlightPlaylist);
+	const spotlightItems = $derived(spotlightRows.map((row) => row.target));
 	const spotlightDurationSeconds = $derived(
-		spotlightItems.some((item) => targetDurationSeconds(item) !== undefined)
-			? spotlightItems.reduce((sum, item) => sum + (targetDurationSeconds(item) ?? 0), 0)
-			: undefined
+		spotlightRows.reduce((sum, row) => sum + row.seconds, 0)
 	);
 	const spotlightTrackCount = $derived(spotlightTotal || spotlightItems.length);
 	const spotlightVisibilityLabel = $derived(
@@ -86,9 +72,7 @@
 			? spotlightVisibilityLabel
 			: [
 					`${spotlightTrackCount} ${spotlightTrackCount === 1 ? 'canción' : 'canciones'}`,
-					spotlightDurationSeconds !== undefined
-						? fmtDurationLong(spotlightDurationSeconds)
-						: '0 min',
+					fmtDurationLong(spotlightDurationSeconds),
 					spotlightVisibilityLabel
 				].join(' · ')
 	);
@@ -97,10 +81,7 @@
 	const recentPool = $derived(mergeRecentlyPlayed(data.recentlyPlayed, 24));
 
 	const popularTargets = $derived<TrackTarget[]>(
-		[
-			...recentPool.map(targetForQueueItem),
-			...popularFillerItems.map((song) => ({ kind: 'youtube' as const, song }))
-		].slice(0, HOME_POPULAR_MAX)
+		recentPool.map(targetForQueueItem).slice(0, HOME_POPULAR_MAX)
 	);
 
 	const spotlightQueue = $derived(spotlightItems.map(queueItemForTarget));
@@ -208,42 +189,23 @@
 			<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
 				{#each continueItems as item, i (item.id)}
 					{@const isCurrent = player.current.id === item.id}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
-						role="button"
-						tabindex="0"
-						onclick={() => playContinue(i)}
-						onkeydown={(e) => {
-							if (e.key !== 'Enter' && e.key !== ' ') return;
-							e.preventDefault();
-							playContinue(i);
-						}}
-						oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(item))}
-						class="group/cont animate-enter flex items-center gap-3.25 rounded-[13px] p-2.25 pr-3.5 text-left transition-colors {isCurrent
+						class="animate-enter rounded-[13px] p-2.25 pr-3.5 transition-colors {isCurrent
 							? 'bg-accent-tint'
 							: 'hover:bg-hover'}"
 						style="animation-delay:{Math.min(i, 10) * 40}ms"
+						oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(item))}
 					>
-						<Cover
+						<TrackTitleCell
 							trackId={item.id}
-							src={item.coverUrl}
-							size="small"
-							alt={item.title}
-							class="h-13 w-13 shrink-0 rounded-[10px]"
+							title={item.title}
+							artist={item.artist}
+							ownerUserId={item.ownerUserId}
+							coverSize="h-13 w-13"
+							active={isCurrent}
+							onClick={() => playContinue(i)}
 						/>
-						<div class="min-w-0 flex-1">
-							<div
-								class="truncate text-sm leading-[1.3] font-medium {isCurrent
-									? 'text-accent-soft'
-									: 'text-fg'}"
-							>
-								{item.title}
-							</div>
-							<ArtistLink
-								name={item.artist || '—'}
-								ownerUserId={item.ownerUserId}
-								class="mt-0.75 text-xs text-fg-3"
-							/>
-						</div>
 					</div>
 				{/each}
 			</div>
@@ -301,8 +263,7 @@
 					class="flex flex-col gap-0.5 p-5.5 sm:p-6"
 					style="background-image:linear-gradient(to right, color-mix(in oklch, var(--mf-scrim) 26%, transparent), transparent)"
 				>
-					{#each spotlightItems as target, i (targetId(target))}
-						{@const durationSeconds = targetDurationSeconds(target)}
+					{#each spotlightRows as { target, seconds }, i (targetId(target))}
 						<div
 							role="button"
 							tabindex="0"
@@ -333,9 +294,7 @@
 									class="mt-0.5 text-xs text-fg-3"
 								/>
 							</div>
-							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{durationSeconds !== undefined ? fmtTime(durationSeconds) : '—'}
-							</span>
+							<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
 						</div>
 					{:else}
 						<p class="p-2 text-sm text-fg-3">Esta playlist todavía no tiene canciones.</p>
@@ -365,27 +324,17 @@
 
 	<!-- POPULARES ESTA SEMANA -->
 	<section>
-		<SectionHeading
-			title="Populares esta semana"
-			subtitle="Lo más escuchado entre quienes comparten tu gusto"
-		/>
+		<SectionHeading title="Populares esta semana" subtitle="Lo más escuchado de tu biblioteca" />
 		{#if popularTargets.length > 0}
 			<div class="grid grid-cols-1 gap-x-8.5 gap-y-1.5 lg:grid-cols-2">
 				{#each popularTargets as target, i (targetId(target))}
 					{@const isCurrent = isTargetCurrent(target)}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
-						role="button"
-						tabindex="0"
-						onclick={() => playPopular(i)}
-						onkeydown={(e) => {
-							if (e.key !== 'Enter' && e.key !== ' ') return;
-							e.preventDefault();
-							playPopular(i);
-						}}
-						oncontextmenu={(e) => openContextMenu(e, target)}
-						class="flex items-center gap-3.5 rounded-[11px] p-2 text-left transition-colors {isCurrent
+						class="flex items-center gap-3.5 rounded-[11px] p-2 transition-colors {isCurrent
 							? 'bg-accent-tint'
 							: 'hover:bg-hover'}"
+						oncontextmenu={(e) => openContextMenu(e, target)}
 					>
 						<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
 							{#if isCurrent}
@@ -394,28 +343,16 @@
 								<span class="text-xs text-muted tabular-nums">{i + 1}</span>
 							{/if}
 						</span>
-						<Cover
-							trackId={targetId(target)}
-							src={targetCoverSrc(target)}
-							size="small"
-							alt={targetTitle(target)}
-							class="h-9.5 w-9.5 shrink-0 rounded-[8px]"
-						/>
 						<div class="min-w-0 flex-1">
-							<div class="flex min-w-0 items-center gap-1.5">
-								{#if targetExplicit(target)}
-									<ExplicitBadge />
-								{/if}
-								<span
-									class="truncate text-sm font-medium {isCurrent ? 'text-accent-soft' : 'text-fg'}"
-								>
-									{targetTitle(target)}
-								</span>
-							</div>
-							<ArtistLink
-								name={targetArtist(target)}
+							<TrackTitleCell
+								trackId={targetId(target)}
+								title={targetTitle(target)}
+								artist={targetArtist(target)}
 								ownerUserId={targetOwnerUserId(target)}
-								class="mt-0.5 text-xs text-fg-3"
+								coverSize="h-9.5 w-9.5"
+								explicit={targetExplicit(target)}
+								active={isCurrent}
+								onClick={() => playPopular(i)}
 							/>
 						</div>
 					</div>

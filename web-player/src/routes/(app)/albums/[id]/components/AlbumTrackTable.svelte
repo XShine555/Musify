@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import X from '@lucide/svelte/icons/x';
-	import {
-		player,
-		queueIdForTrack,
-		toQueueItems,
-		type ApiTrackLike
-	} from '$lib/player/player.svelte';
+	import { player, toQueueItems, type ApiTrackLike } from '$lib/player/player.svelte';
 	import { fmtTime } from '$lib/format';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
@@ -31,7 +26,7 @@
 
 <TrackTable index action={isOwner} class="mt-6 sm:mt-8">
 	{#each tracks as track, i (track.id)}
-		{@const active = player.current.id === queueIdForTrack(track)}
+		{@const active = player.current.id === track.id}
 		<TrackRow {active}>
 			<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
 			<TrackTitleCell

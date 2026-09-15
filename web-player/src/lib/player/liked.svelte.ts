@@ -1,11 +1,9 @@
-import { toQueueItems, type ApiTrackLike, type TrackSourceKind } from './player.svelte';
+import { toQueueItems, type ApiTrackLike } from './player.svelte';
 
 export interface LikedTrack {
 	id: string;
 	title: string;
 	artist?: string;
-	coverUrl?: string;
-	source?: TrackSourceKind;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 	likedAt: number;
@@ -15,17 +13,9 @@ type LikeToggleInput = {
 	id: string | number;
 	title: string;
 	artist?: string;
-	coverUrl?: string;
-	source?: TrackSourceKind;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 };
-
-function toggleRequestBody(track: LikeToggleInput) {
-	return track.source === 'youtube'
-		? { source: 'YouTube' as const, externalId: String(track.id) }
-		: { trackId: String(track.id) };
-}
 
 class LikedStore {
 	entries = $state<Record<string, LikedTrack>>({});
@@ -45,8 +35,6 @@ class LikedStore {
 				id: String(item.id),
 				title: item.title,
 				artist: item.artist,
-				coverUrl: item.coverUrl,
-				source: item.source,
 				explicit: item.explicit,
 				ownerUserId: item.ownerUserId,
 				likedAt: new Date(tracks[i].createdAt).getTime()
@@ -70,8 +58,6 @@ class LikedStore {
 				id,
 				title: track.title,
 				artist: track.artist,
-				coverUrl: track.coverUrl,
-				source: track.source,
 				explicit: track.explicit,
 				ownerUserId: track.ownerUserId,
 				likedAt: Date.now()
@@ -83,7 +69,7 @@ class LikedStore {
 			const res = await fetch('/api/likes', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify(toggleRequestBody(track))
+				body: JSON.stringify({ trackId: id })
 			});
 			if (!res.ok) throw new Error('Failed to toggle like');
 		} catch {

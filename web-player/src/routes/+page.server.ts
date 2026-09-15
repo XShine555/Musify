@@ -1,12 +1,10 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser } from '$lib/server/api';
-import { fetchYoutubeFiller } from '$lib/server/youtube';
-import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
+import { addTrackAction } from '$lib/server/playlistActions';
 import {
 	HOME_LATEST_PAGE_SIZE,
 	HOME_MIXES_LIMIT,
-	HOME_POPULAR_FILLER_LIMIT,
 	HOME_SHELF_LIMIT,
 	HOME_SPOTLIGHT_TRACKS_LIMIT
 } from '$lib/config';
@@ -43,9 +41,7 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		recentlyPlayedPromise
 	]);
 	const playlistItems = playlists.data?.items ?? [];
-	const latestItems = (latest.data?.items ?? []).flatMap((item) =>
-		item.track ? [item.track] : []
-	);
+	const latestItems = (latest.data?.items ?? []).map((item) => item.track);
 
 	const spotlightPlaylist = playlistItems[0] ?? null;
 	const spotlightTracksPromise = spotlightPlaylist
@@ -72,19 +68,10 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		newReleases: latestItems,
 		spotlightPlaylist,
 		spotlightTracks: spotlightTracksPromise,
-		listeningStats: listeningStatsPromise,
-		popularFiller: fetchYoutubeFiller(
-			api,
-			locals.accessToken,
-			HOME_POPULAR_FILLER_LIMIT,
-			undefined,
-			user.sub,
-			1
-		)
+		listeningStats: listeningStatsPromise
 	};
 };
 
 export const actions: Actions = {
-	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction
+	addTrack: addTrackAction
 };

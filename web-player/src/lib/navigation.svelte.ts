@@ -7,7 +7,6 @@ const LABELS: [RegExp, string][] = [
 	[/^\/explore\/?$/, 'Volver a explorar'],
 	[/^\/playlists\/[^/]+/, 'Volver a la lista'],
 	[/^\/playlists\/?$/, 'Volver a tus listas'],
-	[/^\/albums\/youtube\/[^/]+/, 'Volver al álbum'],
 	[/^\/albums\/[^/]+/, 'Volver al álbum'],
 	[/^\/albums\/?$/, 'Volver a tus álbumes'],
 	[/^\/library\/?$/, 'Volver a tus canciones'],

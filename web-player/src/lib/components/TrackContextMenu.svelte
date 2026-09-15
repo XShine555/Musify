@@ -78,7 +78,7 @@
 						{#each playlists as playlist (playlist.id)}
 							<form
 								method="POST"
-								action={menu.kind === 'youtube' ? '?/addYouTubeToPlaylist' : '?/addTrack'}
+								action="?/addTrack"
 								use:enhance={() =>
 									({ update }) => {
 										onClose();
@@ -86,15 +86,7 @@
 									}}
 							>
 								<input type="hidden" name="playlistId" value={playlist.id} />
-								{#if menu.kind === 'youtube'}
-									<input type="hidden" name="videoId" value={menu.song.videoId} />
-									<input type="hidden" name="title" value={menu.song.title} />
-									<input type="hidden" name="artist" value={menu.song.artist} />
-									<input type="hidden" name="durationSeconds" value={menu.song.durationSeconds} />
-									<input type="hidden" name="thumbnailUrl" value={menu.song.thumbnailUrl} />
-								{:else}
-									<input type="hidden" name="trackId" value={menu.track.id} />
-								{/if}
+								<input type="hidden" name="trackId" value={menu.track.id} />
 								<button
 									type="submit"
 									class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg transition hover:bg-hover"

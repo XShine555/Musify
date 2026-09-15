@@ -14,8 +14,7 @@
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import SearchResultRow from '$lib/components/ui/SearchResultRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import { EXPLORE_ALBUMS_LIMIT, EXPLORE_PAGE_SIZE } from '$lib/config';
-	import type { YouTubeSong } from '$lib/types';
+	import { EXPLORE_PAGE_SIZE } from '$lib/config';
 	import TrackContextMenu, {
 		contextMenuStateFor,
 		type ContextMenuState
@@ -29,7 +28,6 @@
 		isTargetCurrent,
 		queueItemForTarget,
 		targetArtist,
-		targetCoverSrc,
 		targetExplicit,
 		targetId,
 		targetTitle,
@@ -43,6 +41,8 @@
 		user: 'Usuario'
 	};
 
+	// No hay sistema de tags/géneros todavía: esta lista es un placeholder de
+	// cliente y cada tile enlaza a una búsqueda normal por ese término.
 	const GENRE_INFO: Record<string, { label: string; tagline: string }> = {
 		pop: { label: 'Pop', tagline: 'Éxitos que suenan en todas partes' },
 		rock: { label: 'Rock', tagline: 'Guitarras, actitud y ruido' },
@@ -60,23 +60,26 @@
 		'música clásica': { label: 'Clásica', tagline: 'Siglos de composición' }
 	};
 
+	const genreTiles = Object.entries(GENRE_INFO).map(([query, info], i, all) => ({
+		query,
+		hue: Math.round((i * 360) / all.length),
+		...info
+	}));
+
 	let { data, form } = $props();
 
 	const SEARCH_FILTERS = ['Todo', 'Canciones', 'Álbumes', 'Playlists', 'Usuarios'] as const;
 	type SearchFilter = (typeof SEARCH_FILTERS)[number];
 	const SEARCH_GROUP_PREVIEW = 4;
 
-	let ytItems = $state<YouTubeSong[]>([]);
-	let ytUnavailable = $state(false);
 	let contextMenu = $state<ContextMenuState | null>(null);
 	let albumMenu = $state<AlbumMenuState | null>(null);
 	let sfilter = $state<SearchFilter>('Todo');
 
-	type LocalTrack = NonNullable<(typeof data.tracks.items)[number]['track']>;
+	type LocalTrack = (typeof data.tracks.items)[number]['track'];
 
 	let localItems = $state<LocalTrack[]>([]);
 	let localPage = $state(1);
-	let ytContinuation = $state('');
 	let hasMore = $state(false);
 	let loadingMore = $state(false);
 
@@ -84,63 +87,24 @@
 		contextMenu = null;
 		albumMenu = null;
 		sfilter = 'Todo';
-		localItems = data.tracks.items.flatMap((item) => (item.track ? [item.track] : []));
+		localItems = data.tracks.items.map((item) => item.track);
 		localPage = Number(data.tracks.pageNumber);
-		ytContinuation = data.tracks.nextYoutubeContinuationToken ?? '';
 		hasMore = data.tracks.hasNextPage;
-
-		if (data.query) {
-			ytItems = appendUnique(
-				[],
-				data.tracks.items.flatMap((item) =>
-					item.youTubeSong ? [item.youTubeSong as YouTubeSong] : []
-				),
-				(i) => i.videoId
-			);
-			ytUnavailable = data.tracks.youtubeUnavailable;
-		} else {
-			ytItems = [];
-			ytUnavailable = false;
-		}
 	});
 
-	const genreTiles = $derived(
-		data.genres.map((query, i) => ({
-			query,
-			hue: Math.round((i * 360) / data.genres.length),
-			...(GENRE_INFO[query] ?? { label: query, tagline: 'Explora este estilo' })
+	const songRows = $derived(
+		localItems.map((track) => ({
+			target: { track } satisfies TrackTarget,
+			seconds: Number(track.duration)
 		}))
 	);
-
-	const songRows = $derived([
-		...localItems.map((track) => ({
-			target: { kind: 'local' as const, track },
-			seconds: Number(track.duration)
-		})),
-		...ytItems.map((song) => ({
-			target: { kind: 'youtube' as const, song },
-			seconds: Number(song.durationSeconds)
-		}))
-	] satisfies { target: TrackTarget; seconds: number }[]);
 
 	const items = $derived<TrackTarget[]>(songRows.map((row) => row.target));
 
 	const albums = $derived(data.albums);
-	const youtubeAlbums = $derived(data.youtubeAlbums);
 	const users = $derived(data.users);
 
-	type LocalAlbum = (typeof data.albums)[number];
-	type YouTubeAlbum = (typeof data.youtubeAlbums)[number];
-	type AlbumEntry = { kind: 'local'; album: LocalAlbum } | { kind: 'youtube'; album: YouTubeAlbum };
-
-	const albumEntries = $derived<AlbumEntry[]>(
-		[
-			...albums.map((album) => ({ kind: 'local' as const, album })),
-			...youtubeAlbums.map((album) => ({ kind: 'youtube' as const, album }))
-		].slice(0, EXPLORE_ALBUMS_LIMIT)
-	);
-
-	const hasAlbums = $derived(albumEntries.length > 0);
+	const hasAlbums = $derived(albums.length > 0);
 	const hasUsers = $derived(users.length > 0);
 
 	const playlistMatches = $derived(
@@ -151,12 +115,12 @@
 	const hasPlaylists = $derived(playlistMatches.length > 0);
 
 	const nothingFound = $derived(
-		!!data.query && !ytUnavailable && items.length === 0 && !hasAlbums && !hasUsers && !hasPlaylists
+		!!data.query && items.length === 0 && !hasAlbums && !hasUsers && !hasPlaylists
 	);
 
 	const searchCounts = $derived({
 		Canciones: songRows.length,
-		Álbumes: albumEntries.length,
+		Álbumes: albums.length,
 		Playlists: playlistMatches.length,
 		Usuarios: users.length
 	});
@@ -172,7 +136,7 @@
 
 	type TopResult =
 		| { kind: 'track'; target: TrackTarget }
-		| { kind: 'album'; entry: AlbumEntry }
+		| { kind: 'album'; album: (typeof albums)[number] }
 		| { kind: 'playlist'; playlist: (typeof playlistMatches)[number] }
 		| { kind: 'user'; user: (typeof users)[number] };
 
@@ -185,14 +149,14 @@
 		if (userHit) return { kind: 'user', user: userHit };
 		const trackHit = items.find((target) => startsWithQuery(targetTitle(target)));
 		if (trackHit) return { kind: 'track', target: trackHit };
-		const albumHit = albumEntries.find((entry) => startsWithQuery(entry.album.title));
-		if (albumHit) return { kind: 'album', entry: albumHit };
+		const albumHit = albums.find((album) => startsWithQuery(album.title));
+		if (albumHit) return { kind: 'album', album: albumHit };
 		const playlistHit = playlistMatches.find((p) => startsWithQuery(p.name));
 		if (playlistHit) return { kind: 'playlist', playlist: playlistHit };
 
 		if (users.length) return { kind: 'user', user: users[0] };
 		if (items.length) return { kind: 'track', target: items[0] };
-		if (albumEntries.length) return { kind: 'album', entry: albumEntries[0] };
+		if (albums.length) return { kind: 'album', album: albums[0] };
 		if (playlistMatches.length) return { kind: 'playlist', playlist: playlistMatches[0] };
 		return null;
 	});
@@ -216,11 +180,7 @@
 
 	const topResultHref = $derived.by(() => {
 		if (!topResult || topResult.kind === 'track') return undefined;
-		if (topResult.kind === 'album') {
-			return topResult.entry.kind === 'local'
-				? `/albums/${topResult.entry.album.id}`
-				: `/albums/external/youtube/${topResult.entry.album.albumId}`;
-		}
+		if (topResult.kind === 'album') return `/albums/${topResult.album.id}`;
 		if (topResult.kind === 'playlist') return `/playlists/${topResult.playlist.id}`;
 		return `/u/${topResult.user.id}`;
 	});
@@ -233,22 +193,22 @@
 		contextMenu = contextMenuStateFor(event, target);
 	}
 
-	function openAlbumMenu(event: MouseEvent, kind: 'local' | 'youtube', albumId: string) {
-		albumMenu = albumContextMenuStateFor(event, kind, albumId);
+	function openAlbumMenu(event: MouseEvent, albumId: string) {
+		albumMenu = albumContextMenuStateFor(event, albumId);
 	}
 
 	async function albumPlayNext() {
 		if (!albumMenu) return;
-		const { kind, albumId } = albumMenu;
+		const { albumId } = albumMenu;
 		albumMenu = null;
-		player.playNext(await fetchAlbumQueueItems(kind, albumId));
+		player.playNext(await fetchAlbumQueueItems(albumId));
 	}
 
 	async function albumAddToQueue() {
 		if (!albumMenu) return;
-		const { kind, albumId } = albumMenu;
+		const { albumId } = albumMenu;
 		albumMenu = null;
-		player.appendToQueue(await fetchAlbumQueueItems(kind, albumId));
+		player.appendToQueue(await fetchAlbumQueueItems(albumId));
 	}
 
 	function addToQueue() {
@@ -265,25 +225,16 @@
 				pageNumber: String(localPage + 1),
 				pageSize: String(EXPLORE_PAGE_SIZE)
 			});
-			if (data.query) {
-				params.set('name', data.query);
-				if (ytContinuation) params.set('youtubeContinuationToken', ytContinuation);
-			}
+			if (data.query) params.set('name', data.query);
 			const res = await fetch(`/api/tracks?${params}`);
 			if (!res.ok) throw new Error(String(res.status));
 			const next = (await res.json()) as typeof data.tracks;
 			localItems = appendUnique(
 				localItems,
-				next.items.flatMap((item) => (item.track ? [item.track] : [])),
+				next.items.map((item) => item.track),
 				(track) => track.id
 			);
-			ytItems = appendUnique(
-				ytItems,
-				next.items.flatMap((item) => (item.youTubeSong ? [item.youTubeSong as YouTubeSong] : [])),
-				(song) => song.videoId
-			);
 			localPage = Number(next.pageNumber);
-			ytContinuation = next.nextYoutubeContinuationToken ?? '';
 			hasMore = next.hasNextPage;
 		} catch {
 			hasMore = false;
@@ -346,26 +297,15 @@
 				{#if topResult.kind === 'track'}
 					<Cover
 						trackId={targetId(topResult.target)}
-						src={targetCoverSrc(topResult.target)}
 						size="large"
 						alt={targetTitle(topResult.target)}
 						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
 					/>
 				{:else if topResult.kind === 'album'}
-					{#if topResult.entry.kind === 'local'}
-						<PlaylistArt
-							trackIds={topResult.entry.album.coverTrackIds}
-							class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
-						/>
-					{:else}
-						<Cover
-							trackId={topResult.entry.album.albumId}
-							src={topResult.entry.album.thumbnailUrl}
-							size="large"
-							alt={topResult.entry.album.title}
-							class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
-						/>
-					{/if}
+					<PlaylistArt
+						trackIds={topResult.album.coverTrackIds}
+						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+					/>
 				{:else if topResult.kind === 'playlist'}
 					<PlaylistArt
 						playlistId={topResult.playlist.id}
@@ -401,7 +341,7 @@
 						{topResult.kind === 'track'
 							? targetTitle(topResult.target)
 							: topResult.kind === 'album'
-								? topResult.entry.album.title
+								? topResult.album.title
 								: topResult.kind === 'playlist'
 									? topResult.playlist.name
 									: topResult.user.name}
@@ -409,10 +349,6 @@
 					{#if topResult.kind === 'track' && targetArtist(topResult.target)}
 						<div class="truncate text-sm leading-none text-fg-3">
 							{targetArtist(topResult.target)}
-						</div>
-					{:else if topResult.kind === 'album' && topResult.entry.kind === 'youtube' && topResult.entry.album.artist}
-						<div class="truncate text-sm leading-none text-fg-3">
-							{topResult.entry.album.artist}
 						</div>
 					{/if}
 				</div>
@@ -517,7 +453,6 @@
 										{#snippet art(artClass)}
 											<Cover
 												trackId={targetId(item)}
-												src={targetCoverSrc(item)}
 												size="small"
 												alt={targetTitle(item)}
 												class="{artClass} ring-1 ring-line ring-inset"
@@ -535,7 +470,7 @@
 						{#if sfilter === 'Canciones' && hasMore}
 							<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
 						{/if}
-					{:else if !ytUnavailable}
+					{:else}
 						<EmptyState
 							icon={Music}
 							description="No hay canciones que coincidan con «{data.query}»."
@@ -556,40 +491,19 @@
 						{/snippet}
 					</SectionHeading>
 					<ul class="flex flex-col gap-1">
-						{#each capped(albumEntries) as entry (entry.kind === 'local' ? entry.album.id : entry.album.albumId)}
+						{#each capped(albums) as album (album.id)}
 							<li>
-								{#if entry.kind === 'local'}
-									<SearchResultRow
-										kind="album"
-										title={entry.album.title}
-										meta="{Number(entry.album.trackCount)} canciones"
-										href="/albums/{entry.album.id}"
-										oncontextmenu={(e) => openAlbumMenu(e, 'local', entry.album.id)}
-									>
-										{#snippet art(artClass)}
-											<PlaylistArt trackIds={entry.album.coverTrackIds} class={artClass} />
-										{/snippet}
-									</SearchResultRow>
-								{:else}
-									<SearchResultRow
-										kind="album"
-										title={entry.album.title}
-										subtitle={entry.album.artist}
-										meta={entry.album.releaseYear ? String(entry.album.releaseYear) : undefined}
-										href="/albums/external/youtube/{entry.album.albumId}"
-										oncontextmenu={(e) => openAlbumMenu(e, 'youtube', entry.album.albumId)}
-									>
-										{#snippet art(artClass)}
-											<Cover
-												trackId={entry.album.albumId}
-												src={entry.album.thumbnailUrl}
-												size="small"
-												alt={entry.album.title}
-												class={artClass}
-											/>
-										{/snippet}
-									</SearchResultRow>
-								{/if}
+								<SearchResultRow
+									kind="album"
+									title={album.title}
+									meta="{Number(album.trackCount)} canciones"
+									href="/albums/{album.id}"
+									oncontextmenu={(e) => openAlbumMenu(e, album.id)}
+								>
+									{#snippet art(artClass)}
+										<PlaylistArt trackIds={album.coverTrackIds} class={artClass} />
+									{/snippet}
+								</SearchResultRow>
 							</li>
 						{/each}
 					</ul>
@@ -664,13 +578,6 @@
 				</div>
 			{/if}
 		</div>
-	{/if}
-
-	{#if ytUnavailable}
-		<EmptyState
-			icon={Music}
-			description="YouTube Music no está disponible ahora mismo. Inténtalo de nuevo."
-		/>
 	{/if}
 </Page>
 

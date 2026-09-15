@@ -39,7 +39,6 @@
 			<div class="mb-6 flex items-center gap-3 rounded-xl bg-accent-tint p-2.5">
 				<Cover
 					trackId={player.current.id}
-					src={player.current.coverUrl}
 					size="small"
 					alt={player.current.title}
 					class="h-10 w-10 shrink-0 rounded-[9px]"
@@ -90,7 +89,6 @@
 				>
 					<Cover
 						trackId={track.id}
-						src={track.coverUrl}
 						size="small"
 						alt={track.title}
 						class="h-9 w-9 shrink-0 rounded-lg opacity-90"
@@ -104,9 +102,7 @@
 						/>
 					</div>
 					{#if track.duration}
-						<span class="shrink-0 text-xs text-muted tabular-nums"
-							>{fmtTime(track.duration)}</span
-						>
+						<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(track.duration)}</span>
 					{/if}
 				</div>
 			{:else}

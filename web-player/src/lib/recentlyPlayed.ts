@@ -16,8 +16,6 @@ export function mergeRecentlyPlayed(history: ApiTrackLike[], limit: number): Que
 			id,
 			title: t.title,
 			artist: t.artist,
-			source: t.source,
-			coverUrl: t.coverUrl,
 			explicit: t.explicit,
 			ownerUserId: t.ownerUserId
 		});
@@ -31,8 +29,6 @@ export function mergeRecentlyPlayed(history: ApiTrackLike[], limit: number): Que
 			id,
 			title: item.title,
 			artist: item.artist,
-			source: item.source ?? 'local',
-			coverUrl: item.coverUrl,
 			explicit: item.explicit,
 			ownerUserId: item.ownerUserId
 		});

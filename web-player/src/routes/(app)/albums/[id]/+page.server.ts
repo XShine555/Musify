@@ -38,9 +38,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 
 	const tracks = tracksRes.data?.items ?? [];
 	const inAlbum = new Set(tracks.map((track) => track.id));
-	const library = (libraryRes?.data?.items ?? []).filter(
-		(track) => track.source === 'Local' && !inAlbum.has(track.id)
-	);
+	const library = (libraryRes?.data?.items ?? []).filter((track) => !inAlbum.has(track.id));
 
 	const isOwner = user !== null && String(album.ownerUserId) === user.sub;
 

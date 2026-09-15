@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ListMusic from '@lucide/svelte/icons/list-music';
-	import { player, queueIdForTrack, toQueueItems } from '$lib/player/player.svelte';
+	import { player, toQueueItems } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
@@ -17,7 +17,7 @@
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
 
-	const isCurrentQueue = $derived(tracks.some((t) => queueIdForTrack(t) === player.current.id));
+	const isCurrentQueue = $derived(tracks.some((t) => t.id === player.current.id));
 
 	function playAll() {
 		if (tracks.length === 0) return;

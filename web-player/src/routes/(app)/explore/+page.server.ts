@@ -1,12 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, unwrapOrError } from '$lib/server/api';
-import { YOUTUBE_FILLER_QUERIES } from '$lib/server/youtube';
-import {
-	addAlbumToPlaylistAction,
-	addTrackAction,
-	addYouTubeToPlaylistAction,
-	addYoutubeAlbumToPlaylistAction
-} from '$lib/server/playlistActions';
+import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/playlistActions';
 import {
 	EXPLORE_ALBUMS_PAGE_SIZE,
 	EXPLORE_PAGE_SIZE as PAGE_SIZE,
@@ -53,22 +47,16 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 
 	const tracks = unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.');
 
-	const albumItems = albumsRes?.data?.items ?? [];
-
 	return {
 		query,
 		tracks,
-		albums: albumItems.flatMap((item) => (item.album ? [item.album] : [])),
-		youtubeAlbums: albumItems.flatMap((item) => (item.youTubeAlbum ? [item.youTubeAlbum] : [])),
+		albums: (albumsRes?.data?.items ?? []).map((item) => item.album),
 		users: usersRes?.data?.items ?? [],
-		genres: YOUTUBE_FILLER_QUERIES,
 		playlists: playlistsRes?.data?.items ?? []
 	};
 };
 
 export const actions: Actions = {
 	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction,
-	addAlbumToPlaylist: addAlbumToPlaylistAction,
-	addYoutubeAlbumToPlaylist: addYoutubeAlbumToPlaylistAction
+	addAlbumToPlaylist: addAlbumToPlaylistAction
 };

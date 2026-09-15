@@ -1,16 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import X from '@lucide/svelte/icons/x';
-	import {
-		player,
-		isPendingYouTubeTrack,
-		queueIdForTrack,
-		toQueueItems,
-		youTubeThumbnailUrl,
-		type ApiTrackLike
-	} from '$lib/player/player.svelte';
+	import { player, toQueueItems, type ApiTrackLike } from '$lib/player/player.svelte';
 	import { fmtTime, fmtDate } from '$lib/format';
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
@@ -41,7 +33,7 @@
 	class="mt-6 sm:mt-8"
 >
 	{#each tracks as track, i (track.id)}
-		{@const active = player.current.id === queueIdForTrack(track)}
+		{@const active = player.current.id === track.id}
 		<TrackRow {active}>
 			<TrackIndexCell index={i} playing={player.playing} onToggle={() => playFrom(i)} {active} />
 			<TrackTitleCell
@@ -49,21 +41,10 @@
 				title={track.title}
 				artist={track.artist}
 				ownerUserId={track.ownerUserId}
-				coverSrc={isPendingYouTubeTrack(track) && track.externalId
-					? youTubeThumbnailUrl(track.externalId)
-					: undefined}
 				explicit={track.isExplicit}
 				{active}
 				onClick={() => playFrom(i)}
-			>
-				{#snippet badge()}
-					{#if track.source === 'YouTube' && track.audioStatus === 'Failed'}
-						<Badge tone="danger">Error</Badge>
-					{:else if isPendingYouTubeTrack(track)}
-						<Badge tone="accent">Descargando</Badge>
-					{/if}
-				{/snippet}
-			</TrackTitleCell>
+			/>
 			<TrackMeta class="hidden sm:block">—</TrackMeta>
 			<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>

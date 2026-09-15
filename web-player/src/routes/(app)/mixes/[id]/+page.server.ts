@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser, unwrapOrError } from '$lib/server/api';
-import { addTrackAction, addYouTubeToPlaylistAction } from '$lib/server/playlistActions';
+import { addTrackAction } from '$lib/server/playlistActions';
 import { PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
@@ -23,6 +23,5 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 };
 
 export const actions: Actions = {
-	addTrack: addTrackAction,
-	addYouTubeToPlaylist: addYouTubeToPlaylistAction
+	addTrack: addTrackAction
 };

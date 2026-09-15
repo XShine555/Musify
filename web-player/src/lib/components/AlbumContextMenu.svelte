@@ -2,18 +2,11 @@
 	const MENU_WIDTH = 240;
 	const SUBMENU_WIDTH = 256;
 
-	export type AlbumMenuState = { x: number; y: number; openLeft: boolean } & (
-		{ kind: 'local'; albumId: string } | { kind: 'youtube'; albumId: string }
-	);
+	export type AlbumMenuState = { x: number; y: number; openLeft: boolean; albumId: string };
 
-	export function albumContextMenuStateFor(
-		event: MouseEvent,
-		kind: 'local' | 'youtube',
-		albumId: string
-	): AlbumMenuState {
+	export function albumContextMenuStateFor(event: MouseEvent, albumId: string): AlbumMenuState {
 		event.preventDefault();
 		return {
-			kind,
 			albumId,
 			x: Math.max(8, Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8)),
 			y: Math.max(8, Math.min(event.clientY, window.innerHeight - 60)),
@@ -93,9 +86,7 @@
 						{#each playlists as playlist (playlist.id)}
 							<form
 								method="POST"
-								action={menu.kind === 'youtube'
-									? '?/addYoutubeAlbumToPlaylist'
-									: '?/addAlbumToPlaylist'}
+								action="?/addAlbumToPlaylist"
 								use:enhance={() =>
 									({ update }) => {
 										onClose();

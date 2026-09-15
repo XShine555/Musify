@@ -51,30 +51,3 @@ export const apiConfig = {
 		return (env.API_BASE_URL ?? '').replace(/\/+$/, '');
 	}
 };
-
-export const thumbnailConfig = {
-	get maxAgeSeconds() {
-		return positiveInt(env.THUMBNAIL_CACHE_MAX_AGE_SECONDS, 30 * DAY_SECONDS);
-	},
-	get failureCacheSeconds() {
-		return positiveInt(env.THUMBNAIL_FAILURE_CACHE_SECONDS, 300);
-	},
-	get memoryCacheBytes() {
-		return positiveInt(env.THUMBNAIL_CACHE_BYTES, 128 * 1024 * 1024);
-	},
-	get maxConcurrentFetches() {
-		return positiveInt(env.THUMBNAIL_MAX_CONCURRENT_FETCHES, 4);
-	},
-	get fetchTimeoutMs() {
-		return positiveInt(env.THUMBNAIL_FETCH_TIMEOUT_MS, 8000);
-	},
-	get cooldownSeconds() {
-		return positiveInt(env.THUMBNAIL_COOLDOWN_SECONDS, 30);
-	},
-	get maxCooldownSeconds() {
-		return positiveInt(env.THUMBNAIL_MAX_COOLDOWN_SECONDS, 300);
-	},
-	get maxSize() {
-		return positiveInt(env.THUMBNAIL_MAX_SIZE, 720);
-	}
-};

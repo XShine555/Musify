@@ -25,7 +25,6 @@
 		isTargetCurrent,
 		queueItemForTarget,
 		targetArtist,
-		targetCoverSrc,
 		targetId,
 		targetTitle
 	} from '$lib/tracks';
@@ -107,8 +106,6 @@
 					trackId={targetId(targets[i])}
 					title={targetTitle(targets[i])}
 					artist={targetArtist(targets[i])}
-					coverSrc={targetCoverSrc(targets[i])}
-					explicit={item.isExplicit}
 					{active}
 					onClick={() => playFrom(i)}
 				/>

@@ -23,8 +23,6 @@
 			id: t.id,
 			title: t.title,
 			artist: t.artist,
-			source: t.source,
-			coverUrl: t.coverUrl,
 			explicit: t.explicit
 		}))
 	);
@@ -97,7 +95,6 @@
 						title={track.title}
 						artist={track.artist}
 						ownerUserId={track.ownerUserId}
-						coverSrc={track.coverUrl}
 						explicit={track.explicit}
 						{active}
 						onClick={() => playFrom(i)}

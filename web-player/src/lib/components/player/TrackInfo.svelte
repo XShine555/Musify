@@ -20,8 +20,6 @@
 			id: player.current.id,
 			title: player.current.title,
 			artist: player.current.artist,
-			coverUrl: player.current.coverUrl,
-			source: player.current.source,
 			explicit: player.current.explicit,
 			ownerUserId: player.current.ownerUserId
 		});
@@ -32,7 +30,6 @@
 	{#if player.current.id}
 		<Cover
 			trackId={player.current.id}
-			src={player.current.coverUrl}
 			size="small"
 			alt={player.current.title}
 			class="h-11 w-11 shrink-0 rounded-[11px] shadow-cover-xs md:h-12 md:w-12"

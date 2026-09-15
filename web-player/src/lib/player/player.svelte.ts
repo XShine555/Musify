@@ -1,17 +1,12 @@
 import { browser } from '$app/environment';
 import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
-import { thumbnailSrc } from '$lib/thumbnails';
-
-export type TrackSourceKind = 'local' | 'youtube';
 
 export interface PlayerTrack {
 	id: string | number;
 	title: string;
 	artist: string;
 	duration: number;
-	source: TrackSourceKind;
-	coverUrl?: string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 }
@@ -26,8 +21,6 @@ export interface QueueItem {
 	id: string | number;
 	title: string;
 	artist?: string;
-	source?: TrackSourceKind;
-	coverUrl?: string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 }
@@ -36,46 +29,18 @@ export interface ApiTrackLike {
 	id: string | number;
 	title: string;
 	artist?: string | null;
-	source?: 'Local' | 'YouTube';
-	externalId?: string | null;
-	audioStatus?: 'Pending' | 'Processing' | 'Completed' | 'Failed';
 	isExplicit?: boolean;
 	ownerUserId?: string | number | null;
 }
 
-function isYouTubeTrack(track: ApiTrackLike): boolean {
-	return track.source === 'YouTube';
-}
-
-export function isPendingYouTubeTrack(track: ApiTrackLike): boolean {
-	return isYouTubeTrack(track) && track.audioStatus !== 'Completed';
-}
-
-export function youTubeThumbnailUrl(videoId: string): string {
-	return `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
-}
-
-export function queueIdForTrack(track: ApiTrackLike): string | number {
-	return isYouTubeTrack(track) && track.externalId ? track.externalId : track.id;
-}
-
 export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
-	return tracks.map((track) => {
-		const youTube = isYouTubeTrack(track);
-		return {
-			id: queueIdForTrack(track),
-			title: track.title,
-			artist: track.artist ?? undefined,
-			source: youTube ? 'youtube' : 'local',
-			coverUrl: youTube
-				? isPendingYouTubeTrack(track) && track.externalId
-					? youTubeThumbnailUrl(track.externalId)
-					: `/api/tracks/${track.id}/cover?size=small`
-				: undefined,
-			explicit: track.isExplicit,
-			ownerUserId: youTube ? undefined : track.ownerUserId
-		};
-	});
+	return tracks.map((track) => ({
+		id: track.id,
+		title: track.title,
+		artist: track.artist ?? undefined,
+		explicit: track.isExplicit,
+		ownerUserId: track.ownerUserId
+	}));
 }
 
 async function readErrorMessage(res: Response): Promise<string> {
@@ -93,8 +58,7 @@ const EMPTY: PlayerTrack = {
 	id: '',
 	title: '',
 	artist: '',
-	duration: 0,
-	source: 'local'
+	duration: 0
 };
 
 function toTrack(item: QueueItem): PlayerTrack {
@@ -104,8 +68,6 @@ function toTrack(item: QueueItem): PlayerTrack {
 		artist: item.artist ?? '',
 		duration: 0,
 		explicit: item.explicit,
-		source: item.source ?? 'local',
-		coverUrl: item.coverUrl,
 		ownerUserId: item.ownerUserId
 	};
 }
@@ -127,7 +89,6 @@ class PlayerState {
 
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
-	#retriedId: string | number | null = null;
 	#accentCache = new Map<string, Accent>();
 	#rafId: number | null = null;
 
@@ -170,15 +131,6 @@ class PlayerState {
 		});
 		audio.addEventListener('error', () => {
 			this.#stopProgressLoop();
-			if (
-				this.currentId !== null &&
-				this.current.source === 'youtube' &&
-				this.#retriedId !== this.currentId
-			) {
-				this.#retriedId = this.currentId;
-				this.#loadCurrent();
-				return;
-			}
 			this.loading = false;
 			this.playing = false;
 			this.error = 'No se pudo reproducir la pista.';
@@ -207,12 +159,10 @@ class PlayerState {
 			navigator.mediaSession.metadata = null;
 			return;
 		}
-		const artwork =
-			thumbnailSrc(track.coverUrl, 'medium') ?? `/api/tracks/${track.id}/cover?size=small`;
 		navigator.mediaSession.metadata = new MediaMetadata({
 			title: track.title,
 			artist: track.artist,
-			artwork: [{ src: artwork, sizes: '256x256' }]
+			artwork: [{ src: `/api/tracks/${track.id}/cover?size=small`, sizes: '256x256' }]
 		});
 	}
 
@@ -252,16 +202,14 @@ class PlayerState {
 		);
 	}
 
-	async #applyAccent(id: string | number, coverUrl?: string) {
+	async #applyAccent(id: string | number) {
 		const key = String(id);
 		const cached = this.#accentCache.get(key);
 		if (cached) {
 			this.accentColor = cached.accent;
 			return;
 		}
-		const result = await extractAccent(
-			thumbnailSrc(coverUrl, 'small') ?? `/api/tracks/${id}/cover?size=small`
-		);
+		const result = await extractAccent(`/api/tracks/${id}/cover?size=small`);
 		if (this.currentId !== id) return;
 		if (result) {
 			this.#accentCache.set(key, result);
@@ -276,23 +224,19 @@ class PlayerState {
 		if (!audio || this.currentId === null) return;
 		const id = this.currentId;
 		const track = this.tracks.find((t) => t.id === id);
-		this.#applyAccent(id, track?.coverUrl);
+		this.#applyAccent(id);
 		if (track) this.#syncMediaSessionMetadata(track);
 		const token = ++this.#loadToken;
 		this.loading = true;
 		this.error = '';
 		this.progress = 0;
 		try {
-			const src =
-				track?.source === 'youtube'
-					? await this.#resolveYouTubeSrc(String(id))
-					: await this.#resolveLocalSrc(String(id));
+			const src = await this.#resolveLocalSrc(String(id));
 			if (token !== this.#loadToken) return;
 			audio.src = src;
 			audio.volume = this.volume / 100;
 			await audio.play();
 			this.loading = false;
-			this.#retriedId = null;
 			this.#pushRecent(this.current);
 		} catch (exception) {
 			console.error('playback failed', exception);
@@ -314,17 +258,6 @@ class PlayerState {
 			ticket: string;
 		};
 		return this.#withTicket(manifestUrl, ticket);
-	}
-
-	async #resolveYouTubeSrc(videoId: string): Promise<string> {
-		const res = await fetch(`/api/tracks/external/youtube/${videoId}/stream`);
-		if (!res.ok) throw new Error(await readErrorMessage(res));
-		const { mode, streamUrl, ticket } = (await res.json()) as {
-			mode: string;
-			streamUrl: string;
-			ticket: string;
-		};
-		return mode === 'Server' ? this.#withTicket(streamUrl, ticket) : streamUrl;
 	}
 
 	#withTicket(url: string, ticket: string): string {
