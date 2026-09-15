@@ -6,6 +6,30 @@
 > No es necesario ejecutar todo de una vez: está pensado para trabajarse página por
 > página o componente por componente, en PRs pequeños y verificables.
 
+> **Estado (sesión de seguimiento posterior):** §1–§3 y §5 de este documento (hex
+> literales, tamaños de fuente arbitrarios, menú "de cristal" duplicado, componentes
+> huérfanos listados) ya están resueltos. El problema había reaparecido con otra forma:
+> valores de opacidad sueltos sobre `white`/`black` (`bg-white/[6%]`, `border-white/10`,
+> etc.) fuera de los tokens `--mf-surface*`/`--mf-border*`, sombras/gradientes de portada
+> duplicados sin token, un bloque de "cabecera de colección" reimplementado 5 veces, un
+> menú de cuenta duplicado en `TopBar`/`MobileHeader`, y textos de estado vacío con
+> redacción inconsistente ("Aún no..." vs "Todavía no..."). Todo eso se corrigió: se
+> añadieron tokens `--shadow-cover-lg/md/sm/xs` y `--mf-liked-grad` a
+> `layout.css`/`theme.css`, se migraron los literales `white`/`black` a
+> `bg-surface*`/`border-line*`/`hover:bg-hover`/`text-on-art` según si el color está
+> sobre el "chrome" de la app o sobre arte/gradiente saturado, se extrajeron
+> `lib/components/ui/CollectionHeader.svelte` (portada + título + meta + acciones, usado
+> en `AlbumHeader`, `PlaylistHeader`, `liked/+page.svelte`, `mixes/[id]/+page.svelte`,
+> `albums/external/.../+page.svelte`) y `lib/components/AccountMenu.svelte` (estado de
+> apertura + panel del menú de cuenta, usado en `TopBar`/`MobileHeader`), y se corrigió
+> `--color-hover` en `layout.css`, que estaba hardcodeado en vez de apuntar a
+> `--mf-surface-2` (rompía el modo claro para cualquier `hover:bg-hover`). Pendiente de
+> quien retome esto: verificación visual en el navegador con una sesión autenticada real
+> (esta sesión no tenía credenciales del IdP de Zitadel ni acceso para activar
+> `allowAnonymousListening`), y `lib/components/ui/Rail.svelte`, que el grep de
+> huérfanos de §5 marca sin importadores — no se tocó porque no forma parte de este
+> barrido, pero conviene confirmarlo a mano y borrarlo si procede.
+
 ## 0. Objetivo
 
 Tres problemas, en orden de aparición histórica pero **no** de prioridad recomendada:

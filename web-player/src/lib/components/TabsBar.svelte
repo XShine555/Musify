@@ -44,7 +44,7 @@
 				: 'text-fg-2'}"
 		>
 			<link.icon class="h-[17px] w-[17px]" strokeWidth={1.6} />
-			<span class="text-[10px] font-medium">{link.label}</span>
+			<span class="text-xs font-medium">{link.label}</span>
 		</a>
 	{/each}
 </nav>

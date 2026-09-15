@@ -52,7 +52,7 @@
 	style="width:var(--mf-sidebar-w)"
 >
 	<a href="/" class="flex items-center gap-2.5 px-1.5 pb-6.5">
-		<span class="font-display text-[17.5px] font-semibold tracking-[-0.02em] text-fg">Musify</span>
+		<span class="font-display text-lg font-semibold tracking-[-0.02em] text-fg">Musify</span>
 	</a>
 
 	<nav class="flex flex-col gap-0.5">
@@ -61,24 +61,23 @@
 			<a
 				href={link.href}
 				aria-current={active ? 'page' : undefined}
-				class="flex items-center gap-3 rounded-[10px] px-3 py-2.25 text-[13.5px] font-medium transition-colors duration-150 {active
+				class="flex items-center gap-3 rounded-[10px] px-3 py-2.25 text-sm font-medium transition-colors duration-150 {active
 					? 'bg-surface-hover text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
 				<link.icon class="h-[17px] w-[17px] shrink-0" strokeWidth={1.6} />
 				<span class="flex-1 truncate">{link.label}</span>
 				{#if link.count}
-					<span class="text-[11px] text-muted tabular-nums">{link.count}</span>
+					<span class="text-xs text-muted tabular-nums">{link.count}</span>
 				{/if}
 			</a>
 		{/each}
 	</nav>
 
 	{#if user}
-		<div class="mx-3 mt-6 mb-3.5 h-px bg-white/5"></div>
+		<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
 		<div class="flex items-center justify-between px-3 pb-1.5">
-			<span class="text-[10.5px] font-semibold tracking-[0.13em] text-muted uppercase"
-				>Tus playlists</span
+			<span class="text-xs font-semibold tracking-[0.13em] text-muted uppercase">Tus playlists</span
 			>
 			{#if playlists.length > 0}
 				<button
@@ -109,7 +108,7 @@
 						class="h-8.5 w-8.5 shrink-0 overflow-hidden rounded-lg opacity-90"
 					/>
 					<div class="min-w-0 flex-1">
-						<div class="truncate text-[13.5px] font-medium {active ? 'text-fg' : 'text-fg-2'}">
+						<div class="truncate text-sm font-medium {active ? 'text-fg' : 'text-fg-2'}">
 							{playlist.name}
 						</div>
 					</div>
@@ -118,7 +117,7 @@
 				<button
 					type="button"
 					onclick={() => createPlaylistModal.show()}
-					class="flex items-center gap-2 rounded-[10px] px-3 py-2 text-[12px] text-muted transition-colors hover:bg-hover hover:text-fg-2"
+					class="flex items-center gap-2 rounded-[10px] px-3 py-2 text-xs text-muted transition-colors hover:bg-hover hover:text-fg-2"
 				>
 					<Plus class="h-3.5 w-3.5" strokeWidth={1.8} />
 					Crear tu primera lista

@@ -28,7 +28,7 @@
 	</button>
 {:else}
 	<div class="flex w-full max-w-135 items-center gap-2.75">
-		<span class="min-w-8 text-right text-[10.5px] text-fg-3 tabular-nums">
+		<span class="min-w-8 text-right text-xs text-fg-3 tabular-nums">
 			{fmtTime(player.progress)}
 		</span>
 		<button
@@ -41,7 +41,7 @@
 				<div class="h-full rounded-full bg-accent" style="width:{player.progressPercent}%"></div>
 			</div>
 		</button>
-		<span class="min-w-8 text-[10.5px] text-fg-3 tabular-nums">
+		<span class="min-w-8 text-xs text-fg-3 tabular-nums">
 			{fmtTime(player.current.duration)}
 		</span>
 	</div>

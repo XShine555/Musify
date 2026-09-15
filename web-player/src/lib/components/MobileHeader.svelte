@@ -2,15 +2,9 @@
 	import type { SessionUser } from '$lib/types';
 	import Upload from '@lucide/svelte/icons/upload';
 	import Folder from '@lucide/svelte/icons/folder';
-	import LogOut from '@lucide/svelte/icons/log-out';
 	import LogIn from '@lucide/svelte/icons/log-in';
-	import User from '@lucide/svelte/icons/user';
-	import Settings from '@lucide/svelte/icons/settings';
-	import Sun from '@lucide/svelte/icons/sun';
-	import Moon from '@lucide/svelte/icons/moon';
 	import MenuItem from './ui/MenuItem.svelte';
-	import GlassMenu from './ui/GlassMenu.svelte';
-	import { themeMode } from '$lib/theme/mode.svelte';
+	import AccountMenu from './AccountMenu.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -18,13 +12,6 @@
 	}
 
 	let { user, accountUrl }: Props = $props();
-
-	let menuOpen = $state(false);
-	let menuRef: HTMLDivElement | undefined = $state();
-
-	function onDocumentClick(event: MouseEvent) {
-		if (menuRef && !menuRef.contains(event.target as Node)) menuOpen = false;
-	}
 </script>
 
 <header
@@ -32,7 +19,7 @@
 >
 	<a
 		href="/"
-		class="flex items-center gap-2 font-display text-[17.5px] font-semibold tracking-[-0.02em] text-fg"
+		class="flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em] text-fg"
 	>
 		<span
 			class="h-5.5 w-5.5 rounded-[7px] bg-[image:var(--mf-logo-grad)] shadow-[var(--mf-logo-glow)]"
@@ -40,63 +27,37 @@
 		Musify
 	</a>
 
-	<div class="relative" bind:this={menuRef}>
+	<div class="relative">
 		{#if user}
-			<button
-				type="button"
-				onclick={() => (menuOpen = !menuOpen)}
-				aria-label="Tu cuenta"
-				aria-expanded={menuOpen}
-				class="flex items-center rounded-full"
+			<AccountMenu
+				{user}
+				{accountUrl}
+				panelClass="absolute top-full right-0 mt-2 w-56 overflow-hidden"
 			>
-				{#if user.picture}
-					<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
-				{:else}
-					<span class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm uppercase">
-						{user.name.charAt(0)}
-					</span>
-				{/if}
-			</button>
-
-			{#if menuOpen}
-				<GlassMenu class="absolute top-full right-0 mt-2 w-56 overflow-hidden">
-					<MenuItem
-						icon={User}
-						label="Ver perfil"
-						href="/u/{user.sub}"
-						onclick={() => (menuOpen = false)}
-					/>
-					<MenuItem
-						icon={Folder}
-						label="Canciones subidas"
-						href="/library"
-						onclick={() => (menuOpen = false)}
-					/>
-					<MenuItem
-						icon={Upload}
-						label="Subir música"
-						href="/upload"
-						onclick={() => (menuOpen = false)}
-					/>
-					{#if accountUrl}
-						<MenuItem
-							icon={Settings}
-							label="Ajustes"
-							href={accountUrl}
-							target="_blank"
-							onclick={() => (menuOpen = false)}
-						/>
-					{/if}
-					<MenuItem
-						icon={themeMode.current === 'dark' ? Sun : Moon}
-						label={themeMode.current === 'dark' ? 'Modo blanco' : 'Modo oscuro'}
-						onclick={() => themeMode.toggle()}
-					/>
-					<form method="POST" action="/logout" data-sveltekit-reload>
-						<MenuItem icon={LogOut} label="Cerrar sesión" type="submit" />
-					</form>
-				</GlassMenu>
-			{/if}
+				{#snippet trigger({ toggle, open })}
+					<button
+						type="button"
+						onclick={toggle}
+						aria-label="Tu cuenta"
+						aria-expanded={open}
+						class="flex items-center rounded-full"
+					>
+						{#if user.picture}
+							<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
+						{:else}
+							<span
+								class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm uppercase"
+							>
+								{user.name.charAt(0)}
+							</span>
+						{/if}
+					</button>
+				{/snippet}
+				{#snippet extraItems({ close })}
+					<MenuItem icon={Folder} label="Canciones subidas" href="/library" onclick={close} />
+					<MenuItem icon={Upload} label="Subir música" href="/upload" onclick={close} />
+				{/snippet}
+			</AccountMenu>
 		{:else}
 			<a
 				href="/auth/login"
@@ -109,5 +70,3 @@
 		{/if}
 	</div>
 </header>
-
-<svelte:window onclick={onDocumentClick} />

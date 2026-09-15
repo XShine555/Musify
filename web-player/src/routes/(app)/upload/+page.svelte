@@ -115,7 +115,7 @@
 							class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold {stepStates[
 								i
 							] === 'idle'
-								? 'bg-white/[3.5%] text-fg-2'
+								? 'bg-surface-2 text-fg-2'
 								: 'bg-accent-btn text-accent-soft'}"
 						>
 							{#if stepStates[i] === 'done'}
@@ -228,7 +228,7 @@
 						{#if coverPreview !== ''}
 							<img src={coverPreview} alt="Portada" class="h-full w-full object-cover" />
 						{:else}
-							<ImageIcon class="h-11 w-11 text-white/70" strokeWidth={1.3} />
+							<ImageIcon class="h-11 w-11 text-on-art/70" strokeWidth={1.3} />
 						{/if}
 					</label>
 				</Field>

@@ -7,6 +7,7 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { fmtDate } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
+	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -46,38 +47,31 @@
 </svelte:head>
 
 <Page>
-	<div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
-		<div
-			class="grid h-36 w-36 shrink-0 place-items-center rounded-[18px] shadow-[0_24px_56px_rgba(0,0,0,.55)] sm:h-41 sm:w-41"
-			style="background:linear-gradient(150deg, oklch(0.4 0.09 330), oklch(0.18 0.04 10))"
-		>
-			<Heart class="h-10 w-10 text-white/90" fill="currentColor" strokeWidth={0} />
-		</div>
-		<div class="min-w-0 flex-1">
-			<p class="text-[10.5px] font-semibold tracking-[0.16em] text-fg-2 uppercase">Colección</p>
-			<h1
-				class="mt-3 font-display text-[28px] font-semibold tracking-[-0.035em] text-fg sm:text-[33px]"
+	<CollectionHeader
+		eyebrow="Colección"
+		title="Me gusta"
+		meta="{tracks.length} {tracks.length === 1 ? 'canción' : 'canciones'}"
+		align="center"
+	>
+		{#snippet cover()}
+			<div
+				class="grid h-36 w-36 shrink-0 place-items-center rounded-[18px] bg-[image:var(--mf-liked-grad)] shadow-cover-lg sm:h-41 sm:w-41"
 			>
-				Me gusta
-			</h1>
-			<p class="mt-3.25 text-[12.5px] text-fg-2">
-				{tracks.length}
-				{tracks.length === 1 ? 'canción' : 'canciones'}
-			</p>
-		</div>
-	</div>
-
-	<div class="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-7">
-		<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
-			{#if isCurrentQueue && player.playing}
-				<Pause class="h-4 w-4" strokeWidth={1.5} />
-				Pausar
-			{:else}
-				<Play class="h-4 w-4" strokeWidth={1.5} />
-				Reproducir
-			{/if}
-		</Button>
-	</div>
+				<Heart class="h-10 w-10 text-on-art/90" fill="currentColor" strokeWidth={0} />
+			</div>
+		{/snippet}
+		{#snippet actions()}
+			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
+				{#if isCurrentQueue && player.playing}
+					<Pause class="h-4 w-4" strokeWidth={1.5} />
+					Pausar
+				{:else}
+					<Play class="h-4 w-4" strokeWidth={1.5} />
+					Reproducir
+				{/if}
+			</Button>
+		{/snippet}
+	</CollectionHeader>
 
 	{#if tracks.length > 0}
 		<TrackTable

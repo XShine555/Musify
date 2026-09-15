@@ -152,11 +152,11 @@
 		>
 			<div class="animate-enter max-w-135 min-w-65">
 				<h1
-					class="font-display text-[28px] leading-[1.1] font-semibold tracking-[-0.035em] text-pretty text-fg sm:text-[36px]"
+					class="font-display text-3xl leading-[1.1] font-semibold tracking-[-0.035em] text-pretty text-fg sm:text-4xl"
 				>
 					{data.greeting}
 				</h1>
-				<p class="mt-3.5 max-w-108 text-[13.5px] leading-[1.65] text-fg-2">
+				<p class="mt-3.5 max-w-108 text-sm leading-[1.65] text-fg-2">
 					Sube lo tuyo, descubre lo nuevo y escúchalo todo en un solo sitio.
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
@@ -177,22 +177,22 @@
 			{#await data.listeningStats then stats}
 				<div class="flex gap-6.5">
 					<div>
-						<div class="font-display text-[25px] font-semibold tracking-[-0.03em] text-fg">
+						<div class="font-display text-2xl font-semibold tracking-[-0.03em] text-fg">
 							{stats.tracksThisWeek}
 						</div>
-						<div class="mt-1 text-[11.5px] text-fg-3">Canciones nuevas escuchadas esta semana</div>
+						<div class="mt-1 text-xs text-fg-3">Canciones nuevas escuchadas esta semana</div>
 					</div>
 					<div>
-						<div class="font-display text-[25px] font-semibold tracking-[-0.03em] text-fg">
+						<div class="font-display text-2xl font-semibold tracking-[-0.03em] text-fg">
 							{fmtDurationLong(Number(stats.secondsThisWeek))}
 						</div>
-						<div class="mt-1 text-[11.5px] text-fg-3">Tiempo de escucha esta semana</div>
+						<div class="mt-1 text-xs text-fg-3">Tiempo de escucha esta semana</div>
 					</div>
 					<div>
-						<div class="font-display text-[25px] font-semibold tracking-[-0.03em] text-fg">
+						<div class="font-display text-2xl font-semibold tracking-[-0.03em] text-fg">
 							{stats.streakDays}
 						</div>
-						<div class="mt-1 text-[11.5px] text-fg-3">Días consecutivos escuchando</div>
+						<div class="mt-1 text-xs text-fg-3">Días consecutivos escuchando</div>
 					</div>
 				</div>
 			{/await}
@@ -220,7 +220,7 @@
 						oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(item))}
 						class="group/cont animate-enter flex items-center gap-3.25 rounded-[13px] p-2.25 pr-3.5 text-left transition-colors {isCurrent
 							? 'bg-accent-tint'
-							: 'hover:bg-white/[3%]'}"
+							: 'hover:bg-hover'}"
 						style="animation-delay:{Math.min(i, 10) * 40}ms"
 					>
 						<Cover
@@ -241,7 +241,7 @@
 							<ArtistLink
 								name={item.artist || '—'}
 								ownerUserId={item.ownerUserId}
-								class="mt-0.75 text-[12.5px] text-fg-3"
+								class="mt-0.75 text-xs text-fg-3"
 							/>
 						</div>
 					</div>
@@ -250,7 +250,7 @@
 		{:else}
 			<EmptyState
 				icon={History}
-				title="Aún no has escuchado nada"
+				title="Todavía no has escuchado nada"
 				description="Reproduce alguna canción y tu actividad reciente aparecerá aquí."
 			>
 				{#snippet actions()}
@@ -273,18 +273,18 @@
 							trackIds={spotlight.coverTrackIds}
 							version={spotlight.updatedAt}
 							size="large"
-							class="h-28 w-28 shrink-0 rounded-[16px] shadow-[0_16px_40px_rgba(0,0,0,.5)]"
+							class="h-28 w-28 shrink-0 rounded-[16px] shadow-cover-md"
 						/>
 						<div class="min-w-0">
-							<p class="text-[11px] font-semibold tracking-[0.16em] text-fg-2 uppercase">
+							<p class="text-xs font-semibold tracking-[0.16em] text-fg-2 uppercase">
 								Playlist destacada
 							</p>
 							<h3
-								class="mt-2.5 truncate font-display text-[28px] font-semibold tracking-[-0.03em] text-fg"
+								class="mt-2.5 truncate font-display text-2xl font-semibold tracking-[-0.03em] text-fg"
 							>
 								{spotlight.name}
 							</h3>
-							<p class="mt-2 text-[13px] text-fg-2">{spotlightMeta}</p>
+							<p class="mt-2 text-sm text-fg-2">{spotlightMeta}</p>
 						</div>
 					</div>
 					<p class="max-w-110 text-sm leading-[1.7] text-fg-2">
@@ -312,18 +312,16 @@
 								e.preventDefault();
 								playSpotlightTrack(i);
 							}}
-							class="flex items-center gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-white/[3%] {isTargetCurrent(
+							class="flex items-center gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-hover {isTargetCurrent(
 								target
 							)
 								? 'bg-accent-tint'
 								: ''}"
 						>
-							<span class="w-5 shrink-0 text-center text-[11.5px] text-muted tabular-nums"
-								>{i + 1}</span
-							>
+							<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums">{i + 1}</span>
 							<div class="min-w-0 flex-1">
 								<div
-									class="truncate text-[12.5px] font-medium {isTargetCurrent(target)
+									class="truncate text-sm font-medium {isTargetCurrent(target)
 										? 'text-accent-soft'
 										: 'text-fg'}"
 								>
@@ -332,10 +330,10 @@
 								<ArtistLink
 									name={targetArtist(target)}
 									ownerUserId={targetOwnerUserId(target)}
-									class="mt-0.5 text-[11px] text-fg-3"
+									class="mt-0.5 text-xs text-fg-3"
 								/>
 							</div>
-							<span class="shrink-0 text-[11.5px] text-muted tabular-nums">
+							<span class="shrink-0 text-xs text-muted tabular-nums">
 								{durationSeconds !== undefined ? fmtTime(durationSeconds) : '—'}
 							</span>
 						</div>
@@ -359,7 +357,7 @@
 		{:else}
 			<EmptyState
 				icon={Shuffle}
-				title="Aún no tienes mezclas"
+				title="Todavía no tienes mezclas"
 				description="Se generan automáticamente a partir de lo que escuchas."
 			/>
 		{/if}
@@ -387,7 +385,7 @@
 						oncontextmenu={(e) => openContextMenu(e, target)}
 						class="flex items-center gap-3.5 rounded-[11px] p-2 text-left transition-colors {isCurrent
 							? 'bg-accent-tint'
-							: 'hover:bg-white/[3%]'}"
+							: 'hover:bg-hover'}"
 					>
 						<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
 							{#if isCurrent}
@@ -409,9 +407,7 @@
 									<ExplicitBadge />
 								{/if}
 								<span
-									class="truncate text-[12.5px] font-medium {isCurrent
-										? 'text-accent-soft'
-										: 'text-fg'}"
+									class="truncate text-sm font-medium {isCurrent ? 'text-accent-soft' : 'text-fg'}"
 								>
 									{targetTitle(target)}
 								</span>
@@ -419,7 +415,7 @@
 							<ArtistLink
 								name={targetArtist(target)}
 								ownerUserId={targetOwnerUserId(target)}
-								class="mt-0.5 text-[11.5px] text-fg-3"
+								class="mt-0.5 text-xs text-fg-3"
 							/>
 						</div>
 					</div>
@@ -428,7 +424,7 @@
 		{:else}
 			<EmptyState
 				icon={History}
-				title="Aún no has escuchado nada"
+				title="Todavía no has escuchado nada"
 				description="Reproduce alguna canción y tu actividad reciente aparecerá aquí."
 			>
 				{#snippet actions()}
@@ -445,7 +441,7 @@
 				{#if data.playlistsHasMore}
 					<a
 						href="/playlists"
-						class="shrink-0 text-[11.5px] font-semibold tracking-[0.07em] text-fg-3 uppercase transition-colors hover:text-fg"
+						class="shrink-0 text-xs font-semibold tracking-[0.07em] text-fg-3 uppercase transition-colors hover:text-fg"
 					>
 						Ver todas
 					</a>
@@ -457,7 +453,7 @@
 				{#each playlists as playlist, i (playlist.id)}
 					<a
 						href="/playlists/{playlist.id}"
-						class="group/card animate-enter flex items-center gap-3.5 rounded-[15px] p-3 transition-colors hover:bg-white/[3%]"
+						class="group/card animate-enter flex items-center gap-3.5 rounded-[15px] p-3 transition-colors hover:bg-hover"
 						style="animation-delay:{Math.min(i, 10) * 40}ms"
 					>
 						<PlaylistArt
@@ -465,14 +461,14 @@
 							trackIds={playlist.coverTrackIds}
 							version={playlist.updatedAt}
 							size="medium"
-							class="h-15.5 w-15.5 shrink-0 rounded-[11px] shadow-[0_10px_24px_rgba(0,0,0,.42)]"
+							class="h-15.5 w-15.5 shrink-0 rounded-[11px] shadow-cover-sm"
 						/>
 						<div class="min-w-0 flex-1">
-							<div class="truncate text-[13.5px] font-semibold tracking-[-0.01em] text-fg">
+							<div class="truncate text-sm font-semibold tracking-[-0.01em] text-fg">
 								{playlist.name}
 							</div>
 							{#if playlist.description}
-								<div class="mt-1 truncate text-[11.5px] text-fg-3">{playlist.description}</div>
+								<div class="mt-1 truncate text-xs text-fg-3">{playlist.description}</div>
 							{/if}
 						</div>
 					</a>

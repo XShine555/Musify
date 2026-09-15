@@ -21,7 +21,7 @@
 		style="width:var(--mf-queue-w); padding-bottom:calc(var(--mf-player-h) + 2rem)"
 	>
 		<div class="mb-5 flex items-center justify-between">
-			<h2 class="font-display text-[14.5px] font-semibold tracking-[-0.02em] text-fg">En cola</h2>
+			<h2 class="font-display text-base font-semibold tracking-[-0.02em] text-fg">En cola</h2>
 			<button
 				type="button"
 				onclick={() => queuePanel.close()}
@@ -33,7 +33,7 @@
 		</div>
 
 		{#if player.current.id}
-			<p class="mb-2.75 text-[10.5px] font-semibold tracking-[0.12em] text-muted uppercase">
+			<p class="mb-2.75 text-xs font-semibold tracking-[0.12em] text-muted uppercase">
 				Reproduciendo
 			</p>
 			<div class="mb-6 flex items-center gap-3 rounded-xl bg-accent-tint p-2.5">
@@ -45,13 +45,13 @@
 					class="h-10 w-10 shrink-0 rounded-[9px]"
 				/>
 				<div class="min-w-0">
-					<div class="truncate text-[12.5px] font-semibold text-accent-soft">
+					<div class="truncate text-sm font-semibold text-accent-soft">
 						{player.current.title}
 					</div>
 					<ArtistLink
 						name={player.current.artist || '—'}
 						ownerUserId={player.current.ownerUserId}
-						class="mt-0.75 text-[11px] text-fg-3"
+						class="mt-0.75 text-xs text-fg-3"
 					/>
 				</div>
 			</div>
@@ -59,7 +59,7 @@
 
 		<div class="mb-2.75 flex items-center justify-between gap-3">
 			<span
-				class="min-w-0 flex-1 truncate text-[10.5px] font-semibold tracking-[0.12em] text-muted uppercase"
+				class="min-w-0 flex-1 truncate text-xs font-semibold tracking-[0.12em] text-muted uppercase"
 			>
 				A continuación
 			</span>
@@ -67,7 +67,7 @@
 				<button
 					type="button"
 					onclick={() => player.clearUpcoming()}
-					class="shrink-0 text-[11px] text-muted transition-colors hover:text-fg"
+					class="shrink-0 text-xs text-muted transition-colors hover:text-fg"
 				>
 					Vaciar
 				</button>
@@ -96,15 +96,15 @@
 						class="h-9 w-9 shrink-0 rounded-lg opacity-90"
 					/>
 					<div class="min-w-0 flex-1">
-						<div class="truncate text-[12.5px] font-medium text-fg">{track.title}</div>
+						<div class="truncate text-sm font-medium text-fg">{track.title}</div>
 						<ArtistLink
 							name={track.artist || '—'}
 							ownerUserId={track.ownerUserId}
-							class="mt-0.5 text-[11px] text-fg-3"
+							class="mt-0.5 text-xs text-fg-3"
 						/>
 					</div>
 					{#if track.duration}
-						<span class="shrink-0 text-[11px] text-muted tabular-nums"
+						<span class="shrink-0 text-xs text-muted tabular-nums"
 							>{fmtTime(track.duration)}</span
 						>
 					{/if}

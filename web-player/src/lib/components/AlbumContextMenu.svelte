@@ -60,7 +60,7 @@
 	<button
 		type="button"
 		onclick={onPlayNext}
-		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-[13.5px] font-medium text-fg-2 transition hover:bg-hover"
+		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg-2 transition hover:bg-hover"
 	>
 		<ListPlus class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
 		<span>Reproducir a continuación</span>
@@ -68,7 +68,7 @@
 	<button
 		type="button"
 		onclick={onAddToQueue}
-		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-[13.5px] font-medium text-fg-2 transition hover:bg-hover"
+		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg-2 transition hover:bg-hover"
 	>
 		<ListEnd class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
 		<span>Añadir a la cola</span>
@@ -76,7 +76,7 @@
 	{#if playlists.length > 0}
 		<div class="group/addmenu relative">
 			<div
-				class="flex items-center gap-3 rounded-control px-2 py-2.5 text-[13.5px] font-medium text-fg-2 transition group-hover/addmenu:bg-hover"
+				class="flex items-center gap-3 rounded-control px-2 py-2.5 text-sm font-medium text-fg-2 transition group-hover/addmenu:bg-hover"
 			>
 				<span class="flex-1 cursor-default">Añadir álbum a una playlist</span>
 				<ChevronRight class="h-4 w-4 shrink-0 text-fg-3" />
@@ -106,7 +106,7 @@
 								<input type="hidden" name="albumId" value={menu.albumId} />
 								<button
 									type="submit"
-									class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-[13.5px] font-medium text-fg transition hover:bg-hover"
+									class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg transition hover:bg-hover"
 								>
 									<PlaylistArt
 										playlistId={playlist.id}
@@ -123,6 +123,6 @@
 			</div>
 		</div>
 	{:else}
-		<p class="px-2 py-2.5 text-sm text-fg-3">No tienes playlists todavía.</p>
+		<p class="px-2 py-2.5 text-sm text-fg-3">Todavía no tienes playlists.</p>
 	{/if}
 </GlassMenu>

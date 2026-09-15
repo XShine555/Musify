@@ -29,12 +29,12 @@
 	}: Props = $props();
 
 	const sizes = {
-		sm: 'px-4 py-2.5 text-[12.5px]',
-		md: 'px-5 py-3 text-[13px]',
+		sm: 'px-4 py-2.5 text-xs',
+		md: 'px-5 py-3 text-sm',
 		lg: 'px-6 py-3.5 text-sm'
 	};
 
-	const subtleButton = 'bg-white/[6%] text-fg-2 hover:bg-white/[9%] hover:text-fg';
+	const subtleButton = 'bg-surface-2 text-fg-2 hover:bg-surface-hover hover:text-fg';
 
 	const variants = {
 		primary: subtleButton,

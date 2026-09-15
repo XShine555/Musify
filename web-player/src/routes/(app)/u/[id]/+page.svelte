@@ -32,13 +32,13 @@
 	<div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
 		<ArtistAvatar name={profile.name} imageUrl={profile.profilePictureUrl} size={144} />
 		<div class="min-w-0 flex-1">
-			<p class="text-[10.5px] font-semibold tracking-[0.16em] text-fg-2 uppercase">Perfil</p>
+			<p class="text-xs font-semibold tracking-[0.16em] text-fg-2 uppercase">Perfil</p>
 			<h1
-				class="mt-3 font-display text-[28px] font-semibold tracking-[-0.035em] break-words text-fg sm:text-[33px]"
+				class="mt-3 font-display text-3xl font-semibold tracking-[-0.035em] break-words text-fg sm:text-4xl"
 			>
 				{profile.name}
 			</h1>
-			<p class="mt-3.25 text-[12.5px] text-fg-2">
+			<p class="mt-3.25 text-sm text-fg-2">
 				{profile.followersCount}
 				{profile.followersCount === 1 ? 'seguidor' : 'seguidores'} · {profile.followingCount} siguiendo
 			</p>

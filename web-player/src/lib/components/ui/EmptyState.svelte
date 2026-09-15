@@ -23,7 +23,7 @@
 		</h3>
 	{/if}
 	{#if description}
-		<p class="mt-2.5 max-w-sm text-[13px] leading-[1.65] text-fg-2">{description}</p>
+		<p class="mt-2.5 max-w-sm text-sm leading-[1.65] text-fg-2">{description}</p>
 	{/if}
 	{#if actions}
 		<div class="mt-6 flex flex-wrap items-center justify-center gap-2.5">{@render actions()}</div>

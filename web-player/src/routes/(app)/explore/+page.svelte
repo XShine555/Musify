@@ -313,7 +313,7 @@
 				Resultados de búsqueda
 			</div>
 			<h1
-				class="font-display text-2xl font-semibold tracking-[-0.03em] text-pretty text-fg sm:text-[28px]"
+				class="font-display text-2xl font-semibold tracking-[-0.03em] text-pretty text-fg sm:text-3xl"
 			>
 				Resultados para «{data.query}»
 			</h1>
@@ -331,13 +331,11 @@
 					class="flex items-center gap-1.75 rounded-full px-3.5 py-1.75 text-xs font-medium transition {sfilter ===
 					chip.label
 						? 'bg-cta-strong text-ink'
-						: 'bg-white/[3.5%] text-fg-2 hover:bg-white/7 hover:text-fg'}"
+						: 'bg-surface-2 text-fg-2 hover:bg-surface-hover hover:text-fg'}"
 				>
 					<span>{chip.label}</span>
-					<span
-						class="text-[10.5px] tabular-nums {sfilter === chip.label
-							? 'opacity-55'
-							: 'text-muted'}">{chip.count}</span
+					<span class="text-xs tabular-nums {sfilter === chip.label ? 'opacity-55' : 'text-muted'}"
+						>{chip.count}</span
 					>
 				</button>
 			{/each}
@@ -394,9 +392,7 @@
 				{/if}
 
 				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
-					<div
-						class="text-xs leading-none font-semibold tracking-[0.14em] text-fg-3 uppercase"
-					>
+					<div class="text-xs leading-none font-semibold tracking-[0.14em] text-fg-3 uppercase">
 						Mejor resultado · {TOP_RESULT_KIND_LABEL[topResult.kind]}
 					</div>
 					<div
@@ -456,7 +452,7 @@
 			<h1 class="font-display text-xl font-semibold tracking-[-0.025em] text-fg">
 				Sin resultados para «{data.query}»
 			</h1>
-			<p class="mt-2.5 text-[13px] leading-[1.65] text-fg-2">
+			<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
 				Revisa la ortografía o prueba con un término más corto. También puedes buscar por álbum o
 				por playlist.
 			</p>
@@ -464,7 +460,7 @@
 				{#each genreTiles.slice(0, 4) as genre (genre.query)}
 					<a
 						href={buildHref(genre.query)}
-						class="rounded-full border border-white/8 px-3.5 py-2 text-xs text-fg-2 transition-colors hover:bg-white/5 hover:text-fg"
+						class="rounded-full border border-line-strong px-3.5 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg"
 					>
 						{genre.label}
 					</a>
@@ -481,12 +477,12 @@
 					href={buildHref(genre.query)}
 					class="animate-enter group relative block h-28 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-125"
 					style="animation-delay:{Math.min(i, 10) *
-						40}ms; background:linear-gradient(140deg, oklch(0.24 0.07 {genre.hue}), rgba(9,9,12,.95))"
+						40}ms; background:linear-gradient(140deg, oklch(0.24 0.07 {genre.hue}), var(--mf-ink))"
 				>
-					<div class="font-display text-[15.5px] font-semibold tracking-[-0.02em] text-fg">
+					<div class="font-display text-base font-semibold tracking-[-0.02em] text-fg">
 						{genre.label}
 					</div>
-					<div class="mt-1.5 text-[11.5px] text-fg-3">{genre.tagline}</div>
+					<div class="mt-1.5 text-xs text-fg-3">{genre.tagline}</div>
 				</a>
 			{/each}
 		</div>
@@ -500,7 +496,7 @@
 						<SectionHeading title="Canciones">
 							{#snippet actions()}
 								<div class="h-px flex-1 self-center bg-line"></div>
-								<span class="shrink-0 text-[11px] text-muted tabular-nums">
+								<span class="shrink-0 text-xs text-muted tabular-nums">
 									{searchCounts.Canciones}
 									{searchCounts.Canciones === 1 ? 'Resultado' : 'Resultados'}
 								</span>
@@ -553,7 +549,7 @@
 					<SectionHeading title="Álbumes">
 						{#snippet actions()}
 							<div class="h-px flex-1 self-center bg-line"></div>
-							<span class="shrink-0 text-[11px] text-muted tabular-nums">
+							<span class="shrink-0 text-xs text-muted tabular-nums">
 								{searchCounts.Álbumes}
 								{searchCounts.Álbumes === 1 ? 'Resultado' : 'Resultados'}
 							</span>
@@ -605,7 +601,7 @@
 					<SectionHeading title="Usuarios">
 						{#snippet actions()}
 							<div class="h-px flex-1 self-center bg-line"></div>
-							<span class="shrink-0 text-[11px] text-muted tabular-nums">
+							<span class="shrink-0 text-xs text-muted tabular-nums">
 								{searchCounts.Usuarios}
 								{searchCounts.Usuarios === 1 ? 'Resultado' : 'Resultados'}
 							</span>
@@ -638,7 +634,7 @@
 					<SectionHeading title="Playlists">
 						{#snippet actions()}
 							<div class="h-px flex-1 self-center bg-line"></div>
-							<span class="shrink-0 text-[11px] text-muted tabular-nums">
+							<span class="shrink-0 text-xs text-muted tabular-nums">
 								{searchCounts.Playlists}
 								{searchCounts.Playlists === 1 ? 'Resultado' : 'Resultados'}
 							</span>

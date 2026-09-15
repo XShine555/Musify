@@ -9,6 +9,6 @@
 	let { class: klass = '', children }: Props = $props();
 </script>
 
-<span class="truncate text-center text-[12.5px] text-muted tabular-nums {klass}">
+<span class="truncate text-center text-xs text-muted tabular-nums {klass}">
 	{@render children()}
 </span>

@@ -19,7 +19,7 @@
 <div
 	class="group grid track-grid items-center gap-3 rounded-control py-3 pr-4 pl-2 transition-colors sm:gap-8 sm:pr-6 sm:pl-3 {active
 		? 'bg-accent-tint'
-		: 'hover:bg-white/[3.2%]'} {klass}"
+		: 'hover:bg-hover'} {klass}"
 	style="--mf-track-cols:{table.columns}; --mf-track-cols-mobile:{table.columnsMobile}"
 	{oncontextmenu}
 >

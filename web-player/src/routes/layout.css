@@ -9,7 +9,7 @@
 	--color-surface: var(--mf-surface);
 	--color-surface-2: var(--mf-surface-2);
 	--color-surface-hover: var(--mf-surface-hover);
-	--color-hover: rgba(255, 255, 255, 0.045);
+	--color-hover: var(--mf-surface-2);
 	--color-line: var(--mf-border);
 	--color-line-strong: var(--mf-border-strong);
 	--color-hairline: var(--mf-hairline);
@@ -48,6 +48,11 @@
 	--shadow-menu: 0 12px 28px -10px rgba(0, 0, 0, 0.6);
 	--shadow-player: 0 20px 56px rgba(0, 0, 0, 0.6);
 	--shadow-glow: 0 0 0 1px var(--mf-border-strong), 0 20px 45px -20px var(--mf-accent-glow);
+
+	--shadow-cover-lg: 0 24px 56px rgba(0, 0, 0, 0.55);
+	--shadow-cover-md: 0 16px 40px rgba(0, 0, 0, 0.5);
+	--shadow-cover-sm: 0 10px 24px rgba(0, 0, 0, 0.42);
+	--shadow-cover-xs: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 @utility page-x {

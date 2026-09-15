@@ -35,26 +35,24 @@
 			src={player.current.coverUrl}
 			size="small"
 			alt={player.current.title}
-			class="h-11 w-11 shrink-0 rounded-[11px] shadow-[0_8px_20px_rgba(0,0,0,0.5)] md:h-12 md:w-12"
+			class="h-11 w-11 shrink-0 rounded-[11px] shadow-cover-xs md:h-12 md:w-12"
 		/>
 	{:else}
-		<div
-			class="h-11 w-11 shrink-0 rounded-[11px] bg-surface shadow-[0_8px_20px_rgba(0,0,0,0.5)] md:h-12 md:w-12"
-		></div>
+		<div class="h-11 w-11 shrink-0 rounded-[11px] bg-surface shadow-cover-xs md:h-12 md:w-12"></div>
 	{/if}
 	<div class="min-w-0 flex-1">
 		<div class="flex min-w-0 items-center gap-1.5">
 			{#if player.current.explicit}
 				<ExplicitBadge />
 			{/if}
-			<span class="truncate text-[13px] font-semibold tracking-[-0.01em] text-fg"
+			<span class="truncate text-sm font-semibold tracking-[-0.01em] text-fg"
 				>{player.current.title}</span
 			>
 		</div>
 		<ArtistLink
 			name={player.current.artist || '—'}
 			ownerUserId={player.current.ownerUserId}
-			class="mt-0.5 text-[11.5px] text-fg-3"
+			class="mt-0.5 text-xs text-fg-3"
 		/>
 	</div>
 	{#if !compact}

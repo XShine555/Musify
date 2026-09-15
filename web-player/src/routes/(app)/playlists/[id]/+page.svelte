@@ -82,7 +82,7 @@
 	<h2 class="font-display text-xl font-semibold tracking-[-0.02em] text-fg">
 		¿Eliminar «{playlist.name}»?
 	</h2>
-	<p class="mt-2.5 text-[13px] leading-[1.65] text-fg-2">
+	<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
 		Esta acción no se puede deshacer, la playlist se eliminará de tu biblioteca y de todos los
 		dispositivos donde la tengas guardada.
 	</p>

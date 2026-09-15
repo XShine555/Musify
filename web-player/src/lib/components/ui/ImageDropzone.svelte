@@ -57,6 +57,6 @@
 			class="h-full w-full object-cover"
 		/>
 	{:else}
-		<Icon class="h-9 w-9 {gradient ? 'text-white/70' : 'text-muted'}" strokeWidth={1.3} />
+		<Icon class="h-9 w-9 {gradient ? 'text-on-art/70' : 'text-muted'}" strokeWidth={1.3} />
 	{/if}
 </label>

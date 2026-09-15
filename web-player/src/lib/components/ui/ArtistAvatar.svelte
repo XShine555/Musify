@@ -27,9 +27,9 @@
 		{:else}
 			<div
 				class="pointer-events-none absolute inset-0"
-				style="background:repeating-linear-gradient(135deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 10px)"
+				style="background:repeating-linear-gradient(135deg, color-mix(in oklch, var(--mf-text) 12%, transparent) 0 2px, transparent 2px 10px)"
 			></div>
-			<span class="relative text-lg font-semibold text-white/90">{initials}</span>
+			<span class="relative text-lg font-semibold text-fg">{initials}</span>
 		{/if}
 	</div>
 	<div class="w-full truncate text-sm text-fg">{name}</div>

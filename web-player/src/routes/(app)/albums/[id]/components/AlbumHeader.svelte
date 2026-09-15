@@ -6,6 +6,7 @@
 	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 
 	interface Props {
 		title: string;
@@ -48,45 +49,34 @@
 	label={isOwner ? 'Volver a tus álbumes' : 'Volver al inicio'}
 />
 
-<div class="mt-3 flex flex-col gap-5 sm:mt-4 sm:flex-row sm:items-end sm:gap-6">
-	<PlaylistArt
-		{trackIds}
-		{coverUrl}
-		size="large"
-		class="h-36 w-36 shrink-0 rounded-[18px] shadow-[0_24px_56px_rgba(0,0,0,.55)] sm:h-41 sm:w-41"
-	/>
-	<div class="min-w-0 flex-1">
-		<p class="text-[10.5px] font-semibold tracking-[0.16em] text-fg-2 uppercase">Álbum</p>
-		<h1
-			class="mt-1.5 font-display text-[28px] font-semibold tracking-[-0.035em] break-words text-fg sm:text-[33px]"
-		>
-			{title}
-		</h1>
-		{#if description}
-			<p class="mt-3 max-w-2xl text-sm text-fg-2 sm:text-base">{description}</p>
-		{/if}
-		<p class="mt-3 text-sm text-muted">{meta}</p>
-	</div>
-</div>
-
-<div class="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-7">
-	<Button size="sm" onclick={onPlayAll} disabled={trackIds.length === 0}>
-		{#if playing}
-			<Pause class="h-4 w-4" strokeWidth={1.5} />
-			Pausar
-		{:else}
-			<Play class="h-4 w-4" strokeWidth={1.5} />
-			Reproducir
-		{/if}
-	</Button>
-	{#if isOwner}
-		<Button size="sm" variant="secondary" onclick={onEdit}>
-			<SquarePencil class="h-4 w-4" strokeWidth={1.5} />
-			Editar
+<CollectionHeader eyebrow="Álbum" {title} {description} {meta}>
+	{#snippet cover()}
+		<PlaylistArt
+			{trackIds}
+			{coverUrl}
+			size="large"
+			class="h-36 w-36 shrink-0 rounded-[18px] shadow-cover-lg sm:h-41 sm:w-41"
+		/>
+	{/snippet}
+	{#snippet actions()}
+		<Button size="sm" onclick={onPlayAll} disabled={trackIds.length === 0}>
+			{#if playing}
+				<Pause class="h-4 w-4" strokeWidth={1.5} />
+				Pausar
+			{:else}
+				<Play class="h-4 w-4" strokeWidth={1.5} />
+				Reproducir
+			{/if}
 		</Button>
-		<Button size="sm" variant="secondary" onclick={onDelete}>
-			<Trash class="h-4 w-4" strokeWidth={1.5} />
-			Eliminar
-		</Button>
-	{/if}
-</div>
+		{#if isOwner}
+			<Button size="sm" variant="secondary" onclick={onEdit}>
+				<SquarePencil class="h-4 w-4" strokeWidth={1.5} />
+				Editar
+			</Button>
+			<Button size="sm" variant="secondary" onclick={onDelete}>
+				<Trash class="h-4 w-4" strokeWidth={1.5} />
+				Eliminar
+			</Button>
+		{/if}
+	{/snippet}
+</CollectionHeader>

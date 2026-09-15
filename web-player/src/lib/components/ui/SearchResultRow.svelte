@@ -49,14 +49,14 @@
 			{#if explicit}
 				<ExplicitBadge />
 			{/if}
-			<span class="truncate text-[13px] font-medium text-fg">{title}</span>
+			<span class="truncate text-sm font-medium text-fg">{title}</span>
 		</div>
 		{#if subtitle}
-			<div class="mt-0.75 truncate text-[11.5px] text-fg-3">{subtitle}</div>
+			<div class="mt-0.75 truncate text-xs text-fg-3">{subtitle}</div>
 		{/if}
 	</div>
 	{#if meta}
-		<span class="shrink-0 text-[11.5px] text-muted tabular-nums">{meta}</span>
+		<span class="shrink-0 text-xs text-muted tabular-nums">{meta}</span>
 	{/if}
 {/snippet}
 

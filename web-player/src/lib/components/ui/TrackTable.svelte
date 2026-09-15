@@ -56,7 +56,7 @@
 
 <div class="overflow-x-auto {klass}">
 	<div
-		class="grid track-grid items-center gap-3 border-b border-white/5 pr-4 pb-3 pl-2 text-[10.5px] font-semibold tracking-[0.12em] text-muted uppercase sm:gap-8 sm:pr-6 sm:pl-3"
+		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-3 pl-2 text-xs font-semibold tracking-[0.12em] text-muted uppercase sm:gap-8 sm:pr-6 sm:pl-3"
 		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{columnsMobile}"
 	>
 		{#if index}
