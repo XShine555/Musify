@@ -1,20 +1,18 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
+	import Play from '@lucide/svelte/icons/play';
 	import { player } from '$lib/player/player.svelte';
 	import { fetchAlbumQueueItems } from '$lib/albums';
 	import { fmtTime } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
 	import Cover from '$lib/components/ui/Cover.svelte';
-	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
-	import ArtistAvatar from '$lib/components/ui/ArtistAvatar.svelte';
-	import Rail from '$lib/components/ui/Rail.svelte';
+	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
-	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
+	import SearchResultRow from '$lib/components/ui/SearchResultRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { EXPLORE_ALBUMS_LIMIT, EXPLORE_PAGE_SIZE } from '$lib/config';
 	import type { YouTubeSong } from '$lib/types';
@@ -38,6 +36,13 @@
 		type TrackTarget
 	} from '$lib/tracks';
 
+	const TOP_RESULT_KIND_LABEL: Record<TopResult['kind'], string> = {
+		track: 'Canción',
+		album: 'Álbum',
+		playlist: 'Playlist',
+		user: 'Usuario'
+	};
+
 	const GENRE_INFO: Record<string, { label: string; tagline: string }> = {
 		pop: { label: 'Pop', tagline: 'Éxitos que suenan en todas partes' },
 		rock: { label: 'Rock', tagline: 'Guitarras, actitud y ruido' },
@@ -57,10 +62,15 @@
 
 	let { data, form } = $props();
 
+	const SEARCH_FILTERS = ['Todo', 'Canciones', 'Álbumes', 'Playlists', 'Usuarios'] as const;
+	type SearchFilter = (typeof SEARCH_FILTERS)[number];
+	const SEARCH_GROUP_PREVIEW = 4;
+
 	let ytItems = $state<YouTubeSong[]>([]);
 	let ytUnavailable = $state(false);
 	let contextMenu = $state<ContextMenuState | null>(null);
 	let albumMenu = $state<AlbumMenuState | null>(null);
+	let sfilter = $state<SearchFilter>('Todo');
 
 	type LocalTrack = NonNullable<(typeof data.tracks.items)[number]['track']>;
 
@@ -73,6 +83,7 @@
 	$effect(() => {
 		contextMenu = null;
 		albumMenu = null;
+		sfilter = 'Todo';
 		localItems = data.tracks.items.flatMap((item) => (item.track ? [item.track] : []));
 		localPage = Number(data.tracks.pageNumber);
 		ytContinuation = data.tracks.nextYoutubeContinuationToken ?? '';
@@ -132,13 +143,87 @@
 	const hasAlbums = $derived(albumEntries.length > 0);
 	const hasUsers = $derived(users.length > 0);
 
-	const nothingFound = $derived(
-		!!data.query && !ytUnavailable && items.length === 0 && !hasAlbums && !hasUsers
+	const playlistMatches = $derived(
+		data.query
+			? data.playlists.filter((p) => p.name.toLowerCase().includes(data.query.toLowerCase()))
+			: []
 	);
+	const hasPlaylists = $derived(playlistMatches.length > 0);
+
+	const nothingFound = $derived(
+		!!data.query && !ytUnavailable && items.length === 0 && !hasAlbums && !hasUsers && !hasPlaylists
+	);
+
+	const searchCounts = $derived({
+		Canciones: songRows.length,
+		Álbumes: albumEntries.length,
+		Playlists: playlistMatches.length,
+		Usuarios: users.length
+	});
+	const totalHits = $derived(
+		searchCounts.Canciones + searchCounts.Álbumes + searchCounts.Playlists + searchCounts.Usuarios
+	);
+	const searchChips = $derived(
+		SEARCH_FILTERS.map((label) => ({
+			label,
+			count: label === 'Todo' ? totalHits : searchCounts[label]
+		}))
+	);
+
+	type TopResult =
+		| { kind: 'track'; target: TrackTarget }
+		| { kind: 'album'; entry: AlbumEntry }
+		| { kind: 'playlist'; playlist: (typeof playlistMatches)[number] }
+		| { kind: 'user'; user: (typeof users)[number] };
+
+	const topResult = $derived.by((): TopResult | null => {
+		if (sfilter !== 'Todo' || !data.query) return null;
+		const q = data.query.trim().toLowerCase();
+		const startsWithQuery = (value: string) => value.toLowerCase().startsWith(q);
+
+		const userHit = users.find((u) => startsWithQuery(u.name));
+		if (userHit) return { kind: 'user', user: userHit };
+		const trackHit = items.find((target) => startsWithQuery(targetTitle(target)));
+		if (trackHit) return { kind: 'track', target: trackHit };
+		const albumHit = albumEntries.find((entry) => startsWithQuery(entry.album.title));
+		if (albumHit) return { kind: 'album', entry: albumHit };
+		const playlistHit = playlistMatches.find((p) => startsWithQuery(p.name));
+		if (playlistHit) return { kind: 'playlist', playlist: playlistHit };
+
+		if (users.length) return { kind: 'user', user: users[0] };
+		if (items.length) return { kind: 'track', target: items[0] };
+		if (albumEntries.length) return { kind: 'album', entry: albumEntries[0] };
+		if (playlistMatches.length) return { kind: 'playlist', playlist: playlistMatches[0] };
+		return null;
+	});
+
+	function showGroup(label: Exclude<SearchFilter, 'Todo'>) {
+		return sfilter === 'Todo' || sfilter === label;
+	}
+
+	function capped<T>(list: T[]) {
+		return sfilter === 'Todo' ? list.slice(0, SEARCH_GROUP_PREVIEW) : list;
+	}
 
 	function buildHref(query: string) {
 		return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
 	}
+
+	function playTopResult() {
+		if (topResult?.kind !== 'track') return;
+		player.playOrToggle([queueItemForTarget(topResult.target)], 0);
+	}
+
+	const topResultHref = $derived.by(() => {
+		if (!topResult || topResult.kind === 'track') return undefined;
+		if (topResult.kind === 'album') {
+			return topResult.entry.kind === 'local'
+				? `/albums/${topResult.entry.album.id}`
+				: `/albums/external/youtube/${topResult.entry.album.albumId}`;
+		}
+		if (topResult.kind === 'playlist') return `/playlists/${topResult.playlist.id}`;
+		return `/u/${topResult.user.id}`;
+	});
 
 	function togglePlay(index: number) {
 		player.playOrToggle(items.map(queueItemForTarget), index);
@@ -223,7 +308,143 @@
 			subtitle="Encuentra tu próxima canción favorita explorando por género."
 		/>
 	{:else if !nothingFound}
-		<PageHeader title="Resultados para «{data.query}»" />
+		<div>
+			<div class="mb-2.5 text-sm font-semibold tracking-[0.16em] text-fg-3 uppercase">
+				Resultados de búsqueda
+			</div>
+			<h1
+				class="font-display text-2xl font-semibold tracking-[-0.03em] text-pretty text-fg sm:text-[28px]"
+			>
+				Resultados para «{data.query}»
+			</h1>
+			<p class="mt-1.75 text-sm text-fg-2">
+				{totalHits}
+				{totalHits === 1 ? 'Coincidencia' : 'Coincidencias'} en canciones, álbumes, playlists y usuarios
+			</p>
+		</div>
+
+		<div class="mt-5 flex flex-wrap gap-1.75">
+			{#each searchChips as chip (chip.label)}
+				<button
+					type="button"
+					onclick={() => (sfilter = chip.label)}
+					class="flex items-center gap-1.75 rounded-full px-3.5 py-1.75 text-xs font-medium transition {sfilter ===
+					chip.label
+						? 'bg-cta-strong text-ink'
+						: 'bg-white/[3.5%] text-fg-2 hover:bg-white/7 hover:text-fg'}"
+				>
+					<span>{chip.label}</span>
+					<span
+						class="text-[10.5px] tabular-nums {sfilter === chip.label
+							? 'opacity-55'
+							: 'text-muted'}">{chip.count}</span
+					>
+				</button>
+			{/each}
+		</div>
+
+		{#if topResult}
+			{#snippet topResultBody()}
+				{#if topResult.kind === 'track'}
+					<Cover
+						trackId={targetId(topResult.target)}
+						src={targetCoverSrc(topResult.target)}
+						size="large"
+						alt={targetTitle(topResult.target)}
+						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+					/>
+				{:else if topResult.kind === 'album'}
+					{#if topResult.entry.kind === 'local'}
+						<PlaylistArt
+							trackIds={topResult.entry.album.coverTrackIds}
+							class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+						/>
+					{:else}
+						<Cover
+							trackId={topResult.entry.album.albumId}
+							src={topResult.entry.album.thumbnailUrl}
+							size="large"
+							alt={topResult.entry.album.title}
+							class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+						/>
+					{/if}
+				{:else if topResult.kind === 'playlist'}
+					<PlaylistArt
+						playlistId={topResult.playlist.id}
+						trackIds={topResult.playlist.coverTrackIds}
+						version={topResult.playlist.updatedAt}
+						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+					/>
+				{:else}
+					<div
+						class="grid h-22 w-22 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-2 shadow-art"
+					>
+						{#if topResult.user.profilePictureUrl}
+							<img
+								src={topResult.user.profilePictureUrl}
+								alt=""
+								class="h-full w-full object-cover"
+							/>
+						{:else}
+							<span class="text-xl font-semibold text-fg uppercase"
+								>{topResult.user.name.charAt(0)}</span
+							>
+						{/if}
+					</div>
+				{/if}
+
+				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
+					<div
+						class="text-xs leading-none font-semibold tracking-[0.14em] text-fg-3 uppercase"
+					>
+						Mejor resultado · {TOP_RESULT_KIND_LABEL[topResult.kind]}
+					</div>
+					<div
+						class="truncate font-display text-lg leading-none font-medium tracking-[-0.02em] text-fg"
+					>
+						{topResult.kind === 'track'
+							? targetTitle(topResult.target)
+							: topResult.kind === 'album'
+								? topResult.entry.album.title
+								: topResult.kind === 'playlist'
+									? topResult.playlist.name
+									: topResult.user.name}
+					</div>
+					{#if topResult.kind === 'track' && targetArtist(topResult.target)}
+						<div class="truncate text-sm leading-none text-fg-3">
+							{targetArtist(topResult.target)}
+						</div>
+					{:else if topResult.kind === 'album' && topResult.entry.kind === 'youtube' && topResult.entry.album.artist}
+						<div class="truncate text-sm leading-none text-fg-3">
+							{topResult.entry.album.artist}
+						</div>
+					{/if}
+				</div>
+
+				<span
+					class="grid h-11.5 w-11.5 shrink-0 place-items-center rounded-full bg-cta-strong text-ink transition group-hover/top:brightness-110"
+				>
+					<Play class="h-4 w-4" fill="currentColor" strokeWidth={0} />
+				</span>
+			{/snippet}
+
+			{#if topResult.kind === 'track'}
+				<button
+					type="button"
+					onclick={playTopResult}
+					class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
+				>
+					{@render topResultBody()}
+				</button>
+			{:else}
+				<a
+					href={topResultHref}
+					class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
+				>
+					{@render topResultBody()}
+				</a>
+			{/if}
+		{/if}
 	{/if}
 
 	{#if form?.message}
@@ -271,114 +492,180 @@
 		</div>
 	{/if}
 
-	{#if hasAlbums}
-		<div class="mt-9">
-			<SectionHeading title="Álbumes" />
-			<MediaGrid as="ul" min="168px" minMobile="150px">
-				{#each albumEntries as entry, i (entry.kind === 'local' ? entry.album.id : entry.album.albumId)}
-					<li>
-						{#if entry.kind === 'local'}
-							<AlbumCard
-								id={entry.album.id}
-								title={entry.album.title}
-								releaseYear={entry.album.releaseYear === null
-									? undefined
-									: Number(entry.album.releaseYear)}
-								trackCount={Number(entry.album.trackCount)}
-								trackIds={entry.album.coverTrackIds}
-								index={i}
-								onContextMenu={(e) => openAlbumMenu(e, 'local', entry.album.id)}
-							/>
-						{:else}
-							<AlbumCard
-								id={entry.album.albumId}
-								href="/albums/external/youtube/{entry.album.albumId}"
-								title={entry.album.title}
-								subtitle={entry.album.artist}
-								releaseYear={entry.album.releaseYear === null
-									? undefined
-									: Number(entry.album.releaseYear)}
-								coverSrc={entry.album.thumbnailUrl}
-								index={i}
-								onContextMenu={(e) => openAlbumMenu(e, 'youtube', entry.album.albumId)}
-							/>
+	{#if data.query && !nothingFound}
+		<div class="mt-9 flex flex-col gap-9">
+			{#if showGroup('Canciones')}
+				<div>
+					{#if songRows.length > 0}
+						<SectionHeading title="Canciones">
+							{#snippet actions()}
+								<div class="h-px flex-1 self-center bg-line"></div>
+								<span class="shrink-0 text-[11px] text-muted tabular-nums">
+									{searchCounts.Canciones}
+									{searchCounts.Canciones === 1 ? 'Resultado' : 'Resultados'}
+								</span>
+							{/snippet}
+						</SectionHeading>
+						<ul class="flex flex-col gap-1">
+							{#each capped(songRows) as { target: item, seconds }, i (targetId(item))}
+								<li>
+									<SearchResultRow
+										kind="track"
+										title={targetTitle(item)}
+										subtitle={targetArtist(item)}
+										meta={fmtTime(seconds)}
+										explicit={targetExplicit(item)}
+										onclick={() => togglePlay(i)}
+										oncontextmenu={(e) => openContextMenu(e, item)}
+									>
+										{#snippet art(artClass)}
+											<Cover
+												trackId={targetId(item)}
+												src={targetCoverSrc(item)}
+												size="small"
+												alt={targetTitle(item)}
+												class="{artClass} ring-1 ring-line ring-inset"
+											>
+												{#if isTargetCurrent(item)}
+													<NowPlaying paused={!player.playing} />
+												{/if}
+											</Cover>
+										{/snippet}
+									</SearchResultRow>
+								</li>
+							{/each}
+						</ul>
+
+						{#if sfilter === 'Canciones' && hasMore}
+							<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
 						{/if}
-					</li>
-				{/each}
-			</MediaGrid>
-		</div>
-	{/if}
+					{:else if !ytUnavailable}
+						<EmptyState
+							icon={Music}
+							description="No hay canciones que coincidan con «{data.query}»."
+						/>
+					{/if}
+				</div>
+			{/if}
 
-	{#if hasUsers}
-		<div class="mt-9">
-			<SectionHeading title="Usuarios" />
-			<Rail>
-				{#each users as u, i (u.id)}
-					<a
-						href="/u/{u.id}"
-						class="group/artist animate-enter shrink-0"
-						style="animation-delay:{Math.min(i, 10) * 45}ms"
-					>
-						<ArtistAvatar name={u.name} imageUrl={u.profilePictureUrl} size={96} />
-					</a>
-				{/each}
-			</Rail>
-		</div>
-	{/if}
+			{#if hasAlbums && showGroup('Álbumes')}
+				<div>
+					<SectionHeading title="Álbumes">
+						{#snippet actions()}
+							<div class="h-px flex-1 self-center bg-line"></div>
+							<span class="shrink-0 text-[11px] text-muted tabular-nums">
+								{searchCounts.Álbumes}
+								{searchCounts.Álbumes === 1 ? 'Resultado' : 'Resultados'}
+							</span>
+						{/snippet}
+					</SectionHeading>
+					<ul class="flex flex-col gap-1">
+						{#each capped(albumEntries) as entry (entry.kind === 'local' ? entry.album.id : entry.album.albumId)}
+							<li>
+								{#if entry.kind === 'local'}
+									<SearchResultRow
+										kind="album"
+										title={entry.album.title}
+										meta="{Number(entry.album.trackCount)} canciones"
+										href="/albums/{entry.album.id}"
+										oncontextmenu={(e) => openAlbumMenu(e, 'local', entry.album.id)}
+									>
+										{#snippet art(artClass)}
+											<PlaylistArt trackIds={entry.album.coverTrackIds} class={artClass} />
+										{/snippet}
+									</SearchResultRow>
+								{:else}
+									<SearchResultRow
+										kind="album"
+										title={entry.album.title}
+										subtitle={entry.album.artist}
+										meta={entry.album.releaseYear ? String(entry.album.releaseYear) : undefined}
+										href="/albums/external/youtube/{entry.album.albumId}"
+										oncontextmenu={(e) => openAlbumMenu(e, 'youtube', entry.album.albumId)}
+									>
+										{#snippet art(artClass)}
+											<Cover
+												trackId={entry.album.albumId}
+												src={entry.album.thumbnailUrl}
+												size="small"
+												alt={entry.album.title}
+												class={artClass}
+											/>
+										{/snippet}
+									</SearchResultRow>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
-	{#if data.query}
-		<div class="mt-9">
-			{#if songRows.length > 0}
-				<SectionHeading title="Canciones" />
-				<ul class="flex flex-col gap-1">
-					{#each songRows as { target: item, seconds }, i (targetId(item))}
-						<li>
-							<button
-								type="button"
-								onclick={() => togglePlay(i)}
-								oncontextmenu={(e) => openContextMenu(e, item)}
-								aria-label="Reproducir {targetTitle(item)}"
-								class="group/row flex w-full min-w-0 items-center gap-3.5 rounded-control p-2 pr-4 text-left transition hover:bg-surface focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-							>
-								<Cover
-									trackId={targetId(item)}
-									src={targetCoverSrc(item)}
-									size="small"
-									alt={targetTitle(item)}
-									class="h-11 w-11 shrink-0 rounded-control shadow-art ring-1 ring-line ring-inset"
-								>
-									{#if isTargetCurrent(item)}
-										<NowPlaying paused={!player.playing} />
-									{/if}
-								</Cover>
-								<div class="min-w-0 flex-1">
-									<div class="flex min-w-0 items-center gap-1.5">
-										{#if targetExplicit(item)}
-											<ExplicitBadge />
-										{/if}
-										<span class="truncate text-[13px] font-medium text-fg">
-											{targetTitle(item)}
-										</span>
-									</div>
-									{#if targetArtist(item)}
-										<div class="truncate text-[11.5px] text-fg-3">
-											Canción · {targetArtist(item)}
+			{#if hasUsers && showGroup('Usuarios')}
+				<div>
+					<SectionHeading title="Usuarios">
+						{#snippet actions()}
+							<div class="h-px flex-1 self-center bg-line"></div>
+							<span class="shrink-0 text-[11px] text-muted tabular-nums">
+								{searchCounts.Usuarios}
+								{searchCounts.Usuarios === 1 ? 'Resultado' : 'Resultados'}
+							</span>
+						{/snippet}
+					</SectionHeading>
+					<ul class="flex flex-col gap-1">
+						{#each capped(users) as u (u.id)}
+							<li>
+								<SearchResultRow kind="user" title={u.name} href="/u/{u.id}">
+									{#snippet art(artClass)}
+										<div class="{artClass} grid place-items-center bg-surface-2">
+											{#if u.profilePictureUrl}
+												<img src={u.profilePictureUrl} alt="" class="h-full w-full object-cover" />
+											{:else}
+												<span class="text-sm font-semibold text-fg uppercase">
+													{u.name.charAt(0)}
+												</span>
+											{/if}
 										</div>
-									{/if}
-								</div>
-								<span class="shrink-0 text-[11.5px] text-muted tabular-nums"
-									>{fmtTime(seconds)}</span
-								>
-							</button>
-						</li>
-					{/each}
-				</ul>
+									{/snippet}
+								</SearchResultRow>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
-				{#if hasMore}
-					<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
-				{/if}
-			{:else if !ytUnavailable && !nothingFound}
-				<EmptyState icon={Music} description="No hay canciones que coincidan con «{data.query}»." />
+			{#if hasPlaylists && showGroup('Playlists')}
+				<div>
+					<SectionHeading title="Playlists">
+						{#snippet actions()}
+							<div class="h-px flex-1 self-center bg-line"></div>
+							<span class="shrink-0 text-[11px] text-muted tabular-nums">
+								{searchCounts.Playlists}
+								{searchCounts.Playlists === 1 ? 'Resultado' : 'Resultados'}
+							</span>
+						{/snippet}
+					</SectionHeading>
+					<ul class="flex flex-col gap-1">
+						{#each capped(playlistMatches) as playlist (playlist.id)}
+							<li>
+								<SearchResultRow
+									kind="playlist"
+									title={playlist.name}
+									subtitle={playlist.description}
+									href="/playlists/{playlist.id}"
+								>
+									{#snippet art(artClass)}
+										<PlaylistArt
+											playlistId={playlist.id}
+											trackIds={playlist.coverTrackIds}
+											version={playlist.updatedAt}
+											class={artClass}
+										/>
+									{/snippet}
+								</SearchResultRow>
+							</li>
+						{/each}
+					</ul>
+				</div>
 			{/if}
 		</div>
 	{/if}

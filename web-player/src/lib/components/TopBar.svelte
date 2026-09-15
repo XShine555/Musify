@@ -1,5 +1,10 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import type { SessionUser } from '$lib/types';
+	import { SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '$lib/config';
+	import Search from '@lucide/svelte/icons/search';
+	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import LogOut from '@lucide/svelte/icons/log-out';
@@ -9,7 +14,6 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import MenuItem from './ui/MenuItem.svelte';
 	import GlassMenu from './ui/GlassMenu.svelte';
-	import SearchBox from './SearchBox.svelte';
 	import { themeMode } from '$lib/theme/mode.svelte';
 
 	interface Props {
@@ -19,8 +23,44 @@
 
 	let { user, accountUrl }: Props = $props();
 
+	let query = $derived(
+		page.url.pathname === '/explore' ? (page.url.searchParams.get('q') ?? '') : ''
+	);
 	let menuOpen = $state(false);
 	let menuRef: HTMLDivElement | undefined = $state();
+	let searchInput: HTMLInputElement | undefined = $state();
+	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	function buildHref(term: string) {
+		return term ? `/explore?q=${encodeURIComponent(term)}` : '/explore';
+	}
+
+	function runSearch(term: string) {
+		if (term.length > 0 && term.length < SEARCH_MIN_LENGTH) return;
+		goto(buildHref(term), {
+			replaceState: page.url.pathname === '/explore',
+			keepFocus: true,
+			noScroll: true
+		});
+	}
+
+	function onInput() {
+		clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(() => runSearch(query.trim()), SEARCH_DEBOUNCE_MS);
+	}
+
+	function clearQuery() {
+		query = '';
+		clearTimeout(searchTimeout);
+		runSearch('');
+		searchInput?.focus();
+	}
+
+	function onSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		clearTimeout(searchTimeout);
+		runSearch(query.trim());
+	}
 
 	function onDocumentClick(event: MouseEvent) {
 		if (menuRef && !menuRef.contains(event.target as Node)) menuOpen = false;
@@ -45,7 +85,31 @@
 		</span>
 	</div>
 
-	<SearchBox class="max-w-[480px] flex-1" />
+	<form onsubmit={onSubmit} class="max-w-[480px] min-w-0 flex-1">
+		<label
+			class="flex h-9.5 w-full items-center gap-2.5 rounded-[11px] bg-white/[3.5%] px-3.5 transition focus-within:bg-white/[6%]"
+		>
+			<Search class="h-[15px] w-[15px] shrink-0 text-fg-3" strokeWidth={1.8} />
+			<input
+				type="text"
+				bind:this={searchInput}
+				bind:value={query}
+				oninput={onInput}
+				placeholder="Canciones, artistas, álbumes o playlists"
+				class="w-full min-w-0 bg-transparent text-[13px] text-fg placeholder:text-muted focus:outline-none"
+			/>
+			{#if query}
+				<button
+					type="button"
+					onclick={clearQuery}
+					aria-label="Borrar búsqueda"
+					class="grid h-5 w-5 shrink-0 place-items-center rounded-full text-muted transition hover:text-fg"
+				>
+					<X class="h-3.5 w-3.5" />
+				</button>
+			{/if}
+		</label>
+	</form>
 
 	<div class="flex-1"></div>
 

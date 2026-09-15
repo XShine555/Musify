@@ -39,11 +39,11 @@ Altura fija de viewport, sin scroll de página; solo el área de contenido y la 
 
 ### Breakpoints
 
-| Ancho               | Comportamiento                                                                                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `>= 1180px`         | Sidebar visible (254px), cola 304px, player completo                                                                                                                     |
-| `< 1180px` (tablet) | Sidebar oculto → barra de pestañas bajo el player; cola 258px; padding inferior 206px                                                                                    |
-| `< 760px` (móvil)   | Cola oculta; se ocultan shuffle/repeat/volumen/letra/cola del player (queda carátula + título + transporte + progreso); el bloque de info del player pasa a `width:auto` |
+| Ancho | Comportamiento |
+|---|---|
+| `>= 1180px` | Sidebar visible (254px), cola 304px, player completo |
+| `< 1180px` (tablet) | Sidebar oculto → barra de pestañas bajo el player; cola 258px; padding inferior 206px |
+| `< 760px` (móvil) | Cola oculta; se ocultan shuffle/repeat/volumen/letra/cola del player (queda carátula + título + transporte + progreso); el bloque de info del player pasa a `width:auto` |
 
 ---
 
@@ -84,17 +84,17 @@ Los elementos que cambian de color reciben `transition: background .6s ease` (y 
 
 ### Grises fijos (no dependen del hue)
 
-| Rol                                         | Hex                                                                                  |
-| ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Texto principal (títulos de sección, h1/h2) | `#d3d2d6` – `#d9d8dc`                                                                |
-| Texto de tarjeta / fila                     | `#cbcacf` / `#cdccd1`                                                                |
-| Texto base del documento                    | `#c9c8cc`                                                                            |
-| Secundario                                  | `#8a8a8e`, `#8f8f93`, `#919195`                                                      |
-| Terciario                                   | `#7f7f83`, `#7d7d81`, `#848488`                                                      |
-| Cuaternario / contadores                    | `#6c6c70`, `#696a6d`, `#646468`, `#616165`, `#5c5c60`                                |
-| Iconos inactivos player                     | `#747478`                                                                            |
-| Botón primario (fondo)                      | `#c6c4cb`, hover `#d8d7dc`; texto `#0a0a0d`                                          |
-| Superficies neutras                         | `rgba(255,255,255,.022)` base, `.045` hover; bordes `rgba(255,255,255,.04)` / `.075` |
+| Rol | Hex |
+|---|---|
+| Texto principal (títulos de sección, h1/h2) | `#d3d2d6` – `#d9d8dc` |
+| Texto de tarjeta / fila | `#cbcacf` / `#cdccd1` |
+| Texto base del documento | `#c9c8cc` |
+| Secundario | `#8a8a8e`, `#8f8f93`, `#919195` |
+| Terciario | `#7f7f83`, `#7d7d81`, `#848488` |
+| Cuaternario / contadores | `#6c6c70`, `#696a6d`, `#646468`, `#616165`, `#5c5c60` |
+| Iconos inactivos player | `#747478` |
+| Botón primario (fondo) | `#c6c4cb`, hover `#d8d7dc`; texto `#0a0a0d` |
+| Superficies neutras | `rgba(255,255,255,.022)` base, `.045` hover; bordes `rgba(255,255,255,.04)` / `.075` |
 
 Los grises son **neutros a propósito** (sin tinte), para que solo el acento lleve color.
 
@@ -106,19 +106,19 @@ Los grises son **neutros a propósito** (sin tinte), para que solo el acento lle
 - UI / texto: **Plus Jakarta Sans** 400/500/600/700.
 - `-webkit-font-smoothing: antialiased`.
 
-| Uso                                        | Fuente  | Tamaño           | Peso | Tracking                             |
-| ------------------------------------------ | ------- | ---------------- | ---- | ------------------------------------ |
-| H1 hero                                    | Sora    | 36px / 1.1       | 600  | -0.035em                             |
-| H1 vista (Descubrir, Playlists, Tracklist) | Sora    | 28–33px          | 600  | -0.03 / -0.035em                     |
-| H2 sección                                 | Sora    | 17.5px           | 600  | -0.025em                             |
-| Título spotlight                           | Sora    | 23px             | 600  | -0.03em                              |
-| Wordmark                                   | Sora    | 17.5px           | 600  | -0.02em                              |
-| Subtítulo de sección                       | Jakarta | 12px             | 400  | —                                    |
-| Eyebrow / cabecera de columna              | Jakarta | 10.5px uppercase | 600  | 0.12–0.17em                          |
-| Título de tarjeta                          | Jakarta | 13–13.5px        | 600  | -0.01em                              |
-| Fila de canción (título)                   | Jakarta | 12.5–13px        | 500  | —                                    |
-| Meta / artista                             | Jakarta | 11–11.5px        | 400  | —                                    |
-| Números (duración, índice, reproducciones) | Jakarta | 11–12px          | 400  | `font-variant-numeric: tabular-nums` |
+| Uso | Fuente | Tamaño | Peso | Tracking |
+|---|---|---|---|---|
+| H1 hero | Sora | 36px / 1.1 | 600 | -0.035em |
+| H1 vista (Descubrir, Playlists, Tracklist) | Sora | 28–33px | 600 | -0.03 / -0.035em |
+| H2 sección | Sora | 17.5px | 600 | -0.025em |
+| Título spotlight | Sora | 23px | 600 | -0.03em |
+| Wordmark | Sora | 17.5px | 600 | -0.02em |
+| Subtítulo de sección | Jakarta | 12px | 400 | — |
+| Eyebrow / cabecera de columna | Jakarta | 10.5px uppercase | 600 | 0.12–0.17em |
+| Título de tarjeta | Jakarta | 13–13.5px | 600 | -0.01em |
+| Fila de canción (título) | Jakarta | 12.5–13px | 500 | — |
+| Meta / artista | Jakarta | 11–11.5px | 400 | — |
+| Números (duración, índice, reproducciones) | Jakarta | 11–12px | 400 | `font-variant-numeric: tabular-nums` |
 
 Todo texto de una línea en tarjetas y filas usa `white-space:nowrap; overflow:hidden; text-overflow:ellipsis` con `min-width:0` en el contenedor flex. Los titulares llevan `text-wrap: pretty`.
 
@@ -166,8 +166,7 @@ Todo texto de una línea en tarjetas y filas usa `white-space:nowrap; overflow:h
 Ritmo editorial deliberado — no filas iguales encadenadas:
 
 **a) Hero** — `border-radius:24px; margin-bottom:42px; background: heroBg`, sin borde, `padding:38px 36px 34px; max-width:620px`.
-
-- Saludo H1 dinámico por hora y día (ver _Copy dinámico_).
+- Saludo H1 dinámico por hora y día (ver *Copy dinámico*).
 - Blurb 13.5px `#8a8a8e`, `line-height:1.65`, `max-width:440px`.
 - Botones: primario "Reproducir" (`#c6c4cb` sobre `#0a0a0d`, 12px 21px, radio 12px, icono play 14px) + secundario "Guardar" (borde `rgba(255,255,255,.11)`), y un meta a la derecha en 12px.
 - Tres métricas: valor Sora 26px/600 y etiqueta 11.5px — "Canciones esta semana", "Tiempo de escucha", "Artistas nuevos".
@@ -175,7 +174,6 @@ Ritmo editorial deliberado — no filas iguales encadenadas:
 **b) Continuar escuchando** — grid `auto-fill minmax(268px,1fr)`, gap 10px. Fila-tarjeta: `padding:9px 14px 9px 9px; radius:13px`, carátula 46px radio 9px, título 13px/600, sub 11.5px, y un icono play 15px en `accent` que aparece en hover. La pista en curso usa `accentSoft` de fondo, `accentHair` de borde y `accentMuted` en el título.
 
 **c) Playlist destacada (spotlight)** — grid de dos columnas `auto-fit minmax(290px,1fr)`, `radius:22px`, `background: spotlightBg`, sin borde ni divisor central.
-
 - Izquierda: portada 88px radio 14px, eyebrow "PLAYLIST DESTACADA", nombre Sora 23px, meta 12px, blurb 13px/1.7, botón "Reproducir" (`accentBtnBg` + `accentLine` + `accentTitle`, hover `accentBtnBgHover`) y "Mezclar" secundario.
 - Derecha: 5 canciones con índice 20px, título 12.5px, artista 11px, duración tabular; fondo `rgba(0,0,0,.26)` que se desvanece a transparente hacia la derecha.
 
@@ -191,17 +189,53 @@ Ritmo editorial deliberado — no filas iguales encadenadas:
 
 H1 28px + sub. Mosaico de géneros `minmax(228px,1fr)` gap 14px: tarjetas de 112px, radio 16px, fondo `linear-gradient(140deg, oklch(0.24 0.07 Hgénero), rgba(9,9,12,.95))`, borde `rgba(255,255,255,.05)`, nombre Sora 15.5px, meta 11.5px, y una miniatura de 80px rotada 20° asomando en la esquina inferior derecha (`opacity:.82`). Debajo, "Fuera de tu burbuja" con la misma tarjeta cuadrada de Mixes.
 
-### 5. Tracklist (Me gusta / Reciente / Playlist / Resultados)
+### 5. Tracklist (Me gusta / Reciente / Playlist)
 
-Cabecera: portada 164px radio 18px + eyebrow (`Colección` / `Historial` / `Playlist` / `Búsqueda`), H1 33px, meta 12.5px, botón "Reproducir" y un botón cuadrado 40px de "aleatorio".
+Cabecera: portada 164px radio 18px + eyebrow (`Colección` / `Historial` / `Playlist`), H1 33px, meta 12.5px, botón "Reproducir" y un botón cuadrado 40px de "aleatorio".
 
 Tabla: `grid-template-columns: 32px 1fr 1fr 92px; gap:16px`. Cabecera 10.5px uppercase `#616165` con borde inferior `rgba(255,255,255,.05)`. Fila `padding:10px 14px; radius:12px`:
-
 - Col 1: número o, si es la pista activa, EQ de 3 barras de 2.5px en `accent`.
 - Col 2: carátula 40px radio 9px + título 13px/500 + artista 11.5px.
 - Col 3: álbum (o `—` si falta).
 - Col 4: corazón (14px; visible siempre si está marcado, si no solo en hover) + duración tabular.
 - Activa: fondo `accentSoft`, título `accentTitle`. Hover: `rgba(255,255,255,.032)`.
+
+### 5b. Resultados de búsqueda
+
+**Vista propia, no una tracklist.** La búsqueda devuelve canciones, álbumes, artistas y playlists, así que no lleva portada-hero ni columnas de tabla: es una lista agrupada donde cada tipo se reconoce a simple vista.
+
+**Cabecera** (`margin:12px 0 18px`): eyebrow `RESULTADOS DE BÚSQUEDA` (10.5px uppercase, tracking .16em, `#8a8a8e`, 600) · H1 Sora 26px/600 tracking -0.03em `#d9d8dc` con el texto `Resultados para «{query}»` · meta 12.5px `#8a8a8e`: `{n} coincidencias en canciones, álbumes, artistas y playlists` (singular "coincidencia" con 1).
+
+**Chips de filtro** (`display:flex; gap:7px; flex-wrap:wrap; margin-bottom:26px`): `Todo`, `Canciones`, `Álbumes`, `Artistas`, `Playlists`. Cada chip `padding:7px 14px; radius:999px; font-size:12px/500` y lleva a su derecha el contador en 10.5px tabular-nums.
+- Activo: fondo `#cfccd9`, texto `#0a0a0d`, contador `rgba(10,10,13,.55)`, sin borde.
+- Inactivo: fondo `rgba(255,255,255,.03)`, texto `#9b9b9f`, contador `#65656a`, borde `1px solid rgba(255,255,255,.07)`.
+- Transición `background .16s, color .16s`.
+
+**Mejor resultado** (solo con el filtro `Todo`): fila-tarjeta `display:flex; gap:20px; padding:18px; radius:18px; border:1px solid rgba(255,255,255,.06)`, fondo `rgba(255,255,255,.025)` → `.05` en hover, `margin-bottom:34px`. Miniatura 88px con el radio del tipo y `box-shadow:0 14px 34px rgba(0,0,0,.5)`. Eyebrow `Mejor resultado · {Tipo}` 10.5px uppercase tracking .14em en el **tinte del tipo**; título Sora 22px/600 tracking -0.03em `#dcdbe0`; subtítulo 12.5px `#84848a`. A la derecha, botón circular 46px `#c6c4cb` / icono `#0a0a0d`, `opacity .55` → `1` en hover.
+Selección: el primer elemento cuyo nombre **empieza** por la consulta, recorriendo Artista → Canción → Álbum → Playlist; si ninguno empieza por ella, el primer resultado del primer grupo no vacío.
+
+**Grupos** (`margin-bottom:30px` cada uno). Cabecera de grupo: título Sora 14.5px/600 `#cfccd9` + regla `1px rgba(255,255,255,.06)` que ocupa el espacio libre + contador 11px `#6e6e74` (`{n} resultados`). Con filtro `Todo` cada grupo muestra **máximo 4** elementos; al filtrar por un tipo se muestran todos los de ese tipo.
+
+**Fila de resultado:** `grid-template-columns: 52px 1fr auto; gap:15px; padding:9px 12px; radius:12px; border-bottom:1px solid rgba(255,255,255,.035)`; fondo transparente → `rgba(255,255,255,.035)` en hover (`.15s ease`), sin elevación.
+- Miniatura 52px con degradado de respaldo del hue del elemento y overlay `rgba(6,6,9,.55)` + play 15px `#e2e1e6` que aparece en hover (`opacity 0 → 1`).
+- Título 13.5px/500 `#cbcacf` → `#e0dfe4` en hover, seguido del **badge de tipo**: 9.5px uppercase, tracking .1em, 600, `padding:3px 7px; radius:5px`, color del tinte del tipo sobre el mismo tinte al 11%.
+- Subtítulo 11.5px `#7f7f83` (una línea, ellipsis).
+- Meta a la derecha 11.5px `#76767c` tabular-nums.
+
+**Diferenciación por tipo** — la forma de la miniatura es la señal primaria; el badge la confirma. El tinte se deriva del hue de la canción en reproducción con un desplazamiento fijo, así que la vista sigue siendo cromáticamente coherente con el resto de la app:
+
+| Tipo | Radio de miniatura | Tinte | Subtítulo | Meta |
+|---|---|---|---|---|
+| Canción | `9px` (cuadrado suave) | `oklch(0.80 0.10 H)` | `artista · álbum` | duración |
+| Álbum | `5px` (casi recto) | `oklch(0.80 0.10 H+46)` | `artista · año` | `Álbum` |
+| Artista | `50%` (círculo) | `oklch(0.80 0.10 H-52)` | oyentes | `Artista` |
+| Playlist | `13px` (muy redondeado) | `oklch(0.80 0.10 H+92)` | artistas principales | `{n} canciones` |
+
+Orden de los grupos: Canciones, Álbumes, Artistas, Playlists. Los grupos vacíos no se renderizan.
+
+**Coincidencias:** canciones por título + artista + álbum; álbumes por título + `artista · año`; artistas por nombre; playlists por nombre + artistas principales. Todo en minúsculas, `includes`.
+
+**Acciones:** canción → fija la pista y reproduce; álbum y artista → reproducen; playlist → abre la vista de playlist con su contexto y limpia la búsqueda.
 
 ### 6. Índice de playlists
 
@@ -210,7 +244,6 @@ H1 "Tus playlists" + meta agregada, botón "Nueva playlist" secundario, grid `mi
 ### 7. Cola (aside derecho)
 
 `border-left:1px solid hairline; background: panelBg; padding:20px 16px` + padding inferior dinámico.
-
 - Cabecera "En cola" (Sora 14.5px) + cerrar "×".
 - "REPRODUCIENDO": tarjeta con fondo `accentSoft`, borde `accentLine`, carátula 40px, título en `accentTitle`.
 - Cabecera "A CONTINUACIÓN · {playlist}" con `gap:12px`; la etiqueta trunca con elipsis (`flex:1 1 auto; min-width:0; nowrap`) y "Vaciar" es `flex:0 0 auto`.
@@ -236,29 +269,30 @@ Bajo el player, `margin-top:10px; padding:7px; radius:18px`, mismo `barBg` y blu
 - **Loading (skeleton):** bloque de hero de 260px + 2 secciones de 6 tarjetas. Gradiente `linear-gradient(90deg, rgba(255,255,255,.025), .055, .025)` con `background-size:420px 100%` y `animation: shim 1.25s linear infinite` (`-420px 0` → `420px 0`). Se muestra 900ms al arrancar.
 - **Error:** cuadro 52px con "!" (`rgba(226,130,130,.08)` / borde `.18` / texto `#e09292`), título 20px, cuerpo 13px, botones "Reintentar" (primario) y "Ver descargas". Copy: "No se pudo cargar tu música" / "La conexión se interrumpió. Lo que tengas descargado sigue disponible sin conexión." Reintentar vuelve al skeleton 800ms.
 - **Vacío:** icono 70px radio 19px con degradado tenue, título 20px, cuerpo 13px, CTA primario + "Volver al inicio". Dos variantes de copy: playlists sin crear y "me gusta" sin canciones.
-- **Sin resultados:** título `Sin resultados para "{query}"`, cuerpo de ayuda y 4 chips de sugerencia (radio 999px, borde `rgba(255,255,255,.08)`, 12px).
+- **Sin resultados:** se muestra cuando **ningún** tipo tiene coincidencias (canciones + álbumes + artistas + playlists = 0). Título `Sin resultados para "{query}"`, cuerpo de ayuda y 4 chips de sugerencia (radio 999px, borde `rgba(255,255,255,.08)`, 12px).
 - **Datos incompletos:** si falta el álbum, la columna muestra `—` y el player omite el `· álbum`; si falta el subtítulo de una tarjeta, "Sin información". Toda carátula tiene un degradado de respaldo detrás de la imagen.
 
 ---
 
 ## Interacciones
 
-| Elemento                                       | Comportamiento                                                                                        |
-| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Nav / tabs                                     | Cambia de vista y limpia la búsqueda                                                                  |
-| Playlist (sidebar, tarjeta, índice, spotlight) | Abre la vista de playlist con su contexto                                                             |
-| Tarjeta / fila de canción                      | Fija la pista, `pos = 0`, `playing = true`                                                            |
-| Play/pausa                                     | Alterna reproducción (el reloj avanza 1s por segundo)                                                 |
-| Siguiente / anterior                           | Cíclicos sobre el array de pistas, resetean la posición                                               |
-| Pista de progreso                              | Clic → `pos = (x / ancho) * duración`                                                                 |
-| Pista de volumen                               | Clic → `vol` entre 0 y 1                                                                              |
-| Corazón (fila o player)                        | Alterna en el mapa `liked`                                                                            |
-| Shuffle / repeat                               | Alternan, se tiñen de `accent`                                                                        |
-| Botón "Cola"                                   | Abre/cierra el aside                                                                                  |
-| Buscar                                         | Filtra por título, artista y álbum; vacío → vista normal; sin coincidencias → estado "sin resultados" |
+| Elemento | Comportamiento |
+|---|---|
+| Nav / tabs | Cambia de vista y limpia la búsqueda |
+| Playlist (sidebar, tarjeta, índice, spotlight) | Abre la vista de playlist con su contexto |
+| Tarjeta / fila de canción | Fija la pista, `pos = 0`, `playing = true` |
+| Play/pausa | Alterna reproducción (el reloj avanza 1s por segundo) |
+| Siguiente / anterior | Cíclicos sobre el array de pistas, resetean la posición |
+| Pista de progreso | Clic → `pos = (x / ancho) * duración` |
+| Pista de volumen | Clic → `vol` entre 0 y 1 |
+| Corazón (fila o player) | Alterna en el mapa `liked` |
+| Shuffle / repeat | Alternan, se tiñen de `accent` |
+| Botón "Cola" | Abre/cierra el aside |
+| Buscar | Filtra canciones, álbumes, artistas y playlists → vista de resultados agrupada; vacío → vuelve a la vista normal; 0 coincidencias en total → estado "sin resultados" |
+| Chip de filtro de resultados | Fija `sfilter`; `Todo` recorta cada grupo a 4, un tipo concreto muestra todos |
+| Nueva playlist (sidebar / índice) | Abre el modal de crear playlist |
 
 **Animación — reglas:**
-
 - **Nada de elevación en hover.** Se eliminó a propósito: el feedback es solo un cambio de fondo y la aparición del botón de play.
 - Hover de fondo/color: `.15–.18s ease`. Play del player: `.14s` solo de color, sin `scale`.
 - Cambio de tinte por canción: `.6s ease`.
@@ -278,6 +312,7 @@ pos         segundos transcurridos (intervalo de 1s, vuelve a 0 al llegar a la d
 vol         0..1
 queueOpen   boolean (forzado a false por debajo de 760px)
 query       texto de búsqueda
+sfilter     'Todo' | 'Canciones' | 'Álbumes' | 'Artistas' | 'Playlists'  (filtro de resultados)
 liked       { [trackId]: true }
 shuffle / repeat  boolean
 hover       clave del elemento con hover (o null)
@@ -293,6 +328,43 @@ demoState   'normal' | 'loading' | 'error' | 'empty'  (solo para demostrar estad
 `Playlist { name, trackCount, topArtists, cover?, isPlaying? }`
 
 Todos los campos opcionales deben tener degradado o texto de respaldo. El `hue` debería calcularse en backend desde la carátula (color dominante, con saturación mínima garantizada) y venir en el payload; en el prototipo está precalculado por pista.
+
+---
+
+## Modal: crear playlist
+
+Diseño aparte en `Crear playlist.dc.html`. Se invoca desde "Nueva playlist" (sidebar e índice de playlists).
+
+**Scrim:** `rgba(4,4,6,.55)` + `backdrop-filter: blur(3px)` sobre el fondo `radial-gradient(120% 90% at 50% 0%, #15131c, #08080b 58%, #050507)`. Modal centrado con `display:grid; place-items:center; padding:40px 20px`.
+
+**Contenedor:** `max-width:560px; radius:24px; border:1px solid rgba(255,255,255,.075)`, fondo `linear-gradient(180deg,#141419,#0d0d11 62%,#0b0b0e)`, `box-shadow:0 32px 90px rgba(0,0,0,.66)` + `inset 0 2px 0 rgba(255,255,255,.035)`. Entrada `modalIn .28s cubic-bezier(.2,.8,.3,1)` (`opacity 0 → 1`, `translateY(14px) scale(.985)` → sin transformar).
+
+**Aura:** capa absoluta no interactiva `radial-gradient(110% 60% at 18% -10%, oklch(.55 .13 H / .16), transparent 62%)`, con `transition: background .5s` — vira con el acento elegido.
+
+**Header** (`padding:24px 26px 0`): eyebrow `TU BIBLIOTECA` 10.5px uppercase tracking .16em `#8f8f93`; título Sora 21px/600 tracking -0.03em `#d8d7db` "Crear playlist". Cerrar: 32px, radio 10px, borde `rgba(255,255,255,.06)`, fondo `rgba(255,255,255,.025)` → `.07` y color `#87878c` → `#d0cfd4` en hover.
+
+**Portada** (columna izquierda, 124px):
+- Cuadrado 124px radio 16px, `linear-gradient(150deg, oklch(.66 .16 H), oklch(.34 .11 H) 58%, #0e0e13)`, borde `rgba(255,255,255,.07)`, `box-shadow:0 14px 34px oklch(.5 .13 H / .22)`, con el icono de nota 26px `rgba(255,255,255,.62)` centrado. Transición `.45s` al cambiar de acento.
+- **Selector de acento:** 5 franjas `flex:1; height:20px; radius:7px` (gap 6px, `margin-top:11px`), cada una `linear-gradient(145deg, oklch(.66 .16 h), oklch(.38 .11 h))`. Hues: Ámbar 68, Violeta 288 (por defecto), Azul 244, Verde 158, Rojo 22. Seleccionada: `box-shadow:0 0 0 1.5px rgba(255,255,255,.85), 0 0 0 4px rgba(0,0,0,.5)`; el resto `0 0 0 1px rgba(255,255,255,.07)`.
+- **Subir imagen:** botón de texto 11px `#8a8a8f`, `padding:7px 0; radius:9px`, borde `1px dashed rgba(255,255,255,.1)`; hover texto `#cfccd9` y borde `rgba(255,255,255,.2)`.
+
+**Campos** (columna derecha, `gap:20px` respecto a la portada):
+- Etiquetas 11px/600 `#87878c`.
+- Nombre: `padding:12px 14px; radius:12px`, fondo `rgba(255,255,255,.035)`, borde `rgba(255,255,255,.075)`, texto **Sora 16px/600** tracking -0.02em `#dcdbe0`, placeholder "Playlist sin título" `#5d5d63`, `maxlength 60`. Foco: borde `rgba(255,255,255,.2)`, fondo `.055`. Contador `{n}/60` 10.5px `#65656a` alineado a la derecha.
+- Descripción (opcional): `textarea` 3 filas, `resize:none`, 12.5px/1.6 `#c4c3c9`, mismo tratamiento de superficie y foco. Placeholder "Para qué sirve esta playlist, cuándo la escuchas…".
+
+**Opciones** (`padding:20px 26px 0`, dos bloques `radius:13px; padding:13px 15px`, fondo `rgba(255,255,255,.026)`, borde `rgba(255,255,255,.055)`, gap 9px):
+- **Visibilidad** — segmentado de 2 (`Privada` por defecto / `Pública`) en un riel `radius:10px` `rgba(0,0,0,.34)`; opción activa fondo `#cfccd9` texto `#0a0a0d`, inactiva `#8e8e94`. El texto de ayuda cambia: "Solo tú la ves en tu biblioteca" / "Aparece en tu perfil y se puede compartir".
+- **Colaborativa** — toggle 40×23px, riel `rgba(255,255,255,.12)` → `oklch(.68 .15 H)` al activar, perilla 17px `#0c0c10` con `translateX(17px)`, `.2s cubic-bezier(.3,.8,.3,1)`. Ayuda: "Quien tenga el enlace puede añadir canciones". Toda la fila es clicable.
+
+**Footer** (`border-top:1px solid rgba(255,255,255,.055)`, fondo `rgba(0,0,0,.2)`, `padding:17px 26px 20px`): nota 11px `#6e6e74` "Podrás añadir canciones desde cualquier pantalla."; a la derecha "Cancelar" (secundario, borde `rgba(255,255,255,.1)`, `#a9a7b2`) y "Crear playlist" (primario con icono +).
+
+**Validación:** el CTA solo se habilita con nombre no vacío (`trim`). Deshabilitado: fondo `rgba(255,255,255,.08)`, texto `#6c6c72`, `cursor:not-allowed`. Habilitado: `#c6c4cb` sobre `#0a0a0d`.
+
+**Confirmación:** al crear, toast fijo abajo-centro (`bottom:34px`, `radius:13px`, fondo `#16161c`, borde `rgba(255,255,255,.09)`, `box-shadow:0 18px 46px rgba(0,0,0,.6)`, `fadeIn .22s`) con un cuadrado 26px del degradado elegido y el texto «{nombre}» creada. Se oculta a los 2.6s.
+
+**Estado:** `{ name, desc, hue: 0..4, vis: 'Privada'|'Pública', collab: boolean, created: boolean, createdName }`.
+**Salida esperada:** `POST /playlists { name, description, coverHue, visibility, collaborative }` → redirigir a la playlist recién creada.
 
 ---
 
@@ -317,9 +389,11 @@ Saludo del hero según hora y día de la semana:
 
 ## Files
 
+- `Crear playlist.dc.html` — modal de creación de playlist (diseño aparte).
 - `Musify.dc.html` — prototipo completo (plantilla + lógica + datos de ejemplo). Contiene todas las vistas y estados; el selector `demoState` permite ver loading / error / empty.
 - `support.js` — runtime del prototipo. **No portar**: solo hace funcionar el HTML de referencia.
 - `screenshots/` — capturas de referencia (viewport ~924px, es decir en modo tablet: sidebar plegado a barra de pestañas inferior):
   - `01-home-hero.png` … `04-home-populares-playlists.png` — recorrido vertical de Home
   - `05-descubrir.png`, `06-playlists.png`, `07-tracklist-me-gusta.png`, `08-sin-resultados.png`
-    Todas con "Yankee" sonando, de ahí el tinte ámbar: con otra pista el mismo layout se ve en otro color.
+  Nota: las capturas son anteriores al rediseño de la vista de resultados de búsqueda (5b) y al modal de crear playlist; para esos dos, la referencia son los archivos HTML y este documento.
+  Todas con "Yankee" sonando, de ahí el tinte ámbar: con otra pista el mismo layout se ve en otro color.
