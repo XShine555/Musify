@@ -14,7 +14,7 @@
 	const items = $derived(data.playlists.items);
 	const totals = $derived(data.totals);
 	const summary = $derived(
-		`${totals.playlistCount} ${totals.playlistCount === 1 ? 'playlist' : 'playlists'} · ${totals.trackCount} ${totals.trackCount === 1 ? 'canción' : 'canciones'} · ${fmtDurationLong(totals.durationSeconds)}`
+		`${totals.playlistCount} ${totals.playlistCount === 1 ? 'Playlist' : 'Playlists'} · ${totals.trackCount} ${totals.trackCount === 1 ? 'Canción' : 'Canciones'} · ${fmtDurationLong(totals.durationSeconds)}`
 	);
 </script>
 

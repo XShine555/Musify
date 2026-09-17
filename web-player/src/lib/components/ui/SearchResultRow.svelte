@@ -8,8 +8,8 @@
 
 	const RADIUS: Record<SearchResultKind, string> = {
 		track: 'rounded-control',
-		album: 'rounded-[6px]',
-		playlist: 'rounded-[13px]',
+		album: 'rounded-md',
+		playlist: 'rounded-art',
 		user: 'rounded-full'
 	};
 
@@ -37,9 +37,7 @@
 		art
 	}: Props = $props();
 
-	const artClass = $derived(
-		`relative h-13 w-13 shrink-0 overflow-hidden shadow-art ${RADIUS[kind]}`
-	);
+	const artClass = $derived(`relative h-13 w-13 shrink-0 overflow-hidden ${RADIUS[kind]}`);
 </script>
 
 {#snippet content()}

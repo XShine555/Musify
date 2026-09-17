@@ -3,7 +3,7 @@
 	import Play from '@lucide/svelte/icons/play';
 	import { player } from '$lib/player/player.svelte';
 	import { fetchAlbumQueueItems } from '$lib/albums';
-	import { fmtTime } from '$lib/format';
+	import { fmtTime, fmtPlays } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
@@ -30,6 +30,7 @@
 		targetArtist,
 		targetExplicit,
 		targetId,
+		targetListensCount,
 		targetTitle,
 		type TrackTarget
 	} from '$lib/tracks';
@@ -299,23 +300,23 @@
 						trackId={targetId(topResult.target)}
 						size="large"
 						alt={targetTitle(topResult.target)}
-						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+						class="h-22 w-22 shrink-0 rounded-2xl"
 					/>
 				{:else if topResult.kind === 'album'}
 					<PlaylistArt
 						trackIds={topResult.album.coverTrackIds}
-						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+						class="h-22 w-22 shrink-0 rounded-2xl"
 					/>
 				{:else if topResult.kind === 'playlist'}
 					<PlaylistArt
 						playlistId={topResult.playlist.id}
 						trackIds={topResult.playlist.coverTrackIds}
 						version={topResult.playlist.updatedAt}
-						class="h-22 w-22 shrink-0 rounded-2xl shadow-art"
+						class="h-22 w-22 shrink-0 rounded-2xl"
 					/>
 				{:else}
 					<div
-						class="grid h-22 w-22 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-2 shadow-art"
+						class="grid h-22 w-22 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-2"
 					>
 						{#if topResult.user.profilePictureUrl}
 							<img
@@ -385,7 +386,7 @@
 
 	{#if nothingFound}
 		<div class="mx-auto max-w-115 py-[8vh] text-center">
-			<h1 class="font-display text-xl font-semibold tracking-[-0.025em] text-fg">
+			<h1 class="font-display text-xl font-semibold tracking-tight text-fg">
 				Sin resultados para «{data.query}»
 			</h1>
 			<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
@@ -411,14 +412,14 @@
 			{#each genreTiles as genre, i (genre.query)}
 				<a
 					href={buildHref(genre.query)}
-					class="animate-enter group relative block h-28 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-125"
+					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-125"
 					style="animation-delay:{Math.min(i, 10) *
-						40}ms; background:linear-gradient(140deg, oklch(0.24 0.07 {genre.hue}), var(--mf-tile-shade))"
+						40}ms; background:linear-gradient(140deg, oklch(var(--mf-tile-l) var(--mf-tile-c) {genre.hue}), oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) {genre.hue}))"
 				>
-					<div class="font-display text-base font-semibold tracking-[-0.02em] text-fg">
+					<div class="font-display text-base font-medium tracking-tight text-on-art">
 						{genre.label}
 					</div>
-					<div class="mt-1.5 text-xs text-fg-3">{genre.tagline}</div>
+					<div class="text-xs text-on-art-2">{genre.tagline}</div>
 				</a>
 			{/each}
 		</div>
@@ -445,7 +446,7 @@
 										kind="track"
 										title={targetTitle(item)}
 										subtitle={targetArtist(item)}
-										meta={fmtTime(seconds)}
+										meta="{fmtTime(seconds)} · {fmtPlays(targetListensCount(item))}"
 										explicit={targetExplicit(item)}
 										onclick={() => togglePlay(i)}
 										oncontextmenu={(e) => openContextMenu(e, item)}

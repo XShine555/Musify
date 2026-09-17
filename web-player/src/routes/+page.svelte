@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import History from '@lucide/svelte/icons/history';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import { player } from '$lib/player/player.svelte';
 	import { mergeRecentlyPlayed } from '$lib/recentlyPlayed';
 	import { shuffle as shuffleList } from '$lib/collections';
-	import { fmtTime, fmtDurationLong } from '$lib/format';
+	import { fmtTime, fmtDurationLong, fmtPlays } from '$lib/format';
 	import {
 		isTargetCurrent,
 		queueItemForTarget,
@@ -13,6 +14,7 @@
 		targetExplicit,
 		targetForQueueItem,
 		targetId,
+		targetListensCount,
 		targetOwnerUserId,
 		targetTitle,
 		type TrackTarget
@@ -109,6 +111,12 @@
 		player.playQueue(shuffleList(spotlightQueue), 0);
 	}
 
+	function onRowKeydown(event: KeyboardEvent, action: () => void) {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		action();
+	}
+
 	function openContextMenu(event: MouseEvent, target: TrackTarget) {
 		contextMenu = contextMenuStateFor(event, target);
 	}
@@ -126,14 +134,14 @@
 
 <section class="page-x pt-3 sm:pt-4">
 	<div
-		class="relative overflow-hidden rounded-[24px] bg-[image:var(--mf-hero-bg)] px-6 py-8 transition-[background] duration-[600ms] sm:px-9 sm:py-8.5"
+		class="relative overflow-hidden rounded-3xl bg-[image:var(--mf-hero-bg)] px-6 py-8 transition-[background] duration-500 sm:px-9 sm:py-8.5"
 	>
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
 			<div class="animate-enter max-w-135 min-w-65">
 				<h1
-					class="font-display text-3xl leading-[1.1] font-semibold tracking-[-0.035em] text-pretty text-fg sm:text-4xl"
+					class="font-display text-3xl leading-tight font-medium tracking-tight text-pretty text-fg sm:text-4xl"
 				>
 					{data.greeting}
 				</h1>
@@ -144,7 +152,7 @@
 					{#if spotlight}
 						<Button
 							variant="accent"
-							class="!bg-cta-strong !font-bold !text-ink hover:!brightness-95"
+							class="!bg-cta-strong !text-ink hover:!brightness-95"
 							onclick={playSpotlight}
 						>
 							{heroPlaying ? 'Pausar' : 'Reanudar'}
@@ -158,19 +166,19 @@
 			{#await data.listeningStats then stats}
 				<div class="flex gap-6.5">
 					<div>
-						<div class="font-display text-2xl font-semibold tracking-[-0.03em] text-fg">
+						<div class="font-display text-2xl font-medium tracking-tight text-fg">
 							{stats.tracksThisWeek}
 						</div>
 						<div class="mt-1 text-xs text-fg-3">Canciones nuevas escuchadas esta semana</div>
 					</div>
 					<div>
-						<div class="font-display text-2xl font-semibold tracking-[-0.03em] text-fg">
+						<div class="font-display text-2xl font-medium tracking-tight text-fg">
 							{fmtDurationLong(Number(stats.secondsThisWeek))}
 						</div>
 						<div class="mt-1 text-xs text-fg-3">Tiempo de escucha esta semana</div>
 					</div>
 					<div>
-						<div class="font-display text-2xl font-semibold tracking-[-0.03em] text-fg">
+						<div class="font-display text-2xl font-medium tracking-tight text-fg">
 							{stats.streakDays}
 						</div>
 						<div class="mt-1 text-xs text-fg-3">Días consecutivos escuchando</div>
@@ -184,17 +192,20 @@
 <div class="flex flex-col gap-11.5 page-x pt-10 pb-8 sm:pb-10">
 	<!-- CONTINUAR ESCUCHANDO -->
 	<section>
-		<SectionHeading title="Continuar escuchando" />
+		<SectionHeading title="Continuar escuchando" subtitle="Retomalo donde lo dejaste" />
 		{#if continueItems.length > 0}
 			<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
 				{#each continueItems as item, i (item.id)}
 					{@const isCurrent = player.current.id === item.id}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
-						class="animate-enter rounded-[13px] p-2.25 pr-3.5 transition-colors {isCurrent
+						role="button"
+						tabindex="0"
+						class="animate-enter rounded-art p-2.25 pr-3.5 transition-colors {isCurrent
 							? 'bg-accent-tint'
 							: 'hover:bg-hover'}"
 						style="animation-delay:{Math.min(i, 10) * 40}ms"
+						onclick={() => playContinue(i)}
+						onkeydown={(e) => onRowKeydown(e, () => playContinue(i))}
 						oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(item))}
 					>
 						<TrackTitleCell
@@ -202,7 +213,7 @@
 							title={item.title}
 							artist={item.artist}
 							ownerUserId={item.ownerUserId}
-							coverSize="h-13 w-13"
+							coverSize="h-14 w-14"
 							active={isCurrent}
 							onClick={() => playContinue(i)}
 						/>
@@ -226,43 +237,43 @@
 	{#if spotlight}
 		<section>
 			<div
-				class="grid grid-cols-1 overflow-hidden rounded-panel-lg bg-[image:var(--mf-spotlight-bg)] transition-[background] duration-[600ms] lg:grid-cols-2"
+				class="grid grid-cols-1 overflow-hidden rounded-panel-lg transition-[background] duration-500 lg:grid-cols-2"
+				style="background-image:var(--mf-spotlight-bg), linear-gradient(to right, transparent 50%, color-mix(in oklch, var(--mf-scrim) 22%, transparent) 61%, transparent 92.5%)"
 			>
-				<div class="flex flex-col justify-center gap-5 p-8 sm:p-9">
-					<div class="flex items-center gap-5">
+				<div class="flex flex-col justify-center p-8 sm:p-9">
+					<div
+						role="button"
+						tabindex="0"
+						class="flex w-fit items-center gap-6 self-start"
+						onclick={() => goto(`/playlists/${spotlight.id}`)}
+						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${spotlight.id}`))}
+					>
 						<PlaylistArt
 							playlistId={spotlight.id}
 							trackIds={spotlight.coverTrackIds}
 							version={spotlight.updatedAt}
 							size="large"
-							class="h-28 w-28 shrink-0 rounded-[16px] shadow-cover-md"
+							class="h-34 w-34 shrink-0 rounded-2xl"
 						/>
-						<div class="min-w-0">
-							<p class="text-xs font-semibold tracking-[0.16em] text-fg-2 uppercase">
+						<div class="flex min-w-0 flex-col gap-4">
+							<p class="text-xs font-medium tracking-widest text-fg-2 uppercase">
 								Playlist destacada
 							</p>
-							<h3
-								class="mt-2.5 truncate font-display text-2xl font-semibold tracking-[-0.03em] text-fg"
-							>
+							<h3 class="truncate font-display text-2xl font-medium text-fg">
 								{spotlight.name}
 							</h3>
-							<p class="mt-2 text-sm text-fg-2">{spotlightMeta}</p>
+							<p class="text-sm text-fg-2">{spotlightMeta}</p>
 						</div>
 					</div>
-					<p class="max-w-110 text-sm leading-[1.7] text-fg-2">
+					<p class="mt-5 max-w-110 text-sm text-fg-2">
 						{spotlight.description || 'Tu colección, siempre a mano.'}
 					</p>
-					<div class="mt-1 flex gap-2.5">
+					<div class="mt-5 flex gap-2.5">
 						<Button variant="accent" onclick={playSpotlight}>Reproducir</Button>
-						<Button variant="secondary" class="!font-normal" onclick={shuffleSpotlight}>
-							Aleatorio
-						</Button>
+						<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
 					</div>
 				</div>
-				<div
-					class="flex flex-col gap-0.5 p-5.5 sm:p-6"
-					style="background-image:linear-gradient(to right, color-mix(in oklch, var(--mf-scrim) 26%, transparent), transparent)"
-				>
+				<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">
 					{#each spotlightRows as { target, seconds }, i (targetId(target))}
 						<div
 							role="button"
@@ -273,7 +284,7 @@
 								e.preventDefault();
 								playSpotlightTrack(i);
 							}}
-							class="flex items-center gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-hover {isTargetCurrent(
+							class="flex items-center gap-3 rounded-control p-2 text-left transition-colors hover:bg-hover {isTargetCurrent(
 								target
 							)
 								? 'bg-accent-tint'
@@ -282,7 +293,7 @@
 							<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums">{i + 1}</span>
 							<div class="min-w-0 flex-1">
 								<div
-									class="truncate text-sm font-medium {isTargetCurrent(target)
+									class="truncate text-sm {isTargetCurrent(target)
 										? 'text-accent-soft'
 										: 'text-fg'}"
 								>
@@ -329,11 +340,14 @@
 			<div class="grid grid-cols-1 gap-x-8.5 gap-y-1.5 lg:grid-cols-2">
 				{#each popularTargets as target, i (targetId(target))}
 					{@const isCurrent = isTargetCurrent(target)}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
-						class="flex items-center gap-3.5 rounded-[11px] p-2 transition-colors {isCurrent
+						role="button"
+						tabindex="0"
+						class="flex items-center gap-3.5 rounded-control p-2 transition-colors {isCurrent
 							? 'bg-accent-tint'
 							: 'hover:bg-hover'}"
+						onclick={() => playPopular(i)}
+						onkeydown={(e) => onRowKeydown(e, () => playPopular(i))}
 						oncontextmenu={(e) => openContextMenu(e, target)}
 					>
 						<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
@@ -349,12 +363,15 @@
 								title={targetTitle(target)}
 								artist={targetArtist(target)}
 								ownerUserId={targetOwnerUserId(target)}
-								coverSize="h-9.5 w-9.5"
+								coverSize="h-10 w-10"
 								explicit={targetExplicit(target)}
 								active={isCurrent}
 								onClick={() => playPopular(i)}
 							/>
 						</div>
+						<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+							{fmtPlays(targetListensCount(target))}
+						</span>
 					</div>
 				{/each}
 			</div>
@@ -378,7 +395,7 @@
 				{#if data.playlistsHasMore}
 					<a
 						href="/playlists"
-						class="shrink-0 text-xs font-semibold tracking-[0.07em] text-fg-3 uppercase transition-colors hover:text-fg"
+						class="shrink-0 text-xs font-medium tracking-wider text-fg-3 uppercase transition-colors hover:text-fg"
 					>
 						Ver todas
 					</a>
@@ -388,27 +405,35 @@
 		{#if playlists.length > 0}
 			<div class="grid grid-cols-[repeat(auto-fill,minmax(258px,1fr))] gap-3.5">
 				{#each playlists as playlist, i (playlist.id)}
-					<a
-						href="/playlists/{playlist.id}"
-						class="group/card animate-enter flex items-center gap-3.5 rounded-[15px] p-3 transition-colors hover:bg-hover"
+					<div
+						role="button"
+						tabindex="0"
+						class="group/card animate-enter flex items-center gap-3.5 rounded-2xl p-3 transition-colors hover:bg-hover"
 						style="animation-delay:{Math.min(i, 10) * 40}ms"
+						onclick={() => goto(`/playlists/${playlist.id}`)}
+						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${playlist.id}`))}
 					>
 						<PlaylistArt
 							playlistId={playlist.id}
 							trackIds={playlist.coverTrackIds}
 							version={playlist.updatedAt}
 							size="medium"
-							class="h-15.5 w-15.5 shrink-0 rounded-[11px] shadow-cover-sm"
+							class="h-15.5 w-15.5 shrink-0 rounded-control"
 						/>
 						<div class="min-w-0 flex-1">
-							<div class="truncate text-sm font-semibold tracking-[-0.01em] text-fg">
+							<div class="truncate text-sm font-medium tracking-tight text-fg">
 								{playlist.name}
 							</div>
 							{#if playlist.description}
 								<div class="mt-1 truncate text-xs text-fg-3">{playlist.description}</div>
 							{/if}
+							<ArtistLink
+								name={data.user?.name}
+								ownerUserId={data.user?.sub}
+								class="mt-1 text-xs text-fg-3"
+							/>
 						</div>
-					</a>
+					</div>
 				{/each}
 			</div>
 		{:else}

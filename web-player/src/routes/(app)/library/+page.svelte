@@ -51,9 +51,9 @@
 			index
 			action
 			meta={[
-				{ label: 'Álbum', width: '160px' },
-				{ label: 'Subida', width: '100px' },
-				{ label: 'Escuchas', width: '100px' }
+				{ label: 'Álbum', width: '76px' },
+				{ label: 'Subida', width: '124px' },
+				{ label: 'Escuchas', width: '106px' }
 			]}
 			class="mt-7 sm:mt-8"
 		>

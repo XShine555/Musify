@@ -53,7 +53,7 @@
 	>
 		{#snippet cover()}
 			<div
-				class="grid h-36 w-36 shrink-0 place-items-center rounded-[18px] bg-[image:var(--mf-liked-grad)] shadow-cover-lg sm:h-41 sm:w-41"
+				class="grid h-36 w-36 shrink-0 place-items-center rounded-art-lg bg-[image:var(--mf-liked-grad)] sm:h-41 sm:w-41"
 			>
 				<Heart class="h-10 w-10 text-on-art/90" fill="currentColor" strokeWidth={0} />
 			</div>
@@ -76,8 +76,9 @@
 			index
 			action
 			meta={[
-				{ label: 'Álbum', width: '160px' },
-				{ label: 'Añadida', width: '140px' }
+				{ label: 'Álbum', width: '76px' },
+				{ label: 'Añadida', width: '124px' },
+				{ label: 'Escuchas', width: '106px' }
 			]}
 			class="mt-6 sm:mt-8"
 		>
@@ -101,6 +102,7 @@
 					/>
 					<TrackMeta class="hidden sm:block">—</TrackMeta>
 					<TrackMeta class="hidden sm:block">{fmtDate(track.likedAt)}</TrackMeta>
+					<TrackMeta class="hidden sm:block">{Number(track.listensCount ?? 0)}</TrackMeta>
 					<TrackMeta>—</TrackMeta>
 					<IconButton
 						label="Quitar de Me gusta"

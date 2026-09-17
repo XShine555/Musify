@@ -12,7 +12,7 @@
 </script>
 
 {#snippet heading()}
-	<h2 class="font-display text-lg font-medium tracking-[-0.025em] text-fg">
+	<h2 class="font-display text-lg font-medium tracking-tight text-fg">
 		{title}
 	</h2>
 	{#if subtitle}

@@ -42,6 +42,31 @@ namespace Musify.Infrastructure.Tests.Persistence
         }
 
         [Fact]
+        public async Task SaveChangesAsync_TrackWithTags_RoundTripsThroughNativePostgresEnum()
+        {
+            await using var database = fixture.CreateDatabase();
+
+            var userName = "tags-roundtrip-user";
+            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = userName, NormalizedName = userName.ToUpperInvariant() };
+            var track = BuildTrack(user, $"tags-{Guid.NewGuid():N}");
+            track.Tags =
+            [
+                new TrackTag { TrackId = track.Id, Tag = Genre.Pop },
+                new TrackTag { TrackId = track.Id, Tag = Genre.Rock }
+            ];
+
+            await database.AddRangeAsync(user, track);
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            await using var reloaded = fixture.CreateDatabase();
+            var stored = await reloaded.Tracks.AsNoTracking()
+                .Include(t => t.Tags)
+                .SingleAsync(t => t.Id == track.Id, TestContext.Current.CancellationToken);
+
+            Assert.Equal([Genre.Pop, Genre.Rock], stored.Tags.Select(t => t.Tag).OrderBy(t => t));
+        }
+
+        [Fact]
         public async Task AlbumHasTracks_DeletingAlbum_CascadesToTheLinkRows()
         {
             await using var database = fixture.CreateDatabase();

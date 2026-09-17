@@ -70,7 +70,7 @@
 				required={requireCover}
 				icon={Disc3}
 				gradient
-				class="h-36 w-36 rounded-[16px]"
+				class="h-36 w-36 rounded-2xl"
 			/>
 		</Field>
 

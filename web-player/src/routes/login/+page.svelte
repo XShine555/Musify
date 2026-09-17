@@ -16,8 +16,7 @@
 
 	<div class="relative flex w-full max-w-4xl flex-col items-center gap-12 text-center">
 		<div class="flex items-center gap-3">
-			<span class="h-8 w-8 rounded-xl bg-[image:var(--mf-logo-grad)] shadow-[var(--mf-logo-glow)]"
-			></span>
+			<span class="h-8 w-8 rounded-xl bg-[image:var(--mf-logo-grad)]"></span>
 			<span class="font-display text-[clamp(1.5rem,3vw,2.5rem)] font-semibold tracking-tight">
 				Musify
 			</span>

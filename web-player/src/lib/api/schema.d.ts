@@ -743,6 +743,8 @@ export interface components {
             artist: null | string;
             /** Format: double */
             durationSeconds: number | string;
+            /** Format: int32 */
+            listensCount: number | string;
         };
         PaginatedResponseOfAlbumApplicationResponse: {
             items: components["schemas"]["AlbumApplicationResponse"][];

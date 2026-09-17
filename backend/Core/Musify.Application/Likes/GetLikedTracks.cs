@@ -23,6 +23,7 @@ namespace Musify.Application.Likes
             var likesQuery = database.TrackLikes
                 .AsNoTracking()
                 .Include(like => like.Track.Owner)
+                .Include(like => like.Track.Tags)
                 .Where(like => like.UserId == request.UserId);
 
             var totalCount = await likesQuery.CountAsync(cancellationToken);

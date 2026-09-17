@@ -15,10 +15,6 @@
 	};
 </script>
 
-<p
-	class="rounded-control border px-4 py-3 text-sm shadow-menu backdrop-blur-md {tones[
-		tone
-	]} {klass}"
->
+<p class="rounded-control border px-4 py-3 text-sm backdrop-blur-md {tones[tone]} {klass}">
 	{@render children()}
 </p>

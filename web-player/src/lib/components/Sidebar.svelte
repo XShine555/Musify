@@ -33,7 +33,7 @@
 			? [
 					{ href: '/', label: 'Inicio', icon: Home },
 					{ href: '/explore', label: 'Descubrir', icon: Compass },
-					{ href: '/playlists', label: 'Playlists', icon: ListMusic },
+					{ href: '/playlists', label: 'Playlists', icon: ListMusic, count: playlists.length },
 					{ href: '/liked', label: 'Me gusta', icon: Heart, count: liked.count },
 					{ href: '/albums', label: 'Mis álbumes', icon: Disc },
 					{ href: '/library', label: 'Canciones subidas', icon: Folder },
@@ -48,24 +48,22 @@
 </script>
 
 <aside
-	class="hidden shrink-0 flex-col border-r border-hairline bg-[image:var(--mf-sidebar-bg)] pt-5.5 pr-3 pl-5 transition-[background] duration-[600ms] ease-out lg:flex"
+	class="hidden shrink-0 flex-col border-r border-hairline bg-[image:var(--mf-sidebar-bg)] p-5 transition-[background] duration-500 ease-out lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
-	<a href="/" class="flex items-center gap-2.5 px-1.5 pb-6.5">
-		<span class="font-display text-lg font-semibold tracking-[-0.02em] text-fg">Musify</span>
-	</a>
+	<a href="/" class="px-3 pb-3 font-display text-lg font-semibold tracking-tight text-fg">Musify</a>
 
-	<nav class="flex flex-col gap-0.5">
+	<nav class="flex flex-col gap-1">
 		{#each navLinks as link (link.href)}
 			{@const active = isActive(link.href)}
 			<a
 				href={link.href}
 				aria-current={active ? 'page' : undefined}
-				class="flex items-center gap-3 rounded-[10px] px-3 py-2.25 text-sm font-medium transition-colors duration-150 {active
+				class="flex items-center gap-3 rounded-control px-3 py-2 text-sm transition-colors duration-150 {active
 					? 'bg-surface-hover text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
-				<link.icon class="h-[17px] w-[17px] shrink-0" strokeWidth={1.6} />
+				<link.icon class="h-4.5 w-4.5 shrink-0" strokeWidth={1.5} />
 				<span class="flex-1 truncate">{link.label}</span>
 				{#if link.count}
 					<span class="text-xs text-muted tabular-nums">{link.count}</span>
@@ -77,8 +75,7 @@
 	{#if user}
 		<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
 		<div class="flex items-center justify-between px-3 pb-1.5">
-			<span class="text-xs font-semibold tracking-[0.13em] text-muted uppercase">Tus playlists</span
-			>
+			<span class="text-xs font-medium tracking-widest text-muted uppercase">Tus playlists</span>
 			{#if playlists.length > 0}
 				<button
 					type="button"
@@ -86,7 +83,7 @@
 					aria-label="Crear playlist"
 					class="text-base text-muted transition-colors hover:text-fg"
 				>
-					+
+					<Plus class="h-3.5 w-3.5" strokeWidth={1.25} />
 				</button>
 			{/if}
 		</div>
@@ -96,7 +93,7 @@
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
 				<a
 					href="/playlists/{playlist.id}"
-					class="flex items-center gap-2.75 rounded-[10px] px-3 py-1.75 transition-colors duration-150 {active
+					class="flex items-center gap-2.75 rounded-control px-3 py-1.75 transition-colors duration-150 {active
 						? 'bg-surface-hover'
 						: 'hover:bg-hover'}"
 				>
@@ -117,7 +114,7 @@
 				<button
 					type="button"
 					onclick={() => createPlaylistModal.show()}
-					class="flex items-center gap-2 rounded-[10px] px-3 py-2 text-xs text-muted transition-colors hover:bg-hover hover:text-fg-2"
+					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-muted transition-colors hover:bg-hover hover:text-fg-2"
 				>
 					<Plus class="h-3.5 w-3.5" strokeWidth={1.8} />
 					Crear tu primera lista

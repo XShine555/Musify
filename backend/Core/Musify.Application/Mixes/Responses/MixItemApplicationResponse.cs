@@ -4,5 +4,6 @@ namespace Musify.Application.Mixes.Responses
         Guid TrackId,
         string Title,
         string? Artist,
-        double DurationSeconds);
+        double DurationSeconds,
+        int ListensCount);
 }

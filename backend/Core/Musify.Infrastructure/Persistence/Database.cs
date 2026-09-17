@@ -15,7 +15,7 @@ namespace Musify.Infrastructure.Persistence
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(configuration.ConnectionString);
+            optionsBuilder.UseNpgsql(configuration.ConnectionString, o => o.MapEnum<Genre>("genre"));
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -128,6 +128,16 @@ namespace Musify.Infrastructure.Persistence
                 .HasIndex(like => new { like.UserId, like.TrackId })
                 .IsUnique();
 
+            modelBuilder.Entity<TrackTag>()
+                .HasOne(trackTag => trackTag.Track)
+                .WithMany(track => track.Tags)
+                .HasForeignKey(trackTag => trackTag.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrackTag>()
+                .HasIndex(trackTag => new { trackTag.TrackId, trackTag.Tag })
+                .IsUnique();
+
             modelBuilder.Entity<UserFollow>()
                 .HasOne(follow => follow.Follower)
                 .WithMany()
@@ -180,6 +190,8 @@ namespace Musify.Infrastructure.Persistence
         public DbSet<ListeningHistory> ListeningHistories => Set<ListeningHistory>();
 
         public DbSet<TrackLike> TrackLikes => Set<TrackLike>();
+
+        public DbSet<TrackTag> TrackTags => Set<TrackTag>();
 
         public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 

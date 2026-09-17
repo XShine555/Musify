@@ -13,6 +13,8 @@
 </script>
 
 <script lang="ts">
+	import { Hash } from '@lucide/svelte';
+
 	import { setContext } from 'svelte';
 	import type { Snippet } from 'svelte';
 
@@ -31,7 +33,7 @@
 			index ? '32px' : '',
 			'minmax(180px,1fr)',
 			...meta.map((column) => column.width),
-			'64px',
+			'104px',
 			action ? '36px' : ''
 		]
 			.filter((width) => width !== '')
@@ -56,17 +58,17 @@
 
 <div class="overflow-x-auto {klass}">
 	<div
-		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-3 pl-2 text-xs font-semibold tracking-[0.12em] text-muted uppercase sm:gap-8 sm:pr-6 sm:pl-3"
+		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-3 pl-2 text-sm text-fg-3 sm:gap-8 sm:pr-6 sm:pl-3"
 		style="--mf-track-cols:{columns}; --mf-track-cols-mobile:{columnsMobile}"
 	>
 		{#if index}
-			<span class="text-center">#</span>
+			<Hash size={16} strokeWidth={1.5} />
 		{/if}
-		<span>Título</span>
+		<span class="transition-colors">Título</span>
 		{#each meta as column (column.label)}
-			<span class="hidden text-center sm:block">{column.label}</span>
+			<span class="hidden text-center transition-colors sm:block">{column.label}</span>
 		{/each}
-		<span class="hidden text-center sm:block">Duración</span>
+		<span class="hidden text-center transition-colors sm:block">Duración</span>
 		{#if action}
 			<span></span>
 		{/if}

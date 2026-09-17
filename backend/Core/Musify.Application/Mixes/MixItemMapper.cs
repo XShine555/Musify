@@ -21,14 +21,20 @@ namespace Musify.Application.Mixes
                 .AsNoTracking()
                 .Include(track => track.Owner)
                 .Where(track => trackIds.Contains(track.Id))
-                .ToDictionaryAsync(track => track.Id, cancellationToken);
+                .Select(track => new { Track = track, ListensCount = track.ListeningHistories.Count })
+                .ToDictionaryAsync(x => x.Track.Id, cancellationToken);
 
             return orderedItems
                 .Where(item => tracksById.ContainsKey(item.TrackId))
                 .Select(item =>
                 {
-                    var track = tracksById[item.TrackId];
-                    return new MixItemApplicationResponse(item.TrackId, track.Title, track.Owner.Name, track.DurationSeconds);
+                    var entry = tracksById[item.TrackId];
+                    return new MixItemApplicationResponse(
+                        item.TrackId,
+                        entry.Track.Title,
+                        entry.Track.Owner.Name,
+                        entry.Track.DurationSeconds,
+                        entry.ListensCount);
                 })
                 .ToList();
         }

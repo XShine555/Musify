@@ -9,7 +9,7 @@
 </script>
 
 <div class="flex items-center gap-2.25">
-	<Volume2 class="h-[15px] w-[15px] shrink-0 text-fg-3" strokeWidth={1.8} />
+	<Volume2 class="h-3.75 w-3.75 shrink-0 text-fg-3" strokeWidth={1.8} />
 	<input
 		type="range"
 		min="0"

@@ -29,6 +29,7 @@ namespace Musify.Application.Albums
             var tracksQuery = database.AlbumHasTracks
                 .AsNoTracking()
                 .Include(albumTrack => albumTrack.Track.Owner)
+                .Include(albumTrack => albumTrack.Track.Tags)
                 .Where(albumTrack => albumTrack.AlbumId == request.AlbumId);
 
             var totalCount = await tracksQuery.CountAsync(cancellationToken);

@@ -15,15 +15,15 @@
 
 <div class="flex flex-col items-center rounded-panel px-6 py-16 text-center {klass}">
 	{#if Icon}
-		<Icon class="h-9 w-9 text-fg-2" strokeWidth={1.3} />
+		<Icon class="h-9 w-9 text-fg-2" strokeWidth={1.25} />
 	{/if}
 	{#if title}
-		<h3 class="mt-6 font-display text-xl font-semibold tracking-[-0.025em] text-fg">
+		<h3 class="mt-6 font-display text-xl font-medium tracking-tight text-fg">
 			{title}
 		</h3>
 	{/if}
 	{#if description}
-		<p class="mt-2.5 max-w-sm text-sm leading-[1.65] text-fg-2">{description}</p>
+		<p class="mt-2.5 max-w-sm text-sm leading-relaxed text-fg-2">{description}</p>
 	{/if}
 	{#if actions}
 		<div class="mt-6 flex flex-wrap items-center justify-center gap-2.5">{@render actions()}</div>

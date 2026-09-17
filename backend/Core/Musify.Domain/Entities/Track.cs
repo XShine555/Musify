@@ -48,5 +48,7 @@ namespace Musify.Domain.Entities
         public ICollection<AlbumHasTrack> AlbumTracks { get; set; } = new List<AlbumHasTrack>();
 
         public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
+
+        public ICollection<TrackTag> Tags { get; set; } = new List<TrackTag>();
     }
 }

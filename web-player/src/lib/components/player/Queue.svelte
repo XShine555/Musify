@@ -17,11 +17,11 @@
 {#if queuePanel.open}
 	<aside
 		transition:fly={{ x: 24, duration: 220, easing: cubicOut }}
-		class="hidden shrink-0 flex-col border-l border-hairline bg-[image:var(--mf-panel-bg)] px-4 pt-5 transition-[background] duration-[600ms] sm:flex"
+		class="hidden shrink-0 flex-col border-l border-hairline bg-[image:var(--mf-panel-bg)] px-4 pt-5 transition-[background] duration-500 sm:flex"
 		style="width:var(--mf-queue-w); padding-bottom:calc(var(--mf-player-h) + 2rem)"
 	>
 		<div class="mb-5 flex items-center justify-between">
-			<h2 class="font-display text-base font-semibold tracking-[-0.02em] text-fg">En cola</h2>
+			<h2 class="font-display text-base font-medium tracking-tight text-fg">En cola</h2>
 			<button
 				type="button"
 				onclick={() => queuePanel.close()}
@@ -33,24 +33,22 @@
 		</div>
 
 		{#if player.current.id}
-			<p class="mb-2.75 text-xs font-semibold tracking-[0.12em] text-muted uppercase">
-				Reproduciendo
-			</p>
+			<p class="mb-2.75 text-xs font-medium tracking-widest text-muted uppercase">Reproduciendo</p>
 			<div class="mb-6 flex items-center gap-3 rounded-xl bg-accent-tint p-2.5">
 				<Cover
 					trackId={player.current.id}
 					size="small"
 					alt={player.current.title}
-					class="h-10 w-10 shrink-0 rounded-[9px]"
+					class="h-10 w-10 shrink-0 rounded-lg"
 				/>
 				<div class="min-w-0">
-					<div class="truncate text-sm font-semibold text-accent-soft">
+					<div class="truncate text-sm text-accent-soft">
 						{player.current.title}
 					</div>
 					<ArtistLink
 						name={player.current.artist || '—'}
 						ownerUserId={player.current.ownerUserId}
-						class="mt-0.75 text-xs text-fg-3"
+						class="mt-0.5 text-xs text-fg-3"
 					/>
 				</div>
 			</div>
@@ -58,7 +56,7 @@
 
 		<div class="mb-2.75 flex items-center justify-between gap-3">
 			<span
-				class="min-w-0 flex-1 truncate text-xs font-semibold tracking-[0.12em] text-muted uppercase"
+				class="min-w-0 flex-1 truncate text-xs font-medium tracking-widest text-muted uppercase"
 			>
 				A continuación
 			</span>
@@ -85,16 +83,16 @@
 						e.preventDefault();
 						player.playQueueIndex(index);
 					}}
-					class="flex items-center gap-3 rounded-[11px] p-2.25 text-left hover:bg-hover"
+					class="flex items-center gap-3 rounded-control p-2.25 text-left hover:bg-hover"
 				>
 					<Cover
 						trackId={track.id}
 						size="small"
 						alt={track.title}
-						class="h-9 w-9 shrink-0 rounded-lg opacity-90"
+						class="h-10 w-10 shrink-0 rounded-lg opacity-80"
 					/>
 					<div class="min-w-0 flex-1">
-						<div class="truncate text-sm font-medium text-fg">{track.title}</div>
+						<div class="truncate text-xs text-fg">{track.title}</div>
 						<ArtistLink
 							name={track.artist || '—'}
 							ownerUserId={track.ownerUserId}

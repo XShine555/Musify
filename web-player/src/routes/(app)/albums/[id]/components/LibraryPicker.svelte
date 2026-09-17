@@ -11,7 +11,7 @@
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 
-	type LibraryTrack = ApiTrackLike & { duration: number | string };
+	type LibraryTrack = ApiTrackLike & { duration: number | string; listensCount: number | string };
 
 	interface Props {
 		library: LibraryTrack[];
@@ -26,7 +26,7 @@
 
 <div class="mt-10 sm:mt-12">
 	<SectionHeading title="Tus canciones subidas" />
-	<TrackTable action>
+	<TrackTable action meta={[{ label: 'Escuchas', width: '100px' }]}>
 		{#each library as track, i (track.id)}
 			{@const active = player.current.id === track.id}
 			<TrackRow {active}>
@@ -45,6 +45,7 @@
 						{/if}
 					{/snippet}
 				</TrackTitleCell>
+				<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 				<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 				<form
 					method="POST"

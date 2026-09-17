@@ -29,6 +29,7 @@ namespace Musify.Application.PlayLists
             var tracksQuery = database.PlayListHasTracks
                 .AsNoTracking()
                 .Include(plt => plt.Track.Owner)
+                .Include(plt => plt.Track.Tags)
                 .Where(plt => plt.PlayListId == request.PlayListId);
 
             var totalCount = await tracksQuery.CountAsync(cancellationToken);

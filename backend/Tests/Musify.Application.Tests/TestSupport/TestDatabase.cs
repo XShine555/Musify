@@ -95,6 +95,16 @@ namespace Musify.Application.Tests.TestSupport
                 .HasIndex(like => new { like.UserId, like.TrackId })
                 .IsUnique();
 
+            modelBuilder.Entity<TrackTag>()
+                .HasOne(trackTag => trackTag.Track)
+                .WithMany(track => track.Tags)
+                .HasForeignKey(trackTag => trackTag.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrackTag>()
+                .HasIndex(trackTag => new { trackTag.TrackId, trackTag.Tag })
+                .IsUnique();
+
             modelBuilder.Entity<UserFollow>()
                 .HasOne(follow => follow.Follower)
                 .WithMany()
@@ -137,6 +147,8 @@ namespace Musify.Application.Tests.TestSupport
         public DbSet<ListeningHistory> ListeningHistories => Set<ListeningHistory>();
 
         public DbSet<TrackLike> TrackLikes => Set<TrackLike>();
+
+        public DbSet<TrackTag> TrackTags => Set<TrackTag>();
 
         public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 

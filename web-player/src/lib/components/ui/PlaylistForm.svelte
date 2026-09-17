@@ -70,7 +70,7 @@
 				fallbackUrl={coverFallbackUrl}
 				icon={Music}
 				gradient
-				class="h-36 w-36 rounded-[16px]"
+				class="h-36 w-36 rounded-2xl"
 			/>
 		</Field>
 
@@ -102,7 +102,7 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between gap-4 rounded-[14px] bg-surface px-4 py-3.5">
+	<div class="flex items-center justify-between gap-4 rounded-art bg-surface px-4 py-3.5">
 		<div class="min-w-0">
 			<div class="text-sm font-medium text-fg-2">Visibilidad</div>
 			<div class="mt-0.5 text-xs text-muted">

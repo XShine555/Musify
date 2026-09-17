@@ -15,15 +15,17 @@
 </script>
 
 <div
-	class="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col gap-2.5 px-4 pb-4 lg:left-[var(--mf-sidebar-w)]"
+	class="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col lg:left-[var(--mf-sidebar-w)]"
 >
 	{#if player.error}
-		<div class="pointer-events-auto">
+		<div class="pointer-events-auto px-4 pb-2.5">
 			<Alert tone="danger">{player.error}</Alert>
 		</div>
 	{/if}
 	{#if hasTrack}
 		<PlayerBar />
 	{/if}
-	<TabsBar {user} />
+	<div class="px-4 pt-2.5 pb-4 lg:hidden">
+		<TabsBar {user} />
+	</div>
 </div>

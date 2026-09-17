@@ -9,6 +9,7 @@ export interface PlayerTrack {
 	duration: number;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
+	listensCount?: number | string;
 }
 
 export interface Playlist {
@@ -23,6 +24,7 @@ export interface QueueItem {
 	artist?: string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
+	listensCount?: number | string;
 }
 
 export interface ApiTrackLike {
@@ -31,6 +33,7 @@ export interface ApiTrackLike {
 	artist?: string | null;
 	isExplicit?: boolean;
 	ownerUserId?: string | number | null;
+	listensCount?: number | string;
 }
 
 export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
@@ -39,7 +42,8 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 		title: track.title,
 		artist: track.artist ?? undefined,
 		explicit: track.isExplicit,
-		ownerUserId: track.ownerUserId
+		ownerUserId: track.ownerUserId,
+		listensCount: track.listensCount
 	}));
 }
 
@@ -68,7 +72,8 @@ function toTrack(item: QueueItem): PlayerTrack {
 		artist: item.artist ?? '',
 		duration: 0,
 		explicit: item.explicit,
-		ownerUserId: item.ownerUserId
+		ownerUserId: item.ownerUserId,
+		listensCount: item.listensCount
 	};
 }
 

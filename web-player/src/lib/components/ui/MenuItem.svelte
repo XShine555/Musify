@@ -37,12 +37,12 @@
 		{onclick}
 		class={classes}
 	>
-		<Icon class="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+		<Icon class="h-4.5 w-4.5 shrink-0" strokeWidth={1.8} />
 		{label}
 	</a>
 {:else}
 	<button {type} {onclick} class={classes}>
-		<Icon class="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+		<Icon class="h-4.5 w-4.5 shrink-0" strokeWidth={1.8} />
 		{label}
 	</button>
 {/if}

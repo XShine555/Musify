@@ -42,7 +42,7 @@ namespace Musify.Application.Tests.Tracks
             var (picture, audio) = SeedIntents(user.Id);
             await SeedAsync(user, picture, audio);
 
-            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id);
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Pop, Genre.Rock]);
 
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
@@ -50,6 +50,7 @@ namespace Musify.Application.Tests.Tracks
             Assert.Equal("My Song", result.Value.Title);
             var localResponse = Assert.IsType<TrackApplicationResponse>(result.Value);
             Assert.Equal(user.Id, localResponse.OwnerUserId);
+            Assert.Equal([Genre.Pop, Genre.Rock], localResponse.Tags);
             await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreateTrackResourcesEvent>(), Arg.Any<CancellationToken>());
 
             var stored = await Database.Tracks.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
@@ -58,9 +59,37 @@ namespace Musify.Application.Tests.Tracks
         }
 
         [Fact]
+        public async Task Handle_NoTags_ReturnsValidationError()
+        {
+            var user = TestEntities.User();
+            var (picture, audio) = SeedIntents(user.Id);
+            await SeedAsync(user, picture, audio);
+
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, []);
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+        }
+
+        [Fact]
+        public async Task Handle_IncompatibleTags_ReturnsValidationError()
+        {
+            var user = TestEntities.User();
+            var (picture, audio) = SeedIntents(user.Id);
+            await SeedAsync(user, picture, audio);
+
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Classical, Genre.Metal]);
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+        }
+
+        [Fact]
         public async Task Handle_UserMissing_ReturnsNotFound()
         {
-            var command = new CreateTrackCommand(404, "Orphan Song", Guid.NewGuid(), Guid.NewGuid());
+            var command = new CreateTrackCommand(404, "Orphan Song", Guid.NewGuid(), Guid.NewGuid(), [Genre.Pop]);
 
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
@@ -75,7 +104,7 @@ namespace Musify.Application.Tests.Tracks
             var (picture, audio) = SeedIntents(otherUser.Id);
             await SeedAsync(user, otherUser, picture, audio);
 
-            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id);
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Pop]);
 
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
@@ -91,7 +120,7 @@ namespace Musify.Application.Tests.Tracks
             var audio = TestEntities.UploadIntent(user.Id, UploadIntentPurpose.TrackAudio, objectName: "song.mp3", status: UploadIntentStatus.Consumed);
             await SeedAsync(user, picture, audio);
 
-            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id);
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Pop]);
 
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 

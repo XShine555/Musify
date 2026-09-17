@@ -55,7 +55,7 @@
 			{trackIds}
 			{coverUrl}
 			size="large"
-			class="h-36 w-36 shrink-0 rounded-[18px] shadow-cover-lg sm:h-41 sm:w-41"
+			class="h-36 w-36 shrink-0 rounded-art-lg sm:h-41 sm:w-41"
 		/>
 	{/snippet}
 	{#snippet actions()}

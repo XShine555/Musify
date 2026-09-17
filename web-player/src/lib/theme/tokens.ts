@@ -13,13 +13,14 @@ function tc(alpha: number, l: number, hue: number): string {
 	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
 }
 
-// Light-mode counterpart of tc(): fades toward the light canvas (~0.97
-// lightness, 0 chroma at l=88) instead of toward black, so the "glow"
-// gradients read as a soft tint instead of a dark smudge on a light bg.
+// Light-mode counterpart of tc(): fades toward a soft tinted glass (~0.88
+// lightness) instead of toward black, so the "glow" gradients read as a
+// visible colored tint instead of a dark smudge — or, at the old lightness
+// floor of 0.97, an almost invisible wash next to the near-white canvas.
 function tcLight(alpha: number, l: number, hue: number): string {
 	const depth = (88 - l) / 58;
-	const lightness = 0.97 - 0.07 * depth;
-	const chroma = Math.max(0, 0.06 * depth);
+	const lightness = 0.88 - 0.16 * depth;
+	const chroma = 0.03 + 0.11 * depth;
 	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
 }
 
@@ -43,15 +44,27 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 	const H2 = r(h2, 1);
 	const light = mode === 'light';
 
+	// Dark mode wants a bright, light accent (pops on a near-black canvas).
+	// Light mode needs the opposite: the same hue pulled down to a dark,
+	// saturated shade so it still reads against a near-white canvas — using
+	// the dark-mode lightness here is what made accent text/icons/buttons
+	// nearly invisible in light mode.
+	const accentL = light ? 0.52 : L;
+	const accentC = light ? 0.16 : C;
+	const titleL = light ? 0.4 : 0.87;
+	const titleC = light ? 0.13 : 0.07;
+	const mutedL = light ? 0.48 : 0.79;
+	const mutedC = light ? 0.06 : 0.035;
+
 	return {
-		'--mf-accent': `oklch(${r(L)} ${r(C)} ${H})`,
-		'--mf-accent-title': `oklch(0.87 0.07 ${H})`,
-		'--mf-accent-muted': `oklch(0.79 0.035 ${H})`,
-		'--mf-accent-soft-bg': `oklch(${r(L)} ${r(C)} ${H} / 0.08)`,
-		'--mf-accent-line': `oklch(${r(L)} ${r(C)} ${H} / 0.2)`,
-		'--mf-accent-hair': `oklch(${r(L)} ${r(C)} ${H} / 0.09)`,
-		'--mf-accent-btn-bg': `oklch(${r(L)} ${r(C)} ${H} / 0.15)`,
-		'--mf-accent-btn-bg-hover': `oklch(${r(L)} ${r(C)} ${H} / 0.24)`,
+		'--mf-accent': `oklch(${r(accentL)} ${r(accentC)} ${H})`,
+		'--mf-accent-title': `oklch(${r(titleL)} ${r(titleC)} ${H})`,
+		'--mf-accent-muted': `oklch(${r(mutedL)} ${r(mutedC)} ${H})`,
+		'--mf-accent-soft-bg': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.08)`,
+		'--mf-accent-line': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.2)`,
+		'--mf-accent-hair': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.09)`,
+		'--mf-accent-btn-bg': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.15)`,
+		'--mf-accent-btn-bg-hover': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.24)`,
 		'--mf-bg': light ? `oklch(0.97 0.006 ${H})` : `oklch(0.068 0.008 ${H})`,
 		'--mf-elevated': light ? `oklch(0.99 0.003 ${H})` : `oklch(0.11 0.012 ${H})`,
 		'--mf-sidebar-bg': light
@@ -61,7 +74,7 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-bar-bg': light ? `oklch(0.97 0.006 ${H} / 0.9)` : `oklch(0.105 0.012 ${H} / 0.9)`,
 		'--mf-hairline': light ? `oklch(0.3 0.02 ${H} / 0.1)` : `oklch(0.62 0.03 ${H} / 0.08)`,
 		'--mf-ambient': light
-			? `radial-gradient(52% 38% at 14% 0%, ${tcLight(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tcLight(0.2, 40, h)}, transparent 56%)`
+			? `radial-gradient(46% 34% at 78% 0%, ${tcLight(0.2, 40, h)}, transparent 56%)`
 			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
 		'--mf-hero-bg': light
 			? `linear-gradient(105deg, ${tcLight(0.34, 42, h)} 0%, ${tcLight(0.11, 70, h)} 37%, ${tcLight(0.03, 88, h)} 65%, rgba(255,255,255,0) 92%)`
@@ -72,9 +85,12 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-spotlight-bg': light
 			? `linear-gradient(100deg, ${tcLight(0.28, 46, h)} 0%, ${tcLight(0.1, 74, h)} 40%, ${tcLight(0.03, 88, h)} 69%, rgba(255,255,255,0) 96%)`
 			: `linear-gradient(100deg, ${tc(0.28, 46, h)} 0%, ${tc(0.1, 74, h)} 40%, ${tc(0.03, 88, h)} 69%, rgba(6,6,9,0) 96%)`,
-		'--mf-logo-grad': `linear-gradient(140deg, oklch(0.78 0.15 ${H}), oklch(0.62 0.13 ${H2}) 92%)`,
-		'--mf-logo-glow': `0 0 20px oklch(${r(L)} ${r(C)} ${H} / 0.3)`,
-		'--mf-cover-grad': `linear-gradient(150deg, oklch(0.5 0.13 ${H}), oklch(0.16 0.035 ${H}))`
+		'--mf-logo-grad': light
+			? `linear-gradient(140deg, oklch(0.68 0.16 ${H}), oklch(0.5 0.14 ${H2}) 92%)`
+			: `linear-gradient(140deg, oklch(0.78 0.15 ${H}), oklch(0.62 0.13 ${H2}) 92%)`,
+		'--mf-cover-grad': light
+			? `linear-gradient(150deg, oklch(0.62 0.14 ${H}), oklch(0.44 0.08 ${H}))`
+			: `linear-gradient(150deg, oklch(0.5 0.13 ${H}), oklch(0.16 0.035 ${H}))`
 	};
 }
 

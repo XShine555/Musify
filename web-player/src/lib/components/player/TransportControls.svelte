@@ -25,7 +25,7 @@
 			aria-label="Aleatorio"
 			class="transition-colors hover:text-fg {player.shuffle ? 'text-accent' : 'text-fg-3'}"
 		>
-			<Shuffle class="h-[15px] w-[15px]" strokeWidth={1.8} />
+			<Shuffle class="h-3.75 w-3.75" strokeWidth={1.8} />
 		</button>
 	{/if}
 
@@ -69,7 +69,7 @@
 			aria-label="Repetir"
 			class="transition-colors hover:text-fg {player.repeat ? 'text-accent' : 'text-fg-3'}"
 		>
-			<Repeat class="h-[15px] w-[15px]" strokeWidth={1.8} />
+			<Repeat class="h-3.75 w-3.75" strokeWidth={1.8} />
 		</button>
 	{/if}
 </div>

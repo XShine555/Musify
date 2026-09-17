@@ -30,7 +30,7 @@
 	}: Props = $props();
 
 	const meta = $derived(
-		`${trackIds.length} ${trackIds.length === 1 ? 'canción' : 'canciones'} · ${
+		`${trackIds.length} ${trackIds.length === 1 ? 'Canción' : 'Canciones'} · ${
 			visibility === 'Public' ? 'Pública' : 'Privada'
 		}`
 	);
@@ -49,16 +49,12 @@
 			{trackIds}
 			size="large"
 			version={updatedAt}
-			class="h-36 w-36 shrink-0 rounded-[18px] shadow-cover-lg sm:h-41 sm:w-41"
+			class="h-36 w-36 shrink-0 rounded-art-lg sm:h-41 sm:w-41"
 		/>
 	{/snippet}
 	{#snippet actions()}
 		<Button size="sm" onclick={onPlayAll} disabled={trackIds.length === 0}>
-			{#if playing}
-				Pausar
-			{:else}
-				Reproducir
-			{/if}
+			{playing ? 'Pausar' : 'Reproducir'}
 		</Button>
 		<Button size="sm" variant="secondary" onclick={onEdit}>Editar</Button>
 		<Button size="sm" variant="secondary" onclick={onDelete}>Eliminar</Button>

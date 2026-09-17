@@ -13,7 +13,7 @@
 
 	let { id, name, trackCount, trackIds, updatedAt, index = 0 }: Props = $props();
 
-	const subtitle = $derived(`${trackCount} ${trackCount === 1 ? 'canción' : 'canciones'}`);
+	const subtitle = $derived(`${trackCount} ${trackCount === 1 ? 'Canción' : 'Canciones'}`);
 </script>
 
 <MediaCard href="/playlists/{id}" title={name} {subtitle} {index}>

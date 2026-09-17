@@ -26,6 +26,7 @@
 		queueItemForTarget,
 		targetArtist,
 		targetId,
+		targetListensCount,
 		targetTitle
 	} from '$lib/tracks';
 
@@ -74,7 +75,7 @@
 		meta="{items.length} {items.length === 1 ? 'canción' : 'canciones'} · {fmtTime(totalSeconds)}"
 	>
 		{#snippet cover()}
-			<MixArt {items} class="h-36 w-36 shrink-0 rounded-[18px] shadow-cover-lg sm:h-41 sm:w-41" />
+			<MixArt {items} class="h-36 w-36 shrink-0 rounded-art-lg sm:h-41 sm:w-41" />
 		{/snippet}
 		{#snippet actions()}
 			<Button size="sm" onclick={playAll} disabled={queue.length === 0}>
@@ -97,7 +98,7 @@
 		<Alert tone="danger" class="mt-4">{form.message}</Alert>
 	{/if}
 
-	<TrackTable index class="mt-6 sm:mt-8">
+	<TrackTable index meta={[{ label: 'Escuchas', width: '100px' }]} class="mt-6 sm:mt-8">
 		{#each items as item, i (mixItemKey(item))}
 			{@const active = isTargetCurrent(targets[i])}
 			<TrackRow {active} oncontextmenu={(e) => (contextMenu = contextMenuStateFor(e, targets[i]))}>
@@ -109,6 +110,7 @@
 					{active}
 					onClick={() => playFrom(i)}
 				/>
+				<TrackMeta class="hidden sm:block">{Number(targetListensCount(targets[i]) ?? 0)}</TrackMeta>
 				<TrackMeta>{fmtTime(Number(item.durationSeconds))}</TrackMeta>
 			</TrackRow>
 		{/each}

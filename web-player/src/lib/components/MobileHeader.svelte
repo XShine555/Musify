@@ -21,9 +21,7 @@
 		href="/"
 		class="flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em] text-fg"
 	>
-		<span
-			class="h-5.5 w-5.5 rounded-[7px] bg-[image:var(--mf-logo-grad)] shadow-[var(--mf-logo-glow)]"
-		></span>
+		<span class="h-5.5 w-5.5 rounded-lg bg-[image:var(--mf-logo-grad)]"></span>
 		Musify
 	</a>
 

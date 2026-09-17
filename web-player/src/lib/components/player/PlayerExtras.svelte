@@ -7,7 +7,7 @@
 
 <div class="hidden w-64 shrink-0 items-center justify-end gap-3.5 sm:flex">
 	<span aria-hidden="true" class="text-fg-3">
-		<AlignJustify class="h-[15px] w-[15px]" strokeWidth={1.8} />
+		<AlignJustify class="h-3.75 w-3.75" strokeWidth={1.8} />
 	</span>
 	<VolumeControl />
 	<button

@@ -27,6 +27,7 @@ namespace Musify.Application.Tracks
             var tracksQuery = database.UserHasTracks
                 .AsNoTracking()
                 .Include(ut => ut.Track.Owner)
+                .Include(ut => ut.Track.Tags)
                 .Where(p => p.UserId == request.UserId);
 
             if (!string.IsNullOrEmpty(request.Name))

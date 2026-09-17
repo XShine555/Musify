@@ -62,21 +62,21 @@
 			aria-label="Atrás"
 			class="grid h-7.5 w-7.5 place-items-center rounded-full bg-surface-2 text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg"
 		>
-			<ChevronLeft class="h-[15px] w-[15px]" strokeWidth={1.9} />
+			<ChevronLeft class="h-3.75 w-3.75" strokeWidth={1.9} />
 		</button>
 		<span
 			aria-hidden="true"
 			class="grid h-7.5 w-7.5 place-items-center rounded-full bg-surface-2 text-muted"
 		>
-			<ChevronRight class="h-[15px] w-[15px]" strokeWidth={1.9} />
+			<ChevronRight class="h-3.75 w-3.75" strokeWidth={1.9} />
 		</span>
 	</div>
 
-	<form onsubmit={onSubmit} class="max-w-[480px] min-w-0 flex-1">
+	<form onsubmit={onSubmit} class="max-w-120 min-w-0 flex-1">
 		<label
-			class="flex h-9.5 w-full items-center gap-2.5 rounded-[11px] bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
+			class="flex h-9.5 w-full items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
 		>
-			<Search class="h-[15px] w-[15px] shrink-0 text-fg-3" strokeWidth={1.8} />
+			<Search class="h-3.75 w-3.75 shrink-0 text-fg-3" strokeWidth={1.8} />
 			<input
 				type="text"
 				bind:this={searchInput}

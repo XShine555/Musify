@@ -14,7 +14,8 @@ namespace Musify.Application.Tracks.Responses
         int ListensCount,
         DateTime CreatedAt,
         DateTime UpdatedAt,
-        [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId)
+        [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
+        IReadOnlyCollection<Genre> Tags)
     {
         public static TrackApplicationResponse FromEntity(Track track, int listensCount) =>
             new(
@@ -26,6 +27,7 @@ namespace Musify.Application.Tracks.Responses
                 listensCount,
                 track.CreatedAt,
                 track.UpdatedAt,
-                track.OwnerUserId);
+                track.OwnerUserId,
+                track.Tags.Select(tag => tag.Tag).ToList());
     }
 }

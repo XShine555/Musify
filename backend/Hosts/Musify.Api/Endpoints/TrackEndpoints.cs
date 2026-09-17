@@ -147,7 +147,7 @@ public static class TrackEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new CreateTrackCommand(currentUser.RequiredId, request.Title, request.PictureIntentId, request.AudioIntentId),
+            new CreateTrackCommand(currentUser.RequiredId, request.Title, request.PictureIntentId, request.AudioIntentId, request.Tags),
             cancellationToken);
 
         return result.ToCreatedResult(track => $"/tracks/{track.Id}");

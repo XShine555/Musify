@@ -25,7 +25,7 @@
 	class="group/tile animate-enter block cursor-pointer {klass}"
 	style="animation-delay:{Math.min(index, 10) * 45}ms"
 >
-	<div class="relative aspect-square overflow-hidden rounded-art shadow-art">
+	<div class="relative aspect-square overflow-hidden rounded-art">
 		<MixArt
 			items={mix.items}
 			class="h-full w-full scale-100 transition duration-300 group-hover/tile:scale-105"
@@ -37,7 +37,7 @@
 			type="button"
 			onclick={play}
 			aria-label="Reproducir {mix.title}"
-			class="absolute right-2.5 bottom-2.5 grid h-9.5 w-9.5 place-items-center rounded-full border border-on-art/12 bg-ink/76 text-fg opacity-0 backdrop-blur-[8px] transition-opacity duration-150 group-hover/tile:opacity-100"
+			class="absolute right-2.5 bottom-2.5 grid h-9.5 w-9.5 place-items-center rounded-full border border-on-art/12 bg-ink/76 text-fg opacity-0 backdrop-blur transition-opacity duration-150 group-hover/tile:opacity-100"
 		>
 			<Play class="h-3.5 w-3.5" fill="currentColor" />
 		</button>

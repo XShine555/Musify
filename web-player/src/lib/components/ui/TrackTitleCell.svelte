@@ -25,7 +25,7 @@
 		artist,
 		ownerUserId,
 		coverSrc,
-		coverSize = 'h-[42px] w-[42px]',
+		coverSize = 'h-10.5 w-10.5',
 		explicit = false,
 		active = false,
 		titleClass = '',
@@ -39,12 +39,17 @@
 		event.preventDefault();
 		onClick();
 	}
+
+	function onclick(event: MouseEvent) {
+		event.stopPropagation();
+		onClick();
+	}
 </script>
 
 <div
 	role="button"
 	tabindex="0"
-	onclick={onClick}
+	{onclick}
 	onkeydown={onKeydown}
 	class="flex min-w-0 items-center gap-3.5 text-left"
 >
@@ -62,10 +67,8 @@
 			{#if explicit}
 				<ExplicitBadge />
 			{/if}
-			<span
-				class="min-w-0 truncate text-sm font-medium {active
-					? 'text-accent-soft'
-					: 'text-fg'} {titleClass}">{title}</span
+			<span class="min-w-0 truncate text-sm {active ? 'text-accent-soft' : 'text-fg'} {titleClass}"
+				>{title}</span
 			>
 			{@render badge?.()}
 		</div>

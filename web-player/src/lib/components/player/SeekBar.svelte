@@ -37,7 +37,7 @@
 			aria-label="Barra de progreso"
 			class="group relative h-3.5 flex-1 cursor-pointer"
 		>
-			<div class="h-[3.5px] w-full overflow-hidden rounded-full bg-track">
+			<div class="h-0.875 w-full overflow-hidden rounded-full bg-track">
 				<div class="h-full rounded-full bg-accent" style="width:{player.progressPercent}%"></div>
 			</div>
 		</button>

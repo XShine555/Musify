@@ -55,8 +55,10 @@ namespace Musify.Application.Tests.TestSupport
             double durationSeconds = 180,
             TrackPictures? pictures = null,
             TrackAudio? audio = null,
-            LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active) =>
-            new()
+            LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active,
+            IEnumerable<Genre>? tags = null)
+        {
+            var track = new Track
             {
                 Title = title,
                 NormalizedTitle = title.ToUpperInvariant(),
@@ -67,6 +69,13 @@ namespace Musify.Application.Tests.TestSupport
                 Pictures = pictures ?? ProcessedPictures(),
                 Audio = audio ?? ProcessedAudio()
             };
+
+            track.Tags = (tags ?? [Genre.Pop])
+                .Select(tag => new TrackTag { TrackId = track.Id, Tag = tag })
+                .ToList();
+
+            return track;
+        }
 
         public static PlayListPictures PlayListPictures() => new()
         {

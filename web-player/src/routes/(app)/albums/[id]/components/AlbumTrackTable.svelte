@@ -10,7 +10,7 @@
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
 
-	type AlbumTrack = ApiTrackLike & { duration: number | string };
+	type AlbumTrack = ApiTrackLike & { duration: number | string; listensCount: number | string };
 
 	interface Props {
 		tracks: AlbumTrack[];
@@ -24,7 +24,12 @@
 	}
 </script>
 
-<TrackTable index action={isOwner} class="mt-6 sm:mt-8">
+<TrackTable
+	index
+	action={isOwner}
+	meta={[{ label: 'Escuchas', width: '100px' }]}
+	class="mt-6 sm:mt-8"
+>
 	{#each tracks as track, i (track.id)}
 		{@const active = player.current.id === track.id}
 		<TrackRow {active}>
@@ -38,6 +43,7 @@
 				{active}
 				onClick={() => playFrom(i)}
 			/>
+			<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 			{#if isOwner}
 				<form

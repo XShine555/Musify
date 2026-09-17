@@ -31,7 +31,7 @@
 </script>
 
 <nav
-	class="pointer-events-auto flex items-center justify-around rounded-[18px] border border-hairline bg-[image:var(--mf-bar-bg)] p-1.75 backdrop-blur-[22px] transition-[background] duration-[600ms] lg:hidden {klass}"
+	class="pointer-events-auto flex items-center justify-around rounded-panel border border-hairline bg-[image:var(--mf-bar-bg)] p-1.75 backdrop-blur-xl transition-[background] duration-500 lg:hidden {klass}"
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}
@@ -43,7 +43,7 @@
 				? 'text-fg'
 				: 'text-fg-2'}"
 		>
-			<link.icon class="h-[17px] w-[17px]" strokeWidth={1.6} />
+			<link.icon class="h-4.25 w-4.25" strokeWidth={1.6} />
 			<span class="text-xs font-medium">{link.label}</span>
 		</a>
 	{/each}

@@ -16,6 +16,7 @@ namespace Musify.Application.Tracks
         {
             var entity = await database.Tracks.AsNoTracking()
                 .Include(t => t.Owner)
+                .Include(t => t.Tags)
                 .Where(t => t.Id == request.TrackId)
                 .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count })
                 .SingleOrDefaultAsync(cancellationToken);

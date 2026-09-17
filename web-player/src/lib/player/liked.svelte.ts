@@ -6,6 +6,7 @@ export interface LikedTrack {
 	artist?: string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
+	listensCount?: number | string;
 	likedAt: number;
 }
 
@@ -37,6 +38,7 @@ class LikedStore {
 				artist: item.artist,
 				explicit: item.explicit,
 				ownerUserId: item.ownerUserId,
+				listensCount: item.listensCount,
 				likedAt: new Date(tracks[i].createdAt).getTime()
 			};
 		});

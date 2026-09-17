@@ -55,7 +55,7 @@
 		onclick={onAddToQueue}
 		class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg-2 transition hover:bg-hover"
 	>
-		<ListPlus class="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+		<ListPlus class="h-4.5 w-4.5 shrink-0" strokeWidth={2} />
 		<span>Reproducir a continuación</span>
 	</button>
 	{#if playlists.length > 0}
@@ -72,7 +72,7 @@
 					: 'left-full pl-1.5'}"
 			>
 				<div
-					class="w-64 overflow-hidden rounded-panel border border-line bg-elevated p-2 shadow-menu max-sm:w-full"
+					class="w-64 overflow-hidden rounded-panel border border-line bg-elevated p-2 max-sm:w-full"
 				>
 					<div class="max-h-80 overflow-y-auto">
 						{#each playlists as playlist (playlist.id)}

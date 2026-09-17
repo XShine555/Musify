@@ -13,7 +13,8 @@ export function mixItemTarget(item: MixItem): TrackTarget {
 		track: {
 			id: item.trackId,
 			title: item.title,
-			artist: item.artist
+			artist: item.artist,
+			listensCount: item.listensCount
 		}
 	};
 }

@@ -1,9 +1,4 @@
-import {
-	player,
-	toQueueItems,
-	type ApiTrackLike,
-	type QueueItem
-} from '$lib/player/player.svelte';
+import { player, toQueueItems, type ApiTrackLike, type QueueItem } from '$lib/player/player.svelte';
 
 export type TrackTarget = { track: ApiTrackLike };
 
@@ -27,6 +22,10 @@ export function targetExplicit(target: TrackTarget): boolean {
 	return target.track.isExplicit ?? false;
 }
 
+export function targetListensCount(target: TrackTarget): number | string | undefined {
+	return target.track.listensCount;
+}
+
 export function isTargetCurrent(target: TrackTarget): boolean {
 	return player.current.id === target.track.id;
 }
@@ -42,7 +41,8 @@ export function targetForQueueItem(item: QueueItem): TrackTarget {
 			title: item.title,
 			artist: item.artist,
 			isExplicit: item.explicit,
-			ownerUserId: item.ownerUserId
+			ownerUserId: item.ownerUserId,
+			listensCount: item.listensCount
 		}
 	};
 }

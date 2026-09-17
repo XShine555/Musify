@@ -10,7 +10,11 @@
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
 
-	type PlaylistTrack = ApiTrackLike & { createdAt: string; duration: number | string };
+	type PlaylistTrack = ApiTrackLike & {
+		createdAt: string;
+		duration: number | string;
+		listensCount: number | string;
+	};
 
 	interface Props {
 		tracks: PlaylistTrack[];
@@ -27,8 +31,9 @@
 	index
 	action
 	meta={[
-		{ label: 'Álbum', width: '160px' },
-		{ label: 'Añadida', width: '140px' }
+		{ label: 'Álbum', width: '76px' },
+		{ label: 'Añadida', width: '124px' },
+		{ label: 'Escuchas', width: '106px' }
 	]}
 	class="mt-6 sm:mt-8"
 >
@@ -47,6 +52,7 @@
 			/>
 			<TrackMeta class="hidden sm:block">—</TrackMeta>
 			<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
+			<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 			<form
 				method="POST"

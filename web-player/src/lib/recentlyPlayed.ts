@@ -17,7 +17,8 @@ export function mergeRecentlyPlayed(history: ApiTrackLike[], limit: number): Que
 			title: t.title,
 			artist: t.artist,
 			explicit: t.explicit,
-			ownerUserId: t.ownerUserId
+			ownerUserId: t.ownerUserId,
+			listensCount: t.listensCount
 		});
 	}
 
@@ -30,7 +31,8 @@ export function mergeRecentlyPlayed(history: ApiTrackLike[], limit: number): Que
 			title: item.title,
 			artist: item.artist,
 			explicit: item.explicit,
-			ownerUserId: item.ownerUserId
+			ownerUserId: item.ownerUserId,
+			listensCount: item.listensCount
 		});
 	}
 
