@@ -3,6 +3,7 @@
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { fmtTime } from '$lib/format';
 	import X from '@lucide/svelte/icons/x';
 	import { fly } from 'svelte/transition';
@@ -22,14 +23,9 @@
 	>
 		<div class="mb-5 flex items-center justify-between">
 			<h2 class="font-display text-base font-medium tracking-tight text-fg">En cola</h2>
-			<button
-				type="button"
-				onclick={() => queuePanel.close()}
-				aria-label="Cerrar cola"
-				class="text-fg-3 transition-colors hover:text-fg"
-			>
-				<X class="h-4 w-4" />
-			</button>
+			<IconButton label="Cerrar cola" tone="plain" size="xs" onclick={() => queuePanel.close()}>
+				<X class="size-icon-md" />
+			</IconButton>
 		</div>
 
 		{#if player.current.id}

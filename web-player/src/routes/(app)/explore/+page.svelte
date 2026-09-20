@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
-	import Play from '@lucide/svelte/icons/play';
 	import { player } from '$lib/player/player.svelte';
 	import { fetchAlbumQueueItems } from '$lib/albums';
 	import { fmtTime, fmtPlays } from '$lib/format';
@@ -11,6 +10,7 @@
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
+	import PlayButton from '$lib/components/ui/PlayButton.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import SearchResultRow from '$lib/components/ui/SearchResultRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
@@ -339,11 +339,7 @@
 					{/if}
 				</div>
 
-				<span
-					class="grid h-11.5 w-11.5 shrink-0 place-items-center rounded-full bg-cta-strong text-ink transition group-hover/top:brightness-110"
-				>
-					<Play class="h-4 w-4" fill="currentColor" strokeWidth={0} />
-				</span>
+				<PlayButton as="span" size="lg" label="Reproducir" class="group-hover/top:brightness-110" />
 			{/snippet}
 
 			{#if topResult.kind === 'track'}

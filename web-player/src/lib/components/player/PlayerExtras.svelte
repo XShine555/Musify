@@ -1,22 +1,19 @@
 <script lang="ts">
 	import VolumeControl from './VolumeControl.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
-	import AlignJustify from '@lucide/svelte/icons/align-justify';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 </script>
 
-<div class="hidden w-64 shrink-0 items-center justify-end gap-3.5 sm:flex">
-	<span aria-hidden="true" class="text-fg-3">
-		<AlignJustify class="h-3.75 w-3.75" strokeWidth={1.8} />
-	</span>
+<div class="hidden w-(--mf-player-side-w) shrink-0 items-center justify-end gap-3.5 sm:flex">
 	<VolumeControl />
-	<button
-		type="button"
+	<IconButton
+		label="Cola de reproducción"
+		tone="plain"
+		size="xs"
+		pressed={queuePanel.open}
 		onclick={() => queuePanel.toggle()}
-		aria-pressed={queuePanel.open}
-		aria-label="Cola de reproducción"
-		class="transition-colors hover:text-fg {queuePanel.open ? 'text-fg' : 'text-fg-2'}"
 	>
-		<ListMusic class="h-4 w-4" strokeWidth={1.8} />
-	</button>
+		<ListMusic class="size-icon-sm" strokeWidth={1.8} />
+	</IconButton>
 </div>

@@ -6,6 +6,7 @@
 	import MenuItem from './ui/MenuItem.svelte';
 	import AccountMenu from './ui/AccountMenu.svelte';
 	import Avatar from './ui/Avatar.svelte';
+	import IconButton from './ui/IconButton.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -50,14 +51,9 @@
 				{/snippet}
 			</AccountMenu>
 		{:else}
-			<a
-				href="/auth/login"
-				data-sveltekit-reload
-				aria-label="Iniciar sesión"
-				class="flex items-center rounded-full p-1.5 text-fg-3 transition hover:bg-hover hover:text-fg"
-			>
-				<LogIn class="h-6 w-6" strokeWidth={2} />
-			</a>
+			<IconButton href="/auth/login" reload label="Iniciar sesión" shape="round" size="md">
+				<LogIn class="size-icon-lg" strokeWidth={2} />
+			</IconButton>
 		{/if}
 	</div>
 </header>

@@ -4,6 +4,7 @@
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import Heart from '@lucide/svelte/icons/heart';
 
 	interface Props {
@@ -52,14 +53,14 @@
 		/>
 	</div>
 	{#if !compact}
-		<button
-			type="button"
+		<IconButton
+			label={isLiked ? 'Quitar de Me gusta' : 'Añadir a Me gusta'}
+			tone="plain"
+			size="xs"
+			pressed={isLiked}
 			onclick={toggleLike}
-			aria-label={isLiked ? 'Quitar de Me gusta' : 'Añadir a Me gusta'}
-			aria-pressed={isLiked}
-			class="shrink-0 transition hover:opacity-80 {isLiked ? 'text-accent' : 'text-fg-3'}"
 		>
-			<Heart class="h-4 w-4" fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.7} />
-		</button>
+			<Heart class="size-icon-md" fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.7} />
+		</IconButton>
 	{/if}
 </div>

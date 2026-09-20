@@ -24,10 +24,10 @@
 <a
 	href={target.url}
 	{onclick}
-	class="group inline-flex items-center text-fg-3 transition-colors hover:text-accent-soft"
+	class="inline-flex items-center text-fg-3 transition-colors hover:text-accent-soft"
 >
-	<span class="grid h-8 w-8 place-items-center transition-colors group-hover:text-accent-soft">
-		<ArrowLeft class="h-4 w-4" />
+	<span class="grid size-8 place-items-center">
+		<ArrowLeft class="size-icon-sm" />
 	</span>
 	{target.label}
 </a>

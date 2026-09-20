@@ -776,7 +776,7 @@ Tareas:
 | P1    | ✅     | (pendiente) | Verificado con `build` (Tailwind compila `@apply sm:` dentro de `@utility`); sin QA visual autenticada (Docker no disponible en esta sesión) |
 | P2    | ✅     | (pendiente) | `<style>{expr}</style>` no interpola en Svelte (se trata como CSS del componente); solución: `{@html \`<style>${css}</style>\`}` |
 | P3    | ✅     | (pendiente) | Se quitó el nombre bajo el avatar de perfil (decisión tomada: redundante con el título de CollectionHeader). Se añadió `size="fill"` a Artwork (no está en la spec) para las tarjetas de grid fluidas (AlbumCard/PlaylistCard/MixTile), ya que P9 (MediaCard) aún no existe. SearchResultRow perdió su prop `kind`/radio-por-tipo (ahora el radio lo decide Artwork/Avatar). Sin QA visual autenticada (Docker no disponible) |
-| P4    | ⬜     |        |                            |
+| P4    | ✅     | (pendiente) | Decisión tomada sin bloquear: se elimina el botón "adelante" decorativo (TopBar) y el icono `AlignJustify` decorativo (PlayerExtras) por ser código muerto visual. `TransportControls` (shuffle/prev/next/repeat) se deja sin migrar a IconButton a propósito: son iconos sin chrome (sin fondo/hit-box), migrarlos habría añadido una píldora de hover no presente hoy — riesgo visual no verificable sin Docker |
 | P5    | ⬜     |        |                            |
 | P6    | ⬜     |        |                            |
 | P7    | ⬜     |        |                            |

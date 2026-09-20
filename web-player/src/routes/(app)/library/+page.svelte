@@ -84,7 +84,7 @@
 								update()}
 					>
 						<input type="hidden" name="trackId" value={track.id} />
-						<IconButton type="submit" label="Borrar canción" size="sm" revealOnHover>
+						<IconButton type="submit" label="Borrar canción" size="xs" revealOnHover>
 							<X class="h-3.5 w-3.5" />
 						</IconButton>
 					</form>

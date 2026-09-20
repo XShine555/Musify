@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Play from '@lucide/svelte/icons/play';
 	import Artwork from './Artwork.svelte';
+	import PlayButton from './PlayButton.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queueItemForTarget } from '$lib/tracks';
 	import { mixItemTarget, type Mix } from '$lib/mixes';
@@ -36,14 +36,13 @@
 		<div
 			class="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent from-45% to-scrim/40"
 		></div>
-		<button
-			type="button"
+		<PlayButton
+			variant="glass"
+			size="sm"
 			onclick={play}
-			aria-label="Reproducir {mix.title}"
-			class="absolute right-2.5 bottom-2.5 grid h-9.5 w-9.5 place-items-center rounded-full border border-on-art/12 bg-ink/76 text-fg opacity-0 backdrop-blur transition-opacity duration-150 group-hover/tile:opacity-100"
-		>
-			<Play class="h-3.5 w-3.5" fill="currentColor" />
-		</button>
+			label="Reproducir {mix.title}"
+			class="absolute right-2.5 bottom-2.5 opacity-0 transition-opacity duration-150 group-hover/tile:opacity-100"
+		/>
 	</Artwork>
 	<div class="mt-3.25 truncate text-sm font-semibold text-fg">
 		{mix.title}

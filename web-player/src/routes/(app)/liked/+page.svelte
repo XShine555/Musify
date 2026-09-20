@@ -98,7 +98,7 @@
 					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 					<IconButton
 						label="Quitar de Me gusta"
-						size="sm"
+						size="xs"
 						revealOnHover
 						onclick={() => liked.toggle(track)}
 					>

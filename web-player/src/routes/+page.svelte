@@ -150,18 +150,12 @@
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
 					{#if spotlight}
-						<Button
-							variant="accent"
-							class="!bg-cta-strong !text-ink hover:!brightness-95"
-							onclick={playSpotlight}
-						>
+						<Button variant="strong" onclick={playSpotlight}>
 							{heroPlaying ? 'Pausar' : 'Reanudar'}
 							{spotlight.name}
 						</Button>
 					{/if}
-					<Button href="/explore" variant="secondaryOnGlow" class="!font-normal"
-						>Explorar música</Button
-					>
+					<Button href="/explore" variant="glass">Explorar música</Button>
 				</div>
 			</div>
 
@@ -274,7 +268,7 @@
 					</p>
 					<div class="mt-5 flex gap-2.5">
 						<Button variant="accent" onclick={playSpotlight}>Reproducir</Button>
-						<Button variant="secondaryOnGlow" onclick={shuffleSpotlight}>Aleatorio</Button>
+						<Button variant="glass" onclick={shuffleSpotlight}>Aleatorio</Button>
 					</div>
 				</div>
 				<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">

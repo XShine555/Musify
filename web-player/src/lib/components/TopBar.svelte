@@ -6,9 +6,10 @@
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import AccountMenu from './ui/AccountMenu.svelte';
 	import Avatar from './ui/Avatar.svelte';
+	import IconButton from './ui/IconButton.svelte';
+	import Button from './ui/Button.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -56,24 +57,18 @@
 </script>
 
 <header class="hidden items-center gap-3.5 px-6.5 pt-4 pb-3 sm:flex">
-	<div class="flex shrink-0 gap-1.5">
-		<button
-			type="button"
-			onclick={() => history.back()}
-			aria-label="Atrás"
-			class="grid h-7.5 w-7.5 place-items-center rounded-full bg-surface-2 text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg"
-		>
-			<ChevronLeft class="h-3.75 w-3.75" strokeWidth={1.9} />
-		</button>
-		<span
-			aria-hidden="true"
-			class="grid h-7.5 w-7.5 place-items-center rounded-full bg-surface-2 text-muted"
-		>
-			<ChevronRight class="h-3.75 w-3.75" strokeWidth={1.9} />
-		</span>
-	</div>
+	<IconButton
+		label="Atrás"
+		shape="round"
+		tone="subtle"
+		surface
+		size="xs"
+		onclick={() => history.back()}
+	>
+		<ChevronLeft class="size-icon-sm" strokeWidth={1.9} />
+	</IconButton>
 
-	<form onsubmit={onSubmit} class="max-w-120 min-w-0 flex-1">
+	<form onsubmit={onSubmit} class="max-w-search min-w-0 flex-1">
 		<label
 			class="flex h-9.5 w-full items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
 		>
@@ -126,13 +121,9 @@
 				{/snippet}
 			</AccountMenu>
 		{:else}
-			<a
-				href="/auth/login"
-				data-sveltekit-reload
-				class="shrink-0 rounded-full bg-accent-soft px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110"
+			<Button href="/auth/login" reload variant="accent" size="sm" class="shrink-0"
+				>Iniciar sesión</Button
 			>
-				Iniciar sesión
-			</a>
 		{/if}
 	</div>
 </header>

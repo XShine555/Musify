@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
+	import PlayButton from '$lib/components/ui/PlayButton.svelte';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import Repeat from '@lucide/svelte/icons/repeat';
 
@@ -36,23 +37,11 @@
 		</svg>
 	</button>
 
-	<button
-		type="button"
+	<PlayButton
+		playing={player.playing}
 		onclick={() => player.toggle()}
-		aria-label={player.playing ? 'Pausar' : 'Reproducir'}
-		class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cta-strong text-ink transition duration-150 hover:brightness-95"
-	>
-		{#if player.playing}
-			<svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
-				<rect x="3" y="1" width="3" height="13" rx="1" />
-				<rect x="9" y="1" width="3" height="13" rx="1" />
-			</svg>
-		{:else}
-			<svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
-				<path d="M3 1.5v12l10-6z" />
-			</svg>
-		{/if}
-	</button>
+		label={player.playing ? 'Pausar' : 'Reproducir'}
+	/>
 
 	<button type="button" onclick={() => player.next()} aria-label="Siguiente" class={sideClass}>
 		<svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor">

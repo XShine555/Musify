@@ -5,6 +5,7 @@
 	import { createPlaylistModal } from '$lib/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
 	import Artwork from './ui/Artwork.svelte';
+	import IconButton from './ui/IconButton.svelte';
 	import Home from '@lucide/svelte/icons/house';
 	import Compass from '@lucide/svelte/icons/compass';
 	import ListMusic from '@lucide/svelte/icons/list-music';
@@ -77,14 +78,14 @@
 		<div class="flex items-center justify-between px-3 pb-1.5">
 			<span class="text-xs font-medium tracking-widest text-muted uppercase">Tus playlists</span>
 			{#if playlists.length > 0}
-				<button
-					type="button"
+				<IconButton
+					label="Crear playlist"
+					tone="plain"
+					size="xs"
 					onclick={() => createPlaylistModal.show()}
-					aria-label="Crear playlist"
-					class="text-muted transition-colors hover:text-fg"
 				>
-					<Plus class="h-3.5 w-3.5" strokeWidth={1.25} />
-				</button>
+					<Plus class="size-icon-sm" strokeWidth={1.25} />
+				</IconButton>
 			{/if}
 		</div>
 

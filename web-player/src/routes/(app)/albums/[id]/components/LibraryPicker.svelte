@@ -55,7 +55,7 @@
 							update()}
 				>
 					<input type="hidden" name="trackId" value={track.id} />
-					<IconButton type="submit" label="Añadir al álbum" size="sm" revealOnHover>
+					<IconButton type="submit" label="Añadir al álbum" size="xs" revealOnHover>
 						<Plus class="h-3.5 w-3.5" />
 					</IconButton>
 				</form>
