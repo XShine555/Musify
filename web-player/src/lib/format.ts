@@ -26,3 +26,16 @@ export function fmtPlays(count: number | string | undefined): string {
 	const value = Math.max(0, Math.floor(Number(count ?? 0)));
 	return plural(value, 'reproducción', 'reproducciones');
 }
+
+export function albumMeta(releaseYear?: number, trackCount?: number): string {
+	return [
+		releaseYear ? String(releaseYear) : undefined,
+		trackCount === undefined ? undefined : plural(trackCount, 'canción', 'canciones')
+	]
+		.filter((part): part is string => !!part)
+		.join(' · ');
+}
+
+export function playlistMeta(trackCount: number): string {
+	return plural(trackCount, 'canción', 'canciones');
+}

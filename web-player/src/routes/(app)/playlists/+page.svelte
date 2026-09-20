@@ -2,12 +2,11 @@
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
-	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
+	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { createPlaylistModal } from '$lib/playlists.svelte';
-	import { fmtDurationLong, plural } from '$lib/format';
+	import { fmtDurationLong, plural, playlistMeta } from '$lib/format';
 
 	let { data } = $props();
 
@@ -36,18 +35,20 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<MediaGrid min="210px" minMobile="180px" class="mt-7 sm:mt-8">
+		<div class="mt-7 grid-cards-lg sm:mt-8">
 			{#each items as playlist, i (playlist.id)}
-				<PlaylistCard
-					id={playlist.id}
-					name={playlist.name}
-					trackCount={playlist.trackCount}
+				<MediaCard
+					href="/playlists/{playlist.id}"
+					title={playlist.name}
+					subtitle={playlistMeta(Number(playlist.trackCount))}
 					trackIds={playlist.coverTrackIds}
-					updatedAt={playlist.updatedAt}
+					src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
+						playlist.updatedAt
+					)}"
 					index={i}
 				/>
 			{/each}
-		</MediaGrid>
+		</div>
 	{:else}
 		<EmptyState
 			icon={ListMusic}

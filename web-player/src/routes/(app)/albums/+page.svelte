@@ -3,12 +3,12 @@
 	import Disc from '@lucide/svelte/icons/disc-3';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
-	import AlbumCard from '$lib/components/ui/AlbumCard.svelte';
+	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 	import AlbumForm from '$lib/components/ui/AlbumForm.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { albumMeta } from '$lib/format';
 
 	let { data, form } = $props();
 
@@ -35,19 +35,21 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<MediaGrid class="mt-7 sm:mt-8">
+		<div class="mt-7 grid-cards sm:mt-8">
 			{#each items as album, i (album.id)}
-				<AlbumCard
-					id={album.id}
+				<MediaCard
+					href="/albums/{album.id}"
 					title={album.title}
-					releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
-					trackCount={Number(album.trackCount)}
+					subtitle={albumMeta(
+						album.releaseYear === null ? undefined : Number(album.releaseYear),
+						Number(album.trackCount)
+					)}
 					trackIds={album.coverTrackIds}
-					coverSrc="/api/albums/{album.id}/cover?size=large"
+					src="/api/albums/{album.id}/cover?size=large"
 					index={i}
 				/>
 			{/each}
-		</MediaGrid>
+		</div>
 	{:else}
 		<EmptyState
 			icon={Disc}

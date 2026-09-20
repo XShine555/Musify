@@ -196,6 +196,13 @@
 		--mf-dock-h: var(--mf-player-h);
 	}
 }
+@utility genre-tile {
+	background: linear-gradient(
+		140deg,
+		oklch(var(--mf-tile-l) var(--mf-tile-c) var(--tile-hue)),
+		oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) var(--tile-hue))
+	);
+}
 
 @layer base {
 	svg.lucide {

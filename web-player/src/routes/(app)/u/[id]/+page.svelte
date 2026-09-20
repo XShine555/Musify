@@ -3,13 +3,13 @@
 	import { enhance } from '$app/forms';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Page from '$lib/components/ui/Page.svelte';
-	import MediaGrid from '$lib/components/ui/MediaGrid.svelte';
-	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
+	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import { plural, playlistMeta } from '$lib/format';
 
 	let { data, form } = $props();
 
@@ -58,9 +58,11 @@
 	<CollectionHeader
 		eyebrow="Perfil"
 		title={profile.name}
-		meta="{profile.followersCount} {profile.followersCount === 1
-			? 'seguidor'
-			: 'seguidores'} · {profile.followingCount} siguiendo"
+		meta="{plural(
+			Number(profile.followersCount),
+			'seguidor',
+			'seguidores'
+		)} · {profile.followingCount} siguiendo"
 		align="center"
 		actions={canFollow ? followAction : undefined}
 	>
@@ -73,18 +75,20 @@
 		<SectionHeading title="Playlists públicas" subtitle="Creadas y compartidas por este usuario" />
 
 		{#if playlists.length > 0}
-			<MediaGrid min="210px" minMobile="180px" class="mt-6">
+			<div class="mt-6 grid-cards-lg">
 				{#each playlists as playlist, i (playlist.id)}
-					<PlaylistCard
-						id={playlist.id}
-						name={playlist.name}
-						trackCount={playlist.trackCount}
+					<MediaCard
+						href="/playlists/{playlist.id}"
+						title={playlist.name}
+						subtitle={playlistMeta(Number(playlist.trackCount))}
 						trackIds={playlist.coverTrackIds}
-						updatedAt={playlist.updatedAt}
+						src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
+							playlist.updatedAt
+						)}"
 						index={i}
 					/>
 				{/each}
-			</MediaGrid>
+			</div>
 		{:else}
 			<EmptyState
 				icon={ListMusic}

@@ -378,13 +378,12 @@
 
 	{#if !data.query}
 		<!-- GÉNEROS -->
-		<div class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(268px,1fr))] gap-3.5">
+		<div class="mt-7 grid-wide">
 			{#each genreTiles as genre, i (genre.query)}
 				<a
 					href={searchHref(genre.query)}
-					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-110"
-					style="animation-delay:{Math.min(i, 10) *
-						40}ms; background:linear-gradient(140deg, oklch(var(--mf-tile-l) var(--mf-tile-c) {genre.hue}), oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) {genre.hue}))"
+					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-panel p-4.25 transition-[filter] genre-tile hover:brightness-110"
+					style="--i:{i}; --tile-hue:{genre.hue}"
 				>
 					<div class="text-on-art">
 						{genre.label}

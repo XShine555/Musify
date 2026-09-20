@@ -6,6 +6,7 @@
 	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
 	import { pressable } from '$lib/actions/pressable';
 	import { mergeRecentlyPlayed } from '$lib/recentlyPlayed';
+	import { mixItemTarget } from '$lib/mixes';
 	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/format';
 	import {
 		isTargetCurrent,
@@ -20,7 +21,7 @@
 		type TrackTarget
 	} from '$lib/tracks';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import MixTile from '$lib/components/ui/MixTile.svelte';
+	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 	import EqBars from '$lib/components/ui/EqBars.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
@@ -106,6 +107,14 @@
 
 	function openContextMenu(event: MouseEvent, target: TrackTarget) {
 		trackMenu.open(event, target);
+	}
+
+	function playMix(mix: (typeof mixes)[number], event: MouseEvent) {
+		event.preventDefault();
+		player.playQueue(
+			mix.items.map((item) => queueItemForTarget(mixItemTarget(item))),
+			0
+		);
 	}
 </script>
 
@@ -274,9 +283,16 @@
 	<section>
 		<SectionHeading title="Mixes" subtitle="Generados a partir de lo que más repites" />
 		{#if mixes.length > 0}
-			<div class="grid grid-cols-[repeat(auto-fill,minmax(164px,1fr))] gap-5">
+			<div class="grid-tiles">
 				{#each mixes as mix, i (mix.id)}
-					<MixTile {mix} index={i} />
+					<MediaCard
+						href="/mixes/{mix.id}"
+						title={mix.title}
+						subtitle={mix.subtitle}
+						trackIds={mix.items.map((item) => item.trackId)}
+						onPlay={(event) => playMix(mix, event)}
+						index={i}
+					/>
 				{/each}
 			</div>
 		{:else}
@@ -351,7 +367,7 @@
 			{/snippet}
 		</SectionHeading>
 		{#if playlists.length > 0}
-			<div class="grid grid-cols-[repeat(auto-fill,minmax(258px,1fr))] gap-3.5">
+			<div class="grid-wide">
 				{#each playlists as playlist, i (playlist.id)}
 					<ListRow
 						onclick={() => goto(`/playlists/${playlist.id}`)}
