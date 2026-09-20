@@ -13,6 +13,7 @@
 	import PlayButton from '$lib/components/ui/PlayButton.svelte';
 	import EqBars from '$lib/components/ui/EqBars.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
+	import Chip from '$lib/components/ui/Chip.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
 	import { searchHref } from '$lib/navigation.svelte';
@@ -262,19 +263,13 @@
 
 		<div class="mb-7 flex flex-wrap gap-1.75 sm:mb-8">
 			{#each searchChips as chip (chip.label)}
-				<button
-					type="button"
+				<Chip
+					selected={sfilter === chip.label}
+					count={chip.count}
 					onclick={() => (sfilter = chip.label)}
-					class="flex items-center gap-1.75 rounded-full px-3.5 py-1.75 text-xs font-medium transition {sfilter ===
-					chip.label
-						? 'bg-cta-strong text-ink'
-						: 'bg-surface-2 text-fg-2 hover:bg-surface-hover hover:text-fg'}"
 				>
-					<span>{chip.label}</span>
-					<span class="text-xs tabular-nums {sfilter === chip.label ? 'opacity-55' : 'text-muted'}"
-						>{chip.count}</span
-					>
-				</button>
+					{chip.label}
+				</Chip>
 			{/each}
 		</div>
 
@@ -361,12 +356,7 @@
 			</p>
 			<div class="mt-5.5 flex flex-wrap justify-center gap-2">
 				{#each genreTiles.slice(0, 4) as genre (genre.query)}
-					<a
-						href={searchHref(genre.query)}
-						class="rounded-full border border-line-strong px-3.5 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg"
-					>
-						{genre.label}
-					</a>
+					<Chip href={searchHref(genre.query)}>{genre.label}</Chip>
 				{/each}
 			</div>
 		</div>

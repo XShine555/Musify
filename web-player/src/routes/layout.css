@@ -203,6 +203,9 @@
 		oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) var(--tile-hue))
 	);
 }
+@utility field-control {
+	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-muted focus:bg-surface-2 focus:outline-none;
+}
 
 @layer base {
 	svg.lucide {

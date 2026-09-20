@@ -7,6 +7,7 @@
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Surface from '$lib/components/ui/Surface.svelte';
+	import ImageDropzone from '$lib/components/ui/ImageDropzone.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -21,7 +22,8 @@
 	let title = $state('');
 	let audioName = $state('');
 	let audioSize = $state(0);
-	let coverPreview = $state('');
+	let hasCover = $state(false);
+	let coverResetToken = $state(0);
 	let dragging = $state(false);
 	let status = $state<Status>('idle');
 	let acceptedTerms = $state(false);
@@ -38,7 +40,7 @@
 	const busy = $derived(status === 'uploading');
 
 	const canPublish = $derived(
-		title.trim() !== '' && audioName !== '' && coverPreview !== '' && acceptedTerms && !busy
+		title.trim() !== '' && audioName !== '' && hasCover && acceptedTerms && !busy
 	);
 
 	const stepStates = $derived.by<StepState[]>(() => {
@@ -79,16 +81,12 @@
 		pickAudio(file);
 	}
 
-	function onCoverInput(event: Event) {
-		const file = (event.currentTarget as HTMLInputElement).files?.[0];
-		if (file) coverPreview = URL.createObjectURL(file);
-	}
-
 	function reset() {
 		title = '';
 		audioName = '';
 		audioSize = 0;
-		coverPreview = '';
+		hasCover = false;
+		coverResetToken += 1;
 		status = 'idle';
 		acceptedTerms = false;
 		errorMsg = '';
@@ -213,24 +211,15 @@
 
 			<div class="grid items-start gap-6 sm:grid-cols-[auto_1fr] sm:gap-8">
 				<Field label="Portada">
-					<label
-						class="relative grid h-36 w-36 cursor-pointer place-items-center overflow-hidden rounded-control transition sm:h-44 sm:w-44"
-						style={coverPreview === '' ? 'background:var(--mf-cover-grad)' : undefined}
-					>
-						<input
-							type="file"
+					{#key coverResetToken}
+						<ImageDropzone
 							name="cover"
-							accept="image/*"
-							onchange={onCoverInput}
-							class="absolute inset-0 cursor-pointer opacity-0"
-							aria-label="Seleccionar portada"
+							icon={ImageIcon}
+							gradient
+							size="hero"
+							onselect={() => (hasCover = true)}
 						/>
-						{#if coverPreview !== ''}
-							<img src={coverPreview} alt="Portada" class="h-full w-full object-cover" />
-						{:else}
-							<ImageIcon class="h-16 w-16 text-on-art/60" strokeWidth={1} />
-						{/if}
-					</label>
+					{/key}
 				</Field>
 
 				<Field label="Título" for="title">

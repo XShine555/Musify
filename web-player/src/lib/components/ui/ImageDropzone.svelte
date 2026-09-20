@@ -8,6 +8,8 @@
 		required?: boolean;
 		icon?: LucideIcon;
 		gradient?: boolean;
+		size?: 'default' | 'hero';
+		onselect?: (file: File) => void;
 		class?: string;
 	}
 
@@ -17,8 +19,15 @@
 		required = false,
 		icon: Icon = ImageIcon,
 		gradient = false,
-		class: klass = 'h-40 w-40 sm:h-52 sm:w-52 rounded-control'
+		size = 'default',
+		onselect,
+		class: klass = ''
 	}: Props = $props();
+
+	const SIZE: Record<'default' | 'hero', string> = {
+		default: 'h-40 w-40 sm:h-52 sm:w-52 rounded-control',
+		hero: 'size-cover-hero rounded-art-lg'
+	};
 
 	let preview = $state('');
 	let fallbackFailed = $state(false);
@@ -27,14 +36,16 @@
 
 	function onInput(event: Event) {
 		const file = (event.currentTarget as HTMLInputElement).files?.[0];
-		if (file) preview = URL.createObjectURL(file);
+		if (!file) return;
+		preview = URL.createObjectURL(file);
+		onselect?.(file);
 	}
 </script>
 
 <label
 	class="relative grid cursor-pointer place-items-center overflow-hidden transition-colors {gradient
 		? ''
-		: 'border border-line bg-surface hover:border-accent/50'} {klass}"
+		: 'border border-line bg-surface hover:border-accent/50'} {SIZE[size]} {klass}"
 	style={gradient && !hasImage ? 'background:var(--mf-cover-grad)' : undefined}
 >
 	<input
@@ -57,6 +68,6 @@
 			class="h-full w-full object-cover"
 		/>
 	{:else}
-		<Icon class="h-9 w-9 {gradient ? 'text-on-art/70' : 'text-muted'}" strokeWidth={1.3} />
+		<Icon class="size-icon-xl {gradient ? 'text-on-art/70' : 'text-muted'}" strokeWidth={1.3} />
 	{/if}
 </label>

@@ -37,7 +37,7 @@
 <div class="relative w-full">
 	{#if Icon}
 		<span class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-muted">
-			<Icon class="h-5 w-5" />
+			<Icon class="size-icon-lg" />
 		</span>
 	{/if}
 	<input
@@ -52,8 +52,6 @@
 		{autocomplete}
 		{oninput}
 		bind:value
-		class="w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-muted focus:bg-surface-2 focus:outline-none {Icon
-			? 'pr-4 pl-11'
-			: 'px-4'} {klass}"
+		class="field-control {Icon ? 'pr-4 pl-11' : 'px-4'} {klass}"
 	/>
 </div>
