@@ -772,7 +772,7 @@ Tareas:
 
 | Parte | Estado | Commit | Notas / decisiones tomadas |
 | ----- | ------ | ------ | -------------------------- |
-| P0    | ⬜     |        |                            |
+| P0    | ✅     | (pendiente) | Button primary/secondary se mantienen iguales (decisión del usuario) |
 | P1    | ⬜     |        |                            |
 | P2    | ⬜     |        |                            |
 | P3    | ⬜     |        |                            |

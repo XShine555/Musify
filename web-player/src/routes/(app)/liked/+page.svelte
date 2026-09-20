@@ -1,7 +1,5 @@
 <script lang="ts">
 	import Heart from '@lucide/svelte/icons/heart';
-	import Play from '@lucide/svelte/icons/play';
-	import Pause from '@lucide/svelte/icons/pause';
 	import X from '@lucide/svelte/icons/x';
 	import { player, type QueueItem } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';

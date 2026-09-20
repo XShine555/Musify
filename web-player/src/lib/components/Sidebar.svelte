@@ -81,7 +81,7 @@
 					type="button"
 					onclick={() => createPlaylistModal.show()}
 					aria-label="Crear playlist"
-					class="text-base text-muted transition-colors hover:text-fg"
+					class="text-muted transition-colors hover:text-fg"
 				>
 					<Plus class="h-3.5 w-3.5" strokeWidth={1.25} />
 				</button>

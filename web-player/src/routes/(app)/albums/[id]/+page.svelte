@@ -79,7 +79,7 @@
 	<h2 class="text-lg font-semibold tracking-tight text-fg">
 		¿Eliminar «{album.title}»?
 	</h2>
-	<p class="mt-2 text-base text-fg-3">
+	<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
 		Esta acción no se puede deshacer. Las canciones que contiene seguirán en tu biblioteca.
 	</p>
 	<div class="mt-6 flex items-center justify-end gap-3">

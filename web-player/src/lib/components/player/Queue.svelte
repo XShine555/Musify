@@ -26,7 +26,7 @@
 				type="button"
 				onclick={() => queuePanel.close()}
 				aria-label="Cerrar cola"
-				class="text-base text-fg-3 transition-colors hover:text-fg"
+				class="text-fg-3 transition-colors hover:text-fg"
 			>
 				<X class="h-4 w-4" />
 			</button>

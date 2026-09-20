@@ -286,11 +286,11 @@
 								e.preventDefault();
 								playSpotlightTrack(i);
 							}}
-							class="flex items-center gap-4 rounded-control p-2 text-left transition-colors hover:bg-hover {isTargetCurrent(
+							class="flex items-center gap-4 rounded-control p-2 text-left transition-colors {isTargetCurrent(
 								target
 							)
 								? 'bg-accent-tint'
-								: ''}"
+								: 'hover:bg-hover'}"
 						>
 							<span class="w-5 shrink-0  text-center text-xs text-muted tabular-nums"
 								>{i + 1}</span

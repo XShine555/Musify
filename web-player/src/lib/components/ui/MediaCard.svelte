@@ -25,7 +25,7 @@
 	{oncontextmenu}
 >
 	{@render art(mediaCardArt)}
-	<div class="mt-2.5 truncate text-fg">{title}</div>
+	<div class="mt-2.5 truncate text-sm text-fg">{title}</div>
 	{#if subtitle}
 		<div class="mt-0.5 truncate text-xs text-fg-3">{subtitle}</div>
 	{/if}
