@@ -168,6 +168,35 @@
 	grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
 }
 
+@utility app-backdrop {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: -10;
+	background-color: var(--mf-bg);
+	background-image: var(--mf-ambient);
+}
+@utility app-vignette {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: -10;
+	background: radial-gradient(
+		130% 85% at 50% 118%,
+		color-mix(in oklch, var(--mf-scrim) 80%, transparent),
+		transparent 62%
+	);
+}
+@utility app-main {
+	--mf-dock-h: 0px;
+	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));
+	transition: padding 0.3s;
+
+	&[data-has-track] {
+		--mf-dock-h: var(--mf-player-h);
+	}
+}
+
 @layer base {
 	svg.lucide {
 		stroke-width: 1.8;

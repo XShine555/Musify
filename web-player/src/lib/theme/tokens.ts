@@ -97,3 +97,9 @@ export function applyThemeTokens(
 ) {
 	for (const [key, value] of Object.entries(tokens)) target.style.setProperty(key, value);
 }
+
+export function tokensToCss(tokens: ThemeTokens): string {
+	return Object.entries(tokens)
+		.map(([key, value]) => `${key}:${value}`)
+		.join(';');
+}

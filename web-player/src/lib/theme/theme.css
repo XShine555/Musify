@@ -1,54 +1,16 @@
 :root {
-	/* Dynamic tokens: overwritten at runtime from the playing track's hue.
-	   These are the fallback values for the default accent (hue 145) so the
-	   page never flashes unstyled before hydration. See theme/tokens.ts. */
-	--mf-bg: oklch(0.068 0.008 145);
-	--mf-elevated: oklch(0.11 0.012 145);
-	--mf-panel-bg: oklch(0.09 0.01 145 / 0.28);
-	--mf-bar-bg: oklch(0.105 0.012 145 / 0.9);
-	--mf-hairline: oklch(0.62 0.03 145 / 0.08);
-	--mf-ambient:
-		radial-gradient(52% 38% at 14% 0%, oklch(0.2611 0.0913 145 / 0.26), transparent 54%),
-		radial-gradient(46% 34% at 78% 0%, oklch(0.2347 0.085 145 / 0.2), transparent 56%);
-	--mf-hero-bg: linear-gradient(
-		105deg,
-		oklch(0.2295 0.0838 145 / 0.34) 0%,
-		oklch(0.1558 0.0663 145 / 0.11) 37%,
-		oklch(0.1084 0.055 145 / 0.03) 65%,
-		rgba(6, 6, 9, 0) 92%
-	);
-	--mf-spotlight-bg: linear-gradient(
-		100deg,
-		oklch(0.2189 0.0813 145 / 0.28) 0%,
-		oklch(0.1453 0.0638 145 / 0.1) 40%,
-		oklch(0.1084 0.055 145 / 0.03) 69%,
-		rgba(6, 6, 9, 0) 96%
-	);
-	--mf-modal-glow: linear-gradient(
-		135deg,
-		oklch(0.2295 0.0838 145 / 0.34) 0%,
-		oklch(0.1558 0.0663 145 / 0.11) 28%,
-		oklch(0.1084 0.055 145 / 0.03) 50%,
-		rgba(6, 6, 9, 0) 70%
-	);
-	--mf-logo-grad: linear-gradient(140deg, oklch(0.78 0.15 145), oklch(0.62 0.13 185) 92%);
-	--mf-cover-grad: linear-gradient(150deg, oklch(0.5 0.13 145), oklch(0.16 0.035 145));
+	/* Hue-based tokens (--mf-accent*, --mf-bg/elevated/panel-bg/bar-bg/hairline,
+	   --mf-ambient, --mf-hero-bg/spotlight-bg/modal-glow, --mf-logo-grad,
+	   --mf-cover-grad) are NOT defined here: they come only from
+	   buildThemeTokens() in theme/tokens.ts, inlined as SSR <style> by
+	   +layout.svelte and reapplied on every hue change. A duplicate default
+	   here could never be overridden by a light-mode selector (see A.2). */
 	--mf-liked-grad: linear-gradient(150deg, oklch(0.4 0.09 330), oklch(0.18 0.04 10));
+	--mf-accent-dim: color-mix(in oklch, var(--mf-accent) 22%, transparent);
 	--mf-tile-l: 0.34;
 	--mf-tile-c: 0.1;
 	--mf-tile-shade-l: 0.14;
 	--mf-tile-shade-c: 0.035;
-
-	--mf-accent: oklch(0.74 0.145 145);
-	--mf-accent-title: oklch(0.87 0.07 145);
-	--mf-accent-muted: oklch(0.79 0.035 145);
-	--mf-accent-soft-bg: oklch(0.74 0.145 145 / 0.08);
-	--mf-accent-line: oklch(0.74 0.145 145 / 0.2);
-	--mf-accent-hair: oklch(0.74 0.145 145 / 0.09);
-	--mf-accent-btn-bg: oklch(0.74 0.145 145 / 0.15);
-	--mf-accent-btn-bg-hover: oklch(0.74 0.145 145 / 0.24);
-	--mf-accent-glow: color-mix(in oklch, var(--mf-accent) 45%, transparent);
-	--mf-accent-dim: color-mix(in oklch, var(--mf-accent) 22%, transparent);
 
 	/* Fixed neutrals: deliberately hue-less, so only the accent carries color. */
 	--mf-text: #d9d8dc;
@@ -124,12 +86,6 @@
    palette. Components that reference these tokens re-theme correctly;
    components hardcoding literal dark-mode hex colors do not. */
 :root[data-theme='light'] {
-	--mf-bg: oklch(0.97 0.006 90);
-	--mf-elevated: oklch(0.99 0.003 90);
-	--mf-panel-bg: oklch(0.97 0.006 90 / 0.7);
-	--mf-bar-bg: oklch(0.97 0.006 90 / 0.9);
-	--mf-hairline: rgba(0, 0, 0, 0.08);
-
 	--mf-text: #17171a;
 	--mf-text-2: #4a4a4e;
 	--mf-text-3: #6b6b6f;
@@ -159,19 +115,4 @@
 	--mf-tile-shade-l: 0.42;
 	--mf-tile-shade-c: 0.05;
 	--mf-liked-grad: linear-gradient(150deg, oklch(0.62 0.12 330), oklch(0.46 0.08 10));
-
-	--mf-ambient: none;
-	--mf-hero-bg: linear-gradient(oklch(0.789 0.0926 145 / 0.16), oklch(0.789 0.0926 145 / 0.16));
-	--mf-spotlight-bg: linear-gradient(
-		oklch(0.789 0.0926 145 / 0.16),
-		oklch(0.789 0.0926 145 / 0.16)
-	);
-	--mf-modal-glow: linear-gradient(
-		135deg,
-		oklch(0.7531 0.1172 145 / 0.34) 0%,
-		oklch(0.789 0.0926 145 / 0.2) 30%,
-		oklch(0.8303 0.0641 145 / 0.1) 55%,
-		oklch(0.8717 0.0357 145 / 0.04) 80%,
-		oklch(0.88 0.03 145 / 0.02) 100%
-	);
 }

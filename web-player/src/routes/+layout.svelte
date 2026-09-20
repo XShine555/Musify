@@ -16,7 +16,7 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { createPlaylistModal } from '$lib/playlists.svelte';
 	import { ACCENT_HUE } from '$lib/theme/color';
-	import { buildThemeTokens, applyThemeTokens } from '$lib/theme/tokens';
+	import { buildThemeTokens, applyThemeTokens, tokensToCss } from '$lib/theme/tokens';
 	import { themeMode } from '$lib/theme/mode.svelte';
 	import { trackNavigation } from '$lib/navigation.svelte';
 	import { page } from '$app/state';
@@ -31,6 +31,8 @@
 
 	const isAuthPage = $derived(page.url.pathname === '/login');
 	const hasTrack = $derived(player.currentId !== null);
+
+	const initialThemeCss = `:root{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'dark'))}}:root[data-theme='light']{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'light'))}}`;
 
 	let hadTrack = false;
 	$effect(() => {
@@ -83,7 +85,10 @@
 
 <svelte:window onkeydown={onWindowKeydown} />
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={favicon} />
+	{@html `<style>${initialThemeCss}</style>`}
+</svelte:head>
 
 {#if isAuthPage || (!data.user && !data.allowAnonymousListening)}
 	<div class="min-h-screen bg-bg text-fg antialiased">
@@ -91,14 +96,8 @@
 	</div>
 {:else}
 	<div class="relative flex min-h-screen text-fg antialiased">
-		<div
-			class="pointer-events-none fixed inset-0 -z-10 bg-bg"
-			style="background-image:var(--mf-ambient)"
-		></div>
-		<div
-			class="pointer-events-none fixed inset-0 -z-10"
-			style="background:radial-gradient(130% 85% at 50% 118%, color-mix(in oklch, var(--mf-scrim) 80%, transparent), transparent 62%)"
-		></div>
+		<div class="app-backdrop"></div>
+		<div class="app-vignette"></div>
 
 		<Sidebar user={data.user} playlists={data.sidebarPlaylists ?? []} />
 
@@ -106,12 +105,7 @@
 			<div class="flex min-w-0 flex-1 flex-col">
 				<MobileHeader user={data.user} accountUrl={data.accountUrl} />
 				<TopBar user={data.user} accountUrl={data.accountUrl} />
-				<main
-					class="flex-1 transition-[padding]"
-					style="padding-bottom:calc(var(--mf-nav-h) + var(--mf-safe-b) + {hasTrack
-						? 'var(--mf-player-h)'
-						: '0px'})"
-				>
+				<main class="flex-1 app-main" data-has-track={hasTrack ? '' : undefined}>
 					{#key page.url.pathname}
 						<div class="animate-fade">{@render children()}</div>
 					{/key}

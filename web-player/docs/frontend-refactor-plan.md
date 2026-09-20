@@ -774,7 +774,7 @@ Tareas:
 | ----- | ------ | ------ | -------------------------- |
 | P0    | ✅     | (pendiente) | Button primary/secondary se mantienen iguales (decisión del usuario) |
 | P1    | ✅     | (pendiente) | Verificado con `build` (Tailwind compila `@apply sm:` dentro de `@utility`); sin QA visual autenticada (Docker no disponible en esta sesión) |
-| P2    | ⬜     |        |                            |
+| P2    | ✅     | (pendiente) | `<style>{expr}</style>` no interpola en Svelte (se trata como CSS del componente); solución: `{@html \`<style>${css}</style>\`}` |
 | P3    | ⬜     |        |                            |
 | P4    | ⬜     |        |                            |
 | P5    | ⬜     |        |                            |
