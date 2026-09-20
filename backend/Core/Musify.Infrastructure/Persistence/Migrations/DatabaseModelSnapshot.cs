@@ -18,7 +18,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "genre", new[] { "ambient", "blues", "classical", "country", "drum_and_bass", "dubstep", "electronic", "folk", "funk", "hip_hop", "house", "indie", "jazz", "k_pop", "latin", "lofi", "metal", "pop", "punk", "reggae", "reggaeton", "rn_b", "rock", "soul", "techno", "trance" });
@@ -68,7 +68,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState");
+                    b.ToTable("InboxState", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -159,7 +159,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("OutboxMessage");
+                    b.ToTable("OutboxMessage", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -189,7 +189,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState");
+                    b.ToTable("OutboxState", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Album", b =>
@@ -231,7 +231,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OwnerUserId");
 
-                    b.ToTable("Albums");
+                    b.ToTable("Albums", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.AlbumHasTrack", b =>
@@ -259,7 +259,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasIndex("AlbumId", "TrackId")
                         .IsUnique();
 
-                    b.ToTable("AlbumHasTrack");
+                    b.ToTable("AlbumHasTrack", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.ListeningHistory", b =>
@@ -283,7 +283,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ListeningHistory");
+                    b.ToTable("ListeningHistory", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Mix", b =>
@@ -317,7 +317,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId", "Position");
 
-                    b.ToTable("Mixes");
+                    b.ToTable("Mixes", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.MixItem", b =>
@@ -341,7 +341,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MixId", "Position");
 
-                    b.ToTable("MixItems");
+                    b.ToTable("MixItems", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.PlayList", b =>
@@ -385,7 +385,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PlayLists");
+                    b.ToTable("PlayLists", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.PlayListHasTrack", b =>
@@ -412,7 +412,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TrackId");
 
-                    b.ToTable("PlayListHasTrack");
+                    b.ToTable("PlayListHasTrack", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Track", b =>
@@ -450,7 +450,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OwnerUserId");
 
-                    b.ToTable("Tracks");
+                    b.ToTable("Tracks", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.TrackLike", b =>
@@ -475,7 +475,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "TrackId")
                         .IsUnique();
 
-                    b.ToTable("TrackLikes");
+                    b.ToTable("TrackLikes", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.TrackTag", b =>
@@ -495,7 +495,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasIndex("TrackId", "Tag")
                         .IsUnique();
 
-                    b.ToTable("TrackTags");
+                    b.ToTable("TrackTags", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.Upload", b =>
@@ -524,7 +524,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Upload");
+                    b.ToTable("Upload", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.UploadIntent", b =>
@@ -575,7 +575,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UploadIntents");
+                    b.ToTable("UploadIntents", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.User", b =>
@@ -613,7 +613,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.UserFollow", b =>
@@ -638,7 +638,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.HasIndex("FollowerId", "FollowedId")
                         .IsUnique();
 
-                    b.ToTable("UserFollows");
+                    b.ToTable("UserFollows", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.UserHasTrack", b =>
@@ -659,7 +659,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserHasTrack");
+                    b.ToTable("UserHasTrack", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Infrastructure.MassTransit.Sagas.AlbumProcessingState", b =>
@@ -686,7 +686,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("CorrelationId");
 
-                    b.ToTable("AlbumProcessingState");
+                    b.ToTable("AlbumProcessingState", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Infrastructure.MassTransit.Sagas.PlayListProcessingState", b =>
@@ -713,7 +713,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("CorrelationId");
 
-                    b.ToTable("PlayListProcessingState");
+                    b.ToTable("PlayListProcessingState", (string)null);
                 });
 
             modelBuilder.Entity("Musify.Infrastructure.MassTransit.Sagas.TrackProcessingState", b =>
@@ -749,7 +749,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("CorrelationId");
 
-                    b.ToTable("TrackProcessingState");
+                    b.ToTable("TrackProcessingState", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -803,7 +803,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("AlbumId");
 
-                            b1.ToTable("Albums");
+                            b1.ToTable("Albums", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AlbumId");
@@ -896,28 +896,32 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("LargeName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("LargePictureName");
 
                             b1.Property<string>("MediumName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("MediumPictureName");
 
                             b1.Property<string>("OriginalName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("OriginalPictureName");
 
                             b1.Property<string>("SmallName")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("SmallPictureName");
 
                             b1.HasKey("PlayListId");
 
-                            b1.ToTable("PlayLists");
+                            b1.ToTable("PlayLists", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PlayListId");
@@ -988,7 +992,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TrackId");
 
-                            b1.ToTable("Tracks");
+                            b1.ToTable("Tracks", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TrackId");
@@ -1025,7 +1029,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TrackId");
 
-                            b1.ToTable("Tracks");
+                            b1.ToTable("Tracks", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TrackId");

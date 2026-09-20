@@ -107,5 +107,30 @@ namespace Musify.Application.Tests.PlayLists
             Assert.Equal("Original Name", result.Value.Name);
             Assert.Equal("Original description", result.Value.Description);
         }
+
+        [Fact]
+        public async Task Handle_PlayListWithoutPictures_ValidPictureIntent_SetsPictureAndPublishesSourceEvent()
+        {
+            storageService
+                .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(new ObjectMetaData("image/webp", 1024));
+
+            var owner = TestEntities.User();
+            var playList = TestEntities.PlayList(owner.Id);
+            playList.Pictures = null;
+            var intent = TestEntities.UploadIntent(owner.Id, Musify.Domain.ValueObjects.UploadIntentPurpose.PlayListPicture, objectName: "new-cover.webp");
+            await SeedAsync(owner, playList, intent);
+
+            var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, intent.Id);
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            Assert.Equal("new-cover.webp", result.Value.SmallImageKeyName);
+            var stored = await Database.PlayLists.FindAsync([playList.Id], TestContext.Current.CancellationToken);
+            Assert.NotNull(stored);
+            Assert.Equal("new-cover.webp", stored.Pictures?.OriginalName);
+            await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.UpdatePlayListPictureSourceEvent>(), Arg.Any<CancellationToken>());
+        }
     }
 }
