@@ -27,33 +27,27 @@
 		Musify
 	</a>
 
-	<div class="relative">
-		{#if user}
-			<AccountMenu
-				{user}
-				{accountUrl}
-				panelClass="absolute top-full right-0 mt-2 w-56 overflow-hidden"
-			>
-				{#snippet trigger({ toggle, open })}
-					<button
-						type="button"
-						onclick={toggle}
-						aria-label="Tu cuenta"
-						aria-expanded={open}
-						class="flex items-center rounded-full"
-					>
-						<Avatar name={user.name} src={user.picture} size="sm" />
-					</button>
-				{/snippet}
-				{#snippet extraItems({ close })}
-					<MenuItem icon={Folder} label="Canciones subidas" href="/library" onclick={close} />
-					<MenuItem icon={Upload} label="Subir música" href="/upload" onclick={close} />
-				{/snippet}
-			</AccountMenu>
-		{:else}
-			<IconButton href="/auth/login" reload label="Iniciar sesión" shape="round" size="md">
-				<LogIn class="size-icon-lg" strokeWidth={2} />
-			</IconButton>
-		{/if}
-	</div>
+	{#if user}
+		<AccountMenu {user} {accountUrl} width="md">
+			{#snippet trigger({ toggle, open })}
+				<button
+					type="button"
+					onclick={toggle}
+					aria-label="Tu cuenta"
+					aria-expanded={open}
+					class="flex items-center rounded-full"
+				>
+					<Avatar name={user.name} src={user.picture} size="sm" />
+				</button>
+			{/snippet}
+			{#snippet extraItems({ close })}
+				<MenuItem icon={Folder} label="Canciones subidas" href="/library" onclick={close} />
+				<MenuItem icon={Upload} label="Subir música" href="/upload" onclick={close} />
+			{/snippet}
+		</AccountMenu>
+	{:else}
+		<IconButton href="/auth/login" reload label="Iniciar sesión" shape="round" size="md">
+			<LogIn class="size-icon-lg" strokeWidth={2} />
+		</IconButton>
+	{/if}
 </header>

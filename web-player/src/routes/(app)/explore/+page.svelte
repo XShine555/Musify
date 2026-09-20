@@ -17,11 +17,11 @@
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
 	import { searchHref } from '$lib/navigation.svelte';
 	import { createTrackMenu } from '$lib/menus.svelte';
-	import TrackContextMenu from '$lib/components/TrackContextMenu.svelte';
-	import AlbumContextMenu, {
-		albumContextMenuStateFor,
-		type AlbumMenuState
-	} from '$lib/components/AlbumContextMenu.svelte';
+	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/ContextMenu.svelte';
+	import ListPlus from '@lucide/svelte/icons/list-plus';
+	import ListEnd from '@lucide/svelte/icons/list-end';
+
+	type AlbumMenuState = { x: number; y: number; openLeft: boolean; albumId: string };
 	import { appendUnique } from '$lib/collections';
 	import {
 		isTargetCurrent,
@@ -190,7 +190,7 @@
 	}
 
 	function openAlbumMenu(event: MouseEvent, albumId: string) {
-		albumMenu = albumContextMenuStateFor(event, albumId);
+		albumMenu = { ...contextMenuPosition(event), albumId };
 	}
 
 	async function albumPlayNext() {
@@ -539,20 +539,38 @@
 </Page>
 
 {#if trackMenu.state}
-	<TrackContextMenu
-		menu={trackMenu.state}
-		playlists={data.playlists}
+	<ContextMenu
+		x={trackMenu.state.x}
+		y={trackMenu.state.y}
+		openLeft={trackMenu.state.openLeft}
 		onClose={() => trackMenu.close()}
-		onAddToQueue={() => trackMenu.playNext()}
+		items={[
+			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: () => trackMenu.playNext() }
+		]}
+		playlistAction={{
+			action: '?/addTrack',
+			fields: { trackId: String(trackMenu.state.track.id) },
+			label: 'Añadir a una playlist'
+		}}
+		playlists={data.playlists}
 	/>
 {/if}
 
 {#if albumMenu}
-	<AlbumContextMenu
-		menu={albumMenu}
-		playlists={data.playlists}
+	<ContextMenu
+		x={albumMenu.x}
+		y={albumMenu.y}
+		openLeft={albumMenu.openLeft}
 		onClose={() => (albumMenu = null)}
-		onPlayNext={albumPlayNext}
-		onAddToQueue={albumAddToQueue}
+		items={[
+			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: albumPlayNext },
+			{ icon: ListEnd, label: 'Añadir a la cola', onclick: albumAddToQueue }
+		]}
+		playlistAction={{
+			action: '?/addAlbumToPlaylist',
+			fields: { albumId: albumMenu.albumId },
+			label: 'Añadir álbum a una playlist'
+		}}
+		playlists={data.playlists}
 	/>
 {/if}

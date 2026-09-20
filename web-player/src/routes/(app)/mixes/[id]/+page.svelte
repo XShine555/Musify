@@ -15,7 +15,8 @@
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
-	import TrackContextMenu from '$lib/components/TrackContextMenu.svelte';
+	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
+	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/menus.svelte';
 	import { mixItemKey, mixItemTarget } from '$lib/mixes';
 	import {
@@ -114,10 +115,19 @@
 </Page>
 
 {#if trackMenu.state}
-	<TrackContextMenu
-		menu={trackMenu.state}
-		playlists={data.playlists}
+	<ContextMenu
+		x={trackMenu.state.x}
+		y={trackMenu.state.y}
+		openLeft={trackMenu.state.openLeft}
 		onClose={() => trackMenu.close()}
-		onAddToQueue={() => trackMenu.playNext()}
+		items={[
+			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: () => trackMenu.playNext() }
+		]}
+		playlistAction={{
+			action: '?/addTrack',
+			fields: { trackId: String(trackMenu.state.track.id) },
+			label: 'Añadir a una playlist'
+		}}
+		playlists={data.playlists}
 	/>
 {/if}

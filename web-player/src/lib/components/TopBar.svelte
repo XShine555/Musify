@@ -93,13 +93,9 @@
 
 	<div class="flex-1"></div>
 
-	<div class="relative shrink-0">
+	<div class="shrink-0">
 		{#if user}
-			<AccountMenu
-				{user}
-				{accountUrl}
-				panelClass="absolute top-full right-0 z-20 mt-2 w-52 overflow-hidden"
-			>
+			<AccountMenu {user} {accountUrl}>
 				{#snippet trigger({ toggle, open })}
 					<button
 						type="button"

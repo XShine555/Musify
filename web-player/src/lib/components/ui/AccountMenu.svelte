@@ -14,18 +14,14 @@
 	interface Props {
 		user: SessionUser;
 		accountUrl?: string | null;
-		panelClass?: string;
+		width?: 'sm' | 'md';
 		extraItems?: Snippet<[{ close: () => void }]>;
 		trigger: Snippet<[{ toggle: () => void; open: boolean }]>;
 	}
 
-	let {
-		user,
-		accountUrl,
-		panelClass = 'absolute top-full right-0 mt-2 w-52 overflow-hidden',
-		extraItems,
-		trigger
-	}: Props = $props();
+	let { user, accountUrl, width = 'sm', extraItems, trigger }: Props = $props();
+
+	const WIDTH: Record<'sm' | 'md', string> = { sm: 'w-52', md: 'w-56' };
 
 	let open = $state(false);
 
@@ -36,13 +32,19 @@
 	function close() {
 		open = false;
 	}
+
+	function onWindowKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') close();
+	}
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div class="relative" use:clickOutside={close}>
 	{@render trigger({ toggle, open })}
 
 	{#if open}
-		<GlassMenu class={panelClass}>
+		<GlassMenu class="absolute top-full right-0 z-(--z-menu) mt-2 overflow-hidden {WIDTH[width]}">
 			<MenuItem icon={User} label="Ver perfil" href="/u/{user.sub}" onclick={close} />
 			{@render extraItems?.({ close })}
 			{#if accountUrl}
