@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
+import { shuffle } from '$lib/collections';
 
 export interface PlayerTrack {
 	id: string | number;
@@ -45,6 +46,25 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 		ownerUserId: track.ownerUserId,
 		listensCount: track.listensCount
 	}));
+}
+
+export function toQueueItem(track: ApiTrackLike): QueueItem {
+	return toQueueItems([track])[0];
+}
+
+export function isQueueCurrent(items: { id: string | number }[]): boolean {
+	return items.some((item) => item.id === player.current.id);
+}
+
+export function playAllOrToggle(items: QueueItem[]) {
+	if (items.length === 0) return;
+	if (isQueueCurrent(items)) player.toggle();
+	else player.playQueue(items, 0);
+}
+
+export function playShuffled(items: QueueItem[]) {
+	if (items.length === 0) return;
+	player.playQueue(shuffle(items), 0);
 }
 
 async function readErrorMessage(res: Response): Promise<string> {
@@ -291,7 +311,7 @@ class PlayerState {
 		else this.playQueue(list, index);
 	}
 
-	addToQueue(item: QueueItem) {
+	playNextItem(item: QueueItem) {
 		this.playNext([item]);
 	}
 

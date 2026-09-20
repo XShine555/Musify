@@ -18,7 +18,11 @@ export function fmtDate(value: string | number | Date): string {
 	return dateFormatter.format(new Date(value));
 }
 
+export function plural(n: number, one: string, many: string): string {
+	return `${n} ${n === 1 ? one : many}`;
+}
+
 export function fmtPlays(count: number | string | undefined): string {
 	const value = Math.max(0, Math.floor(Number(count ?? 0)));
-	return `${value} ${value === 1 ? 'Reproducción' : 'Reproducciones'}`;
+	return plural(value, 'reproducción', 'reproducciones');
 }

@@ -3,6 +3,7 @@
 	import Artwork from './Artwork.svelte';
 	import ExplicitBadge from './ExplicitBadge.svelte';
 	import ArtistLink from './ArtistLink.svelte';
+	import { pressable } from '$lib/actions/pressable';
 
 	interface Props {
 		trackId: string | number;
@@ -33,24 +34,14 @@
 		overlay,
 		badge
 	}: Props = $props();
-
-	function onKeydown(event: KeyboardEvent) {
-		if (event.key !== 'Enter' && event.key !== ' ') return;
-		event.preventDefault();
-		onClick();
-	}
-
-	function onclick(event: MouseEvent) {
-		event.stopPropagation();
-		onClick();
-	}
 </script>
 
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	role="button"
 	tabindex="0"
-	{onclick}
-	onkeydown={onKeydown}
+	use:pressable={onClick}
+	onclick={(event) => event.stopPropagation()}
 	class="flex min-w-0 items-center gap-3.5 text-left"
 >
 	<Artwork trackIds={[trackId]} src={coverSrc} {size} alt={title} class="shrink-0">

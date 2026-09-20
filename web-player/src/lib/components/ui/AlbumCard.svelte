@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MediaCard from './MediaCard.svelte';
 	import Artwork from './Artwork.svelte';
+	import { plural } from '$lib/format';
 
 	interface Props {
 		id: string;
@@ -35,9 +36,7 @@
 			typeLabel,
 			subtitle,
 			releaseYear ? String(releaseYear) : undefined,
-			trackCount === undefined
-				? undefined
-				: `${trackCount} ${trackCount === 1 ? 'canción' : 'canciones'}`
+			trackCount === undefined ? undefined : plural(trackCount, 'canción', 'canciones')
 		]
 			.filter((part) => !!part)
 			.join(' · ')

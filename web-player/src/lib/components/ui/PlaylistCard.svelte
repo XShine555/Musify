@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MediaCard from './MediaCard.svelte';
 	import Artwork from './Artwork.svelte';
+	import { plural } from '$lib/format';
 
 	interface Props {
 		id: string;
@@ -13,7 +14,7 @@
 
 	let { id, name, trackCount, trackIds, updatedAt, index = 0 }: Props = $props();
 
-	const subtitle = $derived(`${trackCount} ${trackCount === 1 ? 'Canción' : 'Canciones'}`);
+	const subtitle = $derived(plural(trackCount, 'canción', 'canciones'));
 </script>
 
 <MediaCard href="/playlists/{id}" title={name} {subtitle} {index}>

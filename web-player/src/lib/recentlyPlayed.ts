@@ -12,28 +12,14 @@ export function mergeRecentlyPlayed(history: ApiTrackLike[], limit: number): Que
 		const id = String(t.id);
 		if (seen.has(id)) continue;
 		seen.add(id);
-		merged.push({
-			id,
-			title: t.title,
-			artist: t.artist,
-			explicit: t.explicit,
-			ownerUserId: t.ownerUserId,
-			listensCount: t.listensCount
-		});
+		merged.push({ ...t, id });
 	}
 
 	for (const item of toQueueItems(history)) {
 		const id = String(item.id);
 		if (seen.has(id)) continue;
 		seen.add(id);
-		merged.push({
-			id,
-			title: item.title,
-			artist: item.artist,
-			explicit: item.explicit,
-			ownerUserId: item.ownerUserId,
-			listensCount: item.listensCount
-		});
+		merged.push({ ...item, id });
 	}
 
 	return merged.slice(0, limit);

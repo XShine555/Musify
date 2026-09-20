@@ -4,6 +4,7 @@
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import { pressable } from '$lib/actions/pressable';
 	import { fmtTime } from '$lib/format';
 	import X from '@lucide/svelte/icons/x';
 	import { fly } from 'svelte/transition';
@@ -71,12 +72,7 @@
 				<div
 					role="button"
 					tabindex="0"
-					onclick={() => player.playQueueIndex(index)}
-					onkeydown={(e) => {
-						if (e.key !== 'Enter' && e.key !== ' ') return;
-						e.preventDefault();
-						player.playQueueIndex(index);
-					}}
+					use:pressable={() => player.playQueueIndex(index)}
 					class="flex items-center gap-3 rounded-control p-2.25 text-left hover:bg-hover"
 				>
 					<Artwork trackIds={[track.id]} size="sm" alt={track.title} class="shrink-0 opacity-80" />

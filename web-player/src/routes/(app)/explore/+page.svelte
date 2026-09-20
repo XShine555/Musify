@@ -2,7 +2,7 @@
 	import Music from '@lucide/svelte/icons/music';
 	import { player } from '$lib/player/player.svelte';
 	import { fetchAlbumQueueItems } from '$lib/albums';
-	import { fmtTime, fmtPlays } from '$lib/format';
+	import { fmtTime, fmtPlays, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
@@ -15,10 +15,9 @@
 	import SearchResultRow from '$lib/components/ui/SearchResultRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
-	import TrackContextMenu, {
-		contextMenuStateFor,
-		type ContextMenuState
-	} from '$lib/components/TrackContextMenu.svelte';
+	import { searchHref } from '$lib/navigation.svelte';
+	import { createTrackMenu } from '$lib/menus.svelte';
+	import TrackContextMenu from '$lib/components/TrackContextMenu.svelte';
 	import AlbumContextMenu, {
 		albumContextMenuStateFor,
 		type AlbumMenuState
@@ -73,7 +72,7 @@
 	type SearchFilter = (typeof SEARCH_FILTERS)[number];
 	const SEARCH_GROUP_PREVIEW = 4;
 
-	let contextMenu = $state<ContextMenuState | null>(null);
+	const trackMenu = createTrackMenu();
 	let albumMenu = $state<AlbumMenuState | null>(null);
 	let sfilter = $state<SearchFilter>('Todo');
 
@@ -85,7 +84,7 @@
 	let loadingMore = $state(false);
 
 	$effect(() => {
-		contextMenu = null;
+		trackMenu.close();
 		albumMenu = null;
 		sfilter = 'Todo';
 		localItems = data.tracks.items.map((item) => item.track);
@@ -170,10 +169,6 @@
 		return sfilter === 'Todo' ? list.slice(0, SEARCH_GROUP_PREVIEW) : list;
 	}
 
-	function buildHref(query: string) {
-		return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
-	}
-
 	function playTopResult() {
 		if (topResult?.kind !== 'track') return;
 		player.playOrToggle([queueItemForTarget(topResult.target)], 0);
@@ -191,7 +186,7 @@
 	}
 
 	function openContextMenu(event: MouseEvent, target: TrackTarget) {
-		contextMenu = contextMenuStateFor(event, target);
+		trackMenu.open(event, target);
 	}
 
 	function openAlbumMenu(event: MouseEvent, albumId: string) {
@@ -210,12 +205,6 @@
 		const { albumId } = albumMenu;
 		albumMenu = null;
 		player.appendToQueue(await fetchAlbumQueueItems(albumId));
-	}
-
-	function addToQueue() {
-		if (!contextMenu) return;
-		player.addToQueue(queueItemForTarget(contextMenu));
-		contextMenu = null;
 	}
 
 	async function loadMore() {
@@ -270,8 +259,7 @@
 				Resultados para «{data.query}»
 			</h1>
 			<p class="mt-1.75 text-sm text-fg-2">
-				{totalHits}
-				{totalHits === 1 ? 'Coincidencia' : 'Coincidencias'} en canciones, álbumes, playlists y usuarios
+				{plural(totalHits, 'coincidencia', 'coincidencias')} en canciones, álbumes, playlists y usuarios
 			</p>
 		</div>
 
@@ -377,7 +365,7 @@
 			<div class="mt-5.5 flex flex-wrap justify-center gap-2">
 				{#each genreTiles.slice(0, 4) as genre (genre.query)}
 					<a
-						href={buildHref(genre.query)}
+						href={searchHref(genre.query)}
 						class="rounded-full border border-line-strong px-3.5 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg"
 					>
 						{genre.label}
@@ -392,7 +380,7 @@
 		<div class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(268px,1fr))] gap-3.5">
 			{#each genreTiles as genre, i (genre.query)}
 				<a
-					href={buildHref(genre.query)}
+					href={searchHref(genre.query)}
 					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-110"
 					style="animation-delay:{Math.min(i, 10) *
 						40}ms; background:linear-gradient(140deg, oklch(var(--mf-tile-l) var(--mf-tile-c) {genre.hue}), oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) {genre.hue}))"
@@ -415,8 +403,7 @@
 							{#snippet actions()}
 								<div class="h-px flex-1 self-center bg-line"></div>
 								<span class="shrink-0 text-xs text-muted tabular-nums">
-									{searchCounts.Canciones}
-									{searchCounts.Canciones === 1 ? 'Resultado' : 'Resultados'}
+									{plural(searchCounts.Canciones, 'resultado', 'resultados')}
 								</span>
 							{/snippet}
 						</SectionHeading>
@@ -466,8 +453,7 @@
 						{#snippet actions()}
 							<div class="h-px flex-1 self-center bg-line"></div>
 							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{searchCounts.Álbumes}
-								{searchCounts.Álbumes === 1 ? 'Resultado' : 'Resultados'}
+								{plural(searchCounts.Álbumes, 'resultado', 'resultados')}
 							</span>
 						{/snippet}
 					</SectionHeading>
@@ -496,8 +482,7 @@
 						{#snippet actions()}
 							<div class="h-px flex-1 self-center bg-line"></div>
 							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{searchCounts.Usuarios}
-								{searchCounts.Usuarios === 1 ? 'Resultado' : 'Resultados'}
+								{plural(searchCounts.Usuarios, 'resultado', 'resultados')}
 							</span>
 						{/snippet}
 					</SectionHeading>
@@ -521,8 +506,7 @@
 						{#snippet actions()}
 							<div class="h-px flex-1 self-center bg-line"></div>
 							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{searchCounts.Playlists}
-								{searchCounts.Playlists === 1 ? 'Resultado' : 'Resultados'}
+								{plural(searchCounts.Playlists, 'resultado', 'resultados')}
 							</span>
 						{/snippet}
 					</SectionHeading>
@@ -554,12 +538,12 @@
 	{/if}
 </Page>
 
-{#if contextMenu}
+{#if trackMenu.state}
 	<TrackContextMenu
-		menu={contextMenu}
+		menu={trackMenu.state}
 		playlists={data.playlists}
-		onClose={() => (contextMenu = null)}
-		onAddToQueue={addToQueue}
+		onClose={() => trackMenu.close()}
+		onAddToQueue={() => trackMenu.playNext()}
 	/>
 {/if}
 

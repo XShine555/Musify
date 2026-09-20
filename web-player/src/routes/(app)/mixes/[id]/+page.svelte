@@ -2,9 +2,8 @@
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
-	import { player } from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
 	import { fmtTime } from '$lib/format';
-	import { shuffle } from '$lib/collections';
 	import Page from '$lib/components/ui/Page.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -16,10 +15,8 @@
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
-	import TrackContextMenu, {
-		contextMenuStateFor,
-		type ContextMenuState
-	} from '$lib/components/TrackContextMenu.svelte';
+	import TrackContextMenu from '$lib/components/TrackContextMenu.svelte';
+	import { createTrackMenu } from '$lib/menus.svelte';
 	import { mixItemKey, mixItemTarget } from '$lib/mixes';
 	import {
 		isTargetCurrent,
@@ -40,23 +37,12 @@
 	const totalSeconds = $derived(
 		items.reduce((total, item) => total + Number(item.durationSeconds), 0)
 	);
-	const isCurrentQueue = $derived(targets.some(isTargetCurrent));
+	const isCurrentQueue = $derived(isQueueCurrent(queue));
 
-	let contextMenu = $state<ContextMenuState | null>(null);
+	const trackMenu = createTrackMenu();
 
 	function playFrom(index: number) {
 		player.playOrToggle(queue, index);
-	}
-
-	function playAll() {
-		if (queue.length === 0) return;
-		if (isCurrentQueue) player.toggle();
-		else player.playQueue(queue, 0);
-	}
-
-	function playShuffled() {
-		if (queue.length === 0) return;
-		player.playQueue(shuffle(queue), 0);
 	}
 </script>
 
@@ -83,7 +69,7 @@
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={playAll} disabled={queue.length === 0}>
+			<Button size="sm" onclick={() => playAllOrToggle(queue)} disabled={queue.length === 0}>
 				{#if isCurrentQueue && player.playing}
 					<Pause class="h-4 w-4" strokeWidth={1.5} />
 					Pausar
@@ -92,7 +78,12 @@
 					Reproducir
 				{/if}
 			</Button>
-			<Button variant="secondary" size="sm" onclick={playShuffled} disabled={queue.length === 0}>
+			<Button
+				variant="secondary"
+				size="sm"
+				onclick={() => playShuffled(queue)}
+				disabled={queue.length === 0}
+			>
 				<Shuffle class="h-4 w-4" />
 				Aleatorio
 			</Button>
@@ -106,7 +97,7 @@
 	<TrackTable index meta={[{ label: 'Escuchas', width: '100px' }]} class="mt-6 sm:mt-8">
 		{#each items as item, i (mixItemKey(item))}
 			{@const active = isTargetCurrent(targets[i])}
-			<TrackRow {active} oncontextmenu={(e) => (contextMenu = contextMenuStateFor(e, targets[i]))}>
+			<TrackRow {active} oncontextmenu={(e) => trackMenu.open(e, targets[i])}>
 				<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
 				<TrackTitleCell
 					trackId={targetId(targets[i])}
@@ -122,18 +113,11 @@
 	</TrackTable>
 </Page>
 
-{#if contextMenu}
+{#if trackMenu.state}
 	<TrackContextMenu
-		menu={contextMenu}
+		menu={trackMenu.state}
 		playlists={data.playlists}
-		onClose={() => (contextMenu = null)}
-		onAddToQueue={() => {
-			const menu = contextMenu;
-			if (menu) {
-				const index = targets.findIndex((target) => targetId(target) === targetId(menu));
-				if (index >= 0) player.addToQueue(queue[index]);
-			}
-			contextMenu = null;
-		}}
+		onClose={() => trackMenu.close()}
+		onAddToQueue={() => trackMenu.playNext()}
 	/>
 {/if}

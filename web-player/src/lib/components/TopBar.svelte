@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import type { SessionUser } from '$lib/types';
 	import { SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '$lib/config';
+	import { searchHref } from '$lib/navigation.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
@@ -24,13 +25,9 @@
 	let searchInput: HTMLInputElement | undefined = $state();
 	let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
-	function buildHref(term: string) {
-		return term ? `/explore?q=${encodeURIComponent(term)}` : '/explore';
-	}
-
 	function runSearch(term: string) {
 		if (term.length > 0 && term.length < SEARCH_MIN_LENGTH) return;
-		goto(buildHref(term), {
+		goto(searchHref(term), {
 			replaceState: page.url.pathname === '/explore',
 			keepFocus: true,
 			noScroll: true

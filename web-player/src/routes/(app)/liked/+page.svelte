@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Heart from '@lucide/svelte/icons/heart';
 	import X from '@lucide/svelte/icons/x';
-	import { player, type QueueItem } from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
 	import { fmtDate, fmtTime } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
@@ -16,24 +16,14 @@
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
 
 	const tracks = $derived(liked.list);
-	const queueItems = $derived<QueueItem[]>(
-		tracks.map((t) => ({
-			id: t.id,
-			title: t.title,
-			artist: t.artist,
-			explicit: t.explicit
-		}))
-	);
-	const isCurrentQueue = $derived(tracks.some((t) => t.id === player.current.id));
+	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	function playFrom(index: number) {
-		player.playOrToggle(queueItems, index);
+		player.playOrToggle(tracks, index);
 	}
 
 	function playAll() {
-		if (queueItems.length === 0) return;
-		if (isCurrentQueue) player.toggle();
-		else player.playQueue(queueItems, 0);
+		playAllOrToggle(tracks);
 	}
 </script>
 

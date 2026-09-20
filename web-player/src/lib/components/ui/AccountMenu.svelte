@@ -9,6 +9,7 @@
 	import MenuItem from './MenuItem.svelte';
 	import GlassMenu from './GlassMenu.svelte';
 	import { themeMode } from '$lib/theme/mode.svelte';
+	import { clickOutside } from '$lib/actions/clickOutside';
 
 	interface Props {
 		user: SessionUser;
@@ -27,7 +28,6 @@
 	}: Props = $props();
 
 	let open = $state(false);
-	let menuRef: HTMLDivElement | undefined = $state();
 
 	function toggle() {
 		open = !open;
@@ -36,13 +36,9 @@
 	function close() {
 		open = false;
 	}
-
-	function onDocumentClick(event: MouseEvent) {
-		if (menuRef && !menuRef.contains(event.target as Node)) open = false;
-	}
 </script>
 
-<div class="relative" bind:this={menuRef}>
+<div class="relative" use:clickOutside={close}>
 	{@render trigger({ toggle, open })}
 
 	{#if open}
@@ -69,5 +65,3 @@
 		</GlassMenu>
 	{/if}
 </div>
-
-<svelte:window onclick={onDocumentClick} />

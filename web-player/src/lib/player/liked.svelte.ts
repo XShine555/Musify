@@ -34,13 +34,10 @@ class LikedStore {
 		const items = toQueueItems(tracks);
 		const next: Record<string, LikedTrack> = {};
 		items.forEach((item, i) => {
-			next[String(item.id)] = {
-				id: String(item.id),
-				title: item.title,
-				artist: item.artist,
-				explicit: item.explicit,
-				ownerUserId: item.ownerUserId,
-				listensCount: item.listensCount,
+			const id = String(item.id);
+			next[id] = {
+				...item,
+				id,
 				duration: tracks[i].duration,
 				likedAt: new Date(tracks[i].createdAt).getTime()
 			};
@@ -58,17 +55,7 @@ class LikedStore {
 		const wasLiked = id in before;
 		const next = { ...before };
 		if (wasLiked) delete next[id];
-		else {
-			next[id] = {
-				id,
-				title: track.title,
-				artist: track.artist,
-				explicit: track.explicit,
-				ownerUserId: track.ownerUserId,
-				duration: track.duration,
-				likedAt: Date.now()
-			};
-		}
+		else next[id] = { ...track, id, likedAt: Date.now() };
 		this.entries = next;
 
 		try {

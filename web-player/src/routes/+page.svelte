@@ -3,9 +3,9 @@
 	import History from '@lucide/svelte/icons/history';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import ListMusic from '@lucide/svelte/icons/list-music';
-	import { player } from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
+	import { pressable } from '$lib/actions/pressable';
 	import { mergeRecentlyPlayed } from '$lib/recentlyPlayed';
-	import { shuffle as shuffleList } from '$lib/collections';
 	import { fmtTime, fmtDurationLong, fmtPlays } from '$lib/format';
 	import {
 		isTargetCurrent,
@@ -27,15 +27,13 @@
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import TrackContextMenu, {
-		contextMenuStateFor,
-		type ContextMenuState
-	} from '$lib/components/TrackContextMenu.svelte';
+	import TrackContextMenu from '$lib/components/TrackContextMenu.svelte';
+	import { createTrackMenu } from '$lib/menus.svelte';
 	import { HOME_CONTINUE_LIMIT, HOME_POPULAR_MAX } from '$lib/config';
 
 	let { data } = $props();
 
-	let contextMenu = $state<ContextMenuState | null>(null);
+	const trackMenu = createTrackMenu();
 
 	type SpotlightRow = { target: TrackTarget; seconds: number };
 	let spotlightRows = $state<SpotlightRow[]>([]);
@@ -87,9 +85,7 @@
 	);
 
 	const spotlightQueue = $derived(spotlightItems.map(queueItemForTarget));
-	const spotlightIsCurrent = $derived(
-		spotlightQueue.length > 0 && spotlightQueue.some((item) => item.id === player.current.id)
-	);
+	const spotlightIsCurrent = $derived(isQueueCurrent(spotlightQueue));
 	const heroPlaying = $derived(spotlightIsCurrent && player.playing);
 
 	function playContinue(index: number) {
@@ -102,28 +98,14 @@
 		player.playOrToggle(spotlightQueue, index);
 	}
 	function playSpotlight() {
-		if (spotlightQueue.length === 0) return;
-		if (spotlightIsCurrent) player.toggle();
-		else player.playQueue(spotlightQueue, 0);
+		playAllOrToggle(spotlightQueue);
 	}
 	function shuffleSpotlight() {
-		if (spotlightQueue.length === 0) return;
-		player.playQueue(shuffleList(spotlightQueue), 0);
-	}
-
-	function onRowKeydown(event: KeyboardEvent, action: () => void) {
-		if (event.key !== 'Enter' && event.key !== ' ') return;
-		event.preventDefault();
-		action();
+		playShuffled(spotlightQueue);
 	}
 
 	function openContextMenu(event: MouseEvent, target: TrackTarget) {
-		contextMenu = contextMenuStateFor(event, target);
-	}
-	function addToQueue() {
-		if (!contextMenu) return;
-		player.addToQueue(queueItemForTarget(contextMenu));
-		contextMenu = null;
+		trackMenu.open(event, target);
 	}
 </script>
 
@@ -196,12 +178,11 @@
 					<div
 						role="button"
 						tabindex="0"
+						use:pressable={() => playContinue(i)}
 						class="animate-enter rounded-art p-2.25 pr-3.5 transition-colors {isCurrent
 							? 'bg-accent-tint'
 							: 'hover:bg-hover'}"
-						style="animation-delay:{Math.min(i, 10) * 40}ms"
-						onclick={() => playContinue(i)}
-						onkeydown={(e) => onRowKeydown(e, () => playContinue(i))}
+						style="--i:{i}"
 						oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(item))}
 					>
 						<TrackTitleCell
@@ -240,9 +221,8 @@
 					<div
 						role="button"
 						tabindex="0"
+						use:pressable={() => goto(`/playlists/${spotlight.id}`)}
 						class="flex w-fit items-center gap-5 self-start sm:gap-6"
-						onclick={() => goto(`/playlists/${spotlight.id}`)}
-						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${spotlight.id}`))}
 					>
 						<Artwork
 							src="/api/playlists/{spotlight.id}/cover?size=large&v={encodeURIComponent(
@@ -276,12 +256,7 @@
 						<div
 							role="button"
 							tabindex="0"
-							onclick={() => playSpotlightTrack(i)}
-							onkeydown={(e) => {
-								if (e.key !== 'Enter' && e.key !== ' ') return;
-								e.preventDefault();
-								playSpotlightTrack(i);
-							}}
+							use:pressable={() => playSpotlightTrack(i)}
 							class="flex items-center gap-4 rounded-control p-2 text-left transition-colors {isTargetCurrent(
 								target
 							)
@@ -341,11 +316,10 @@
 					<div
 						role="button"
 						tabindex="0"
+						use:pressable={() => playPopular(i)}
 						class="flex items-center gap-3.5 rounded-control p-2 transition-colors {isCurrent
 							? 'bg-accent-tint'
 							: 'hover:bg-hover'}"
-						onclick={() => playPopular(i)}
-						onkeydown={(e) => onRowKeydown(e, () => playPopular(i))}
 						oncontextmenu={(e) => openContextMenu(e, target)}
 					>
 						<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
@@ -405,10 +379,9 @@
 					<div
 						role="button"
 						tabindex="0"
+						use:pressable={() => goto(`/playlists/${playlist.id}`)}
 						class="group/card animate-enter flex items-center gap-3.5 rounded-panel p-3 transition-colors hover:bg-hover"
 						style="--i:{i}"
-						onclick={() => goto(`/playlists/${playlist.id}`)}
-						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${playlist.id}`))}
 					>
 						<Artwork
 							src="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
@@ -449,11 +422,11 @@
 	</section>
 </div>
 
-{#if contextMenu}
+{#if trackMenu.state}
 	<TrackContextMenu
-		menu={contextMenu}
+		menu={trackMenu.state}
 		{playlists}
-		onClose={() => (contextMenu = null)}
-		onAddToQueue={addToQueue}
+		onClose={() => trackMenu.close()}
+		onAddToQueue={() => trackMenu.playNext()}
 	/>
 {/if}

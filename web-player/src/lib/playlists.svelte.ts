@@ -1,13 +1,3 @@
-let open = $state(false);
+import { createToggle } from './toggle.svelte';
 
-export const createPlaylistModal = {
-	get open() {
-		return open;
-	},
-	show() {
-		open = true;
-	},
-	close() {
-		open = false;
-	}
-};
+export const createPlaylistModal = createToggle();

@@ -7,6 +7,7 @@
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
+	import { plural } from '$lib/format';
 
 	interface Props {
 		title: string;
@@ -35,10 +36,7 @@
 	}: Props = $props();
 
 	const meta = $derived(
-		[
-			releaseYear ? String(releaseYear) : undefined,
-			`${trackIds.length} ${trackIds.length === 1 ? 'canción' : 'canciones'}`
-		]
+		[releaseYear ? String(releaseYear) : undefined, plural(trackIds.length, 'canción', 'canciones')]
 			.filter((part) => part !== undefined)
 			.join(' · ')
 	);
