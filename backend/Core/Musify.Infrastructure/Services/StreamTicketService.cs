@@ -29,9 +29,9 @@ namespace Musify.Infrastructure.Services
             var now = DateTimeOffset.UtcNow;
 
             var claims = new Dictionary<string, object> { ["prefix"] = keyPrefix };
-            if (userId is not null)
+            if (userId != null)
                 claims["sub"] = userId.Value.ToString();
-            if (maxBytes is not null)
+            if (maxBytes != null)
                 claims["maxBytes"] = maxBytes.Value.ToString();
 
             var descriptor = new SecurityTokenDescriptor

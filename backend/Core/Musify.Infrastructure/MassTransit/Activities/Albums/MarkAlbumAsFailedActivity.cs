@@ -19,7 +19,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Albums
             var album = await database.Albums
                 .SingleOrDefaultAsync(a => a.Id == executeContext.Arguments.AlbumId, executeContext.CancellationToken);
 
-            if (album is not null)
+            if (album != null)
             {
                 album.LifeCycleStatus = LifeCycleStatus.Failed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);

@@ -47,7 +47,7 @@ namespace Musify.Application.Tests.Albums
             var stored = await Database.Albums.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
             Assert.NotNull(stored);
             Assert.Equal("MY ALBUM", stored.NormalizedTitle);
-            Assert.Equal("cover.webp", stored.Pictures.OriginalName);
+            Assert.Equal("cover.webp", stored.Pictures?.OriginalName);
             await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreateAlbumResourcesEvent>(), Arg.Any<CancellationToken>());
         }
 

@@ -21,7 +21,7 @@ namespace Musify.Infrastructure.Persistence
 
         private static void ApplyTimestamps(DbContext? context)
         {
-            if (context is null)
+            if (context == null)
                 return;
 
             // SavingChanges(Async) fires before EF's own automatic change detection for this

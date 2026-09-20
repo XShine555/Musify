@@ -16,7 +16,7 @@ namespace Musify.Infrastructure.Services
             if (duration <= TimeSpan.Zero)
                 return await factory();
 
-            if (cache.TryGetValue(key, out TValue? cached) && cached is not null)
+            if (cache.TryGetValue(key, out TValue? cached) && cached != null)
                 return cached;
 
             var pending = (Lazy<Task<ErrorOr<TValue>>>)inFlight.GetOrAdd(

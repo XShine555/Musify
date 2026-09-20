@@ -31,14 +31,14 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     [executeContext.Arguments.PlayListId],
                     cancellationToken: executeContext.CancellationToken);
 
-                if (playList is null)
+                if (playList == null)
                 {
                     logger.LogWarning("Playlist {PlayListId} not found",
                         executeContext.Arguments.PlayListId);
                     throw new InvalidOperationException($"PlayList with id {executeContext.Arguments.PlayListId} not found");
                 }
 
-                if (playList.Pictures is null)
+                if (playList.Pictures == null)
                 {
                     logger.LogWarning("Playlist {PlayListId} has no pending picture upload",
                         executeContext.Arguments.PlayListId);
@@ -85,7 +85,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     [compensateContext.Log.PlayListId],
                     cancellationToken: compensateContext.CancellationToken);
 
-                if (playList is null)
+                if (playList == null)
                 {
                     return compensateContext.Compensated();
                 }

@@ -19,7 +19,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
             var track = await database.Tracks
                 .SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
 
-            if (track is not null)
+            if (track != null)
             {
                 track.LifeCycleStatus = LifeCycleStatus.Failed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);

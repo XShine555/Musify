@@ -19,7 +19,7 @@ namespace Musify.Application.PlayLists
         {
             var playList = await database.PlayLists
                 .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
-            if (playList is null)
+            if (playList == null)
             {
                 logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
                 return Error.NotFound();

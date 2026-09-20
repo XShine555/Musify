@@ -37,7 +37,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(MarkPlayListAsRemovingActivity.ExecuteEndpointName),
                 new MarkPlayListAsRemovingArguments(playListId));
 
-            if (playList?.Pictures is not null)
+            if (playList?.Pictures != null)
             {
                 var bucket = storageConfiguration.Bucket;
                 var routes = playListConfiguration.Routes;

@@ -21,7 +21,7 @@ namespace Musify.Application.Tracks
                 .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (entity is null)
+            if (entity == null)
                 return Error.NotFound();
 
             return TrackApplicationResponse.FromEntity(entity.Track, entity.ListensCount);

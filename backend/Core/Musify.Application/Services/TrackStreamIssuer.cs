@@ -32,7 +32,7 @@ public sealed class TrackStreamIssuer(
 
         // Anonymous listeners have no User row to satisfy ListeningHistory's foreign key against, and
         // their plays aren't "history" anyone can look back on anyway, so there's nothing to record.
-        if (userId is not null)
+        if (userId != null)
         {
             var newListeningHistory = new ListeningHistory
             {
@@ -48,7 +48,7 @@ public sealed class TrackStreamIssuer(
 
     private long? AnonymousFragmentBytes(long? userId)
     {
-        if (userId is not null || playbackConfiguration.AnonymousFragmentSeconds <= 0)
+        if (userId != null || playbackConfiguration.AnonymousFragmentSeconds <= 0)
             return null;
 
         return (long)playbackConfiguration.AnonymousFragmentSeconds * playbackConfiguration.EstimatedAudioBytesPerSecond;

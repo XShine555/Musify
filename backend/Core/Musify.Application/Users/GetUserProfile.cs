@@ -38,7 +38,7 @@ namespace Musify.Application.Users
                 })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (user is null)
+            if (user == null)
                 return Error.NotFound();
 
             var followersCount = await database.UserFollows

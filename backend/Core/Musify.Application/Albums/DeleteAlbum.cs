@@ -18,7 +18,7 @@ namespace Musify.Application.Albums
         {
             var album = await database.Albums
                 .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
-            if (album is null)
+            if (album == null)
             {
                 logger.LogDebug("Album {AlbumId} not found", request.AlbumId);
                 return Error.NotFound();

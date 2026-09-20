@@ -30,7 +30,7 @@ namespace Musify.Application.Likes
                 .SingleOrDefaultAsync(like => like.UserId == request.UserId && like.TrackId == request.TrackId, cancellationToken);
 
             bool nowLiked;
-            if (existingLike is not null)
+            if (existingLike != null)
             {
                 database.TrackLikes.Remove(existingLike);
                 nowLiked = false;

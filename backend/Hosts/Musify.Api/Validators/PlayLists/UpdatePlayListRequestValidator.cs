@@ -10,10 +10,10 @@ public sealed class UpdatePlayListRequestValidator : AbstractValidator<UpdatePla
         RuleFor(x => x.NewName)
             .NotEmpty()
             .MaximumLength(50)
-            .When(x => x.NewName is not null);
+            .When(x => x.NewName != null);
 
         RuleFor(x => x.NewDescription)
             .MaximumLength(256)
-            .When(x => x.NewDescription is not null);
+            .When(x => x.NewDescription != null);
     }
 }

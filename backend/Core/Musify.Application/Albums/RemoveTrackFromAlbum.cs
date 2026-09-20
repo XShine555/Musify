@@ -19,7 +19,7 @@ namespace Musify.Application.Albums
             var album = await database.Albums
                 .AsNoTracking()
                 .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
-            if (album is null)
+            if (album == null)
             {
                 logger.LogInformation("Album {AlbumId} not found", request.AlbumId);
                 return Error.NotFound();
@@ -37,7 +37,7 @@ namespace Musify.Application.Albums
                 .ToListAsync(cancellationToken);
 
             var link = albumTracks.SingleOrDefault(albumTrack => albumTrack.TrackId == request.TrackId);
-            if (link is null)
+            if (link == null)
             {
                 logger.LogInformation("Track {TrackId} not in album {AlbumId}", request.TrackId, request.AlbumId);
                 return Error.NotFound(description: "Track is not in the album.");

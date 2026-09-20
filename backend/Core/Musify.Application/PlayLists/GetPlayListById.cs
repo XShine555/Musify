@@ -29,7 +29,7 @@ namespace Musify.Application.PlayLists
                 })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (entry is null)
+            if (entry == null)
                 return Error.NotFound();
 
             if (entry.PlayList.Visibility == PlaylistVisibility.Private

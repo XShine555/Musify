@@ -56,7 +56,7 @@ namespace Musify.Application.Tests.PlayLists
             Assert.False(result.IsError);
             var stored = await Database.PlayLists.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
             Assert.NotNull(stored);
-            Assert.Equal("cover.webp", stored.Pictures.OriginalName);
+            Assert.Equal("cover.webp", stored.Pictures?.OriginalName);
             await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
         }
 

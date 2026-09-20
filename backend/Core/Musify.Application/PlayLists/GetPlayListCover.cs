@@ -25,7 +25,7 @@ namespace Musify.Application.PlayLists
                 .Select(p => p.Pictures)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (pictures is null)
+            if (pictures == null)
                 return Error.NotFound();
 
             var routes = playListConfiguration.Routes;

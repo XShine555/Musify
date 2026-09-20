@@ -125,7 +125,7 @@ public sealed class JwtBearerEventsHandler(
 
     public override Task Challenge(JwtBearerChallengeContext context)
     {
-        if (context.AuthenticateFailure is not null)
+        if (context.AuthenticateFailure != null)
             logger.LogWarning("JWT challenge: {Error} - {Description}", context.Error, context.ErrorDescription);
         return Task.CompletedTask;
     }

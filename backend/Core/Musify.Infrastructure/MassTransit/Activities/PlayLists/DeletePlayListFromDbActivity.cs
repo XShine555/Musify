@@ -18,7 +18,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
             var playList = await database.PlayLists
                 .SingleOrDefaultAsync(p => p.Id == executeContext.Arguments.PlayListId, executeContext.CancellationToken);
 
-            if (playList is null)
+            if (playList == null)
             {
                 logger.LogInformation(
                     "PlayList {PlayListId} not found while deleting from DB, skipping",

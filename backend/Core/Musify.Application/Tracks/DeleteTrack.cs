@@ -23,7 +23,7 @@ namespace Musify.Application.Tracks
         public async ValueTask<ErrorOr<Success>> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
         {
             var track = await database.Tracks.SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
-            if (track is null)
+            if (track == null)
             {
                 logger.LogInformation("Track {TrackId} not found", request.TrackId);
                 return Error.NotFound();

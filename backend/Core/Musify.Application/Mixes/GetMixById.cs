@@ -19,7 +19,7 @@ namespace Musify.Application.Mixes
                 .Include(mix => mix.Items)
                 .SingleOrDefaultAsync(mix => mix.Id == request.MixId && mix.UserId == request.UserId, cancellationToken);
 
-            if (mix is null)
+            if (mix == null)
                 return Error.NotFound(description: $"Mix {request.MixId} was not found");
 
             var orderedItems = mix.Items.OrderBy(item => item.Position).ToList();

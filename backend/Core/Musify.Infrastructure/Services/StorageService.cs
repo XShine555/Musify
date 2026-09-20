@@ -276,7 +276,7 @@ namespace Musify.Infrastructure.Services
             {
                 listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
 
-                if (listResponse.S3Objects is null or { Count: 0 } )
+                if (listResponse.S3Objects == null|| listResponse.S3Objects.Count == 0)
                     break;
 
                 var deleteRequest = new DeleteObjectsRequest
@@ -289,9 +289,6 @@ namespace Musify.Infrastructure.Services
 
                 var deleteResponse = await amazonS3.DeleteObjectsAsync(deleteRequest, cancellationToken);
 
-                // Some S3-compatible backends (SeaweedFS included) omit the <Error> list from the
-                // XML response entirely when nothing failed, which the SDK deserializes as null
-                // rather than an empty list — real AWS S3 always returns a (possibly empty) list.
                 var deleteErrors = deleteResponse.DeleteErrors ?? [];
                 if (deleteErrors.Count > 0)
                 {

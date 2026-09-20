@@ -20,7 +20,7 @@ namespace Musify.Application.PlayLists
         public async ValueTask<ErrorOr<Success>> Handle(DeletePlayListCommand request, CancellationToken cancellationToken)
         {
             var playList = await database.PlayLists.SingleOrDefaultAsync(p => p.Id == request.PlayListId, cancellationToken);
-            if (playList is null)
+            if (playList == null)
             {
                 logger.LogDebug("Playlist {PlayListId} not found", request.PlayListId);
                 return Error.NotFound();

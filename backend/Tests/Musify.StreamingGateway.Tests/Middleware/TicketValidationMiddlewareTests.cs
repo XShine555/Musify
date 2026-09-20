@@ -39,7 +39,7 @@ namespace Musify.StreamingGateway.Tests.Middleware
         private string IssueValidToken(string prefix = Prefix, long? maxBytes = null)
         {
             var claims = new Dictionary<string, object> { ["prefix"] = prefix };
-            if (maxBytes is not null)
+            if (maxBytes != null)
                 claims["maxBytes"] = maxBytes.Value.ToString();
 
             return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor

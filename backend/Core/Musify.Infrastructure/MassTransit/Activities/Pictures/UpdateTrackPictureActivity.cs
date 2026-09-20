@@ -31,7 +31,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     [executeContext.Arguments.TrackId],
                     cancellationToken: executeContext.CancellationToken);
 
-                if (track is null)
+                if (track == null)
                 {
                     logger.LogWarning("Track {TrackId} not found",
                         executeContext.Arguments.TrackId);
@@ -79,7 +79,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     [compensateContext.Log.TrackId],
                     cancellationToken: compensateContext.CancellationToken);
 
-                if (track is null)
+                if (track == null)
                     return compensateContext.Compensated();
 
                 track.Pictures.OriginalName = compensateContext.Log.PreviousOriginalPictureKey;

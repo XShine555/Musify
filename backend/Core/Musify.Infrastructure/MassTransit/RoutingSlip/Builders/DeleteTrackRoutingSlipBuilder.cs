@@ -37,7 +37,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 EndpointHelper.BuildExecuteActivityUri(MarkTrackAsRemovingActivity.ExecuteEndpointName),
                 new MarkTrackAsRemovingArguments(trackId));
 
-            if (track is not null)
+            if (track != null)
             {
                 var bucket = storageConfiguration.Bucket;
 

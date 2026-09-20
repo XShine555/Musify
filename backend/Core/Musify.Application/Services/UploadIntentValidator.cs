@@ -42,7 +42,7 @@ public sealed class UploadIntentValidator(
         var intent = await database.UploadIntents
             .FirstOrDefaultAsync(i => i.Id == intentId, cancellationToken);
 
-        if (intent is null || intent.UserId != userId)
+        if (intent == null || intent.UserId != userId)
             return Error.NotFound(description: "Upload intent not found or not accessible.");
 
         if (intent.IsConsumed)
@@ -52,7 +52,7 @@ public sealed class UploadIntentValidator(
             return Error.Validation(description: "Upload intent has expired.");
 
         var metadata = await storageService.HeadObjectAsync(intent.Bucket, intent.Key, cancellationToken);
-        if (metadata is null)
+        if (metadata == null)
             return Error.NotFound(description: "Uploaded object not found in storage. Upload the file first.");
 
         if (metadata.ContentLength > config.MaxUploadBytes)

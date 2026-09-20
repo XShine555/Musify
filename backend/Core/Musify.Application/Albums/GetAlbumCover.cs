@@ -25,7 +25,7 @@ namespace Musify.Application.Albums
                 .Select(a => a.Pictures)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (pictures is null)
+            if (pictures == null)
                 return Error.NotFound();
 
             var routes = albumConfiguration.Routes;

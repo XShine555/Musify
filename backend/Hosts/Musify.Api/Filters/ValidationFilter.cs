@@ -8,7 +8,7 @@ public sealed class ValidationFilter<T>(IValidator<T> validator) : IEndpointFilt
     {
         var argument = context.Arguments.OfType<T>().FirstOrDefault();
 
-        if (argument is null)
+        if (argument == null)
             return await next(context);
 
         var result = await validator.ValidateAsync(argument, context.HttpContext.RequestAborted);

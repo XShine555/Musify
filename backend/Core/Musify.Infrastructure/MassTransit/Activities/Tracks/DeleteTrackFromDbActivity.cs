@@ -18,7 +18,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
             var track = await database.Tracks
                 .SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
 
-            if (track is null)
+            if (track == null)
             {
                 logger.LogInformation(
                     "Track {TrackId} not found while deleting from DB, skipping",

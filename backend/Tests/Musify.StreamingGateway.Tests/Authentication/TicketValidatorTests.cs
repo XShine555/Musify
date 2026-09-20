@@ -36,7 +36,7 @@ namespace Musify.StreamingGateway.Tests.Authentication
             DateTime? expires = null, DateTime? notBefore = null, long? maxBytes = null)
         {
             var claims = new Dictionary<string, object> { ["prefix"] = prefix };
-            if (maxBytes is not null)
+            if (maxBytes != null)
                 claims["maxBytes"] = maxBytes.Value.ToString();
 
             var descriptor = new SecurityTokenDescriptor

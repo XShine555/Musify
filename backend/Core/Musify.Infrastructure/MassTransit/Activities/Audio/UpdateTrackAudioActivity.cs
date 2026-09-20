@@ -93,7 +93,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Audio
             try
             {
                 var track = await database.Tracks.SingleOrDefaultAsync(t => t.Id == compensateContext.Log.TrackId, compensateContext.CancellationToken);
-                if (track is null)
+                if (track == null)
                     throw new InvalidOperationException($"Track with id {compensateContext.Log.TrackId} not found");
 
                 track.Audio.FolderName = compensateContext.Log.PreviousAudioFolderName;

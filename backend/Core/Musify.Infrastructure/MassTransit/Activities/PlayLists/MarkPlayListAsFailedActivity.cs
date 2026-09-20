@@ -19,7 +19,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
             var playList = await database.PlayLists
                 .SingleOrDefaultAsync(p => p.Id == executeContext.Arguments.PlayListId, executeContext.CancellationToken);
 
-            if (playList is not null)
+            if (playList != null)
             {
                 playList.LifeCycleStatus = LifeCycleStatus.Failed;
                 await database.SaveChangesAsync(executeContext.CancellationToken);

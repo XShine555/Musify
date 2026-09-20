@@ -23,7 +23,7 @@ namespace Musify.Application.Tracks
     {
         public async ValueTask<ErrorOr<TrackStreamResponse>> Handle(GetTrackStreamQuery request, CancellationToken cancellationToken)
         {
-            if (request.UserId is null && !playbackConfiguration.AllowAnonymousListening)
+            if (request.UserId == null && !playbackConfiguration.AllowAnonymousListening)
                 return Error.Unauthorized(description: "Sign in to stream music, or ask an administrator to enable anonymous listening.");
 
             var track = await database.Tracks.AsNoTracking()

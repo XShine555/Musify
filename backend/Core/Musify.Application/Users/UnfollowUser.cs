@@ -18,7 +18,7 @@ namespace Musify.Application.Users
             var follow = await database.UserFollows
                 .SingleOrDefaultAsync(f => f.FollowerId == request.FollowerId && f.FollowedId == request.FollowedId, cancellationToken);
 
-            if (follow is null)
+            if (follow == null)
                 return new Success();
 
             database.UserFollows.Remove(follow);

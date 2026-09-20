@@ -18,7 +18,7 @@ namespace Musify.Application.PlayLists
         {
             var playList = await database.PlayLists
                 .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
-            if (playList is null)
+            if (playList == null)
             {
                 logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
                 return Error.NotFound();
@@ -32,7 +32,7 @@ namespace Musify.Application.PlayLists
 
             var link = await database.PlayListHasTracks
                 .SingleOrDefaultAsync(plt => plt.PlayListId == request.PlayListId && plt.TrackId == request.TrackId, cancellationToken);
-            if (link is null)
+            if (link == null)
             {
                 logger.LogInformation("Track {TrackId} not in playlist {PlayListId}", request.TrackId, request.PlayListId);
                 return Error.NotFound(description: "Track is not in the playlist.");

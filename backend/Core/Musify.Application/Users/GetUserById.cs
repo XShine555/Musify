@@ -20,7 +20,7 @@ namespace Musify.Application.Users
                 .Select(u => UserApplicationResponse.FromEntity(u))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (user is null)
+            if (user == null)
                 return Error.NotFound();
 
             return user;

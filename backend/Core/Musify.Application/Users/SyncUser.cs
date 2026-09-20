@@ -23,7 +23,7 @@ namespace Musify.Application.Users
             var user = await database.Users
                 .SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
-            if (user is null)
+            if (user == null)
             {
                 await database.Users.AddAsync(new User
                 {

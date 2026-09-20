@@ -35,7 +35,7 @@ namespace Musify.Application.Tracks
         {
             var user = await database.Users
                 .SingleOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
-            if (user is null)
+            if (user == null)
             {
                 logger.LogWarning("User {UserId} not found", request.UserId);
                 return Error.NotFound(description: $"User {request.UserId} not found");

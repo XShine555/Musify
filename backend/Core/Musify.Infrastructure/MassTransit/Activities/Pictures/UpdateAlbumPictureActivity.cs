@@ -31,14 +31,14 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     [executeContext.Arguments.AlbumId],
                     cancellationToken: executeContext.CancellationToken);
 
-                if (album is null)
+                if (album == null)
                 {
                     logger.LogWarning("Album {AlbumId} not found",
                         executeContext.Arguments.AlbumId);
                     throw new InvalidOperationException($"Album with id {executeContext.Arguments.AlbumId} not found");
                 }
 
-                if (album.Pictures is null)
+                if (album.Pictures == null)
                 {
                     logger.LogWarning("Album {AlbumId} has no pending picture upload",
                         executeContext.Arguments.AlbumId);
@@ -85,7 +85,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
                     [compensateContext.Log.AlbumId],
                     cancellationToken: compensateContext.CancellationToken);
 
-                if (album is null)
+                if (album == null)
                 {
                     return compensateContext.Compensated();
                 }

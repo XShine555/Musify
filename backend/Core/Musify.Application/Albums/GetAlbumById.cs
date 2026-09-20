@@ -29,7 +29,7 @@ namespace Musify.Application.Albums
                 })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (album is null)
+            if (album == null)
                 return Error.NotFound();
 
             return AlbumApplicationResponse.FromEntity(album.Album, album.TrackCount, album.CoverTrackIds);
