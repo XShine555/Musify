@@ -76,7 +76,7 @@
 	{#if user}
 		<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
 		<div class="flex items-center justify-between px-3 pb-1.5">
-			<span class="text-xs font-medium tracking-widest text-muted uppercase">Tus playlists</span>
+			<span class="text-eyebrow text-muted">Tus playlists</span>
 			{#if playlists.length > 0}
 				<IconButton
 					label="Crear playlist"

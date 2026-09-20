@@ -27,7 +27,7 @@
 		></div>
 	</button>
 {:else}
-	<div class="flex w-full max-w-135 items-center gap-2.75">
+	<div class="flex w-full max-w-hero items-center gap-2.75">
 		<span class="min-w-8 text-right text-xs text-fg-3 tabular-nums">
 			{fmtTime(player.progress)}
 		</span>

@@ -25,7 +25,7 @@
 <Page>
 	<PageHeader
 		title="Mis listas"
-		subtitle={items.length > 0 ? summary : 'Crea y organiza tus colecciones.'}
+		description={items.length > 0 ? summary : 'Crea y organiza tus colecciones.'}
 	>
 		{#snippet actions()}
 			{#if items.length > 0}
@@ -35,7 +35,7 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<div class="mt-7 grid-cards-lg sm:mt-8">
+		<div class="grid-cards-lg">
 			{#each items as playlist, i (playlist.id)}
 				<MediaCard
 					href="/playlists/{playlist.id}"

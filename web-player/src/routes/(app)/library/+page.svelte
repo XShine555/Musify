@@ -29,7 +29,7 @@
 <Page>
 	<PageHeader
 		title="Tus canciones subidas"
-		subtitle="{plural(total, 'canción', 'canciones')} subida{total === 1 ? '' : 's'}."
+		description="{plural(total, 'canción', 'canciones')} subida{total === 1 ? '' : 's'}."
 	>
 		{#snippet actions()}
 			{#if items.length > 0}
@@ -47,7 +47,6 @@
 			columns={['uploaded', 'plays']}
 			onPlay={togglePlay}
 			rowAction={{ action: '?/deleteTrack', icon: X, label: 'Borrar canción' }}
-			class="mt-7 sm:mt-8"
 		/>
 	{:else}
 		<EmptyState

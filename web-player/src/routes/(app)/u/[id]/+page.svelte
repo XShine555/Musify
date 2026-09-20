@@ -7,7 +7,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { plural, playlistMeta } from '$lib/format';
 
@@ -55,7 +55,7 @@
 {/snippet}
 
 <Page>
-	<CollectionHeader
+	<PageHeader
 		eyebrow="Perfil"
 		title={profile.name}
 		meta="{plural(
@@ -69,9 +69,9 @@
 		{#snippet cover()}
 			<Avatar name={profile.name} src={profile.profilePictureUrl} size="hero" />
 		{/snippet}
-	</CollectionHeader>
+	</PageHeader>
 
-	<div class="mt-9">
+	<div>
 		<SectionHeading title="Playlists públicas" subtitle="Creadas y compartidas por este usuario" />
 
 		{#if playlists.length > 0}

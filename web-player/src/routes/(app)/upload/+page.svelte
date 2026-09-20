@@ -103,10 +103,10 @@
 <Page>
 	<PageHeader
 		title="Subir música"
-		subtitle="Añade una canción con su portada y título. Nosotros la procesamos para streaming."
+		description="Añade una canción con su portada y título. Nosotros la procesamos para streaming."
 	/>
 
-	<ol class="mt-7 grid gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
+	<ol class="grid gap-3 sm:grid-cols-3 sm:gap-4">
 		{#each steps as step, i (step.key)}
 			<li>
 				<Surface padding="sm" class={stepClass(stepStates[i])}>

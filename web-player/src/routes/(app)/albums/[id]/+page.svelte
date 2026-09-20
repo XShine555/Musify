@@ -2,14 +2,22 @@
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Play from '@lucide/svelte/icons/play';
+	import Pause from '@lucide/svelte/icons/pause';
+	import SquarePencil from '@lucide/svelte/icons/square-pen';
+	import Trash from '@lucide/svelte/icons/trash';
 	import Page from '$lib/components/ui/Page.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import AlbumForm from '$lib/components/ui/AlbumForm.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import TrackList from '$lib/components/ui/TrackList.svelte';
-	import AlbumHeader from './components/AlbumHeader.svelte';
+	import { albumMeta } from '$lib/format';
 
 	let { data, form } = $props();
 
@@ -42,21 +50,54 @@
 </svelte:head>
 
 <Page>
-	<AlbumHeader
-		title={album.title}
-		description={album.description ?? undefined}
-		releaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
-		trackIds={tracks.map((track) => track.id)}
-		coverUrl="/api/albums/{album.id}/cover?size=large"
-		playing={isCurrentQueue && player.playing}
-		{isOwner}
-		onPlayAll={playAll}
-		onEdit={() => (editing = true)}
-		onDelete={() => (confirmingDelete = true)}
+	<BackLink
+		href={isOwner ? '/albums' : '/'}
+		label={isOwner ? 'Volver a tus álbumes' : 'Volver al inicio'}
 	/>
 
+	<PageHeader
+		eyebrow="Álbum"
+		title={album.title}
+		description={album.description ?? undefined}
+		meta={albumMeta(
+			album.releaseYear === null ? undefined : Number(album.releaseYear),
+			tracks.length
+		)}
+	>
+		{#snippet cover()}
+			<Artwork
+				src="/api/albums/{album.id}/cover?size=large"
+				trackIds={tracks.map((track) => track.id)}
+				size="hero"
+				alt={album.title}
+				class="shrink-0"
+			/>
+		{/snippet}
+		{#snippet actions()}
+			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
+				{#if isCurrentQueue && player.playing}
+					<Pause class="h-4 w-4" strokeWidth={1.5} />
+					Pausar
+				{:else}
+					<Play class="h-4 w-4" strokeWidth={1.5} />
+					Reproducir
+				{/if}
+			</Button>
+			{#if isOwner}
+				<Button size="sm" variant="secondary" onclick={() => (editing = true)}>
+					<SquarePencil class="h-4 w-4" strokeWidth={1.5} />
+					Editar
+				</Button>
+				<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
+					<Trash class="h-4 w-4" strokeWidth={1.5} />
+					Eliminar
+				</Button>
+			{/if}
+		{/snippet}
+	</PageHeader>
+
 	{#if form?.message}
-		<Alert tone="danger" class="mt-6">{form.message}</Alert>
+		<Alert tone="danger" class="mb-6">{form.message}</Alert>
 	{/if}
 
 	{#if tracks.length > 0}
@@ -66,7 +107,6 @@
 			rowAction={isOwner
 				? { action: '?/removeTrack', icon: X, label: 'Quitar del álbum' }
 				: undefined}
-			class="mt-6 sm:mt-8"
 		/>
 	{/if}
 
@@ -98,17 +138,11 @@
 	/>
 </Modal>
 
-<Modal open={confirmingDelete} onClose={() => (confirmingDelete = false)} maxWidth="max-w-sm">
-	<h2 class="text-lg font-semibold tracking-tight text-fg">
-		¿Eliminar «{album.title}»?
-	</h2>
-	<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
-		Esta acción no se puede deshacer. Las canciones que contiene seguirán en tu biblioteca.
-	</p>
-	<div class="mt-6 flex items-center justify-end gap-3">
-		<Button variant="secondary" onclick={() => (confirmingDelete = false)}>Cancelar</Button>
-		<form method="POST" action="?/delete">
-			<Button type="submit" variant="danger">Eliminar</Button>
-		</form>
-	</div>
-</Modal>
+<ConfirmDialog
+	open={confirmingDelete}
+	onClose={() => (confirmingDelete = false)}
+	title="¿Eliminar «{album.title}»?"
+	description="Esta acción no se puede deshacer. Las canciones que contiene seguirán en tu biblioteca."
+	confirmLabel="Eliminar"
+	action="?/delete"
+/>

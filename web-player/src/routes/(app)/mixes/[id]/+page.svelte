@@ -9,7 +9,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import TrackList from '$lib/components/ui/TrackList.svelte';
 	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
@@ -53,7 +53,7 @@
 <Page>
 	<BackLink href="/" label="Volver al inicio" />
 
-	<CollectionHeader
+	<PageHeader
 		eyebrow="Mezcla"
 		title={mix.title}
 		description={mix.subtitle ?? undefined}
@@ -87,10 +87,10 @@
 				Aleatorio
 			</Button>
 		{/snippet}
-	</CollectionHeader>
+	</PageHeader>
 
 	{#if form?.message}
-		<Alert tone="danger" class="mt-4">{form.message}</Alert>
+		<Alert tone="danger" class="mb-6">{form.message}</Alert>
 	{/if}
 
 	<TrackList
@@ -98,7 +98,6 @@
 		columns={['plays']}
 		onPlay={playFrom}
 		oncontextmenu={(e, _track, i) => trackMenu.open(e, targets[i])}
-		class="mt-6 sm:mt-8"
 	/>
 </Page>
 

@@ -118,6 +118,18 @@
 	}
 </script>
 
+{#snippet noListeningHistory()}
+	<EmptyState
+		icon={History}
+		title="Todavía no has escuchado nada"
+		description="Reproduce alguna canción y tu actividad reciente aparecerá aquí."
+	>
+		{#snippet actions()}
+			<Button href="/explore" variant="secondary">Explorar música</Button>
+		{/snippet}
+	</EmptyState>
+{/snippet}
+
 <svelte:head>
 	<title>Musify</title>
 	<meta name="description" content="Tu música, sin límites." />
@@ -130,13 +142,13 @@
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
-			<div class="animate-enter max-w-135 min-w-65">
+			<div class="animate-enter max-w-hero min-w-65">
 				<h1
 					class="font-display text-3xl leading-tight font-medium tracking-tight text-pretty text-fg sm:text-4xl"
 				>
 					{data.greeting}
 				</h1>
-				<p class="mt-3.5 max-w-108 text-sm leading-[1.65] text-fg-2">
+				<p class="mt-3.5 max-w-prose-sm text-body text-fg-2">
 					Sube lo tuyo, descubre lo nuevo y escúchalo todo en un solo sitio.
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
@@ -153,19 +165,19 @@
 			{#await data.listeningStats then stats}
 				<div class="flex gap-6.5">
 					<div>
-						<div class="font-display text-2xl font-medium tracking-tight text-fg">
+						<div class="text-display-2 text-fg">
 							{stats.tracksThisWeek}
 						</div>
 						<div class="mt-1 text-xs text-fg-3">Canciones nuevas escuchadas esta semana</div>
 					</div>
 					<div>
-						<div class="font-display text-2xl font-medium tracking-tight text-fg">
+						<div class="text-display-2 text-fg">
 							{fmtDurationLong(Number(stats.secondsThisWeek))}
 						</div>
 						<div class="mt-1 text-xs text-fg-3">Tiempo de escucha esta semana</div>
 					</div>
 					<div>
-						<div class="font-display text-2xl font-medium tracking-tight text-fg">
+						<div class="text-display-2 text-fg">
 							{stats.streakDays}
 						</div>
 						<div class="mt-1 text-xs text-fg-3">Días consecutivos escuchando</div>
@@ -200,15 +212,7 @@
 				{/each}
 			</div>
 		{:else}
-			<EmptyState
-				icon={History}
-				title="Todavía no has escuchado nada"
-				description="Reproduce alguna canción y tu actividad reciente aparecerá aquí."
-			>
-				{#snippet actions()}
-					<Button href="/explore" variant="secondary">Explorar música</Button>
-				{/snippet}
-			</EmptyState>
+			{@render noListeningHistory()}
 		{/if}
 	</section>
 
@@ -236,16 +240,14 @@
 							class="shrink-0"
 						/>
 						<div class="flex min-w-0 flex-col gap-3">
-							<p class="text-xs font-medium tracking-widest text-fg-2 uppercase">
-								Playlist destacada
-							</p>
-							<h3 class="truncate font-display text-2xl font-medium text-fg">
+							<p class="text-eyebrow text-fg-2">Playlist destacada</p>
+							<h3 class="truncate text-display-2 text-fg">
 								{spotlight.name}
 							</h3>
 							<p class="text-sm text-fg-2">{spotlightMeta}</p>
 						</div>
 					</div>
-					<p class="mt-5 max-w-110 text-sm text-fg-2">
+					<p class="mt-5 max-w-prose-sm text-sm text-fg-2">
 						{spotlight.description || 'Tu colección, siempre a mano.'}
 					</p>
 					<div class="mt-5 flex gap-2.5">
@@ -340,32 +342,17 @@
 				{/each}
 			</div>
 		{:else}
-			<EmptyState
-				icon={History}
-				title="Todavía no has escuchado nada"
-				description="Reproduce alguna canción y tu actividad reciente aparecerá aquí."
-			>
-				{#snippet actions()}
-					<Button href="/explore" variant="secondary">Explorar música</Button>
-				{/snippet}
-			</EmptyState>
+			{@render noListeningHistory()}
 		{/if}
 	</section>
 
 	<!-- TUS PLAYLISTS -->
 	<section>
-		<SectionHeading title="Tus playlists" subtitle="Creadas y guardadas por ti">
-			{#snippet actions()}
-				{#if data.playlistsHasMore}
-					<a
-						href="/playlists"
-						class="shrink-0 text-xs font-medium tracking-wider text-fg-3 uppercase transition-colors hover:text-fg"
-					>
-						Ver todas
-					</a>
-				{/if}
-			{/snippet}
-		</SectionHeading>
+		<SectionHeading
+			title="Tus playlists"
+			subtitle="Creadas y guardadas por ti"
+			href={data.playlistsHasMore ? '/playlists' : undefined}
+		/>
 		{#if playlists.length > 0}
 			<div class="grid-wide">
 				{#each playlists as playlist, i (playlist.id)}

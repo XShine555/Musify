@@ -29,7 +29,7 @@
 		</div>
 
 		{#if player.current.id}
-			<p class="mb-2.75 text-xs font-medium tracking-widest text-fg-3 uppercase">Reproduciendo</p>
+			<p class="mb-2.75 text-eyebrow text-fg-3">Reproduciendo</p>
 			<div class="mb-6 rounded-control bg-accent-tint p-2.5">
 				<MediaIdentity
 					trackId={player.current.id}
@@ -42,9 +42,7 @@
 		{/if}
 
 		<div class="mb-2.75 flex items-center justify-between gap-3">
-			<span class="min-w-0 flex-1 truncate text-xs font-medium tracking-widest text-fg-3 uppercase">
-				A continuación
-			</span>
+			<span class="min-w-0 flex-1 truncate text-eyebrow text-fg-3"> A continuación </span>
 			{#if upcoming.length > 0}
 				<button
 					type="button"

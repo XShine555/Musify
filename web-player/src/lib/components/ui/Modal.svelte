@@ -70,14 +70,13 @@
 
 {#if open}
 	<div
-		class="animate-fade fixed inset-0 z-[60] grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm"
+		class="animate-fade fixed inset-0 z-(--z-modal) grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm"
 		role="presentation"
 		onclick={onBackdropClick}
 	>
 		<div
 			bind:this={panel}
-			class="animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 backdrop-blur-xl transition-[background] duration-500 outline-none sm:p-6 {panelClass}"
-			style="background-color:var(--mf-panel-bg); background-image:var(--mf-modal-glow)"
+			class="glass-panel animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}
@@ -87,11 +86,11 @@
 				<div class="flex items-center justify-between gap-4">
 					<div class="min-w-0">
 						{#if eyebrow}
-							<p class="mb-2.5 text-xs font-medium tracking-widest text-muted uppercase">
+							<p class="mb-2.5 text-eyebrow text-muted">
 								{eyebrow}
 							</p>
 						{/if}
-						<h2 class="font-display text-xl font-medium tracking-[-0.02em] text-fg">
+						<h2 class="text-display-3 text-fg">
 							{title}
 						</h2>
 					</div>

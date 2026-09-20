@@ -5,7 +5,7 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
-	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import TrackList from '$lib/components/ui/TrackList.svelte';
@@ -29,7 +29,7 @@
 </svelte:head>
 
 <Page>
-	<CollectionHeader
+	<PageHeader
 		eyebrow="Colección"
 		title="Me gusta"
 		meta={plural(tracks.length, 'canción', 'canciones')}
@@ -37,9 +37,9 @@
 	>
 		{#snippet cover()}
 			<div
-				class="grid h-36 w-36 shrink-0 place-items-center rounded-art-lg bg-[image:var(--mf-liked-grad)] sm:h-41 sm:w-41"
+				class="grid size-cover-hero shrink-0 place-items-center rounded-art-lg bg-[image:var(--mf-liked-grad)] sm:size-cover-hero-sm"
 			>
-				<Heart class="h-10 w-10 text-on-art/90" fill="currentColor" strokeWidth={0} />
+				<Heart class="size-icon-xl text-on-art/90" fill="currentColor" strokeWidth={0} />
 			</div>
 		{/snippet}
 		{#snippet actions()}
@@ -47,7 +47,7 @@
 				{isCurrentQueue && player.playing ? 'Pausar' : 'Reproducir'}
 			</Button>
 		{/snippet}
-	</CollectionHeader>
+	</PageHeader>
 
 	{#if tracks.length > 0}
 		<TrackList
@@ -59,7 +59,6 @@
 				icon: X,
 				label: 'Quitar de Me gusta'
 			}}
-			class="mt-6 sm:mt-8"
 		/>
 	{:else}
 		<EmptyState

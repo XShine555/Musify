@@ -247,24 +247,20 @@
 	{#if !data.query}
 		<PageHeader
 			title="Descubrir"
-			subtitle="Encuentra tu próxima canción favorita explorando por género."
+			description="Encuentra tu próxima canción favorita explorando por género."
 		/>
 	{:else if !nothingFound}
-		<div>
-			<div class="mb-2.5 text-sm font-semibold tracking-[0.16em] text-fg-3 uppercase">
-				Resultados de búsqueda
-			</div>
-			<h1
-				class="font-display text-2xl font-semibold tracking-[-0.03em] text-pretty text-fg sm:text-3xl"
-			>
-				Resultados para «{data.query}»
-			</h1>
-			<p class="mt-1.75 text-sm text-fg-2">
-				{plural(totalHits, 'coincidencia', 'coincidencias')} en canciones, álbumes, playlists y usuarios
-			</p>
-		</div>
+		<PageHeader
+			eyebrow="Resultados de búsqueda"
+			title="Resultados para «{data.query}»"
+			description="{plural(
+				totalHits,
+				'coincidencia',
+				'coincidencias'
+			)} en canciones, álbumes, playlists y usuarios"
+		/>
 
-		<div class="mt-5 flex flex-wrap gap-1.75">
+		<div class="mb-7 flex flex-wrap gap-1.75 sm:mb-8">
 			{#each searchChips as chip (chip.label)}
 				<button
 					type="button"
@@ -355,11 +351,11 @@
 	{/if}
 
 	{#if nothingFound}
-		<div class="mx-auto max-w-115 py-[8vh] text-center">
-			<h1 class="font-display text-xl font-semibold tracking-tight text-fg">
+		<div class="mx-auto max-w-prose-sm py-[8vh] text-center">
+			<h1 class="text-display-3 text-fg">
 				Sin resultados para «{data.query}»
 			</h1>
-			<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
+			<p class="mt-2.5 text-body text-fg-2">
 				Revisa la ortografía o prueba con un término más corto. También puedes buscar por álbum o
 				por playlist.
 			</p>
@@ -378,7 +374,7 @@
 
 	{#if !data.query}
 		<!-- GÉNEROS -->
-		<div class="mt-7 grid-wide">
+		<div class="grid-wide">
 			{#each genreTiles as genre, i (genre.query)}
 				<a
 					href={searchHref(genre.query)}
@@ -399,14 +395,7 @@
 			{#if showGroup('Canciones')}
 				<div>
 					{#if songRows.length > 0}
-						<SectionHeading title="Canciones">
-							{#snippet actions()}
-								<div class="h-px flex-1 self-center bg-line"></div>
-								<span class="shrink-0 text-xs text-muted tabular-nums">
-									{plural(searchCounts.Canciones, 'resultado', 'resultados')}
-								</span>
-							{/snippet}
-						</SectionHeading>
+						<SectionHeading title="Canciones" count={searchCounts.Canciones} />
 						<ul class="flex flex-col gap-1">
 							{#each capped(songRows) as { target: item, seconds }, i (targetId(item))}
 								<li>
@@ -450,14 +439,7 @@
 
 			{#if hasAlbums && showGroup('Álbumes')}
 				<div>
-					<SectionHeading title="Álbumes">
-						{#snippet actions()}
-							<div class="h-px flex-1 self-center bg-line"></div>
-							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{plural(searchCounts.Álbumes, 'resultado', 'resultados')}
-							</span>
-						{/snippet}
-					</SectionHeading>
+					<SectionHeading title="Álbumes" count={searchCounts.Álbumes} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(albums) as album (album.id)}
 							<li>
@@ -482,14 +464,7 @@
 
 			{#if hasUsers && showGroup('Usuarios')}
 				<div>
-					<SectionHeading title="Usuarios">
-						{#snippet actions()}
-							<div class="h-px flex-1 self-center bg-line"></div>
-							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{plural(searchCounts.Usuarios, 'resultado', 'resultados')}
-							</span>
-						{/snippet}
-					</SectionHeading>
+					<SectionHeading title="Usuarios" count={searchCounts.Usuarios} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(users) as u (u.id)}
 							<li>
@@ -506,14 +481,7 @@
 
 			{#if hasPlaylists && showGroup('Playlists')}
 				<div>
-					<SectionHeading title="Playlists">
-						{#snippet actions()}
-							<div class="h-px flex-1 self-center bg-line"></div>
-							<span class="shrink-0 text-xs text-muted tabular-nums">
-								{plural(searchCounts.Playlists, 'resultado', 'resultados')}
-							</span>
-						{/snippet}
-					</SectionHeading>
+					<SectionHeading title="Playlists" count={searchCounts.Playlists} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(playlistMatches) as playlist (playlist.id)}
 							<li>

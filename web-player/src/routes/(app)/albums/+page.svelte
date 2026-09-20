@@ -23,7 +23,7 @@
 </svelte:head>
 
 <Page>
-	<PageHeader title="Álbumes" subtitle="Agrupa la música que subes en discos.">
+	<PageHeader title="Álbumes" description="Agrupa la música que subes en discos.">
 		{#snippet actions()}
 			{#if items.length > 0}
 				<Button onclick={() => (creating = true)}>
@@ -35,7 +35,7 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<div class="mt-7 grid-cards sm:mt-8">
+		<div class="grid-cards">
 			{#each items as album, i (album.id)}
 				<MediaCard
 					href="/albums/{album.id}"

@@ -1,14 +1,21 @@
 <script lang="ts">
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import X from '@lucide/svelte/icons/x';
+	import Play from '@lucide/svelte/icons/play';
+	import Pause from '@lucide/svelte/icons/pause';
+	import SquarePencil from '@lucide/svelte/icons/square-pen';
+	import Trash from '@lucide/svelte/icons/trash';
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import TrackList from '$lib/components/ui/TrackList.svelte';
-	import PlaylistHeader from './components/PlaylistHeader.svelte';
+	import { playlistMeta } from '$lib/format';
 
 	let { data, form } = $props();
 
@@ -36,18 +43,46 @@
 </svelte:head>
 
 <Page>
-	<PlaylistHeader
-		id={playlist.id}
-		name={playlist.name}
-		description={playlist.description}
-		trackIds={tracks.map((t) => t.id)}
-		updatedAt={playlist.updatedAt}
-		visibility={playlist.visibility}
-		playing={isCurrentQueue && player.playing}
-		onPlayAll={playAll}
-		onEdit={() => (editing = true)}
-		onDelete={() => (confirmingDelete = true)}
-	/>
+	<PageHeader
+		eyebrow="Lista"
+		title={playlist.name}
+		description={playlist.description ?? undefined}
+		meta="{playlistMeta(tracks.length)} · {playlist.visibility === 'Public'
+			? 'Pública'
+			: 'Privada'}"
+		align="center"
+	>
+		{#snippet cover()}
+			<Artwork
+				src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
+					playlist.updatedAt
+				)}"
+				trackIds={tracks.map((t) => t.id)}
+				size="hero"
+				alt={playlist.name}
+				class="shrink-0"
+			/>
+		{/snippet}
+		{#snippet actions()}
+			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
+				{#if isCurrentQueue && player.playing}
+					<Pause class="h-4 w-4" strokeWidth={1.5} />
+					Pausar
+				{:else}
+					<Play class="h-4 w-4" strokeWidth={1.5} />
+					Reproducir
+				{/if}
+			</Button>
+			<Button size="sm" variant="secondary" onclick={() => (editing = true)}>
+				<SquarePencil class="h-4 w-4" strokeWidth={1.5} />
+				Editar
+			</Button>
+			<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
+				<Trash class="h-4 w-4" strokeWidth={1.5} />
+				Eliminar
+			</Button>
+		{/snippet}
+	</PageHeader>
 
 	{#if tracks.length > 0}
 		<TrackList
@@ -55,14 +90,12 @@
 			columns={['added', 'plays']}
 			onPlay={playFrom}
 			rowAction={{ action: '?/removeTrack', icon: X, label: 'Quitar de la playlist' }}
-			class="mt-6 sm:mt-8"
 		/>
 	{:else}
 		<EmptyState
 			icon={ListMusic}
 			title="Esta playlist todavía está vacía"
 			description="Añade canciones desde tu biblioteca o explora música nueva para empezar."
-			class="mt-6 sm:mt-8"
 		>
 			{#snippet actions()}
 				<Button href="/explore" variant="secondary">Explorar música</Button>
@@ -88,18 +121,11 @@
 	/>
 </Modal>
 
-<Modal open={confirmingDelete} onClose={() => (confirmingDelete = false)} maxWidth="max-w-sm">
-	<h2 class="font-display text-xl font-semibold tracking-[-0.02em] text-fg">
-		¿Eliminar «{playlist.name}»?
-	</h2>
-	<p class="mt-2.5 text-sm leading-[1.65] text-fg-2">
-		Esta acción no se puede deshacer, la playlist se eliminará de tu biblioteca y de todos los
-		dispositivos donde la tengas guardada.
-	</p>
-	<div class="mt-6 flex items-center justify-end gap-3">
-		<Button variant="secondary" onclick={() => (confirmingDelete = false)}>Cancelar</Button>
-		<form method="POST" action="?/delete">
-			<Button type="submit" variant="danger">Eliminar</Button>
-		</form>
-	</div>
-</Modal>
+<ConfirmDialog
+	open={confirmingDelete}
+	onClose={() => (confirmingDelete = false)}
+	title="¿Eliminar «{playlist.name}»?"
+	description="Esta acción no se puede deshacer, la playlist se eliminará de tu biblioteca y de todos los dispositivos donde la tengas guardada."
+	confirmLabel="Eliminar"
+	action="?/delete"
+/>
