@@ -1,7 +1,6 @@
 <script lang="ts">
 	import MediaCard from './MediaCard.svelte';
-	import PlaylistArt from './PlaylistArt.svelte';
-	import Cover from './Cover.svelte';
+	import Artwork from './Artwork.svelte';
 
 	interface Props {
 		id: string;
@@ -53,10 +52,6 @@
 	oncontextmenu={onContextMenu}
 >
 	{#snippet art(artClass)}
-		{#if coverSrc}
-			<Cover trackId={id} src={coverSrc} size="large" alt={title} class={artClass} />
-		{:else}
-			<PlaylistArt {trackIds} class={artClass} />
-		{/if}
+		<Artwork src={coverSrc} {trackIds} size="fill" alt={title} class={artClass} />
 	{/snippet}
 </MediaCard>

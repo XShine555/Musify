@@ -4,7 +4,7 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { createPlaylistModal } from '$lib/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
-	import PlaylistArt from './ui/PlaylistArt.svelte';
+	import Artwork from './ui/Artwork.svelte';
 	import Home from '@lucide/svelte/icons/house';
 	import Compass from '@lucide/svelte/icons/compass';
 	import ListMusic from '@lucide/svelte/icons/list-music';
@@ -97,12 +97,13 @@
 						? 'bg-surface-hover'
 						: 'hover:bg-hover'}"
 				>
-					<PlaylistArt
-						playlistId={playlist.id}
+					<Artwork
+						src="/api/playlists/{playlist.id}/cover?size=small&v={encodeURIComponent(
+							playlist.updatedAt
+						)}"
 						trackIds={playlist.coverTrackIds}
-						version={playlist.updatedAt}
-						size="small"
-						class="h-8.5 w-8.5 shrink-0 overflow-hidden rounded-lg opacity-90"
+						size="xs"
+						class="shrink-0 opacity-90"
 					/>
 					<div class="min-w-0 flex-1">
 						<div class="truncate text-sm {active ? 'text-fg' : 'text-fg-2'}">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import Cover from './Cover.svelte';
+	import Artwork from './Artwork.svelte';
 	import ExplicitBadge from './ExplicitBadge.svelte';
 	import ArtistLink from './ArtistLink.svelte';
 
@@ -10,7 +10,7 @@
 		artist?: string | null;
 		ownerUserId?: string | number | null;
 		coverSrc?: string | null;
-		coverSize?: string;
+		size?: 'sm' | 'lg';
 		explicit?: boolean;
 		active?: boolean;
 		titleClass?: string;
@@ -25,7 +25,7 @@
 		artist,
 		ownerUserId,
 		coverSrc,
-		coverSize = 'h-10.5 w-10.5',
+		size = 'sm',
 		explicit = false,
 		active = false,
 		titleClass = '',
@@ -53,15 +53,9 @@
 	onkeydown={onKeydown}
 	class="flex min-w-0 items-center gap-3.5 text-left"
 >
-	<Cover
-		{trackId}
-		src={coverSrc}
-		size="small"
-		alt={title}
-		class="{coverSize} shrink-0 rounded-control"
-	>
+	<Artwork trackIds={[trackId]} src={coverSrc} {size} alt={title} class="shrink-0">
 		{@render overlay?.()}
-	</Cover>
+	</Artwork>
 	<div class="min-w-0">
 		<div class="flex min-w-0 items-center gap-2">
 			{#if explicit}

@@ -8,6 +8,7 @@
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import AccountMenu from './ui/AccountMenu.svelte';
+	import Avatar from './ui/Avatar.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -113,17 +114,14 @@
 						onclick={toggle}
 						aria-label="Tu cuenta"
 						aria-expanded={open}
-						class="block h-8.25 w-8.25 shrink-0 overflow-hidden rounded-full border border-line-strong transition active:scale-95"
+						class="block shrink-0 rounded-full transition active:scale-95"
 					>
-						{#if user.picture}
-							<img src={user.picture} alt="" class="h-full w-full object-cover opacity-90" />
-						{:else}
-							<span
-								class="grid h-full w-full place-items-center bg-surface-2 text-xs font-semibold text-fg uppercase"
-							>
-								{user.name.charAt(0)}
-							</span>
-						{/if}
+						<Avatar
+							name={user.name}
+							src={user.picture}
+							size="sm"
+							class="border border-line-strong opacity-90"
+						/>
 					</button>
 				{/snippet}
 			</AccountMenu>

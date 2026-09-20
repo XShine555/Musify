@@ -1,20 +1,8 @@
-<script lang="ts" module>
-	export type SearchResultKind = 'track' | 'album' | 'playlist' | 'user';
-</script>
-
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import ExplicitBadge from './ExplicitBadge.svelte';
 
-	const RADIUS: Record<SearchResultKind, string> = {
-		track: 'rounded-control',
-		album: 'rounded-md',
-		playlist: 'rounded-art',
-		user: 'rounded-full'
-	};
-
 	interface Props {
-		kind: SearchResultKind;
 		title: string;
 		subtitle?: string | null;
 		meta?: string;
@@ -26,7 +14,6 @@
 	}
 
 	let {
-		kind,
 		title,
 		subtitle,
 		meta,
@@ -37,7 +24,7 @@
 		art
 	}: Props = $props();
 
-	const artClass = $derived(`relative h-13 w-13 shrink-0 overflow-hidden ${RADIUS[kind]}`);
+	const artClass = 'relative shrink-0';
 </script>
 
 {#snippet content()}

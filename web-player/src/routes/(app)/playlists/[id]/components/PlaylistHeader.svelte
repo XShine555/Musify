@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 
@@ -44,12 +44,12 @@
 	align="center"
 >
 	{#snippet cover()}
-		<PlaylistArt
-			playlistId={id}
+		<Artwork
+			src="/api/playlists/{id}/cover?size=large&v={encodeURIComponent(updatedAt)}"
 			{trackIds}
-			size="large"
-			version={updatedAt}
-			class="h-36 w-36 shrink-0 rounded-art-lg sm:h-41 sm:w-41"
+			size="hero"
+			alt={name}
+			class="shrink-0"
 		/>
 	{/snippet}
 	{#snippet actions()}

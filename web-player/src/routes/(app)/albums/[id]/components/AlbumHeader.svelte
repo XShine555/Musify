@@ -3,7 +3,7 @@
 	import Pause from '@lucide/svelte/icons/pause';
 	import SquarePencil from '@lucide/svelte/icons/square-pen';
 	import Trash from '@lucide/svelte/icons/trash';
-	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
@@ -51,12 +51,7 @@
 
 <CollectionHeader eyebrow="Álbum" {title} {description} {meta}>
 	{#snippet cover()}
-		<PlaylistArt
-			{trackIds}
-			{coverUrl}
-			size="large"
-			class="h-36 w-36 shrink-0 rounded-art-lg sm:h-41 sm:w-41"
-		/>
+		<Artwork src={coverUrl} {trackIds} size="hero" alt={title} class="shrink-0" />
 	{/snippet}
 	{#snippet actions()}
 		<Button size="sm" onclick={onPlayAll} disabled={trackIds.length === 0}>

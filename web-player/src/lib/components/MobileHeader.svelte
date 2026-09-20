@@ -5,6 +5,7 @@
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import MenuItem from './ui/MenuItem.svelte';
 	import AccountMenu from './ui/AccountMenu.svelte';
+	import Avatar from './ui/Avatar.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -40,15 +41,7 @@
 						aria-expanded={open}
 						class="flex items-center rounded-full"
 					>
-						{#if user.picture}
-							<img src={user.picture} alt="" class="h-9 w-9 rounded-full object-cover" />
-						{:else}
-							<span
-								class="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-sm uppercase"
-							>
-								{user.name.charAt(0)}
-							</span>
-						{/if}
+						<Avatar name={user.name} src={user.picture} size="sm" />
 					</button>
 				{/snippet}
 				{#snippet extraItems({ close })}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
-	import Cover from '$lib/components/ui/Cover.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
 	import { fmtTime } from '$lib/format';
 	import X from '@lucide/svelte/icons/x';
@@ -35,11 +35,11 @@
 		{#if player.current.id}
 			<p class="mb-2.75 text-xs font-medium tracking-widest text-fg-3 uppercase">Reproduciendo</p>
 			<div class="mb-6 flex items-center gap-3 rounded-xl bg-accent-tint p-2.5">
-				<Cover
-					trackId={player.current.id}
-					size="small"
+				<Artwork
+					trackIds={[player.current.id]}
+					size="sm"
 					alt={player.current.title}
-					class="h-10 w-10 shrink-0 rounded-lg"
+					class="shrink-0"
 				/>
 				<div class="min-w-0">
 					<div class="truncate text-sm text-accent-soft">
@@ -55,9 +55,7 @@
 		{/if}
 
 		<div class="mb-2.75 flex items-center justify-between gap-3">
-			<span
-				class="min-w-0 flex-1 truncate text-xs font-medium tracking-widest text-fg-3 uppercase"
-			>
+			<span class="min-w-0 flex-1 truncate text-xs font-medium tracking-widest text-fg-3 uppercase">
 				A continuación
 			</span>
 			{#if upcoming.length > 0}
@@ -85,12 +83,7 @@
 					}}
 					class="flex items-center gap-3 rounded-control p-2.25 text-left hover:bg-hover"
 				>
-					<Cover
-						trackId={track.id}
-						size="small"
-						alt={track.title}
-						class="h-10 w-10 shrink-0 rounded-lg opacity-80"
-					/>
+					<Artwork trackIds={[track.id]} size="sm" alt={track.title} class="shrink-0 opacity-80" />
 					<div class="min-w-0 flex-1">
 						<div class="truncate text-xs text-fg">{track.title}</div>
 						<ArtistLink

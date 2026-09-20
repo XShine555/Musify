@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MediaCard from './MediaCard.svelte';
-	import PlaylistArt from './PlaylistArt.svelte';
+	import Artwork from './Artwork.svelte';
 
 	interface Props {
 		id: string;
@@ -18,6 +18,12 @@
 
 <MediaCard href="/playlists/{id}" title={name} {subtitle} {index}>
 	{#snippet art(artClass)}
-		<PlaylistArt playlistId={id} {trackIds} version={updatedAt} class={artClass} />
+		<Artwork
+			src="/api/playlists/{id}/cover?size=large&v={encodeURIComponent(updatedAt)}"
+			{trackIds}
+			size="fill"
+			alt={name}
+			class={artClass}
+		/>
 	{/snippet}
 </MediaCard>

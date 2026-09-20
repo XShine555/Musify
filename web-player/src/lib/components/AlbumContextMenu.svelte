@@ -20,7 +20,7 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';
-	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import GlassMenu from '$lib/components/ui/GlassMenu.svelte';
 
 	interface Props {
@@ -99,11 +99,10 @@
 									type="submit"
 									class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg transition hover:bg-hover"
 								>
-									<PlaylistArt
-										playlistId={playlist.id}
-										trackIds={[]}
-										size="small"
-										class="h-9 w-9 shrink-0 rounded-control"
+									<Artwork
+										src="/api/playlists/{playlist.id}/cover?size=small"
+										size="xs"
+										class="shrink-0"
 									/>
 									<span class="truncate text-fg-2">{playlist.name}</span>
 								</button>

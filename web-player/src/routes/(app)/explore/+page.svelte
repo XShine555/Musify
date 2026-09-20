@@ -9,8 +9,8 @@
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
-	import Cover from '$lib/components/ui/Cover.svelte';
-	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
+	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
 	import SearchResultRow from '$lib/components/ui/SearchResultRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
@@ -296,40 +296,25 @@
 		{#if topResult}
 			{#snippet topResultBody()}
 				{#if topResult.kind === 'track'}
-					<Cover
-						trackId={targetId(topResult.target)}
-						size="large"
+					<Artwork
+						trackIds={[targetId(topResult.target)]}
+						size="xl"
 						alt={targetTitle(topResult.target)}
-						class="h-22 w-22 shrink-0 rounded-2xl"
+						class="shrink-0"
 					/>
 				{:else if topResult.kind === 'album'}
-					<PlaylistArt
-						trackIds={topResult.album.coverTrackIds}
-						class="h-22 w-22 shrink-0 rounded-2xl"
-					/>
+					<Artwork trackIds={topResult.album.coverTrackIds} size="xl" class="shrink-0" />
 				{:else if topResult.kind === 'playlist'}
-					<PlaylistArt
-						playlistId={topResult.playlist.id}
+					<Artwork
+						src="/api/playlists/{topResult.playlist.id}/cover?size=large&v={encodeURIComponent(
+							topResult.playlist.updatedAt
+						)}"
 						trackIds={topResult.playlist.coverTrackIds}
-						version={topResult.playlist.updatedAt}
-						class="h-22 w-22 shrink-0 rounded-2xl"
+						size="xl"
+						class="shrink-0"
 					/>
 				{:else}
-					<div
-						class="grid h-22 w-22 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-2"
-					>
-						{#if topResult.user.profilePictureUrl}
-							<img
-								src={topResult.user.profilePictureUrl}
-								alt=""
-								class="h-full w-full object-cover"
-							/>
-						{:else}
-							<span class="text-xl font-semibold text-fg uppercase"
-								>{topResult.user.name.charAt(0)}</span
-							>
-						{/if}
-					</div>
+					<Avatar name={topResult.user.name} src={topResult.user.profilePictureUrl} size="lg" />
 				{/if}
 
 				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
@@ -443,7 +428,6 @@
 							{#each capped(songRows) as { target: item, seconds }, i (targetId(item))}
 								<li>
 									<SearchResultRow
-										kind="track"
 										title={targetTitle(item)}
 										subtitle={targetArtist(item)}
 										meta="{fmtTime(seconds)} · {fmtPlays(targetListensCount(item))}"
@@ -452,16 +436,16 @@
 										oncontextmenu={(e) => openContextMenu(e, item)}
 									>
 										{#snippet art(artClass)}
-											<Cover
-												trackId={targetId(item)}
-												size="small"
+											<Artwork
+												trackIds={[targetId(item)]}
+												size="lg"
 												alt={targetTitle(item)}
 												class="{artClass} ring-1 ring-line ring-inset"
 											>
 												{#if isTargetCurrent(item)}
 													<NowPlaying paused={!player.playing} />
 												{/if}
-											</Cover>
+											</Artwork>
 										{/snippet}
 									</SearchResultRow>
 								</li>
@@ -495,14 +479,13 @@
 						{#each capped(albums) as album (album.id)}
 							<li>
 								<SearchResultRow
-									kind="album"
 									title={album.title}
 									meta="{Number(album.trackCount)} canciones"
 									href="/albums/{album.id}"
 									oncontextmenu={(e) => openAlbumMenu(e, album.id)}
 								>
 									{#snippet art(artClass)}
-										<PlaylistArt trackIds={album.coverTrackIds} class={artClass} />
+										<Artwork trackIds={album.coverTrackIds} size="lg" class={artClass} />
 									{/snippet}
 								</SearchResultRow>
 							</li>
@@ -525,17 +508,9 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(users) as u (u.id)}
 							<li>
-								<SearchResultRow kind="user" title={u.name} href="/u/{u.id}">
+								<SearchResultRow title={u.name} href="/u/{u.id}">
 									{#snippet art(artClass)}
-										<div class="{artClass} grid place-items-center bg-surface-2">
-											{#if u.profilePictureUrl}
-												<img src={u.profilePictureUrl} alt="" class="h-full w-full object-cover" />
-											{:else}
-												<span class="text-sm font-semibold text-fg uppercase">
-													{u.name.charAt(0)}
-												</span>
-											{/if}
-										</div>
+										<Avatar name={u.name} src={u.profilePictureUrl} size="md" class={artClass} />
 									{/snippet}
 								</SearchResultRow>
 							</li>
@@ -559,16 +534,17 @@
 						{#each capped(playlistMatches) as playlist (playlist.id)}
 							<li>
 								<SearchResultRow
-									kind="playlist"
 									title={playlist.name}
 									subtitle={playlist.description}
 									href="/playlists/{playlist.id}"
 								>
 									{#snippet art(artClass)}
-										<PlaylistArt
-											playlistId={playlist.id}
+										<Artwork
+											src="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
+												playlist.updatedAt
+											)}"
 											trackIds={playlist.coverTrackIds}
-											version={playlist.updatedAt}
+											size="lg"
 											class={artClass}
 										/>
 									{/snippet}

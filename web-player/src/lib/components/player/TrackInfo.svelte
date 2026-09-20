@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import Cover from '$lib/components/ui/Cover.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
 	import Heart from '@lucide/svelte/icons/heart';
@@ -29,14 +29,14 @@
 
 <div class="flex min-w-0 items-center gap-2.5 md:gap-3.25">
 	{#if player.current.id}
-		<Cover
-			trackId={player.current.id}
-			size="small"
+		<Artwork
+			trackIds={[player.current.id]}
+			size="sm"
 			alt={player.current.title}
-			class="h-11 w-11 shrink-0 rounded-xl md:h-12 md:w-12"
+			class="shrink-0 md:size-cover-md"
 		/>
 	{:else}
-		<div class="h-11 w-11 shrink-0 rounded-xl bg-surface md:h-12 md:w-12"></div>
+		<div class="size-cover-sm shrink-0 rounded-art bg-surface md:size-cover-md"></div>
 	{/if}
 	<div class="min-w-0 flex-1">
 		<div class="flex min-w-0 items-center gap-1.5">

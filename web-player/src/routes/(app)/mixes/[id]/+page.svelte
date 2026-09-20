@@ -9,7 +9,7 @@
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
-	import MixArt from '$lib/components/ui/MixArt.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
@@ -75,7 +75,12 @@
 		meta="{items.length} {items.length === 1 ? 'canción' : 'canciones'} · {fmtTime(totalSeconds)}"
 	>
 		{#snippet cover()}
-			<MixArt {items} class="h-36 w-36 shrink-0 rounded-art-lg sm:h-41 sm:w-41" />
+			<Artwork
+				trackIds={items.map((item) => item.trackId)}
+				size="hero"
+				alt={mix.title}
+				class="shrink-0"
+			/>
 		{/snippet}
 		{#snippet actions()}
 			<Button size="sm" onclick={playAll} disabled={queue.length === 0}>

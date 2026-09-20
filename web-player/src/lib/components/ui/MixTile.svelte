@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Play from '@lucide/svelte/icons/play';
-	import MixArt from './MixArt.svelte';
+	import Artwork from './Artwork.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queueItemForTarget } from '$lib/tracks';
 	import { mixItemTarget, type Mix } from '$lib/mixes';
@@ -13,6 +13,8 @@
 
 	let { mix, index = 0, class: klass = '' }: Props = $props();
 
+	const trackIds = $derived(mix.items.map((item) => item.trackId));
+
 	function play(event: MouseEvent) {
 		event.preventDefault();
 		const items = mix.items.map((item) => queueItemForTarget(mixItemTarget(item)));
@@ -23,15 +25,16 @@
 <a
 	href="/mixes/{mix.id}"
 	class="group/tile animate-enter block cursor-pointer {klass}"
-	style="animation-delay:{Math.min(index, 10) * 45}ms"
+	style="--i:{index}"
 >
-	<div class="relative aspect-square overflow-hidden rounded-art">
-		<MixArt
-			items={mix.items}
-			class="h-full w-full scale-100 transition duration-300 group-hover/tile:scale-105"
-		/>
+	<Artwork
+		{trackIds}
+		size="fill"
+		alt={mix.title}
+		class="rounded-art transition duration-300 group-hover/tile:scale-105"
+	>
 		<div
-			class="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent from-45% to-black/42"
+			class="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent from-45% to-scrim/40"
 		></div>
 		<button
 			type="button"
@@ -41,8 +44,8 @@
 		>
 			<Play class="h-3.5 w-3.5" fill="currentColor" />
 		</button>
-	</div>
-	<div class="mt-3.25 truncate text-sm font-semibold tracking-[-0.01em] text-fg">
+	</Artwork>
+	<div class="mt-3.25 truncate text-sm font-semibold text-fg">
 		{mix.title}
 	</div>
 	{#if mix.subtitle}

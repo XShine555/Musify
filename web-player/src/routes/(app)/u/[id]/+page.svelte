@@ -7,7 +7,7 @@
 	import PlaylistCard from '$lib/components/ui/PlaylistCard.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import ArtistAvatar from '$lib/components/ui/ArtistAvatar.svelte';
+	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 
@@ -65,7 +65,7 @@
 		actions={canFollow ? followAction : undefined}
 	>
 		{#snippet cover()}
-			<ArtistAvatar name={profile.name} imageUrl={profile.profilePictureUrl} size={144} />
+			<Avatar name={profile.name} src={profile.profilePictureUrl} size="hero" />
 		{/snippet}
 	</CollectionHeader>
 

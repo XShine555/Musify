@@ -20,7 +20,7 @@
 		type TrackTarget
 	} from '$lib/tracks';
 	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
-	import PlaylistArt from '$lib/components/ui/PlaylistArt.svelte';
+	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import MixTile from '$lib/components/ui/MixTile.svelte';
 	import EqBars from '$lib/components/ui/EqBars.svelte';
 	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
@@ -215,7 +215,7 @@
 							title={item.title}
 							artist={item.artist}
 							ownerUserId={item.ownerUserId}
-							coverSize="h-14 w-14"
+							size="lg"
 							active={isCurrent}
 							onClick={() => playContinue(i)}
 						/>
@@ -250,12 +250,14 @@
 						onclick={() => goto(`/playlists/${spotlight.id}`)}
 						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${spotlight.id}`))}
 					>
-						<PlaylistArt
-							playlistId={spotlight.id}
+						<Artwork
+							src="/api/playlists/{spotlight.id}/cover?size=large&v={encodeURIComponent(
+								spotlight.updatedAt
+							)}"
 							trackIds={spotlight.coverTrackIds}
-							version={spotlight.updatedAt}
-							size="large"
-							class="h-34 w-34 shrink-0 rounded-2xl"
+							size="2xl"
+							alt={spotlight.name}
+							class="shrink-0"
 						/>
 						<div class="flex min-w-0 flex-col gap-3">
 							<p class="text-xs font-medium tracking-widest text-fg-2 uppercase">
@@ -292,9 +294,7 @@
 								? 'bg-accent-tint'
 								: 'hover:bg-hover'}"
 						>
-							<span class="w-5 shrink-0  text-center text-xs text-muted tabular-nums"
-								>{i + 1}</span
-							>
+							<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums">{i + 1}</span>
 							<div class="min-w-0 flex-1">
 								<div
 									class="truncate text-sm {isTargetCurrent(target)
@@ -309,9 +309,7 @@
 									class="mt-0.5 text-xs text-fg-3"
 								/>
 							</div>
-							<span class="shrink-0 text-xs text-muted tabular-nums"
-								>{fmtTime(seconds)}</span
-							>
+							<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
 						</div>
 					{:else}
 						<p class="p-2 text-sm text-fg-3">Esta playlist todavía no tiene canciones.</p>
@@ -369,7 +367,6 @@
 								title={targetTitle(target)}
 								artist={targetArtist(target)}
 								ownerUserId={targetOwnerUserId(target)}
-								coverSize="h-10 w-10"
 								explicit={targetExplicit(target)}
 								active={isCurrent}
 								onClick={() => playPopular(i)}
@@ -414,17 +411,19 @@
 					<div
 						role="button"
 						tabindex="0"
-						class="group/card animate-enter flex items-center gap-3.5 rounded-2xl p-3 transition-colors hover:bg-hover"
-						style="animation-delay:{Math.min(i, 10) * 40}ms"
+						class="group/card animate-enter flex items-center gap-3.5 rounded-panel p-3 transition-colors hover:bg-hover"
+						style="--i:{i}"
 						onclick={() => goto(`/playlists/${playlist.id}`)}
 						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${playlist.id}`))}
 					>
-						<PlaylistArt
-							playlistId={playlist.id}
+						<Artwork
+							src="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
+								playlist.updatedAt
+							)}"
 							trackIds={playlist.coverTrackIds}
-							version={playlist.updatedAt}
-							size="medium"
-							class="h-15.5 w-15.5 shrink-0 rounded-control"
+							size="lg"
+							alt={playlist.name}
+							class="shrink-0"
 						/>
 						<div class="min-w-0 flex-1">
 							<div class="truncate text-sm tracking-tight text-fg">
