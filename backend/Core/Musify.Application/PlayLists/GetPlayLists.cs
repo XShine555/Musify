@@ -10,12 +10,12 @@ using Musify.Application.Contracts;
 namespace Musify.Application.PlayLists
 {
     public record GetPlayListsQuery(int PageNumber, int PageSize)
-        : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>> >;
+        : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>>>;
 
     public class GetPlayListsQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListsQuery, ErrorOr<PaginatedResponse<PlayListApplicationResponse> >>
+        : IQueryHandler<GetPlayListsQuery, ErrorOr<PaginatedResponse<PlayListApplicationResponse>>>
     {
-        public async ValueTask<ErrorOr<PaginatedResponse<PlayListApplicationResponse> >> Handle(GetPlayListsQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<PlayListApplicationResponse>>> Handle(GetPlayListsQuery request, CancellationToken cancellationToken)
         {
             var totalCount = await database.PlayLists.CountAsync(cancellationToken);
 

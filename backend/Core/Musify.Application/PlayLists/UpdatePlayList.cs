@@ -85,9 +85,7 @@ namespace Musify.Application.PlayLists
                 finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             }
 
-            database.PlayLists.Update(playListEntity);
-
-            if (pictureIntent != null&& finalPictureKey != null)
+            if (pictureIntent != null && finalPictureKey != null)
             {
                 var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(
                     playListEntity.Id, pictureIntent, finalPictureKey, cancellationToken);
@@ -117,7 +115,7 @@ namespace Musify.Application.PlayLists
             return PlayListApplicationResponse.FromEntity(playListEntity, coverTrackIds);
         }
 
-        async Task<ErrorOr<Success>> PublishUpdatePlayListPictureSourceEventAsync(
+        private async Task<ErrorOr<Success>> PublishUpdatePlayListPictureSourceEventAsync(
             Guid playListId,
             UploadIntent pictureIntent,
             string finalPictureKey,

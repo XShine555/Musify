@@ -33,7 +33,7 @@ namespace Musify.Application.Tracks
             var pagedEntities = await tracksQuery
                 .OrderByDescending(t => t.Track.CreatedAt)
                 .ThenBy(t => t.Id)
-                .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count } )
+                .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count })
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             var items = pagedEntities

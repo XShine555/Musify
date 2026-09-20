@@ -7,10 +7,10 @@ using Musify.Application.Users.Responses;
 namespace Musify.Application.Users
 {
     public record GetUserByIdQuery(long Id)
-        : IQuery<ErrorOr<UserApplicationResponse> >;
+        : IQuery<ErrorOr<UserApplicationResponse>>;
 
     public class GetUserByIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetUserByIdQuery, ErrorOr<UserApplicationResponse> >
+        : IQueryHandler<GetUserByIdQuery, ErrorOr<UserApplicationResponse>>
     {
         public async ValueTask<ErrorOr<UserApplicationResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {

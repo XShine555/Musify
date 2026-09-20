@@ -16,6 +16,7 @@ namespace Musify.Application.Tracks
         public async ValueTask<IEnumerable<TrackApplicationResponse>> Handle(GetListeningHistoryQuery query, CancellationToken cancellationToken)
         {
             var recentTrackIds = await database.ListeningHistories
+                .AsNoTracking()
                 .Where(l => l.UserId == query.UserId)
                 .GroupBy(l => l.TrackId)
                 .OrderByDescending(g => g.Max(l => l.ListenedAt))
@@ -24,14 +25,15 @@ namespace Musify.Application.Tracks
                 .ToListAsync(cancellationToken);
 
             var tracksById = await database.Tracks
+                .AsNoTracking()
                 .Include(t => t.Owner)
                 .Include(t => t.Tags)
                 .Where(t => recentTrackIds.Contains(t.Id))
-                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count } )
+                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count })
                 .ToDictionaryAsync(t => t.Id, cancellationToken);
 
             return recentTrackIds
-                .Select(id => tracksById[id] )
+                .Select(id => tracksById[id])
                 .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.ListensCount));
         }
     }

@@ -28,7 +28,7 @@ namespace Musify.Application.Users
     }
 
     public class CreateUserCommandHandler(IDatabase database, ILogger<CreateUserCommandHandler> logger)
-        : ICommandHandler<CreateUserCommand, ErrorOr<UserApplicationResponse> >
+        : ICommandHandler<CreateUserCommand, ErrorOr<UserApplicationResponse>>
     {
         public async ValueTask<ErrorOr<UserApplicationResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {

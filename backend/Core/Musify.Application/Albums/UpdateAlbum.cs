@@ -77,8 +77,6 @@ namespace Musify.Application.Albums
                 finalPictureKey = albumConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             }
 
-            database.Albums.Update(album);
-
             if (pictureIntent != null && finalPictureKey != null)
             {
                 var publishResult = await PublishUpdateAlbumPictureSourceEventAsync(

@@ -14,12 +14,12 @@ namespace Musify.Application.Tracks
         string? Name,
         int PageNumber,
         int PageSize)
-        : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse> > >;
+        : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse>>>;
 
     public class GetTracksByUserIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetTracksByUserIdQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>> >
+        : IQueryHandler<GetTracksByUserIdQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>>>
     {
-        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse> >> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse>>> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
         {
             var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
             var pageSize = request.PageSize < 1 ? 10 : request.PageSize;

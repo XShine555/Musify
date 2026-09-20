@@ -10,7 +10,7 @@ namespace Musify.Application.Tracks
         : IQuery<ErrorOr<TrackApplicationResponse>>;
 
     public class GetTrackByIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetTrackByIdQuery, ErrorOr<TrackApplicationResponse> >
+        : IQueryHandler<GetTrackByIdQuery, ErrorOr<TrackApplicationResponse>>
     {
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(GetTrackByIdQuery request, CancellationToken cancellationToken)
         {

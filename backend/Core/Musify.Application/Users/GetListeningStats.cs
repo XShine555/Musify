@@ -16,6 +16,7 @@ namespace Musify.Application.Users
             var weekAgo = DateTime.UtcNow.AddDays(-7);
 
             var thisWeekHistory = database.ListeningHistories
+                .AsNoTracking()
                 .Where(l => l.UserId == request.UserId && l.ListenedAt >= weekAgo);
 
             var tracksThisWeek = await thisWeekHistory
@@ -24,10 +25,11 @@ namespace Musify.Application.Users
                 .CountAsync(cancellationToken);
 
             var secondsThisWeek = await thisWeekHistory
-                .Join(database.Tracks, l => l.TrackId, t => t.Id, (l, t) => t.DurationSeconds)
+                .Join(database.Tracks.AsNoTracking(), l => l.TrackId, t => t.Id, (l, t) => t.DurationSeconds)
                 .SumAsync(cancellationToken);
 
             var listenedDates = await database.ListeningHistories
+                .AsNoTracking()
                 .Where(l => l.UserId == request.UserId)
                 .Select(l => l.ListenedAt.Date)
                 .Distinct()

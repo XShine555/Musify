@@ -14,6 +14,7 @@ namespace Musify.Application.Tracks
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(GetLastTrackListenedByUserIdQuery query, CancellationToken cancellationToken)
         {
             var track = await database.ListeningHistories
+                .AsNoTracking()
                 .Include(t => t.Track.Owner)
                 .Include(t => t.Track.Tags)
                 .Where(t => t.UserId == query.UserId)

@@ -42,7 +42,7 @@ namespace Musify.Application.PlayLists
             var effectiveSizeBytes = request.ExpectedSizeBytes
                 ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
 
-            var objectName = $"{Guid.NewGuid() }.{request.FileType.TrimStart('.').ToLowerInvariant() }";
+            var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
 
             var tempKey = playListConfiguration.Routes.BuildTempPicturePath(
                 uploadIntentConfiguration.TemporalRootPrefix, request.UserId, objectName);
@@ -84,7 +84,7 @@ namespace Musify.Application.PlayLists
                 await database.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
-                logger.LogInformation("Issued upload intent {IntentId} for user {UserId} (PlayListPicture, temp key: {Key} )", intent.Id, request.UserId, tempKey);
+                logger.LogInformation("Issued upload intent {IntentId} for user {UserId} (PlayListPicture, temp key: {Key})", intent.Id, request.UserId, tempKey);
 
                 return new PlayListPictureUploadResponse(
                     intent.Id,

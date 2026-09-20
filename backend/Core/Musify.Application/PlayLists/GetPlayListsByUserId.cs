@@ -16,12 +16,12 @@ namespace Musify.Application.PlayLists
         int PageNumber,
         int PageSize,
         bool OnlyPublic = false)
-        : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>> >;
+        : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>>>;
 
     public class GetPlayListsByUserIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListsByUserIdQuery, ErrorOr<PaginatedResponse<PlayListApplicationResponse> > >
+        : IQueryHandler<GetPlayListsByUserIdQuery, ErrorOr<PaginatedResponse<PlayListApplicationResponse>>>
     {
-        public async ValueTask<ErrorOr<PaginatedResponse<PlayListApplicationResponse> >> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<PlayListApplicationResponse>>> Handle(GetPlayListsByUserIdQuery request, CancellationToken cancellationToken)
         {
             var playListsQuery = database.PlayLists
                 .AsNoTracking()
@@ -51,7 +51,7 @@ namespace Musify.Application.PlayLists
                         .Take(PlayListApplicationResponse.CoverTrackCount)
                         .Select(plt => plt.TrackId)
                         .ToList()
-                } )
+                })
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             var pagedPlayLists = new StaticPagedList<PlayListApplicationResponse>(

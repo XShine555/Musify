@@ -55,7 +55,7 @@ namespace Musify.Application.PlayLists
                 UserId = request.UserId,
                 Name = request.Name,
                 NormalizedName = request.Name.Trim().ToUpperInvariant(),
-                Description = string.IsNullOrWhiteSpace(request.Description)? null: request.Description.Trim(),
+                Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
                 Pictures = resolvedPictures.Pictures,
                 Visibility = request.Visibility
             };
@@ -106,7 +106,7 @@ namespace Musify.Application.PlayLists
             }, validation.Value);
         }
 
-        async Task<ErrorOr<Success>> PublishCreatePlayListEventAsync(
+        private async Task<ErrorOr<Success>> PublishCreatePlayListEventAsync(
             Guid playListId,
             UploadIntent pictureIntent,
             string finalPictureKey,

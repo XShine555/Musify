@@ -16,9 +16,9 @@ namespace Musify.Application.PlayLists
         : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse>>>;
 
     public class GetPlayListTracksQueryHandler(IDatabase database)
-        : IQueryHandler<GetPlayListTracksQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>> >
+        : IQueryHandler<GetPlayListTracksQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>>>
     {
-        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse> >> Handle(GetPlayListTracksQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse>>> Handle(GetPlayListTracksQuery request, CancellationToken cancellationToken)
         {
             var playListExists = await database.PlayLists
                 .AsNoTracking()

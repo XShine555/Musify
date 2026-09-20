@@ -48,6 +48,6 @@ namespace Musify.Application.Tracks
         }
 
         private static string? BuildKey(Func<string, string> builder, string? name)
-            => string.IsNullOrEmpty(name)? null: builder(name);
+            => string.IsNullOrEmpty(name) ? null : builder(name);
     }
 }
