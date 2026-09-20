@@ -4,7 +4,6 @@
 	   page never flashes unstyled before hydration. See theme/tokens.ts. */
 	--mf-bg: oklch(0.068 0.008 145);
 	--mf-elevated: oklch(0.11 0.012 145);
-	--mf-sidebar-bg: linear-gradient(180deg, oklch(0.095 0.012 145), oklch(0.068 0.007 145));
 	--mf-panel-bg: oklch(0.09 0.01 145 / 0.28);
 	--mf-bar-bg: oklch(0.105 0.012 145 / 0.9);
 	--mf-hairline: oklch(0.62 0.03 145 / 0.08);
@@ -82,6 +81,23 @@
 	--mf-nav-h: 66px;
 	--mf-player-h: 78px;
 	--mf-safe-b: env(safe-area-inset-bottom, 0px);
+	--mf-player-side-w: 16rem;
+	--mf-menu-w: 15rem;
+	--mf-submenu-w: 16rem;
+	--mf-range-h: 3.5px;
+	--mf-range-thumb: 11px;
+	--mf-volume-w: 84px;
+
+	--mf-scrollbar: rgba(255, 255, 255, 0.18);
+	--mf-scrollbar-hover: rgba(255, 255, 255, 0.32);
+
+	--z-raised: 10;
+	--z-sticky: 20;
+	--z-backdrop: 30;
+	--z-menu: 40;
+	--z-submenu: 50;
+	--z-modal: 60;
+	--z-grain: 80;
 }
 
 /* PlayerBar switches from its compact row to the full layout at `sm` (640px). */
@@ -110,7 +126,6 @@
 :root[data-theme='light'] {
 	--mf-bg: oklch(0.97 0.006 90);
 	--mf-elevated: oklch(0.99 0.003 90);
-	--mf-sidebar-bg: oklch(0.97 0.006 90); /*linear-gradient(180deg, oklch(0.985 0.004 90), oklch(0.965 0.006 90));*/
 	--mf-panel-bg: oklch(0.97 0.006 90 / 0.7);
 	--mf-bar-bg: oklch(0.97 0.006 90 / 0.9);
 	--mf-hairline: rgba(0, 0, 0, 0.08);
@@ -127,6 +142,9 @@
 	--mf-btn-bg-hover: var(--mf-surface-hover);
 	--mf-btn-secondary-bg: rgba(0, 0, 0, 0.09);
 	--mf-btn-secondary-bg-hover: rgba(0, 0, 0, 0.14);
+
+	--mf-scrollbar: rgba(0, 0, 0, 0.18);
+	--mf-scrollbar-hover: rgba(0, 0, 0, 0.32);
 
 	--mf-border: rgba(0, 0, 0, 0.08);
 	--mf-border-strong: rgba(0, 0, 0, 0.14);

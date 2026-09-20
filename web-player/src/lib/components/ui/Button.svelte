@@ -44,7 +44,7 @@
 		secondary: subtleButton,
 		secondaryOnGlow: subtleButtonOnGlow,
 		accent: 'bg-accent-btn text-accent-soft hover:bg-accent-btn-hover',
-		danger: 'bg-danger text-on-accent hover:brightness-110'
+		danger: 'bg-danger text-on-art hover:brightness-110'
 	};
 
 	const classes = $derived(

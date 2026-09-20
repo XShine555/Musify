@@ -773,7 +773,7 @@ Tareas:
 | Parte | Estado | Commit | Notas / decisiones tomadas |
 | ----- | ------ | ------ | -------------------------- |
 | P0    | ✅     | (pendiente) | Button primary/secondary se mantienen iguales (decisión del usuario) |
-| P1    | ⬜     |        |                            |
+| P1    | ✅     | (pendiente) | Verificado con `build` (Tailwind compila `@apply sm:` dentro de `@utility`); sin QA visual autenticada (Docker no disponible en esta sesión) |
 | P2    | ⬜     |        |                            |
 | P3    | ⬜     |        |                            |
 | P4    | ⬜     |        |                            |
