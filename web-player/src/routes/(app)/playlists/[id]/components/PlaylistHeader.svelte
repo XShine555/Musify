@@ -2,6 +2,7 @@
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
+	import { plural } from '$lib/format';
 
 	interface Props {
 		id: string;
@@ -30,7 +31,7 @@
 	}: Props = $props();
 
 	const meta = $derived(
-		`${trackIds.length} ${trackIds.length === 1 ? 'Canción' : 'Canciones'} · ${
+		`${plural(trackIds.length, 'canción', 'canciones')} · ${
 			visibility === 'Public' ? 'Pública' : 'Privada'
 		}`
 	);

@@ -11,8 +11,8 @@
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import PlayButton from '$lib/components/ui/PlayButton.svelte';
-	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
-	import SearchResultRow from '$lib/components/ui/SearchResultRow.svelte';
+	import EqBars from '$lib/components/ui/EqBars.svelte';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
 	import { searchHref } from '$lib/navigation.svelte';
@@ -30,6 +30,7 @@
 		targetExplicit,
 		targetId,
 		targetListensCount,
+		targetOwnerUserId,
 		targetTitle,
 		type TrackTarget
 	} from '$lib/tracks';
@@ -410,27 +411,28 @@
 						<ul class="flex flex-col gap-1">
 							{#each capped(songRows) as { target: item, seconds }, i (targetId(item))}
 								<li>
-									<SearchResultRow
+									<ListRow
 										title={targetTitle(item)}
 										subtitle={targetArtist(item)}
-										meta="{fmtTime(seconds)} · {fmtPlays(targetListensCount(item))}"
+										subtitleHref={targetOwnerUserId(item)}
 										explicit={targetExplicit(item)}
+										active={isTargetCurrent(item)}
+										size="lg"
+										trackId={targetId(item)}
 										onclick={() => togglePlay(i)}
 										oncontextmenu={(e) => openContextMenu(e, item)}
 									>
-										{#snippet art(artClass)}
-											<Artwork
-												trackIds={[targetId(item)]}
-												size="lg"
-												alt={targetTitle(item)}
-												class="{artClass} ring-1 ring-line ring-inset"
-											>
-												{#if isTargetCurrent(item)}
-													<NowPlaying paused={!player.playing} />
-												{/if}
-											</Artwork>
+										{#snippet overlay()}
+											{#if isTargetCurrent(item)}
+												<EqBars overlay paused={!player.playing} />
+											{/if}
 										{/snippet}
-									</SearchResultRow>
+										{#snippet trailing()}
+											<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+												{fmtTime(seconds)} · {fmtPlays(targetListensCount(item))}
+											</span>
+										{/snippet}
+									</ListRow>
 								</li>
 							{/each}
 						</ul>
@@ -460,16 +462,19 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(albums) as album (album.id)}
 							<li>
-								<SearchResultRow
+								<ListRow
 									title={album.title}
-									meta="{Number(album.trackCount)} canciones"
 									href="/albums/{album.id}"
+									size="lg"
+									trackIds={album.coverTrackIds}
 									oncontextmenu={(e) => openAlbumMenu(e, album.id)}
 								>
-									{#snippet art(artClass)}
-										<Artwork trackIds={album.coverTrackIds} size="lg" class={artClass} />
+									{#snippet trailing()}
+										<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+											{Number(album.trackCount)} canciones
+										</span>
 									{/snippet}
-								</SearchResultRow>
+								</ListRow>
 							</li>
 						{/each}
 					</ul>
@@ -489,11 +494,11 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(users) as u (u.id)}
 							<li>
-								<SearchResultRow title={u.name} href="/u/{u.id}">
-									{#snippet art(artClass)}
-										<Avatar name={u.name} src={u.profilePictureUrl} size="md" class={artClass} />
+								<ListRow title={u.name} href="/u/{u.id}" size="lg">
+									{#snippet art()}
+										<Avatar name={u.name} src={u.profilePictureUrl} size="md" />
 									{/snippet}
-								</SearchResultRow>
+								</ListRow>
 							</li>
 						{/each}
 					</ul>
@@ -513,22 +518,16 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(playlistMatches) as playlist (playlist.id)}
 							<li>
-								<SearchResultRow
+								<ListRow
 									title={playlist.name}
 									subtitle={playlist.description}
 									href="/playlists/{playlist.id}"
-								>
-									{#snippet art(artClass)}
-										<Artwork
-											src="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
-												playlist.updatedAt
-											)}"
-											trackIds={playlist.coverTrackIds}
-											size="lg"
-											class={artClass}
-										/>
-									{/snippet}
-								</SearchResultRow>
+									size="lg"
+									coverSrc="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
+										playlist.updatedAt
+									)}"
+									trackIds={playlist.coverTrackIds}
+								/>
 							</li>
 						{/each}
 					</ul>

@@ -4,7 +4,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems } from '$lib/player/player.svelte';
-	import { fmtTime, fmtDate } from '$lib/format';
+	import { fmtTime, fmtDate, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -14,7 +14,8 @@
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
+	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
+	import { pressable } from '$lib/actions/pressable';
 
 	let { data } = $props();
 
@@ -34,7 +35,7 @@
 <Page>
 	<PageHeader
 		title="Tus canciones subidas"
-		subtitle="{total} {total === 1 ? 'canción' : 'canciones'} subida{total === 1 ? '' : 's'}."
+		subtitle="{plural(total, 'canción', 'canciones')} subida{total === 1 ? '' : 's'}."
 	>
 		{#snippet actions()}
 			{#if items.length > 0}
@@ -66,12 +67,16 @@
 						playing={player.playing}
 						onToggle={() => togglePlay(i)}
 					/>
-					<TrackTitleCell
-						trackId={track.id}
-						title={track.title}
-						{active}
-						onClick={() => togglePlay(i)}
-					/>
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<div
+						role="button"
+						tabindex="0"
+						use:pressable={() => togglePlay(i)}
+						onclick={(event) => event.stopPropagation()}
+						class="flex min-w-0 flex-1 text-left"
+					>
+						<MediaIdentity trackId={track.id} title={track.title} {active} />
+					</div>
 					<TrackMeta class="hidden sm:block">—</TrackMeta>
 					<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
 					<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>

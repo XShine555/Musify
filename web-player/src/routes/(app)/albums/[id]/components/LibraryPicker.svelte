@@ -8,8 +8,9 @@
 	import TrackTable from '$lib/components/ui/TrackTable.svelte';
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
-	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
-	import NowPlaying from '$lib/components/ui/NowPlaying.svelte';
+	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
+	import { pressable } from '$lib/actions/pressable';
+	import EqBars from '$lib/components/ui/EqBars.svelte';
 
 	type LibraryTrack = ApiTrackLike & { duration: number | string; listensCount: number | string };
 
@@ -30,21 +31,29 @@
 		{#each library as track, i (track.id)}
 			{@const active = player.current.id === track.id}
 			<TrackRow {active}>
-				<TrackTitleCell
-					trackId={track.id}
-					title={track.title}
-					artist={track.artist}
-					ownerUserId={track.ownerUserId}
-					explicit={track.isExplicit}
-					{active}
-					onClick={() => playFrom(i)}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<div
+					role="button"
+					tabindex="0"
+					use:pressable={() => playFrom(i)}
+					onclick={(event) => event.stopPropagation()}
+					class="flex min-w-0 flex-1 text-left"
 				>
-					{#snippet overlay()}
-						{#if player.current.id === track.id}
-							<NowPlaying paused={!player.playing} />
-						{/if}
-					{/snippet}
-				</TrackTitleCell>
+					<MediaIdentity
+						trackId={track.id}
+						title={track.title}
+						artist={track.artist}
+						ownerUserId={track.ownerUserId}
+						explicit={track.isExplicit}
+						{active}
+					>
+						{#snippet overlay()}
+							{#if player.current.id === track.id}
+								<EqBars overlay paused={!player.playing} />
+							{/if}
+						{/snippet}
+					</MediaIdentity>
+				</div>
 				<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 				<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 				<form

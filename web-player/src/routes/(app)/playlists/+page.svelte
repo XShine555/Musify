@@ -7,14 +7,14 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { createPlaylistModal } from '$lib/playlists.svelte';
-	import { fmtDurationLong } from '$lib/format';
+	import { fmtDurationLong, plural } from '$lib/format';
 
 	let { data } = $props();
 
 	const items = $derived(data.playlists.items);
 	const totals = $derived(data.totals);
 	const summary = $derived(
-		`${totals.playlistCount} ${totals.playlistCount === 1 ? 'Playlist' : 'Playlists'} · ${totals.trackCount} ${totals.trackCount === 1 ? 'Canción' : 'Canciones'} · ${fmtDurationLong(totals.durationSeconds)}`
+		`${plural(totals.playlistCount, 'playlist', 'playlists')} · ${plural(totals.trackCount, 'canción', 'canciones')} · ${fmtDurationLong(totals.durationSeconds)}`
 	);
 </script>
 

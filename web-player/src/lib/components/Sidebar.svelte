@@ -4,7 +4,7 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { createPlaylistModal } from '$lib/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
-	import Artwork from './ui/Artwork.svelte';
+	import ListRow from './ui/ListRow.svelte';
 	import IconButton from './ui/IconButton.svelte';
 	import Home from '@lucide/svelte/icons/house';
 	import Compass from '@lucide/svelte/icons/compass';
@@ -92,26 +92,17 @@
 		<div class="flex flex-1 flex-col gap-px overflow-y-auto pb-4.5">
 			{#each playlists as playlist (playlist.id)}
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
-				<a
+				<ListRow
 					href="/playlists/{playlist.id}"
-					class="flex items-center gap-2.75 rounded-control px-3 py-1.75 transition-colors duration-150 {active
-						? 'bg-surface-hover'
-						: 'hover:bg-hover'}"
-				>
-					<Artwork
-						src="/api/playlists/{playlist.id}/cover?size=small&v={encodeURIComponent(
-							playlist.updatedAt
-						)}"
-						trackIds={playlist.coverTrackIds}
-						size="xs"
-						class="shrink-0 opacity-90"
-					/>
-					<div class="min-w-0 flex-1">
-						<div class="truncate text-sm {active ? 'text-fg' : 'text-fg-2'}">
-							{playlist.name}
-						</div>
-					</div>
-				</a>
+					{active}
+					size="xs"
+					title={playlist.name}
+					coverSrc="/api/playlists/{playlist.id}/cover?size=small&v={encodeURIComponent(
+						playlist.updatedAt
+					)}"
+					trackIds={playlist.coverTrackIds}
+					class="px-3 py-1.75"
+				/>
 			{:else}
 				<button
 					type="button"

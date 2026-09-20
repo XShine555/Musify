@@ -8,7 +8,8 @@
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
+	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
+	import { pressable } from '$lib/actions/pressable';
 
 	type AlbumTrack = ApiTrackLike & { duration: number | string; listensCount: number | string };
 
@@ -34,15 +35,23 @@
 		{@const active = player.current.id === track.id}
 		<TrackRow {active}>
 			<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
-			<TrackTitleCell
-				trackId={track.id}
-				title={track.title}
-				artist={track.artist}
-				ownerUserId={track.ownerUserId}
-				explicit={track.isExplicit}
-				{active}
-				onClick={() => playFrom(i)}
-			/>
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<div
+				role="button"
+				tabindex="0"
+				use:pressable={() => playFrom(i)}
+				onclick={(event) => event.stopPropagation()}
+				class="flex min-w-0 flex-1 text-left"
+			>
+				<MediaIdentity
+					trackId={track.id}
+					title={track.title}
+					artist={track.artist}
+					ownerUserId={track.ownerUserId}
+					explicit={track.isExplicit}
+					{active}
+				/>
+			</div>
 			<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
 			<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 			{#if isOwner}

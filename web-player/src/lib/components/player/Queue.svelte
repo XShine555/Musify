@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
+	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import { pressable } from '$lib/actions/pressable';
 	import { fmtTime } from '$lib/format';
 	import X from '@lucide/svelte/icons/x';
 	import { fly } from 'svelte/transition';
@@ -31,23 +30,14 @@
 
 		{#if player.current.id}
 			<p class="mb-2.75 text-xs font-medium tracking-widest text-fg-3 uppercase">Reproduciendo</p>
-			<div class="mb-6 flex items-center gap-3 rounded-xl bg-accent-tint p-2.5">
-				<Artwork
-					trackIds={[player.current.id]}
-					size="sm"
-					alt={player.current.title}
-					class="shrink-0"
+			<div class="mb-6 rounded-control bg-accent-tint p-2.5">
+				<MediaIdentity
+					trackId={player.current.id}
+					title={player.current.title}
+					artist={player.current.artist || '—'}
+					ownerUserId={player.current.ownerUserId}
+					active
 				/>
-				<div class="min-w-0">
-					<div class="truncate text-sm text-accent-soft">
-						{player.current.title}
-					</div>
-					<ArtistLink
-						name={player.current.artist || '—'}
-						ownerUserId={player.current.ownerUserId}
-						class="mt-0.5 text-xs text-fg-3"
-					/>
-				</div>
 			</div>
 		{/if}
 
@@ -69,25 +59,22 @@
 		<div class="flex flex-1 flex-col gap-px overflow-y-auto">
 			{#each upcoming as track, i (track.id)}
 				{@const index = player.tracks.length - upcoming.length + i}
-				<div
-					role="button"
-					tabindex="0"
-					use:pressable={() => player.playQueueIndex(index)}
-					class="flex items-center gap-3 rounded-control p-2.25 text-left hover:bg-hover"
+				<ListRow
+					onclick={() => player.playQueueIndex(index)}
+					size="sm"
+					title={track.title}
+					subtitle={track.artist || '—'}
+					subtitleHref={track.ownerUserId}
+					trackId={track.id}
+					class="p-2.25"
 				>
-					<Artwork trackIds={[track.id]} size="sm" alt={track.title} class="shrink-0 opacity-80" />
-					<div class="min-w-0 flex-1">
-						<div class="truncate text-xs text-fg">{track.title}</div>
-						<ArtistLink
-							name={track.artist || '—'}
-							ownerUserId={track.ownerUserId}
-							class="mt-0.5 text-xs text-fg-3"
-						/>
-					</div>
-					{#if track.duration}
-						<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(track.duration)}</span>
-					{/if}
-				</div>
+					{#snippet trailing()}
+						{#if track.duration}
+							<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(track.duration)}</span
+							>
+						{/if}
+					{/snippet}
+				</ListRow>
 			{:else}
 				<p class="px-2 py-6 text-center text-xs text-fg-3">No hay más canciones en la cola.</p>
 			{/each}

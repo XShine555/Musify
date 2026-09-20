@@ -6,7 +6,7 @@
 	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
 	import { pressable } from '$lib/actions/pressable';
 	import { mergeRecentlyPlayed } from '$lib/recentlyPlayed';
-	import { fmtTime, fmtDurationLong, fmtPlays } from '$lib/format';
+	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/format';
 	import {
 		isTargetCurrent,
 		queueItemForTarget,
@@ -19,11 +19,10 @@
 		targetTitle,
 		type TrackTarget
 	} from '$lib/tracks';
-	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import MixTile from '$lib/components/ui/MixTile.svelte';
 	import EqBars from '$lib/components/ui/EqBars.svelte';
-	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
+	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -72,7 +71,7 @@
 		spotlightTrackCount === 0
 			? spotlightVisibilityLabel
 			: [
-					`${spotlightTrackCount} ${spotlightTrackCount === 1 ? 'Canción' : 'Canciones'}`,
+					plural(spotlightTrackCount, 'canción', 'canciones'),
 					fmtDurationLong(spotlightDurationSeconds),
 					spotlightVisibilityLabel
 				].join(' · ')
@@ -176,26 +175,19 @@
 			<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
 				{#each continueItems as item, i (item.id)}
 					{@const isCurrent = player.current.id === item.id}
-					<div
-						role="button"
-						tabindex="0"
-						use:pressable={() => playContinue(i)}
-						class="animate-enter rounded-art p-2.25 pr-3.5 transition-colors {isCurrent
-							? 'bg-accent-tint'
-							: 'hover:bg-hover'}"
-						style="--i:{i}"
+					<ListRow
+						onclick={() => playContinue(i)}
 						oncontextmenu={(e) => openContextMenu(e, targetForQueueItem(item))}
-					>
-						<TrackTitleCell
-							trackId={item.id}
-							title={item.title}
-							artist={item.artist}
-							ownerUserId={item.ownerUserId}
-							size="lg"
-							active={isCurrent}
-							onClick={() => playContinue(i)}
-						/>
-					</div>
+						active={isCurrent}
+						size="lg"
+						variant="card"
+						title={item.title}
+						subtitle={item.artist}
+						subtitleHref={item.ownerUserId}
+						trackId={item.id}
+						class="animate-enter"
+						style="--i:{i}"
+					/>
 				{/each}
 			</div>
 		{:else}
@@ -254,33 +246,22 @@
 				</div>
 				<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">
 					{#each spotlightRows as { target, seconds }, i (targetId(target))}
-						<div
-							role="button"
-							tabindex="0"
-							use:pressable={() => playSpotlightTrack(i)}
-							class="flex items-center gap-4 rounded-control p-2 text-left transition-colors {isTargetCurrent(
-								target
-							)
-								? 'bg-accent-tint'
-								: 'hover:bg-hover'}"
+						<ListRow
+							onclick={() => playSpotlightTrack(i)}
+							active={isTargetCurrent(target)}
+							size="sm"
+							title={targetTitle(target)}
+							subtitle={targetArtist(target)}
+							subtitleHref={targetOwnerUserId(target)}
 						>
-							<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums">{i + 1}</span>
-							<div class="min-w-0 flex-1">
-								<div
-									class="truncate text-sm {isTargetCurrent(target)
-										? 'text-accent-soft'
-										: 'text-fg'}"
+							{#snippet leading()}
+								<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums">{i + 1}</span
 								>
-									{targetTitle(target)}
-								</div>
-								<ArtistLink
-									name={targetArtist(target)}
-									ownerUserId={targetOwnerUserId(target)}
-									class="mt-0.5 text-xs text-fg-3"
-								/>
-							</div>
-							<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
-						</div>
+							{/snippet}
+							{#snippet trailing()}
+								<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
+							{/snippet}
+						</ListRow>
 					{:else}
 						<p class="p-2 text-sm text-fg-3">Esta playlist todavía no tiene canciones.</p>
 					{/each}
@@ -314,37 +295,32 @@
 			<div class="grid grid-cols-1 gap-x-8.5 gap-y-1.5 lg:grid-cols-2">
 				{#each popularTargets as target, i (targetId(target))}
 					{@const isCurrent = isTargetCurrent(target)}
-					<div
-						role="button"
-						tabindex="0"
-						use:pressable={() => playPopular(i)}
-						class="flex items-center gap-3.5 rounded-control p-2 transition-colors {isCurrent
-							? 'bg-accent-tint'
-							: 'hover:bg-hover'}"
+					<ListRow
+						onclick={() => playPopular(i)}
 						oncontextmenu={(e) => openContextMenu(e, target)}
+						active={isCurrent}
+						size="sm"
+						title={targetTitle(target)}
+						subtitle={targetArtist(target)}
+						subtitleHref={targetOwnerUserId(target)}
+						explicit={targetExplicit(target)}
+						trackId={targetId(target)}
 					>
-						<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
-							{#if isCurrent}
-								<EqBars size={13} paused={!player.playing} />
-							{:else}
-								<span class="text-xs text-muted tabular-nums">{i + 1}</span>
-							{/if}
-						</span>
-						<div class="min-w-0 flex-1">
-							<TrackTitleCell
-								trackId={targetId(target)}
-								title={targetTitle(target)}
-								artist={targetArtist(target)}
-								ownerUserId={targetOwnerUserId(target)}
-								explicit={targetExplicit(target)}
-								active={isCurrent}
-								onClick={() => playPopular(i)}
-							/>
-						</div>
-						<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
-							{fmtPlays(targetListensCount(target))}
-						</span>
-					</div>
+						{#snippet leading()}
+							<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
+								{#if isCurrent}
+									<EqBars size={13} paused={!player.playing} />
+								{:else}
+									<span class="text-xs text-muted tabular-nums">{i + 1}</span>
+								{/if}
+							</span>
+						{/snippet}
+						{#snippet trailing()}
+							<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+								{fmtPlays(targetListensCount(target))}
+							</span>
+						{/snippet}
+					</ListRow>
 				{/each}
 			</div>
 		{:else}
@@ -377,36 +353,18 @@
 		{#if playlists.length > 0}
 			<div class="grid grid-cols-[repeat(auto-fill,minmax(258px,1fr))] gap-3.5">
 				{#each playlists as playlist, i (playlist.id)}
-					<div
-						role="button"
-						tabindex="0"
-						use:pressable={() => goto(`/playlists/${playlist.id}`)}
-						class="group/card animate-enter flex items-center gap-3.5 rounded-panel p-3 transition-colors hover:bg-hover"
+					<ListRow
+						onclick={() => goto(`/playlists/${playlist.id}`)}
+						size="lg"
+						variant="card"
+						title={playlist.name}
+						subtitle={playlist.description}
+						coverSrc="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
+							playlist.updatedAt
+						)}"
+						trackIds={playlist.coverTrackIds}
 						style="--i:{i}"
-					>
-						<Artwork
-							src="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
-								playlist.updatedAt
-							)}"
-							trackIds={playlist.coverTrackIds}
-							size="lg"
-							alt={playlist.name}
-							class="shrink-0"
-						/>
-						<div class="min-w-0 flex-1">
-							<div class="truncate text-sm tracking-tight text-fg">
-								{playlist.name}
-							</div>
-							{#if playlist.description}
-								<div class="mt-1 truncate text-xs text-fg-3">{playlist.description}</div>
-							{/if}
-							<ArtistLink
-								name={data.user?.name}
-								ownerUserId={data.user?.sub}
-								class="mt-1 text-xs text-fg-3"
-							/>
-						</div>
-					</div>
+					/>
 				{/each}
 			</div>
 		{:else}

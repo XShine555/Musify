@@ -3,7 +3,7 @@
 	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
-	import { fmtTime } from '$lib/format';
+	import { fmtTime, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -14,7 +14,8 @@
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
+	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
+	import { pressable } from '$lib/actions/pressable';
 	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/menus.svelte';
@@ -59,7 +60,7 @@
 		eyebrow="Mezcla"
 		title={mix.title}
 		description={mix.subtitle ?? undefined}
-		meta="{items.length} {items.length === 1 ? 'canción' : 'canciones'} · {fmtTime(totalSeconds)}"
+		meta="{plural(items.length, 'canción', 'canciones')} · {fmtTime(totalSeconds)}"
 	>
 		{#snippet cover()}
 			<Artwork
@@ -100,13 +101,21 @@
 			{@const active = isTargetCurrent(targets[i])}
 			<TrackRow {active} oncontextmenu={(e) => trackMenu.open(e, targets[i])}>
 				<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
-				<TrackTitleCell
-					trackId={targetId(targets[i])}
-					title={targetTitle(targets[i])}
-					artist={targetArtist(targets[i])}
-					{active}
-					onClick={() => playFrom(i)}
-				/>
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<div
+					role="button"
+					tabindex="0"
+					use:pressable={() => playFrom(i)}
+					onclick={(event) => event.stopPropagation()}
+					class="flex min-w-0 flex-1 text-left"
+				>
+					<MediaIdentity
+						trackId={targetId(targets[i])}
+						title={targetTitle(targets[i])}
+						artist={targetArtist(targets[i])}
+						{active}
+					/>
+				</div>
 				<TrackMeta class="hidden sm:block">{Number(targetListensCount(targets[i]) ?? 0)}</TrackMeta>
 				<TrackMeta>{fmtTime(Number(item.durationSeconds))}</TrackMeta>
 			</TrackRow>

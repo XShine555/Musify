@@ -3,7 +3,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { fmtDate, fmtTime } from '$lib/format';
+	import { fmtDate, fmtTime, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -13,7 +13,8 @@
 	import TrackRow from '$lib/components/ui/TrackRow.svelte';
 	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
 	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import TrackTitleCell from '$lib/components/ui/TrackTitleCell.svelte';
+	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
+	import { pressable } from '$lib/actions/pressable';
 
 	const tracks = $derived(liked.list);
 	const isCurrentQueue = $derived(isQueueCurrent(tracks));
@@ -36,7 +37,7 @@
 	<CollectionHeader
 		eyebrow="Colección"
 		title="Me gusta"
-		meta="{tracks.length} {tracks.length === 1 ? 'Canción' : 'Canciones'}"
+		meta={plural(tracks.length, 'canción', 'canciones')}
 		align="center"
 	>
 		{#snippet cover()}
@@ -73,15 +74,23 @@
 						playing={player.playing}
 						onToggle={() => playFrom(i)}
 					/>
-					<TrackTitleCell
-						trackId={track.id}
-						title={track.title}
-						artist={track.artist}
-						ownerUserId={track.ownerUserId}
-						explicit={track.explicit}
-						{active}
-						onClick={() => playFrom(i)}
-					/>
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<div
+						role="button"
+						tabindex="0"
+						use:pressable={() => playFrom(i)}
+						onclick={(event) => event.stopPropagation()}
+						class="flex min-w-0 flex-1 text-left"
+					>
+						<MediaIdentity
+							trackId={track.id}
+							title={track.title}
+							artist={track.artist}
+							ownerUserId={track.ownerUserId}
+							explicit={track.explicit}
+							{active}
+						/>
+					</div>
 					<TrackMeta class="hidden sm:block">—</TrackMeta>
 					<TrackMeta class="hidden sm:block">{fmtDate(track.likedAt)}</TrackMeta>
 					<TrackMeta class="hidden sm:block">{Number(track.listensCount ?? 0)}</TrackMeta>

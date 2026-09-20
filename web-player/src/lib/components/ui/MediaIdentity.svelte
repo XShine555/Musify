@@ -3,25 +3,27 @@
 	import Artwork from './Artwork.svelte';
 	import ExplicitBadge from './ExplicitBadge.svelte';
 	import ArtistLink from './ArtistLink.svelte';
-	import { pressable } from '$lib/actions/pressable';
 
 	interface Props {
-		trackId: string | number;
+		trackId?: string | number;
+		trackIds?: (string | number)[];
 		title: string;
 		artist?: string | null;
 		ownerUserId?: string | number | null;
 		coverSrc?: string | null;
-		size?: 'sm' | 'lg';
+		size?: 'xs' | 'sm' | 'lg';
 		explicit?: boolean;
 		active?: boolean;
 		titleClass?: string;
-		onClick: () => void;
+		class?: string;
+		art?: Snippet;
 		overlay?: Snippet;
 		badge?: Snippet;
 	}
 
 	let {
 		trackId,
+		trackIds,
 		title,
 		artist,
 		ownerUserId,
@@ -30,23 +32,27 @@
 		explicit = false,
 		active = false,
 		titleClass = '',
-		onClick,
+		class: klass = '',
+		art,
 		overlay,
 		badge
 	}: Props = $props();
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<div
-	role="button"
-	tabindex="0"
-	use:pressable={onClick}
-	onclick={(event) => event.stopPropagation()}
-	class="flex min-w-0 items-center gap-3.5 text-left"
->
-	<Artwork trackIds={[trackId]} src={coverSrc} {size} alt={title} class="shrink-0">
-		{@render overlay?.()}
-	</Artwork>
+<div class="flex min-w-0 flex-1 items-center gap-3.5 {klass}">
+	{#if art}
+		{@render art()}
+	{:else if trackId !== undefined || coverSrc || trackIds?.length}
+		<Artwork
+			trackIds={trackIds ?? (trackId !== undefined ? [trackId] : [])}
+			src={coverSrc}
+			{size}
+			alt={title}
+			class="shrink-0"
+		>
+			{@render overlay?.()}
+		</Artwork>
+	{/if}
 	<div class="min-w-0">
 		<div class="flex min-w-0 items-center gap-2">
 			{#if explicit}

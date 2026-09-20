@@ -21,7 +21,7 @@
 	import { enhance } from '$app/forms';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import Artwork from './Artwork.svelte';
+	import MediaIdentity from './MediaIdentity.svelte';
 	import GlassMenu from './GlassMenu.svelte';
 	import MenuItem from './MenuItem.svelte';
 
@@ -93,14 +93,14 @@
 								{/each}
 								<button
 									type="submit"
-									class="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg transition hover:bg-hover"
+									class="flex w-full items-center rounded-control px-2 py-2.5 text-left text-sm font-medium text-fg transition hover:bg-hover"
 								>
-									<Artwork
-										src="/api/playlists/{playlist.id}/cover?size=small"
+									<MediaIdentity
+										title={playlist.name}
+										coverSrc="/api/playlists/{playlist.id}/cover?size=small"
 										size="xs"
-										class="shrink-0"
+										titleClass="text-fg-2"
 									/>
-									<span class="truncate text-fg-2">{playlist.name}</span>
 								</button>
 							</form>
 						{/each}
