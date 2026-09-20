@@ -412,11 +412,11 @@
 			{#each genreTiles as genre, i (genre.query)}
 				<a
 					href={buildHref(genre.query)}
-					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-125"
+					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-2xl p-4.25 transition-[filter] hover:brightness-110"
 					style="animation-delay:{Math.min(i, 10) *
 						40}ms; background:linear-gradient(140deg, oklch(var(--mf-tile-l) var(--mf-tile-c) {genre.hue}), oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) {genre.hue}))"
 				>
-					<div class="font-display text-base font-medium tracking-tight text-on-art">
+					<div class="text-on-art">
 						{genre.label}
 					</div>
 					<div class="text-xs text-on-art-2">{genre.tagline}</div>

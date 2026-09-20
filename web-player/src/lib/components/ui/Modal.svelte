@@ -76,7 +76,7 @@
 	>
 		<div
 			bind:this={panel}
-			class="animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel border border-hairline p-5 backdrop-blur-xl transition-[background] duration-500 outline-none sm:p-6 {panelClass}"
+			class="animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 backdrop-blur-xl transition-[background] duration-500 outline-none sm:p-6 {panelClass}"
 			style="background-color:var(--mf-panel-bg); background-image:var(--mf-modal-glow)"
 			role="dialog"
 			aria-modal="true"
@@ -87,11 +87,11 @@
 				<div class="flex items-center justify-between gap-4">
 					<div class="min-w-0">
 						{#if eyebrow}
-							<p class="mb-2.5 text-xs font-semibold tracking-widest text-muted uppercase">
+							<p class="mb-2.5 text-xs font-medium tracking-widest text-muted uppercase">
 								{eyebrow}
 							</p>
 						{/if}
-						<h2 class="font-display text-xl font-semibold tracking-[-0.02em] text-fg">
+						<h2 class="font-display text-xl font-medium tracking-[-0.02em] text-fg">
 							{title}
 						</h2>
 					</div>

@@ -112,7 +112,7 @@
 				<Surface padding="sm" class={stepClass(stepStates[i])}>
 					<div class="flex items-center gap-3">
 						<span
-							class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold {stepStates[
+							class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm {stepStates[
 								i
 							] === 'idle'
 								? 'bg-surface-2 text-fg-2'
@@ -228,7 +228,7 @@
 						{#if coverPreview !== ''}
 							<img src={coverPreview} alt="Portada" class="h-full w-full object-cover" />
 						{:else}
-							<ImageIcon class="h-11 w-11 text-on-art/70" strokeWidth={1.3} />
+							<ImageIcon class="h-16 w-16 text-on-art/60" strokeWidth={1} />
 						{/if}
 					</label>
 				</Field>

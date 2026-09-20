@@ -74,16 +74,16 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-bar-bg': light ? `oklch(0.97 0.006 ${H} / 0.9)` : `oklch(0.105 0.012 ${H} / 0.9)`,
 		'--mf-hairline': light ? `oklch(0.3 0.02 ${H} / 0.1)` : `oklch(0.62 0.03 ${H} / 0.08)`,
 		'--mf-ambient': light
-			? `radial-gradient(46% 34% at 78% 0%, ${tcLight(0.2, 40, h)}, transparent 56%)`
+			? 'none'
 			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
 		'--mf-hero-bg': light
-			? `linear-gradient(105deg, ${tcLight(0.34, 42, h)} 0%, ${tcLight(0.11, 70, h)} 37%, ${tcLight(0.03, 88, h)} 65%, rgba(255,255,255,0) 92%)`
+			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
 			: `linear-gradient(105deg, ${tc(0.34, 42, h)} 0%, ${tc(0.11, 70, h)} 37%, ${tc(0.03, 88, h)} 65%, rgba(6,6,9,0) 92%)`,
 		'--mf-modal-glow': light
-			? `linear-gradient(135deg, ${tcLight(0.34, 42, h)} 0%, ${tcLight(0.11, 70, h)} 28%, ${tcLight(0.03, 88, h)} 50%, rgba(255,255,255,0) 70%)`
+			? `linear-gradient(135deg, ${tcLight(0.34, 42, h)} 0%, ${tcLight(0.2, 55, h)} 30%, ${tcLight(0.1, 70, h)} 55%, ${tcLight(0.04, 85, h)} 80%, ${tcLight(0.02, 88, h)} 100%)`
 			: `linear-gradient(135deg, ${tc(0.34, 42, h)} 0%, ${tc(0.11, 70, h)} 28%, ${tc(0.03, 88, h)} 50%, rgba(6,6,9,0) 70%)`,
 		'--mf-spotlight-bg': light
-			? `linear-gradient(100deg, ${tcLight(0.28, 46, h)} 0%, ${tcLight(0.1, 74, h)} 40%, ${tcLight(0.03, 88, h)} 69%, rgba(255,255,255,0) 96%)`
+			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
 			: `linear-gradient(100deg, ${tc(0.28, 46, h)} 0%, ${tc(0.1, 74, h)} 40%, ${tc(0.03, 88, h)} 69%, rgba(6,6,9,0) 96%)`,
 		'--mf-logo-grad': light
 			? `linear-gradient(140deg, oklch(0.68 0.16 ${H}), oklch(0.5 0.14 ${H2}) 92%)`

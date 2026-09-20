@@ -30,7 +30,7 @@
 	>
 		{#snippet actions()}
 			{#if items.length > 0}
-				<Button onclick={() => createPlaylistModal.show()}>Crear lista</Button>
+				<Button onclick={() => createPlaylistModal.show()}>Crear nueva lista</Button>
 			{/if}
 		{/snippet}
 	</PageHeader>
@@ -55,7 +55,7 @@
 			description="Crea la primera y añádele canciones de tu biblioteca."
 		>
 			{#snippet actions()}
-				<Button onclick={() => createPlaylistModal.show()}>Crear lista</Button>
+				<Button onclick={() => createPlaylistModal.show()}>Crear nueva lista</Button>
 			{/snippet}
 		</EmptyState>
 	{/if}

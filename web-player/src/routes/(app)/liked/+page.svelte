@@ -5,7 +5,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import { player, type QueueItem } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { fmtDate } from '$lib/format';
+	import { fmtDate, fmtTime } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -48,7 +48,7 @@
 	<CollectionHeader
 		eyebrow="Colección"
 		title="Me gusta"
-		meta="{tracks.length} {tracks.length === 1 ? 'canción' : 'canciones'}"
+		meta="{tracks.length} {tracks.length === 1 ? 'Canción' : 'Canciones'}"
 		align="center"
 	>
 		{#snippet cover()}
@@ -60,13 +60,7 @@
 		{/snippet}
 		{#snippet actions()}
 			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
-				{#if isCurrentQueue && player.playing}
-					<Pause class="h-4 w-4" strokeWidth={1.5} />
-					Pausar
-				{:else}
-					<Play class="h-4 w-4" strokeWidth={1.5} />
-					Reproducir
-				{/if}
+				{isCurrentQueue && player.playing ? 'Pausar' : 'Reproducir'}
 			</Button>
 		{/snippet}
 	</CollectionHeader>
@@ -103,7 +97,7 @@
 					<TrackMeta class="hidden sm:block">—</TrackMeta>
 					<TrackMeta class="hidden sm:block">{fmtDate(track.likedAt)}</TrackMeta>
 					<TrackMeta class="hidden sm:block">{Number(track.listensCount ?? 0)}</TrackMeta>
-					<TrackMeta>—</TrackMeta>
+					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
 					<IconButton
 						label="Quitar de Me gusta"
 						size="sm"

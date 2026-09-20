@@ -31,7 +31,7 @@ namespace Musify.Application.PlayLists
         UploadIntentConfiguration uploadIntentConfiguration)
         : ICommandHandler<CreatePlayListCommand, ErrorOr<PlayListApplicationResponse>>
     {
-        private sealed record ResolvedPlayListPictures(PlayListPictures Pictures, UploadIntent? Intent);
+        private sealed record ResolvedPlayListPictures(PlayListPictures? Pictures, UploadIntent? Intent);
 
         public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
         {
@@ -63,7 +63,7 @@ namespace Musify.Application.PlayLists
 
             if (resolvedPictures.Intent != null)
             {
-                var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, resolvedPictures.Pictures.OriginalName);
+                var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, resolvedPictures.Pictures!.OriginalName);
                 var publishResult = await PublishCreatePlayListEventAsync(playList.Id, resolvedPictures.Intent, finalPictureKey, cancellationToken);
                 if (publishResult.IsError)
                     return publishResult.Errors;
@@ -88,13 +88,7 @@ namespace Musify.Application.PlayLists
         {
             if (!request.PictureIntentId.HasValue)
             {
-                return new ResolvedPlayListPictures(new PlayListPictures
-                {
-                    OriginalName = playListConfiguration.Routes.PresetOriginalPicture,
-                    SmallName = playListConfiguration.Routes.PresetSmallPicture,
-                    MediumName = playListConfiguration.Routes.PresetMediumPicture,
-                    LargeName = playListConfiguration.Routes.PresetLargePicture
-                }, null);
+                return new ResolvedPlayListPictures(null, null);
             }
 
             var validation = await uploadIntentValidator.ValidateAndLoadAsync(
@@ -103,12 +97,12 @@ namespace Musify.Application.PlayLists
             if (validation.IsError)
                 return validation.Errors;
 
-            return new ResolvedPlayListPictures(new PlayListPictures 
-            { 
+            return new ResolvedPlayListPictures(new PlayListPictures
+            {
                 OriginalName = validation.Value.ObjectName,
-                SmallName = playListConfiguration.Routes.PresetSmallPicture,
-                MediumName = playListConfiguration.Routes.PresetMediumPicture,
-                LargeName = playListConfiguration.Routes.PresetLargePicture
+                SmallName = validation.Value.ObjectName,
+                MediumName = validation.Value.ObjectName,
+                LargeName = validation.Value.ObjectName
             }, validation.Value);
         }
 

@@ -13,7 +13,7 @@
 		<a
 			href="/u/{ownerUserId}"
 			onclick={(e) => e.stopPropagation()}
-			class="inline-block max-w-full truncate align-top hover:text-fg-2 hover:underline {klass}"
+			class="block max-w-full truncate hover:text-fg-2 hover:underline {klass}"
 		>
 			{name}
 		</a>

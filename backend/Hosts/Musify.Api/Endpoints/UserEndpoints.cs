@@ -40,6 +40,12 @@ public static class UserEndpoints
             .WithSummary("Get A User'S Listening Stats For The Current Week And Streak.")
             .Produces<ListeningStatsResponse>();
 
+        group.MapGet("/{id}/last-listened-track", GetLastTrackListenedByUserId)
+            .WithName("GetLastTrackListenedByUserId")
+            .WithSummary("Get The Last Track A User Listened To.")
+            .Produces<TrackApplicationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapGet("/{id}/profile", GetUserProfile)
             .WithName("GetUserProfile")
             .WithSummary("Get A User'S Public Profile, Including Follower Counts.")
@@ -114,6 +120,15 @@ public static class UserEndpoints
         CancellationToken cancellationToken)
     {
         return await mediator.Send(new GetListeningStatsQuery(id), cancellationToken);
+    }
+
+    private static async Task<IResult> GetLastTrackListenedByUserId(
+        IMediator mediator,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetLastTrackListenedByUserIdQuery(id), cancellationToken);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetUserProfile(

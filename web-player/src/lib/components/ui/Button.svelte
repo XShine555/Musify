@@ -3,7 +3,7 @@
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'accent' | 'danger';
+		variant?: 'primary' | 'secondary' | 'secondaryOnGlow' | 'accent' | 'danger';
 		size?: 'sm' | 'md' | 'lg';
 		type?: 'button' | 'submit';
 		href?: string;
@@ -34,11 +34,15 @@
 		lg: 'px-6 py-3.5 text-sm'
 	};
 
-	const subtleButton = 'bg-surface-2 text-fg-2 hover:bg-surface-hover hover:text-fg';
+	const subtleButton =
+		'bg-[var(--mf-btn-bg)] text-fg-2 hover:bg-[var(--mf-btn-bg-hover)] hover:text-fg';
+	const subtleButtonOnGlow =
+		'bg-[var(--mf-btn-secondary-bg)] text-fg-2 hover:bg-[var(--mf-btn-secondary-bg-hover)] hover:text-fg';
 
 	const variants = {
 		primary: subtleButton,
 		secondary: subtleButton,
+		secondaryOnGlow: subtleButtonOnGlow,
 		accent: 'bg-accent-btn text-accent-soft hover:bg-accent-btn-hover',
 		danger: 'bg-danger text-on-accent hover:brightness-110'
 	};

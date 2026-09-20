@@ -48,7 +48,7 @@
 </script>
 
 <aside
-	class="hidden shrink-0 flex-col border-r border-hairline bg-[image:var(--mf-sidebar-bg)] p-5 transition-[background] duration-500 ease-out lg:flex"
+	class="hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 transition-[background] duration-500 ease-out lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
 	<a href="/" class="px-3 pb-3 font-display text-lg font-semibold tracking-tight text-fg">Musify</a>
@@ -60,7 +60,7 @@
 				href={link.href}
 				aria-current={active ? 'page' : undefined}
 				class="flex items-center gap-3 rounded-control px-3 py-2 text-sm transition-colors duration-150 {active
-					? 'bg-surface-hover text-fg'
+					? 'bg-surface-2 text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
 				<link.icon class="h-4.5 w-4.5 shrink-0" strokeWidth={1.5} />
@@ -105,7 +105,7 @@
 						class="h-8.5 w-8.5 shrink-0 overflow-hidden rounded-lg opacity-90"
 					/>
 					<div class="min-w-0 flex-1">
-						<div class="truncate text-sm font-medium {active ? 'text-fg' : 'text-fg-2'}">
+						<div class="truncate text-sm {active ? 'text-fg' : 'text-fg-2'}">
 							{playlist.name}
 						</div>
 					</div>

@@ -62,7 +62,7 @@
 	>
 		{@render overlay?.()}
 	</Cover>
-	<div class="min-w-0 flex-1">
+	<div class="min-w-0">
 		<div class="flex min-w-0 items-center gap-2">
 			{#if explicit}
 				<ExplicitBadge />

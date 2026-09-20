@@ -126,7 +126,7 @@
 		<Modal
 			open={createPlaylistModal.open}
 			onClose={() => createPlaylistModal.close()}
-			title="Crear playlist"
+			title="Crear nueva playlist"
 		>
 			<PlaylistForm
 				action="/playlists?/create"

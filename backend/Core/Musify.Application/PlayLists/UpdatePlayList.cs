@@ -75,12 +75,12 @@ namespace Musify.Application.PlayLists
                     return validation.Errors;
 
                 pictureIntent = validation.Value;
-                playListEntity.Pictures = new PlayListPictures 
-                { 
+                playListEntity.Pictures = new PlayListPictures
+                {
                     OriginalName = pictureIntent.ObjectName,
-                    SmallName = playListConfiguration.Routes.PresetSmallPicture,
-                    MediumName = playListConfiguration.Routes.PresetMediumPicture,
-                    LargeName = playListConfiguration.Routes.PresetLargePicture
+                    SmallName = pictureIntent.ObjectName,
+                    MediumName = pictureIntent.ObjectName,
+                    LargeName = pictureIntent.ObjectName
                 };
                 finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             }

@@ -21,11 +21,11 @@
 >
 	{@render cover()}
 	<div class="min-w-0 flex-1">
-		<p class="text-xs font-semibold tracking-[0.16em] text-fg-2 uppercase">{eyebrow}</p>
+		<p class="text-xs font-medium tracking-widest text-fg-2 uppercase">{eyebrow}</p>
 		<h1
 			class="{align === 'end'
 				? 'mt-1.5'
-				: 'mt-3'} font-display text-3xl font-semibold tracking-[-0.035em] break-words text-fg sm:text-4xl"
+				: 'mt-3'} font-display text-3xl font-medium tracking-tight wrap-break-word text-fg sm:text-4xl"
 		>
 			{title}
 		</h1>

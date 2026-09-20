@@ -74,7 +74,7 @@
 			/>
 		</Field>
 
-		<div class="flex flex-1 flex-col gap-4">
+		<div class="flex flex-1 flex-col gap-2">
 			<Field label="Nombre" for="playlist-name">
 				{#snippet hint()}
 					<span class="ml-auto tabular-nums">{name.length}/{NAME_MAX_LENGTH}</span>
@@ -121,7 +121,7 @@
 			<button
 				type="button"
 				onclick={() => (visibility = 'private')}
-				class="relative z-10 w-20 rounded-full py-1.5 text-center text-xs font-semibold transition-colors {visibility ===
+				class="relative z-10 w-20 rounded-full py-1.5 text-center text-xs font-medium transition-colors {visibility ===
 				'private'
 					? 'text-ink'
 					: 'text-muted hover:text-fg-2'}"
@@ -131,7 +131,7 @@
 			<button
 				type="button"
 				onclick={() => (visibility = 'public')}
-				class="relative z-10 w-20 rounded-full py-1.5 text-center text-xs font-semibold transition-colors {visibility ===
+				class="relative z-10 w-20 rounded-full py-1.5 text-center text-xs font-medium transition-colors {visibility ===
 				'public'
 					? 'text-ink'
 					: 'text-muted hover:text-fg-2'}"

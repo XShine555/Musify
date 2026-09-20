@@ -46,12 +46,6 @@ namespace Musify.Infrastructure.Services
             return serviceDescriptors;
         }
 
-        public static IServiceCollection AddPlayListPresetSeeder(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddHostedService<PlayListPresetSeeder>();
-            return serviceDescriptors;
-        }
-
         public static IServiceCollection AddUploadIntentConfiguration(this IServiceCollection serviceDescriptors, IConfiguration configuration)
         {
             serviceDescriptors.AddValidatedOptions<UploadIntentConfiguration>(configuration, UploadIntentConfiguration.SectionName);

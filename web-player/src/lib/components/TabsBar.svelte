@@ -31,7 +31,7 @@
 </script>
 
 <nav
-	class="pointer-events-auto flex items-center justify-around rounded-panel border border-hairline bg-[image:var(--mf-bar-bg)] p-1.75 backdrop-blur-xl transition-[background] duration-500 lg:hidden {klass}"
+	class="pointer-events-auto flex items-center justify-around border-t border-hairline bg-[image:var(--mf-bar-bg)] px-4 py-1.75 backdrop-blur-xl transition-[background] duration-500 lg:hidden {klass}"
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}

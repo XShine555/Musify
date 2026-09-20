@@ -7,6 +7,7 @@ export interface LikedTrack {
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 	listensCount?: number | string;
+	duration?: number | string;
 	likedAt: number;
 }
 
@@ -16,6 +17,7 @@ type LikeToggleInput = {
 	artist?: string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
+	duration?: number | string;
 };
 
 class LikedStore {
@@ -25,7 +27,7 @@ class LikedStore {
 	count = $derived(Object.keys(this.entries).length);
 	list = $derived(Object.values(this.entries).sort((a, b) => b.likedAt - a.likedAt));
 
-	hydrate(tracks: (ApiTrackLike & { createdAt: string })[]) {
+	hydrate(tracks: (ApiTrackLike & { createdAt: string; duration: number | string })[]) {
 		if (this.hydrated) return;
 		this.hydrated = true;
 
@@ -39,6 +41,7 @@ class LikedStore {
 				explicit: item.explicit,
 				ownerUserId: item.ownerUserId,
 				listensCount: item.listensCount,
+				duration: tracks[i].duration,
 				likedAt: new Date(tracks[i].createdAt).getTime()
 			};
 		});
@@ -62,6 +65,7 @@ class LikedStore {
 				artist: track.artist,
 				explicit: track.explicit,
 				ownerUserId: track.ownerUserId,
+				duration: track.duration,
 				likedAt: Date.now()
 			};
 		}

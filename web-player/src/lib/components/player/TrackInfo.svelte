@@ -21,7 +21,8 @@
 			title: player.current.title,
 			artist: player.current.artist,
 			explicit: player.current.explicit,
-			ownerUserId: player.current.ownerUserId
+			ownerUserId: player.current.ownerUserId,
+			duration: player.current.duration
 		});
 	}
 </script>
@@ -42,9 +43,7 @@
 			{#if player.current.explicit}
 				<ExplicitBadge />
 			{/if}
-			<span class="truncate text-sm font-semibold tracking-[-0.01em] text-fg"
-				>{player.current.title}</span
-			>
+			<span class="truncate text-sm text-fg">{player.current.title}</span>
 		</div>
 		<ArtistLink
 			name={player.current.artist || '—'}

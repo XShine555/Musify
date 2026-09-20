@@ -36,9 +36,9 @@
 	--mf-cover-grad: linear-gradient(150deg, oklch(0.5 0.13 145), oklch(0.16 0.035 145));
 	--mf-liked-grad: linear-gradient(150deg, oklch(0.4 0.09 330), oklch(0.18 0.04 10));
 	--mf-tile-l: 0.34;
-	--mf-tile-c: 0.13;
+	--mf-tile-c: 0.1;
 	--mf-tile-shade-l: 0.14;
-	--mf-tile-shade-c: 0.05;
+	--mf-tile-shade-c: 0.035;
 
 	--mf-accent: oklch(0.74 0.145 145);
 	--mf-accent-title: oklch(0.87 0.07 145);
@@ -60,6 +60,10 @@
 	--mf-surface: rgba(255, 255, 255, 0.022);
 	--mf-surface-2: rgba(255, 255, 255, 0.045);
 	--mf-surface-hover: rgba(255, 255, 255, 0.06);
+	--mf-btn-bg: var(--mf-surface-2);
+	--mf-btn-bg-hover: var(--mf-surface-hover);
+	--mf-btn-secondary-bg: rgba(255, 255, 255, 0.045);
+	--mf-btn-secondary-bg-hover: rgba(255, 255, 255, 0.07);
 
 	--mf-border: rgba(255, 255, 255, 0.04);
 	--mf-border-strong: rgba(255, 255, 255, 0.09);
@@ -106,7 +110,7 @@
 :root[data-theme='light'] {
 	--mf-bg: oklch(0.97 0.006 90);
 	--mf-elevated: oklch(0.99 0.003 90);
-	--mf-sidebar-bg: linear-gradient(180deg, oklch(0.985 0.004 90), oklch(0.965 0.006 90));
+	--mf-sidebar-bg: oklch(0.97 0.006 90); /*linear-gradient(180deg, oklch(0.985 0.004 90), oklch(0.965 0.006 90));*/
 	--mf-panel-bg: oklch(0.97 0.006 90 / 0.7);
 	--mf-bar-bg: oklch(0.97 0.006 90 / 0.9);
 	--mf-hairline: rgba(0, 0, 0, 0.08);
@@ -118,7 +122,11 @@
 
 	--mf-surface: rgba(0, 0, 0, 0.035);
 	--mf-surface-2: rgba(0, 0, 0, 0.06);
-	--mf-surface-hover: rgba(0, 0, 0, 0.08);
+	--mf-surface-hover: #e8eceb;
+	--mf-btn-bg: var(--mf-surface-2);
+	--mf-btn-bg-hover: var(--mf-surface-hover);
+	--mf-btn-secondary-bg: rgba(0, 0, 0, 0.09);
+	--mf-btn-secondary-bg-hover: rgba(0, 0, 0, 0.14);
 
 	--mf-border: rgba(0, 0, 0, 0.08);
 	--mf-border-strong: rgba(0, 0, 0, 0.14);
@@ -129,31 +137,23 @@
 	--mf-cta-strong-bg: #17171a;
 
 	--mf-tile-l: 0.58;
-	--mf-tile-c: 0.15;
+	--mf-tile-c: 0.085;
 	--mf-tile-shade-l: 0.42;
-	--mf-tile-shade-c: 0.12;
+	--mf-tile-shade-c: 0.05;
 	--mf-liked-grad: linear-gradient(150deg, oklch(0.62 0.12 330), oklch(0.46 0.08 10));
 
-	--mf-ambient: radial-gradient(46% 34% at 78% 0%, oklch(0.7476 0.121 145 / 0.2), transparent 56%);
-	--mf-hero-bg: linear-gradient(
-		105deg,
-		oklch(0.7531 0.1172 145 / 0.34) 0%,
-		oklch(0.8303 0.0641 145 / 0.11) 37%,
-		oklch(0.88 0.03 145 / 0.03) 65%,
-		rgba(255, 255, 255, 0) 92%
-	);
+	--mf-ambient: none;
+	--mf-hero-bg: linear-gradient(oklch(0.789 0.0926 145 / 0.16), oklch(0.789 0.0926 145 / 0.16));
 	--mf-spotlight-bg: linear-gradient(
-		100deg,
-		oklch(0.7641 0.1097 145 / 0.28) 0%,
-		oklch(0.8414 0.0566 145 / 0.1) 40%,
-		oklch(0.88 0.03 145 / 0.03) 69%,
-		rgba(255, 255, 255, 0) 96%
+		oklch(0.789 0.0926 145 / 0.16),
+		oklch(0.789 0.0926 145 / 0.16)
 	);
 	--mf-modal-glow: linear-gradient(
 		135deg,
 		oklch(0.7531 0.1172 145 / 0.34) 0%,
-		oklch(0.8303 0.0641 145 / 0.11) 28%,
-		oklch(0.88 0.03 145 / 0.03) 50%,
-		rgba(255, 255, 255, 0) 70%
+		oklch(0.789 0.0926 145 / 0.2) 30%,
+		oklch(0.8303 0.0641 145 / 0.1) 55%,
+		oklch(0.8717 0.0357 145 / 0.04) 80%,
+		oklch(0.88 0.03 145 / 0.02) 100%
 	);
 }

@@ -45,8 +45,14 @@ namespace Musify.Application.Tests.TestSupport
                 .HasForeignKey(track => track.OwnerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<PlayList>().OwnsOne(playList => playList.Pictures);
-            modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired();
+            modelBuilder.Entity<PlayList>().OwnsOne(playList => playList.Pictures, pictures =>
+            {
+                pictures.Property(p => p.OriginalName).IsRequired(false);
+                pictures.Property(p => p.SmallName).IsRequired(false);
+                pictures.Property(p => p.MediumName).IsRequired(false);
+                pictures.Property(p => p.LargeName).IsRequired(false);
+            });
+            modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired(false);
 
             modelBuilder.Entity<Album>().OwnsOne(album => album.Pictures);
             modelBuilder.Entity<Album>().Navigation(album => album.Pictures).IsRequired(false);

@@ -1,8 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Tests.TestSupport;
+using Musify.Application.Tracks.Responses;
 using Musify.Application.Users.Responses;
+using Musify.Domain.Entities;
+using Musify.Infrastructure.Persistence;
 using Xunit;
 
 namespace Musify.Api.Tests.Endpoints
@@ -10,6 +17,33 @@ namespace Musify.Api.Tests.Endpoints
     [Collection(ApiCollection.Name)]
     public sealed class UserEndpointsTests(ApiTestFixture fixture)
     {
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+        {
+            Converters = { new JsonStringEnumConverter() }
+        };
+
+        private async Task SeedListenAsync(long userId, string trackTitle, DateTime listenedAt)
+        {
+            using var scope = fixture.Services.CreateScope();
+            var database = scope.ServiceProvider.GetRequiredService<Database>();
+            var owner = await database.Users.SingleAsync(u => u.Id == userId);
+            var track = new Track
+            {
+                Title = trackTitle,
+                NormalizedTitle = trackTitle.ToUpperInvariant(),
+                OwnerUserId = owner.Id,
+                Owner = owner
+            };
+            database.Tracks.Add(track);
+            database.ListeningHistories.Add(new ListeningHistory
+            {
+                UserId = userId,
+                TrackId = track.Id,
+                ListenedAt = listenedAt
+            });
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        }
+
         [Fact]
         public async Task PostUsers_NewUser_ReturnsCreatedWithLocationHeader()
         {
@@ -67,6 +101,34 @@ namespace Musify.Api.Tests.Endpoints
             var client = fixture.CreateAnonymousClient();
 
             var response = await client.GetAsync($"/users/{Random.Shared.NextInt64(1, long.MaxValue)}", TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetLastTrackListenedByUserId_HasHistory_ReturnsMostRecentTrack()
+        {
+            var client = fixture.CreateAnonymousClient();
+            var userId = Random.Shared.NextInt64(1, long.MaxValue);
+            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+            await SeedListenAsync(userId, "Older listen", DateTime.UtcNow.AddMinutes(-10));
+            await SeedListenAsync(userId, "Newer listen", DateTime.UtcNow);
+
+            var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadFromJsonAsync<TrackApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
+            Assert.Equal("Newer listen", body?.Title);
+        }
+
+        [Fact]
+        public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNotFound()
+        {
+            var client = fixture.CreateAnonymousClient();
+            var userId = Random.Shared.NextInt64(1, long.MaxValue);
+            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+
+            var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }

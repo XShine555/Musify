@@ -9,6 +9,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ArtistAvatar from '$lib/components/ui/ArtistAvatar.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
+	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 
 	let { data, form } = $props();
 
@@ -69,9 +70,7 @@
 	</CollectionHeader>
 
 	<div class="mt-9">
-		<h2 class="font-display text-lg font-semibold tracking-[-0.02em] text-fg">
-			Playlists públicas
-		</h2>
+		<SectionHeading title="Playlists públicas" subtitle="Creadas y compartidas por este usuario" />
 
 		{#if playlists.length > 0}
 			<MediaGrid min="210px" minMobile="180px" class="mt-6">

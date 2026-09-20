@@ -78,7 +78,6 @@ namespace Musify.Api.Tests.TestSupport
                     ["InfrastructureStorage:UseHttp"] = "true",
                     ["ApplicationStorage:Bucket"] = "musify-api-test",
                     ["StreamGateway:PublicBaseUrl"] = "http://stream.musify.test",
-                    ["PlayList:SeedPresetPictures"] = "false",
                 });
             });
 

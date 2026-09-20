@@ -17,7 +17,7 @@
 {#if queuePanel.open}
 	<aside
 		transition:fly={{ x: 24, duration: 220, easing: cubicOut }}
-		class="hidden shrink-0 flex-col border-l border-hairline bg-[image:var(--mf-panel-bg)] px-4 pt-5 transition-[background] duration-500 sm:flex"
+		class="hidden shrink-0 flex-col border-l border-hairline bg-bg px-4 pt-5 transition-[background] duration-500 sm:flex"
 		style="width:var(--mf-queue-w); padding-bottom:calc(var(--mf-player-h) + 2rem)"
 	>
 		<div class="mb-5 flex items-center justify-between">
@@ -33,7 +33,7 @@
 		</div>
 
 		{#if player.current.id}
-			<p class="mb-2.75 text-xs font-medium tracking-widest text-muted uppercase">Reproduciendo</p>
+			<p class="mb-2.75 text-xs font-medium tracking-widest text-fg-3 uppercase">Reproduciendo</p>
 			<div class="mb-6 flex items-center gap-3 rounded-xl bg-accent-tint p-2.5">
 				<Cover
 					trackId={player.current.id}
@@ -56,7 +56,7 @@
 
 		<div class="mb-2.75 flex items-center justify-between gap-3">
 			<span
-				class="min-w-0 flex-1 truncate text-xs font-medium tracking-widest text-muted uppercase"
+				class="min-w-0 flex-1 truncate text-xs font-medium tracking-widest text-fg-3 uppercase"
 			>
 				A continuación
 			</span>
@@ -64,7 +64,7 @@
 				<button
 					type="button"
 					onclick={() => player.clearUpcoming()}
-					class="shrink-0 text-xs text-muted transition-colors hover:text-fg"
+					class="shrink-0 text-xs text-fg-3 transition-colors hover:text-fg"
 				>
 					Vaciar
 				</button>

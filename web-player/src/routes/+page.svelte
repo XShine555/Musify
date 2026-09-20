@@ -73,7 +73,7 @@
 		spotlightTrackCount === 0
 			? spotlightVisibilityLabel
 			: [
-					`${spotlightTrackCount} ${spotlightTrackCount === 1 ? 'canción' : 'canciones'}`,
+					`${spotlightTrackCount} ${spotlightTrackCount === 1 ? 'Canción' : 'Canciones'}`,
 					fmtDurationLong(spotlightDurationSeconds),
 					spotlightVisibilityLabel
 				].join(' · ')
@@ -159,7 +159,9 @@
 							{spotlight.name}
 						</Button>
 					{/if}
-					<Button href="/explore" variant="secondary" class="!font-normal">Explorar música</Button>
+					<Button href="/explore" variant="secondaryOnGlow" class="!font-normal"
+						>Explorar música</Button
+					>
 				</div>
 			</div>
 
@@ -244,7 +246,7 @@
 					<div
 						role="button"
 						tabindex="0"
-						class="flex w-fit items-center gap-6 self-start"
+						class="flex w-fit items-center gap-5 self-start sm:gap-6"
 						onclick={() => goto(`/playlists/${spotlight.id}`)}
 						onkeydown={(e) => onRowKeydown(e, () => goto(`/playlists/${spotlight.id}`))}
 					>
@@ -255,7 +257,7 @@
 							size="large"
 							class="h-34 w-34 shrink-0 rounded-2xl"
 						/>
-						<div class="flex min-w-0 flex-col gap-4">
+						<div class="flex min-w-0 flex-col gap-3">
 							<p class="text-xs font-medium tracking-widest text-fg-2 uppercase">
 								Playlist destacada
 							</p>
@@ -270,7 +272,7 @@
 					</p>
 					<div class="mt-5 flex gap-2.5">
 						<Button variant="accent" onclick={playSpotlight}>Reproducir</Button>
-						<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
+						<Button variant="secondaryOnGlow" onclick={shuffleSpotlight}>Aleatorio</Button>
 					</div>
 				</div>
 				<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">
@@ -284,13 +286,15 @@
 								e.preventDefault();
 								playSpotlightTrack(i);
 							}}
-							class="flex items-center gap-3 rounded-control p-2 text-left transition-colors hover:bg-hover {isTargetCurrent(
+							class="flex items-center gap-4 rounded-control p-2 text-left transition-colors hover:bg-hover {isTargetCurrent(
 								target
 							)
 								? 'bg-accent-tint'
 								: ''}"
 						>
-							<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums">{i + 1}</span>
+							<span class="w-5 shrink-0  text-center text-xs text-muted tabular-nums"
+								>{i + 1}</span
+							>
 							<div class="min-w-0 flex-1">
 								<div
 									class="truncate text-sm {isTargetCurrent(target)
@@ -305,7 +309,9 @@
 									class="mt-0.5 text-xs text-fg-3"
 								/>
 							</div>
-							<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
+							<span class="shrink-0 text-xs text-muted tabular-nums"
+								>{fmtTime(seconds)}</span
+							>
 						</div>
 					{:else}
 						<p class="p-2 text-sm text-fg-3">Esta playlist todavía no tiene canciones.</p>
@@ -421,7 +427,7 @@
 							class="h-15.5 w-15.5 shrink-0 rounded-control"
 						/>
 						<div class="min-w-0 flex-1">
-							<div class="truncate text-sm font-medium tracking-tight text-fg">
+							<div class="truncate text-sm tracking-tight text-fg">
 								{playlist.name}
 							</div>
 							{#if playlist.description}

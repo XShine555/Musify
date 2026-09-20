@@ -23,7 +23,7 @@ namespace Musify.Application.Tests.PlayLists
             TestConfigurations.UploadIntent());
 
         [Fact]
-        public async Task Handle_NoPictureIntent_CreatesPlayListWithPresetPictures()
+        public async Task Handle_NoPictureIntent_CreatesPlayListWithoutPictures()
         {
             var user = TestEntities.User();
             await SeedAsync(user);
@@ -34,7 +34,7 @@ namespace Musify.Application.Tests.PlayLists
 
             Assert.False(result.IsError);
             Assert.Equal("My Playlist", result.Value.Name);
-            Assert.Equal("PresetSmallPicture.webp", result.Value.SmallImageKeyName);
+            Assert.Null(result.Value.SmallImageKeyName);
             await eventBus.DidNotReceive().PublishAsync(Arg.Any<Musify.Application.Events.CreatePlayListResourcesEvent>(), Arg.Any<CancellationToken>());
         }
 

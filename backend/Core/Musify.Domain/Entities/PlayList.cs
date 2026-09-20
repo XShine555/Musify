@@ -27,8 +27,7 @@ namespace Musify.Domain.Entities
         [MaxLength(256)]
         public string? Description { get; set; }
 
-        [Required]
-        public required PlayListPictures Pictures { get; set; }
+        public PlayListPictures? Pictures { get; set; }
 
         [Required]
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;

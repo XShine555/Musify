@@ -34,5 +34,18 @@ namespace Musify.Application.Tests.PlayLists
 
             Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
         }
+
+        [Fact]
+        public async Task Handle_PlayListWithoutPictures_ReturnsNotFound()
+        {
+            var owner = TestEntities.User();
+            var playList = TestEntities.PlayList(owner.Id);
+            playList.Pictures = null;
+            await SeedAsync(owner, playList);
+
+            var result = await CreateHandler().Handle(new GetPlayListCoverQuery(playList.Id, "small"), TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        }
     }
 }

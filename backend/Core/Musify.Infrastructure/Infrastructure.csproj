@@ -44,8 +44,4 @@
     <Folder Include="Persistence\Migrations\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\PlayListDefaultCover.png" LogicalName="Musify.Infrastructure.Assets.PlayListDefaultCover.png" />
-  </ItemGroup>
-
 </Project>

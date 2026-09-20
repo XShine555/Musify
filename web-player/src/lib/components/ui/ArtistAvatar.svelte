@@ -23,7 +23,7 @@
 		style="width:{size}px;height:{size}px"
 	>
 		{#if imageUrl}
-			<img src={imageUrl} alt="" class="h-full w-full object-cover" />
+			<img src={imageUrl} alt="" class="absolute inset-0 h-full w-full object-cover" />
 		{:else}
 			<div
 				class="pointer-events-none absolute inset-0"

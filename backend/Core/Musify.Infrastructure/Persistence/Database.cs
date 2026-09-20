@@ -67,10 +67,10 @@ namespace Musify.Infrastructure.Persistence
             modelBuilder.Entity<PlayList>()
                 .OwnsOne(playList => playList.Pictures, pictures =>
                 {
-                    pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
-                    pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64);
-                    pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64);
-                    pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64);
+                    pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64).IsRequired(false);
+                    pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64).IsRequired(false);
+                    pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64).IsRequired(false);
+                    pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64).IsRequired(false);
                 });
             modelBuilder.Entity<PlayList>().Navigation(playList => playList.Pictures).IsRequired(false);
 

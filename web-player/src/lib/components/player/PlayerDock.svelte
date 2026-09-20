@@ -25,7 +25,5 @@
 	{#if hasTrack}
 		<PlayerBar />
 	{/if}
-	<div class="px-4 pt-2.5 pb-4 lg:hidden">
-		<TabsBar {user} />
-	</div>
+	<TabsBar {user} />
 </div>
