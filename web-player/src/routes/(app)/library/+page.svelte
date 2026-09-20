@@ -1,26 +1,20 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import Upload from '@lucide/svelte/icons/upload';
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems } from '$lib/player/player.svelte';
-	import { fmtTime, fmtDate, plural } from '$lib/format';
+	import { plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import TrackTable from '$lib/components/ui/TrackTable.svelte';
-	import TrackRow from '$lib/components/ui/TrackRow.svelte';
-	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
-	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
-	import { pressable } from '$lib/actions/pressable';
+	import TrackList from '$lib/components/ui/TrackList.svelte';
 
 	let { data } = $props();
 
 	const items = $derived(data.tracks.items);
 	const total = $derived(Number(data.tracks.totalItemCount));
+	const listTracks = $derived(items.map((track) => ({ ...track, uploadedAt: track.createdAt })));
 
 	function togglePlay(index: number) {
 		player.playOrToggle(toQueueItems(items), index);
@@ -48,54 +42,13 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<TrackTable
-			index
-			action
-			meta={[
-				{ label: 'Álbum', width: '76px' },
-				{ label: 'Subida', width: '124px' },
-				{ label: 'Escuchas', width: '106px' }
-			]}
+		<TrackList
+			tracks={listTracks}
+			columns={['uploaded', 'plays']}
+			onPlay={togglePlay}
+			rowAction={{ action: '?/deleteTrack', icon: X, label: 'Borrar canción' }}
 			class="mt-7 sm:mt-8"
-		>
-			{#each items as track, i (track.id)}
-				{@const active = player.current.id === track.id}
-				<TrackRow {active}>
-					<TrackIndexCell
-						index={i}
-						{active}
-						playing={player.playing}
-						onToggle={() => togglePlay(i)}
-					/>
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<div
-						role="button"
-						tabindex="0"
-						use:pressable={() => togglePlay(i)}
-						onclick={(event) => event.stopPropagation()}
-						class="flex min-w-0 flex-1 text-left"
-					>
-						<MediaIdentity trackId={track.id} title={track.title} {active} />
-					</div>
-					<TrackMeta class="hidden sm:block">—</TrackMeta>
-					<TrackMeta class="hidden sm:block">{fmtDate(track.createdAt)}</TrackMeta>
-					<TrackMeta class="hidden sm:block">{Number(track.listensCount)}</TrackMeta>
-					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
-					<form
-						method="POST"
-						action="?/deleteTrack"
-						use:enhance={() =>
-							async ({ update }) =>
-								update()}
-					>
-						<input type="hidden" name="trackId" value={track.id} />
-						<IconButton type="submit" label="Borrar canción" size="xs" revealOnHover>
-							<X class="h-3.5 w-3.5" />
-						</IconButton>
-					</form>
-				</TrackRow>
-			{/each}
-		</TrackTable>
+		/>
 	{:else}
 		<EmptyState
 			icon={Music}

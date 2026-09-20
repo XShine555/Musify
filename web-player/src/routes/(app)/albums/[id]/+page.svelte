@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import X from '@lucide/svelte/icons/x';
+	import Plus from '@lucide/svelte/icons/plus';
 	import Page from '$lib/components/ui/Page.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import AlbumForm from '$lib/components/ui/AlbumForm.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import TrackList from '$lib/components/ui/TrackList.svelte';
 	import AlbumHeader from './components/AlbumHeader.svelte';
-	import AlbumTrackTable from './components/AlbumTrackTable.svelte';
-	import LibraryPicker from './components/LibraryPicker.svelte';
 
 	let { data, form } = $props();
 
@@ -23,6 +25,14 @@
 
 	function playAll() {
 		playAllOrToggle(toQueueItems(tracks));
+	}
+
+	function playTrackFrom(index: number) {
+		player.playOrToggle(toQueueItems(tracks), index);
+	}
+
+	function playLibraryFrom(index: number) {
+		player.playOrToggle(toQueueItems(library), index);
 	}
 </script>
 
@@ -50,11 +60,26 @@
 	{/if}
 
 	{#if tracks.length > 0}
-		<AlbumTrackTable {tracks} {isOwner} />
+		<TrackList
+			{tracks}
+			onPlay={playTrackFrom}
+			rowAction={isOwner
+				? { action: '?/removeTrack', icon: X, label: 'Quitar del álbum' }
+				: undefined}
+			class="mt-6 sm:mt-8"
+		/>
 	{/if}
 
 	{#if isOwner && library.length > 0}
-		<LibraryPicker {library} />
+		<div class="mt-10 sm:mt-12">
+			<SectionHeading title="Tus canciones subidas" />
+			<TrackList
+				tracks={library}
+				index={false}
+				onPlay={playLibraryFrom}
+				rowAction={{ action: '?/addTrack', icon: Plus, label: 'Añadir al álbum' }}
+			/>
+		</div>
 	{/if}
 </Page>
 

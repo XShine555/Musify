@@ -3,20 +3,15 @@
 	import X from '@lucide/svelte/icons/x';
 	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { fmtDate, fmtTime, plural } from '$lib/format';
+	import { plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import TrackTable from '$lib/components/ui/TrackTable.svelte';
-	import TrackRow from '$lib/components/ui/TrackRow.svelte';
-	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
-	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
-	import { pressable } from '$lib/actions/pressable';
+	import TrackList from '$lib/components/ui/TrackList.svelte';
 
 	const tracks = $derived(liked.list);
+	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.likedAt })));
 	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	function playFrom(index: number) {
@@ -55,57 +50,17 @@
 	</CollectionHeader>
 
 	{#if tracks.length > 0}
-		<TrackTable
-			index
-			action
-			meta={[
-				{ label: 'Álbum', width: '76px' },
-				{ label: 'Añadida', width: '124px' },
-				{ label: 'Escuchas', width: '106px' }
-			]}
+		<TrackList
+			tracks={listTracks}
+			columns={['added', 'plays']}
+			onPlay={playFrom}
+			rowAction={{
+				onclick: (track) => liked.toggle({ ...track, artist: track.artist ?? undefined }),
+				icon: X,
+				label: 'Quitar de Me gusta'
+			}}
 			class="mt-6 sm:mt-8"
-		>
-			{#each tracks as track, i (track.id)}
-				{@const active = player.current.id === track.id}
-				<TrackRow {active}>
-					<TrackIndexCell
-						index={i}
-						{active}
-						playing={player.playing}
-						onToggle={() => playFrom(i)}
-					/>
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<div
-						role="button"
-						tabindex="0"
-						use:pressable={() => playFrom(i)}
-						onclick={(event) => event.stopPropagation()}
-						class="flex min-w-0 flex-1 text-left"
-					>
-						<MediaIdentity
-							trackId={track.id}
-							title={track.title}
-							artist={track.artist}
-							ownerUserId={track.ownerUserId}
-							explicit={track.explicit}
-							{active}
-						/>
-					</div>
-					<TrackMeta class="hidden sm:block">—</TrackMeta>
-					<TrackMeta class="hidden sm:block">{fmtDate(track.likedAt)}</TrackMeta>
-					<TrackMeta class="hidden sm:block">{Number(track.listensCount ?? 0)}</TrackMeta>
-					<TrackMeta>{fmtTime(Number(track.duration))}</TrackMeta>
-					<IconButton
-						label="Quitar de Me gusta"
-						size="xs"
-						revealOnHover
-						onclick={() => liked.toggle(track)}
-					>
-						<X class="h-3.5 w-3.5" />
-					</IconButton>
-				</TrackRow>
-			{/each}
-		</TrackTable>
+		/>
 	{:else}
 		<EmptyState
 			icon={Heart}

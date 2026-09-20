@@ -10,24 +10,12 @@
 	import Alert from '$lib/components/ui/Alert.svelte';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import CollectionHeader from '$lib/components/ui/CollectionHeader.svelte';
-	import TrackTable from '$lib/components/ui/TrackTable.svelte';
-	import TrackRow from '$lib/components/ui/TrackRow.svelte';
-	import TrackMeta from '$lib/components/ui/TrackMeta.svelte';
-	import TrackIndexCell from '$lib/components/ui/TrackIndexCell.svelte';
-	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
-	import { pressable } from '$lib/actions/pressable';
+	import TrackList from '$lib/components/ui/TrackList.svelte';
 	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/menus.svelte';
-	import { mixItemKey, mixItemTarget } from '$lib/mixes';
-	import {
-		isTargetCurrent,
-		queueItemForTarget,
-		targetArtist,
-		targetId,
-		targetListensCount,
-		targetTitle
-	} from '$lib/tracks';
+	import { mixItemTarget } from '$lib/mixes';
+	import { queueItemForTarget } from '$lib/tracks';
 
 	let { data, form } = $props();
 
@@ -35,6 +23,15 @@
 	const items = $derived(mix.items);
 	const targets = $derived(items.map(mixItemTarget));
 	const queue = $derived(targets.map(queueItemForTarget));
+	const listTracks = $derived(
+		items.map((item) => ({
+			id: item.trackId,
+			title: item.title,
+			artist: item.artist,
+			duration: item.durationSeconds,
+			listensCount: item.listensCount
+		}))
+	);
 
 	const totalSeconds = $derived(
 		items.reduce((total, item) => total + Number(item.durationSeconds), 0)
@@ -96,31 +93,13 @@
 		<Alert tone="danger" class="mt-4">{form.message}</Alert>
 	{/if}
 
-	<TrackTable index meta={[{ label: 'Escuchas', width: '100px' }]} class="mt-6 sm:mt-8">
-		{#each items as item, i (mixItemKey(item))}
-			{@const active = isTargetCurrent(targets[i])}
-			<TrackRow {active} oncontextmenu={(e) => trackMenu.open(e, targets[i])}>
-				<TrackIndexCell index={i} {active} playing={player.playing} onToggle={() => playFrom(i)} />
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<div
-					role="button"
-					tabindex="0"
-					use:pressable={() => playFrom(i)}
-					onclick={(event) => event.stopPropagation()}
-					class="flex min-w-0 flex-1 text-left"
-				>
-					<MediaIdentity
-						trackId={targetId(targets[i])}
-						title={targetTitle(targets[i])}
-						artist={targetArtist(targets[i])}
-						{active}
-					/>
-				</div>
-				<TrackMeta class="hidden sm:block">{Number(targetListensCount(targets[i]) ?? 0)}</TrackMeta>
-				<TrackMeta>{fmtTime(Number(item.durationSeconds))}</TrackMeta>
-			</TrackRow>
-		{/each}
-	</TrackTable>
+	<TrackList
+		tracks={listTracks}
+		columns={['plays']}
+		onPlay={playFrom}
+		oncontextmenu={(e, _track, i) => trackMenu.open(e, targets[i])}
+		class="mt-6 sm:mt-8"
+	/>
 </Page>
 
 {#if trackMenu.state}

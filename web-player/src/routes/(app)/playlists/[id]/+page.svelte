@@ -1,18 +1,20 @@
 <script lang="ts">
 	import ListMusic from '@lucide/svelte/icons/list-music';
+	import X from '@lucide/svelte/icons/x';
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import TrackList from '$lib/components/ui/TrackList.svelte';
 	import PlaylistHeader from './components/PlaylistHeader.svelte';
-	import PlaylistTrackTable from './components/PlaylistTrackTable.svelte';
 
 	let { data, form } = $props();
 
 	const playlist = $derived(data.playlist);
 	const tracks = $derived(data.tracks);
+	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.createdAt })));
 
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
@@ -21,6 +23,10 @@
 
 	function playAll() {
 		playAllOrToggle(toQueueItems(tracks));
+	}
+
+	function playFrom(index: number) {
+		player.playOrToggle(toQueueItems(tracks), index);
 	}
 </script>
 
@@ -44,7 +50,13 @@
 	/>
 
 	{#if tracks.length > 0}
-		<PlaylistTrackTable {tracks} />
+		<TrackList
+			tracks={listTracks}
+			columns={['added', 'plays']}
+			onPlay={playFrom}
+			rowAction={{ action: '?/removeTrack', icon: X, label: 'Quitar de la playlist' }}
+			class="mt-6 sm:mt-8"
+		/>
 	{:else}
 		<EmptyState
 			icon={ListMusic}
