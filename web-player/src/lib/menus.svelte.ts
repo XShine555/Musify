@@ -1,8 +1,7 @@
 import { contextMenuPosition, type MenuPosition } from '$lib/components/ui/ContextMenu.svelte';
-import { player } from './player/player.svelte';
-import { queueItemForTarget, type TrackTarget } from './tracks';
+import { player, toQueueItem, type ApiTrackLike } from './player/player.svelte';
 
-export type TrackMenuState = TrackTarget & MenuPosition;
+export type TrackMenuState = { track: ApiTrackLike } & MenuPosition;
 
 export function createTrackMenu() {
 	let state = $state<TrackMenuState | null>(null);
@@ -11,15 +10,15 @@ export function createTrackMenu() {
 		get state() {
 			return state;
 		},
-		open(event: MouseEvent, target: TrackTarget) {
-			state = { ...target, ...contextMenuPosition(event) };
+		open(event: MouseEvent, track: ApiTrackLike) {
+			state = { track, ...contextMenuPosition(event) };
 		},
 		close() {
 			state = null;
 		},
 		playNext() {
 			if (!state) return;
-			player.playNextItem(queueItemForTarget(state));
+			player.playNextItem(toQueueItem(state.track));
 			state = null;
 		}
 	};

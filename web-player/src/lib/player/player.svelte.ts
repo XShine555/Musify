@@ -52,6 +52,17 @@ export function toQueueItem(track: ApiTrackLike): QueueItem {
 	return toQueueItems([track])[0];
 }
 
+export function trackFromQueueItem(item: QueueItem): ApiTrackLike {
+	return {
+		id: item.id,
+		title: item.title,
+		artist: item.artist,
+		isExplicit: item.explicit,
+		ownerUserId: item.ownerUserId,
+		listensCount: item.listensCount
+	};
+}
+
 export function isQueueCurrent(items: { id: string | number }[]): boolean {
 	return items.some((item) => item.id === player.current.id);
 }

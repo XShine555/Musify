@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
-	import { player } from '$lib/player/player.svelte';
+	import { player, toQueueItem } from '$lib/player/player.svelte';
 	import { fetchAlbumQueueItems } from '$lib/albums';
 	import { fmtTime, fmtPlays, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
@@ -21,20 +21,19 @@
 	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';
+	import { appendUnique } from '$lib/collections';
+	import { genreTiles } from '$lib/genres';
+	import {
+		type SearchFilter,
+		showGroup,
+		capped,
+		matchPlaylists,
+		searchCounts,
+		searchChips,
+		findTopResult
+	} from '$lib/search';
 
 	type AlbumMenuState = { x: number; y: number; openLeft: boolean; albumId: string };
-	import { appendUnique } from '$lib/collections';
-	import {
-		isTargetCurrent,
-		queueItemForTarget,
-		targetArtist,
-		targetExplicit,
-		targetId,
-		targetListensCount,
-		targetOwnerUserId,
-		targetTitle,
-		type TrackTarget
-	} from '$lib/tracks';
 
 	const TOP_RESULT_KIND_LABEL: Record<TopResult['kind'], string> = {
 		track: 'Canción',
@@ -43,36 +42,7 @@
 		user: 'Usuario'
 	};
 
-	// No hay sistema de tags/géneros todavía: esta lista es un placeholder de
-	// cliente y cada tile enlaza a una búsqueda normal por ese término.
-	const GENRE_INFO: Record<string, { label: string; tagline: string }> = {
-		pop: { label: 'Pop', tagline: 'Éxitos que suenan en todas partes' },
-		rock: { label: 'Rock', tagline: 'Guitarras, actitud y ruido' },
-		reggaeton: { label: 'Reggaetón', tagline: 'El ritmo que no para' },
-		'lo-fi': { label: 'Lo-fi', tagline: 'Para concentrarte o relajarte' },
-		indie: { label: 'Indie', tagline: 'Voces fuera del radar' },
-		salsa: { label: 'Salsa', tagline: 'Para mover el cuerpo' },
-		'k-pop': { label: 'K-pop', tagline: 'Coreografías pegajosas' },
-		electrónica: { label: 'Electrónica', tagline: 'Beats para perderte' },
-		jazz: { label: 'Jazz', tagline: 'Improvisación y elegancia' },
-		baladas: { label: 'Baladas', tagline: 'Para sentir con calma' },
-		trap: { label: 'Trap', tagline: 'Autotune y bajos pesados' },
-		cumbia: { label: 'Cumbia', tagline: 'El sabor de siempre' },
-		'hip hop': { label: 'Hip hop', tagline: 'Rimas con actitud' },
-		'música clásica': { label: 'Clásica', tagline: 'Siglos de composición' }
-	};
-
-	const genreTiles = Object.entries(GENRE_INFO).map(([query, info], i, all) => ({
-		query,
-		hue: Math.round((i * 360) / all.length),
-		...info
-	}));
-
 	let { data, form } = $props();
-
-	const SEARCH_FILTERS = ['Todo', 'Canciones', 'Álbumes', 'Playlists', 'Usuarios'] as const;
-	type SearchFilter = (typeof SEARCH_FILTERS)[number];
-	const SEARCH_GROUP_PREVIEW = 4;
 
 	const trackMenu = createTrackMenu();
 	let albumMenu = $state<AlbumMenuState | null>(null);
@@ -96,12 +66,12 @@
 
 	const songRows = $derived(
 		localItems.map((track) => ({
-			target: { track } satisfies TrackTarget,
+			track,
 			seconds: Number(track.duration)
 		}))
 	);
 
-	const items = $derived<TrackTarget[]>(songRows.map((row) => row.target));
+	const items = $derived(songRows.map((row) => row.track));
 
 	const albums = $derived(data.albums);
 	const users = $derived(data.users);
@@ -109,71 +79,52 @@
 	const hasAlbums = $derived(albums.length > 0);
 	const hasUsers = $derived(users.length > 0);
 
-	const playlistMatches = $derived(
-		data.query
-			? data.playlists.filter((p) => p.name.toLowerCase().includes(data.query.toLowerCase()))
-			: []
-	);
+	const playlistMatches = $derived(matchPlaylists(data.playlists, data.query));
 	const hasPlaylists = $derived(playlistMatches.length > 0);
 
 	const nothingFound = $derived(
 		!!data.query && items.length === 0 && !hasAlbums && !hasUsers && !hasPlaylists
 	);
 
-	const searchCounts = $derived({
-		Canciones: songRows.length,
-		Álbumes: albums.length,
-		Playlists: playlistMatches.length,
-		Usuarios: users.length
-	});
+	const counts = $derived(
+		searchCounts({
+			tracks: songRows.length,
+			albums: albums.length,
+			playlists: playlistMatches.length,
+			users: users.length
+		})
+	);
+	const chips = $derived(searchChips(counts));
 	const totalHits = $derived(
-		searchCounts.Canciones + searchCounts.Álbumes + searchCounts.Playlists + searchCounts.Usuarios
-	);
-	const searchChips = $derived(
-		SEARCH_FILTERS.map((label) => ({
-			label,
-			count: label === 'Todo' ? totalHits : searchCounts[label]
-		}))
+		counts.Canciones + counts.Álbumes + counts.Playlists + counts.Usuarios
 	);
 
-	type TopResult =
-		| { kind: 'track'; target: TrackTarget }
-		| { kind: 'album'; album: (typeof albums)[number] }
-		| { kind: 'playlist'; playlist: (typeof playlistMatches)[number] }
-		| { kind: 'user'; user: (typeof users)[number] };
+	type TopResult = NonNullable<
+		ReturnType<
+			typeof findTopResult<
+				LocalTrack,
+				(typeof albums)[number],
+				(typeof playlistMatches)[number],
+				(typeof users)[number]
+			>
+		>
+	>;
 
-	const topResult = $derived.by((): TopResult | null => {
-		if (sfilter !== 'Todo' || !data.query) return null;
-		const q = data.query.trim().toLowerCase();
-		const startsWithQuery = (value: string) => value.toLowerCase().startsWith(q);
-
-		const userHit = users.find((u) => startsWithQuery(u.name));
-		if (userHit) return { kind: 'user', user: userHit };
-		const trackHit = items.find((target) => startsWithQuery(targetTitle(target)));
-		if (trackHit) return { kind: 'track', target: trackHit };
-		const albumHit = albums.find((album) => startsWithQuery(album.title));
-		if (albumHit) return { kind: 'album', album: albumHit };
-		const playlistHit = playlistMatches.find((p) => startsWithQuery(p.name));
-		if (playlistHit) return { kind: 'playlist', playlist: playlistHit };
-
-		if (users.length) return { kind: 'user', user: users[0] };
-		if (items.length) return { kind: 'track', target: items[0] };
-		if (albums.length) return { kind: 'album', album: albums[0] };
-		if (playlistMatches.length) return { kind: 'playlist', playlist: playlistMatches[0] };
-		return null;
-	});
-
-	function showGroup(label: Exclude<SearchFilter, 'Todo'>) {
-		return sfilter === 'Todo' || sfilter === label;
-	}
-
-	function capped<T>(list: T[]) {
-		return sfilter === 'Todo' ? list.slice(0, SEARCH_GROUP_PREVIEW) : list;
-	}
+	const topResult = $derived<TopResult | null>(
+		sfilter === 'Todo' && data.query
+			? findTopResult({
+					query: data.query,
+					tracks: items,
+					albums,
+					playlists: playlistMatches,
+					users
+				})
+			: null
+	);
 
 	function playTopResult() {
 		if (topResult?.kind !== 'track') return;
-		player.playOrToggle([queueItemForTarget(topResult.target)], 0);
+		player.playOrToggle([toQueueItem(topResult.track)], 0);
 	}
 
 	const topResultHref = $derived.by(() => {
@@ -184,11 +135,11 @@
 	});
 
 	function togglePlay(index: number) {
-		player.playOrToggle(items.map(queueItemForTarget), index);
+		player.playOrToggle(items.map(toQueueItem), index);
 	}
 
-	function openContextMenu(event: MouseEvent, target: TrackTarget) {
-		trackMenu.open(event, target);
+	function openContextMenu(event: MouseEvent, track: LocalTrack) {
+		trackMenu.open(event, track);
 	}
 
 	function openAlbumMenu(event: MouseEvent, albumId: string) {
@@ -262,7 +213,7 @@
 		/>
 
 		<div class="mb-7 flex flex-wrap gap-1.75 sm:mb-8">
-			{#each searchChips as chip (chip.label)}
+			{#each chips as chip (chip.label)}
 				<Chip
 					selected={sfilter === chip.label}
 					count={chip.count}
@@ -277,9 +228,9 @@
 			{#snippet topResultBody()}
 				{#if topResult.kind === 'track'}
 					<Artwork
-						trackIds={[targetId(topResult.target)]}
+						trackIds={[topResult.track.id]}
 						size="xl"
-						alt={targetTitle(topResult.target)}
+						alt={topResult.track.title}
 						class="shrink-0"
 					/>
 				{:else if topResult.kind === 'album'}
@@ -305,16 +256,16 @@
 						class="truncate font-display text-lg leading-none font-medium tracking-[-0.02em] text-fg"
 					>
 						{topResult.kind === 'track'
-							? targetTitle(topResult.target)
+							? topResult.track.title
 							: topResult.kind === 'album'
 								? topResult.album.title
 								: topResult.kind === 'playlist'
 									? topResult.playlist.name
 									: topResult.user.name}
 					</div>
-					{#if topResult.kind === 'track' && targetArtist(topResult.target)}
+					{#if topResult.kind === 'track' && topResult.track.artist}
 						<div class="truncate text-sm leading-none text-fg-3">
-							{targetArtist(topResult.target)}
+							{topResult.track.artist}
 						</div>
 					{/if}
 				</div>
@@ -322,22 +273,16 @@
 				<PlayButton as="span" size="lg" label="Reproducir" class="group-hover/top:brightness-110" />
 			{/snippet}
 
-			{#if topResult.kind === 'track'}
-				<button
-					type="button"
-					onclick={playTopResult}
-					class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
-				>
-					{@render topResultBody()}
-				</button>
-			{:else}
-				<a
-					href={topResultHref}
-					class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
-				>
-					{@render topResultBody()}
-				</a>
-			{/if}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<svelte:element
+				this={topResult.kind === 'track' ? 'button' : 'a'}
+				type={topResult.kind === 'track' ? 'button' : undefined}
+				href={topResult.kind === 'track' ? undefined : topResultHref}
+				onclick={topResult.kind === 'track' ? playTopResult : undefined}
+				class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
+			>
+				{@render topResultBody()}
+			</svelte:element>
 		{/if}
 	{/if}
 
@@ -382,32 +327,31 @@
 
 	{#if data.query && !nothingFound}
 		<div class="mt-9 flex flex-col gap-9">
-			{#if showGroup('Canciones')}
+			{#if showGroup(sfilter, 'Canciones')}
 				<div>
 					{#if songRows.length > 0}
-						<SectionHeading title="Canciones" count={searchCounts.Canciones} />
+						<SectionHeading title="Canciones" count={counts.Canciones} />
 						<ul class="flex flex-col gap-1">
-							{#each capped(songRows) as { target: item, seconds }, i (targetId(item))}
+							{#each capped(sfilter, songRows) as { track, seconds }, i (track.id)}
 								<li>
 									<ListRow
-										title={targetTitle(item)}
-										subtitle={targetArtist(item)}
-										subtitleHref={targetOwnerUserId(item)}
-										explicit={targetExplicit(item)}
-										active={isTargetCurrent(item)}
+										title={track.title}
+										subtitle={track.artist}
+										subtitleHref={track.ownerUserId}
+										active={player.current.id === track.id}
 										size="lg"
-										trackId={targetId(item)}
+										trackId={track.id}
 										onclick={() => togglePlay(i)}
-										oncontextmenu={(e) => openContextMenu(e, item)}
+										oncontextmenu={(e) => openContextMenu(e, track)}
 									>
 										{#snippet overlay()}
-											{#if isTargetCurrent(item)}
+											{#if player.current.id === track.id}
 												<EqBars overlay paused={!player.playing} />
 											{/if}
 										{/snippet}
 										{#snippet trailing()}
 											<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
-												{fmtTime(seconds)} · {fmtPlays(targetListensCount(item))}
+												{fmtTime(seconds)} · {fmtPlays(track.listensCount)}
 											</span>
 										{/snippet}
 									</ListRow>
@@ -427,11 +371,11 @@
 				</div>
 			{/if}
 
-			{#if hasAlbums && showGroup('Álbumes')}
+			{#if hasAlbums && showGroup(sfilter, 'Álbumes')}
 				<div>
-					<SectionHeading title="Álbumes" count={searchCounts.Álbumes} />
+					<SectionHeading title="Álbumes" count={counts.Álbumes} />
 					<ul class="flex flex-col gap-1">
-						{#each capped(albums) as album (album.id)}
+						{#each capped(sfilter, albums) as album (album.id)}
 							<li>
 								<ListRow
 									title={album.title}
@@ -452,11 +396,11 @@
 				</div>
 			{/if}
 
-			{#if hasUsers && showGroup('Usuarios')}
+			{#if hasUsers && showGroup(sfilter, 'Usuarios')}
 				<div>
-					<SectionHeading title="Usuarios" count={searchCounts.Usuarios} />
+					<SectionHeading title="Usuarios" count={counts.Usuarios} />
 					<ul class="flex flex-col gap-1">
-						{#each capped(users) as u (u.id)}
+						{#each capped(sfilter, users) as u (u.id)}
 							<li>
 								<ListRow title={u.name} href="/u/{u.id}" size="lg">
 									{#snippet art()}
@@ -469,11 +413,11 @@
 				</div>
 			{/if}
 
-			{#if hasPlaylists && showGroup('Playlists')}
+			{#if hasPlaylists && showGroup(sfilter, 'Playlists')}
 				<div>
-					<SectionHeading title="Playlists" count={searchCounts.Playlists} />
+					<SectionHeading title="Playlists" count={counts.Playlists} />
 					<ul class="flex flex-col gap-1">
-						{#each capped(playlistMatches) as playlist (playlist.id)}
+						{#each capped(sfilter, playlistMatches) as playlist (playlist.id)}
 							<li>
 								<ListRow
 									title={playlist.name}

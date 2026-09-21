@@ -57,6 +57,7 @@
 	--spacing-icon-md: 1.125rem;
 	--spacing-icon-lg: 1.25rem;
 	--spacing-icon-xl: 2.25rem;
+	--spacing-section: 2.875rem;
 
 	--container-prose-sm: 26rem;
 	--container-hero: 34rem;
@@ -202,6 +203,19 @@
 		oklch(var(--mf-tile-l) var(--mf-tile-c) var(--tile-hue)),
 		oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) var(--tile-hue))
 	);
+}
+@utility hero-surface {
+	background-image: var(--mf-hero-bg);
+}
+@utility spotlight-surface {
+	background-image:
+		var(--mf-spotlight-bg),
+		linear-gradient(
+			to right,
+			transparent 50%,
+			color-mix(in oklch, var(--mf-scrim) 22%, transparent) 61%,
+			transparent 92.5%
+		);
 }
 @utility field-control {
 	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-muted focus:bg-surface-2 focus:outline-none;

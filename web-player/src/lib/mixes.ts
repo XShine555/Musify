@@ -1,5 +1,5 @@
 import type { components } from '$lib/api/schema';
-import type { TrackTarget } from '$lib/tracks';
+import type { ApiTrackLike } from '$lib/player/player.svelte';
 
 export type Mix = components['schemas']['MixApplicationResponse'];
 export type MixItem = components['schemas']['MixItemApplicationResponse'];
@@ -8,13 +8,11 @@ export function mixItemKey(item: MixItem): string {
 	return `mf:${item.trackId}`;
 }
 
-export function mixItemTarget(item: MixItem): TrackTarget {
+export function mixItemTrack(item: MixItem): ApiTrackLike {
 	return {
-		track: {
-			id: item.trackId,
-			title: item.title,
-			artist: item.artist,
-			listensCount: item.listensCount
-		}
+		id: item.trackId,
+		title: item.title,
+		artist: item.artist,
+		listensCount: item.listensCount
 	};
 }

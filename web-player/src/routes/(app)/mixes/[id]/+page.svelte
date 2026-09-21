@@ -2,7 +2,13 @@
 	import Play from '@lucide/svelte/icons/play';
 	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
-	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
+	import {
+		player,
+		isQueueCurrent,
+		playAllOrToggle,
+		playShuffled,
+		toQueueItem
+	} from '$lib/player/player.svelte';
 	import { fmtTime, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
@@ -14,15 +20,14 @@
 	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/menus.svelte';
-	import { mixItemTarget } from '$lib/mixes';
-	import { queueItemForTarget } from '$lib/tracks';
+	import { mixItemTrack } from '$lib/mixes';
 
 	let { data, form } = $props();
 
 	const mix = $derived(data.mix);
 	const items = $derived(mix.items);
-	const targets = $derived(items.map(mixItemTarget));
-	const queue = $derived(targets.map(queueItemForTarget));
+	const tracks = $derived(items.map(mixItemTrack));
+	const queue = $derived(tracks.map(toQueueItem));
 	const listTracks = $derived(
 		items.map((item) => ({
 			id: item.trackId,
@@ -97,7 +102,7 @@
 		tracks={listTracks}
 		columns={['plays']}
 		onPlay={playFrom}
-		oncontextmenu={(e, _track, i) => trackMenu.open(e, targets[i])}
+		oncontextmenu={(e, _track, i) => trackMenu.open(e, tracks[i])}
 	/>
 </Page>
 
