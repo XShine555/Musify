@@ -1,40 +1,40 @@
-# Autenticación e identidad
+# Authentication and identity
 
-## Proveedor: Zitadel (OIDC/OAuth2)
+## Provider: Zitadel (OIDC/OAuth2)
 
-El login y la emisión de tokens los hace **Zitadel** (no la API). La API es un **resource server**: solo **valida** el access token (JWT) que le llega en `Authorization: Bearer`.
+Login and token issuance are handled by **Zitadel**, not the API. The API is a **resource server**: it only **validates** the access token (JWT) it receives in `Authorization: Bearer`.
 
-- Config en la sección `Authentication` (`AuthenticationConfiguration`): metadata address, issuer, audience, client id, endpoints de authorize/token, scopes.
-- `JwtBearerOptionsSetup` configura la validación (issuer, audience, claves vía metadata OIDC).
-- En dev, `RequireHttpsMetadata = false`.
+- Configured under the `Authentication` section (`AuthenticationConfiguration`): metadata address, issuer, audience, client id, authorize/token endpoints, scopes.
+- `JwtBearerOptionsSetup` sets up validation (issuer, audience, keys via OIDC metadata).
+- In dev, `RequireHttpsMetadata = false`.
 
-### Requisito clave en la app de Zitadel
-- **Auth Token Type = JWT** (si no, Zitadel emite un token **opaco** sin puntos y `JwtBearer` no lo puede validar → 401 en todo lo protegido).
-- **User Info inside Token** activado si quieres que el access token traiga claims de perfil (`name`, `email`, `picture`). Por defecto el access token es mínimo (`sub`, `aud`, `iss`, `exp`…), sin perfil.
+### Key requirement in the Zitadel app
+- **Auth Token Type = JWT** (otherwise Zitadel issues an **opaque** token with no dots, which `JwtBearer` can't validate → 401 on everything protected).
+- **User Info inside Token** enabled if you want the access token to carry profile claims (`name`, `email`, `picture`). By default the access token is minimal (`sub`, `aud`, `iss`, `exp`…), with no profile info.
 
-## El `sub` es numérico → `User.Id` es `long`
+## `sub` is numeric → `User.Id` is `long`
 
-El `sub` de Zitadel es un entero de 64 bits en string (p. ej. `371953080444977155`), **no un GUID**. Por eso:
-- `User.Id` y todas las FKs de usuario (`PlayList.UserId`, `UserHasTrack.UserId`, `UploadIntent.UserId`) son **`long`**.
-- `User.Id` lleva `[DatabaseGenerated(None)]` para que EF **no** lo autogenere: se asigna el `sub`.
-- `CurrentUser.Id` es `long?` (parsea con `long.TryParse`); `RequiredId` lanza si falta.
+Zitadel's `sub` is a 64-bit integer encoded as a string (e.g. `371953080444977155`), **not a GUID**. Because of that:
+- `User.Id` and every user-related FK (`PlayList.UserId`, `UserHasTrack.UserId`, `UploadIntent.UserId`) are **`long`**.
+- `User.Id` has `[DatabaseGenerated(None)]` so EF doesn't autogenerate it: it's assigned from the `sub`.
+- `CurrentUser.Id` is `long?` (parsed with `long.TryParse`); `RequiredId` throws if it's missing.
 
-**Por qué**: el código antiguo hacía `Guid.Parse(sub)` y reventaba (FormatException) → 401 en cada endpoint protegido. Se decidió guardar el `sub` tal cual como número.
+**Why**: the original code did `Guid.Parse(sub)`, which threw a `FormatException` → 401 on every protected endpoint. The fix was to store the `sub` as-is, as a number.
 
-## Provisioning / sincronización de usuarios
+## User provisioning / sync
 
-En cada token validado, `JwtBearerEventsHandler.TokenValidated`:
-1. Lee `sub` (id), `name`/`preferred_username`/`email` (con fallback) y el claim OIDC `picture`.
-2. Envía un `SyncUserCommand`.
+On every validated token, `JwtBearerEventsHandler.TokenValidated`:
+1. Reads `sub` (id), `name`/`preferred_username`/`email` (with fallback), and the OIDC `picture` claim.
+2. Sends a `SyncUserCommand`.
 
-`SyncUserCommandHandler` hace un **upsert idempotente**:
-- Si el usuario no existe → lo crea.
-- Si existe → actualiza nombre/apellidos/`ProfilePictureUrl` **solo si cambiaron** (escribe en DB únicamente cuando hay cambios).
+`SyncUserCommandHandler` does an **idempotent upsert**:
+- If the user doesn't exist yet → creates it.
+- If it exists → updates the name and `ProfilePictureUrl` **only if they changed** (a DB write only happens when something is different).
 
-**Por qué upsert con "escribe solo si cambió"**: `TokenValidated` se ejecuta en **cada request**; sin ese guardado condicional estaríamos escribiendo en cada petición. Y debe ser resiliente: si el provisioning falla, se loguea pero **no** tumba la autenticación.
+**Why "write only if changed"**: `TokenValidated` runs on **every request**; without that guard we'd be writing to the DB on every single call. It also needs to be resilient: if provisioning fails, it's logged but authentication **doesn't** fail because of it.
 
-> Nota: `CreateUserCommand` (endpoint manual `POST /users`) sigue siendo create-only; el sync del login usa `SyncUserCommand`.
+> Note: `CreateUserCommand` (the manual `POST /users` endpoint) is still create-only; login sync uses `SyncUserCommand`.
 
-## Foto de perfil
+## Profile picture
 
-`User.ProfilePictureUrl` se rellena desde el claim `picture` del token. Si Zitadel no mete la info de perfil en el access token (ver arriba), llega `null` — el código es correcto, pero no hay nada que sincronizar hasta activar esa opción.
+`User.ProfilePictureUrl` is filled from the token's `picture` claim. If Zitadel doesn't include profile info in the access token (see above), it arrives as `null`. The code is correct, there's just nothing to sync until that option is turned on.

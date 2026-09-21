@@ -1,74 +1,74 @@
-# Proyectos
+# Projects
 
-Los proyectos .NET viven en `backend/` (solución `Musify.slnx`, carpetas
-`Core/`, `Hosts/` y `Tests/`); el cliente web en `web-player/`.
+The .NET projects live under `backend/` (solution `Musify.slnx`, folders
+`Core/`, `Hosts/` and `Tests/`); the web client lives under `web-player/`.
 
 ## Musify.Api  (`:5111`)
 
-API REST pública (Minimal APIs, .NET 10). Es la fachada fina del sistema.
+The public REST API (Minimal APIs, .NET 10). The thin public face of the system.
 
 - **Endpoints**: `UserEndpoints`, `TrackEndpoints`, `PlayListEndpoints`.
-- **Autenticación**: JWT Bearer contra Zitadel (`Authentication/`), con `JwtBearerEventsHandler` que sincroniza el usuario en cada token validado.
-- **`CurrentUser`**: abstracción que se enlaza como parámetro de endpoint (`IBindableFromHttpContext`) y expone los claims básicos (`Id` como `long?`, `RequiredId`, nombre, etc.) sin tener que leer `ClaimsPrincipal` a mano.
-- **Emite**: presigned URLs de subida (vía `IStorageService`) y **stream-tickets** (vía `IStreamTicketService`, RS256).
-- **OpenAPI + Scalar** para documentación/prueba; OAuth2 (PKCE) configurado para login desde Scalar.
-- **CORS** totalmente abierto **solo en Development** (para el front local).
-- Traduce `ErrorOr` → HTTP en `ResultHttpExtensions`.
+- **Authentication**: JWT Bearer against Zitadel (`Authentication/`), with a `JwtBearerEventsHandler` that syncs the user on every validated token.
+- **`CurrentUser`**: an abstraction bound as an endpoint parameter (`IBindableFromHttpContext`) that exposes the basic claims (`Id` as `long?`, `RequiredId`, name, etc.) without reading `ClaimsPrincipal` by hand.
+- **Issues**: presigned upload URLs (via `IStorageService`) and **stream tickets** (via `IStreamTicketService`, RS256).
+- **OpenAPI + Scalar** for docs/testing; OAuth2 (PKCE) set up for logging in from Scalar.
+- **CORS** wide open, but **only in Development** (for the local frontend).
+- Translates `ErrorOr` into HTTP in `ResultHttpExtensions`.
 
-**Propósito/porqué**: separar la cara pública (autorización + metadatos) del procesado y del servido de bytes.
+**Purpose**: keep the public surface (authorization + metadata) separate from processing and byte-serving.
 
 ## Musify.Domain + Musify.Application + Musify.Infrastructure
 
-El núcleo, en tres proyectos (clean architecture):
+The core, split into three projects (clean architecture):
 
 ### Domain
-Entidades (`Entities/`) y value objects/enums (`ValueObjects/`: `ProcessingStatus`, `LifeCycleStatus`, `UploadIntentStatus`, …). Sin dependencias de infraestructura.
+Entities (`Entities/`) and value objects/enums (`ValueObjects/`: `ProcessingStatus`, `LifeCycleStatus`, `UploadIntentStatus`, …). No infrastructure dependencies.
 
 ### Application
-Casos de uso (CQRS con Mediator):
+Use cases (CQRS with Mediator):
 - `Tracks/`, `PlayLists/`, `Users/` → `Commands`, `Queries`, `Handlers`, `Responses`.
-- `Contracts/` → interfaces que implementa la infraestructura (`IDatabase`, `IStorageService`, `IAudioTranscoderService`, `IPictureService`, `IEventBus`, `IStreamTicketService`).
-- `Configuration/` → opciones tipadas (Track, PlayList, ApplicationStorage, UploadIntent…) bindeadas y validadas al arranque.
-- `Shared/` → helpers transversales (`StorageKey.Combine`, `ImageSize`).
+- `Contracts/` → interfaces that infrastructure implements (`IDatabase`, `IStorageService`, `IAudioTranscoderService`, `IPictureService`, `IEventBus`, `IStreamTicketService`).
+- `Configuration/` → typed options (Track, PlayList, ApplicationStorage, UploadIntent…) bound and validated at startup.
+- `Shared/` → cross-cutting helpers (`StorageKey.Combine`, `ImageSize`).
 - `Pagination/` → `PaginatedResponse<T>`.
 
-**Porqué**: la lógica de negocio no conoce EF, S3 ni RabbitMQ; solo interfaces. Reutilizable por la API y el Worker.
+**Why**: business logic doesn't know about EF, S3, or RabbitMQ, only interfaces. Shared by both the API and the Worker.
 
 ### Infrastructure
-Implementaciones concretas:
-- `Persistence/` → `Database` (EF Core/Npgsql), migraciones.
-- `Services/` → `StorageService` (AWSSDK.S3 contra SeaweedFS), `AudioTranscoderService` (ffmpeg → `.m4a`), `PictureService` (ImageSharp), `StreamTicketService` (firma RS256).
-- `MassTransit/` → consumers, activities y routing slips (ver [media-processing.md](media-processing.md)).
+Concrete implementations:
+- `Persistence/` → `Database` (EF Core/Npgsql), migrations.
+- `Services/` → `StorageService` (AWSSDK.S3 against SeaweedFS), `AudioTranscoderService` (ffmpeg → `.m4a`), `PictureService` (ImageSharp), `StreamTicketService` (RS256 signing).
+- `MassTransit/` → consumers, activities, and routing slips (see [media-processing.md](media-processing.md)).
 - `Jobs/` → `UploadIntentExpirationJob`, `TemporalUploadsCleanUpJob`.
 
 ## Musify.StreamingGateway  (`:8081`)
 
-Reverse proxy (ASP.NET + **YARP**) que sirve el audio (`.m4a`) desde SeaweedFS. Valida el stream-ticket (RS256, clave pública) y, si el objeto pedido cae bajo el prefijo autorizado, reenvía al filer.
+A reverse proxy (ASP.NET + **YARP**) that serves audio (`.m4a`) from SeaweedFS. Validates the stream ticket (RS256, public key) and, if the requested object falls under the authorized prefix, forwards it to the filer.
 
-**Porqué un proyecto aparte**: escala con el tráfico de bytes independientemente de la API, tiene superficie mínima (solo sabe validar un JWT y proxiar) y permite que SeaweedFS quede en red privada. Ver [streaming.md](streaming.md).
+**Why a separate project**: it scales with byte traffic independently of the API, has a minimal surface (it only knows how to validate a JWT and proxy), and lets SeaweedFS stay on a private network. See [streaming.md](streaming.md).
 
 ## Musify.Worker
 
-Worker Service (host de fondo) que consume los eventos de MassTransit y ejecuta el procesado pesado: transcode de audio a `.m4a` (ffmpeg), generación de miniaturas (ImageSharp), transferencias de ficheros en el bucket, y los jobs de expiración/limpieza de upload intents.
+A background Worker Service that consumes MassTransit events and runs the heavy processing: audio transcoding to `.m4a` (ffmpeg), thumbnail generation (ImageSharp), file transfers within the bucket, and the upload-intent expiration/cleanup jobs.
 
-**Porqué aparte**: el trabajo CPU/IO no debe ocurrir dentro de un request HTTP; se escala y reinicia por separado. (Antes se llamaba `Musify.PictureWorker`; se renombró porque hace más que imágenes.)
+**Why separate**: CPU/IO-heavy work shouldn't happen inside an HTTP request; it scales and restarts independently. (Previously named `Musify.PictureWorker`; renamed once it started doing more than just images.)
 
-## web-player  (`:5173` en dev, `:3000` en contenedor)
+## web-player  (`:5173` in dev, `:3000` in a container)
 
-Cliente web (SvelteKit 2 + Svelte 5 + Tailwind 4). La sesión OIDC vive en el
-servidor (cookie cifrada); las llamadas al backend salen del servidor con el
-access token, y las subidas se hacen contra las URLs prefirmadas de S3.
+The web client (SvelteKit 2 + Svelte 5 + Tailwind 4). The OIDC session lives
+on the server (an encrypted cookie); backend calls go out from the server
+with the access token, and uploads go straight to the presigned S3 URLs.
 
 ## Tests
 
-`backend/Tests/`, carpeta `/Tests/` en el `.slnx`: cinco proyectos xUnit —
-`Musify.Domain.Tests`, `Musify.Application.Tests` (SQLite en memoria, sin
-Docker), `Musify.Infrastructure.Tests` y `Musify.Api.Tests` (Testcontainers:
-Postgres + SeaweedFS reales) y `Musify.StreamingGateway.Tests`. Detalle en
+`backend/Tests/` (the `/Tests/` folder in the `.slnx`) has five xUnit projects:
+`Musify.Domain.Tests`, `Musify.Application.Tests` (in-memory SQLite, no
+Docker), `Musify.Infrastructure.Tests` and `Musify.Api.Tests` (Testcontainers:
+real Postgres + SeaweedFS), and `Musify.StreamingGateway.Tests`. Details in
 [development.md](development.md#tests).
 
-## Otras carpetas
+## Other folders
 
-- **`deploy/`** — stacks de Docker Compose (dev y prod), autocontenidos. Ver
+- **`deploy/`**: self-contained Docker Compose stacks (dev and prod). See
   [../deploy/README.md](../deploy/README.md).
-- **`docs/`** — esta documentación.
+- **`docs/`**: this documentation.

@@ -1,46 +1,46 @@
-# Procesado de medios (Worker + MassTransit)
+# Media processing (Worker + MassTransit)
 
-El procesado pesado (transcode de audio, miniaturas, transferencias en el bucket) ocurre **fuera del request HTTP**, en el **Worker**, orquestado con **MassTransit** sobre RabbitMQ.
+Heavy processing (audio transcoding, thumbnails, bucket transfers) happens **outside the HTTP request**, in the **Worker**, orchestrated with **MassTransit** on top of RabbitMQ.
 
-## Por qué asíncrono y con routing slips
+## Why async, and why routing slips
 
-- Transcodificar audio y redimensionar imágenes es CPU/IO intensivo: no debe bloquear una llamada a la API.
-- Es un proceso **multi-paso con efectos secundarios** (descargar de S3 → transcodificar → subir resultados → actualizar DB). Si un paso falla, hay que **deshacer** los anteriores. Para eso se usan **routing slips** (patrón Saga de MassTransit): cada paso es una *activity* con su **compensación**.
-- **Outbox transaccional** (EF + MassTransit): el evento se publica de forma consistente con el cambio en la DB (no se pierde ni se duplica).
+- Transcoding audio and resizing images is CPU/IO-intensive: it shouldn't block an API call.
+- It's a **multi-step process with side effects** (download from S3 → transcode → upload results → update the DB). If a step fails, the previous ones need to be **undone**. That's what **routing slips** are for (MassTransit's Saga pattern): each step is an *activity* with its own **compensation**.
+- **Transactional outbox** (EF + MassTransit): the event is published consistently with the DB change (never lost, never duplicated).
 
-## Disparo
+## Trigger
 
-Al crear/actualizar una pista o playlist, el handler publica un evento (p. ej. `CreateTrackResourcesEvent`). Un **consumer** (`CreateTrackConsumer`, `UpdateTrackPictureConsumer`, …) construye un **routing slip** con la secuencia de activities y lo lanza.
+When a track or playlist is created or updated, the handler publishes an event (e.g. `CreateTrackResourcesEvent`). A **consumer** (`CreateTrackConsumer`, `UpdateTrackPictureConsumer`, …) builds a **routing slip** with the sequence of activities and executes it.
 
-## Builders de routing slip
+## Routing slip builders
 
-- `CreateTrackRoutingSlipBuilder` — alta de pista (consume intents, mueve ficheros, dispara procesado).
-- `PictureWorkflowRoutingSlipBuilder` — pipeline de imágenes (descargar → redimensionar → subir → actualizar).
-- `AudioWorkflowRoutingSlipBuilder` — pipeline de audio (descargar → transcodificar a `.m4a` → subir carpeta → actualizar).
+- `CreateTrackRoutingSlipBuilder`: creating a track (consumes intents, moves files, kicks off processing).
+- `PictureWorkflowRoutingSlipBuilder`: image pipeline (download → resize → upload → update).
+- `AudioWorkflowRoutingSlipBuilder`: audio pipeline (download → transcode to `.m4a` → upload folder → update).
 - `DeleteTrackRoutingSlipBuilder`, `DeletePlayListRoutingSlipBuilder`, `PlayListPictureSourceRoutingSlipBuilder`.
 
-## Activities (pasos)
+## Activities (steps)
 
-Agrupadas por área:
+Grouped by area:
 - **Files**: `DownloadFileFromBucketActivity`, `UploadFileToBucketActivity`, `TransferFilesToBucketActivity`, `CopyFileInBucketActivity`, `RemoveFileFromBucketActivity`.
-- **Audio**: `GenerateAudioWorkflowPathsActivity`, `TranscodeAudioActivity` (ffmpeg → `.m4a`), `UpdateTrackAudioActivity` (guarda `AudioFolderName` y marca `Completed`).
+- **Audio**: `GenerateAudioWorkflowPathsActivity`, `TranscodeAudioActivity` (ffmpeg → `.m4a`), `UpdateTrackAudioActivity` (saves `AudioFolderName` and marks it `Completed`).
 - **Pictures**: `GeneratePictureWorkflowPathsActivity`, `ResizePictureActivity` (ImageSharp), `UpdateTrackPictureActivity`, `UpdatePlayListPictureActivity`.
-- **Tracks/PlayLists**: `MarkTrackAsRemovingActivity`, `DeleteTrackFromDbActivity`, `PublishTrackProcessingEventsActivity`, y equivalentes de playlist.
+- **Tracks/Playlists**: `MarkTrackAsRemovingActivity`, `DeleteTrackFromDbActivity`, `PublishTrackProcessingEventsActivity`, and their playlist equivalents.
 - **UploadIntents**: `ConsumeUploadIntentsActivity`.
 
-`RoutingSlipCleanUpConsumer` reacciona a `Completed`/`Faulted` para limpiar (p. ej. borrar el directorio temporal de trabajo).
+`RoutingSlipCleanUpConsumer` reacts to `Completed`/`Faulted` to clean up (e.g. deleting the temporary working directory).
 
-## Transcode de audio
+## Audio transcoding
 
-`AudioTranscoderService` invoca **ffmpeg** leyendo el original por stdin y produciendo en un directorio de trabajo un único `audio.m4a`: AAC con codec/bitrate/sample-rate/profile configurables y `-movflags +faststart` (moov al inicio → seek por range). Luego `TransferFilesToBucketActivity` sube esa carpeta a `Tracks/ProcessedAudios/{folder}/` y `UpdateTrackAudioActivity` guarda el `AudioFolderName` (la carpeta **de destino en S3**, no la local) y pone el estado en `Completed`.
+`AudioTranscoderService` calls **ffmpeg**, reading the original from stdin and producing a single `audio.m4a` in a working directory: AAC with a configurable codec/bitrate/sample-rate/profile, and `-movflags +faststart` (moov at the start, so range-based seeking works). `TransferFilesToBucketActivity` then uploads that folder to `Tracks/ProcessedAudios/{folder}/`, and `UpdateTrackAudioActivity` saves the `AudioFolderName` (the **destination folder in S3**, not the local one) and sets the status to `Completed`.
 
-## Configuración que necesita el Worker
+## What the Worker needs configured
 
-El Worker registra: storage (S3), transcoder (ffmpeg), pictures, DB, los consumers de MassTransit y los jobs de upload intents. Su `AppSettings` debe tener las secciones correctas: `Bucket` (= `webapi-storage`, el mismo que la API), `PlayList`, `Track`, `MassTransit`, `AudioTranscoder`, `UploadIntent`, `Workers` (directorio temporal), `InfrastructureStorage`, `Database`.
+The Worker registers: storage (S3), transcoder (ffmpeg), pictures, the DB, the MassTransit consumers, and the upload-intent jobs. Its `AppSettings` needs the right sections: `Bucket` (= `webapi-storage`, same as the API), `PlayList`, `Track`, `MassTransit`, `AudioTranscoder`, `UploadIntent`, `Workers` (temp directory), `InfrastructureStorage`, `Database`.
 
-## Jobs de fondo
+## Background jobs
 
-- `UploadIntentExpirationJob` — marca intents caducados como expirados (libera cuota) cada `ExpirationJobIntervalSeconds`.
-- `TemporalUploadsCleanUpJob` — limpia subidas temporales antiguas.
+- `UploadIntentExpirationJob`: marks expired intents as such (freeing quota) every `ExpirationJobIntervalSeconds`.
+- `TemporalUploadsCleanUpJob`: cleans up old temporary uploads.
 
-Corren en el host del Worker (`AddUploadIntentJobs`). Si no se registran en ningún proceso, los intents colgados no se limpian solos.
+Both run on the Worker host (`AddUploadIntentJobs`). If they aren't registered anywhere, stale intents never get cleaned up on their own.

@@ -1,57 +1,50 @@
 # Musify
 
-Music streaming platform: upload your own tracks, process them asynchronously
-(audio transcoded to `.m4a`, thumbnails generated) and stream them without the
-bytes ever going through the API.
+A music streaming app. Upload your own tracks, organize them into playlists
+and albums, and stream them back with a web player built around your
+listening habits: auto-generated mixes, a home feed, search, likes, and an
+Explore page for finding something new.
+
+## What it does
+
+- **Upload and organize your own music**: tracks, albums, cover art, artist credits.
+- **Playlists**, likes, and a "recently played" history.
+- **Mixes**, playlists generated automatically from what you actually listen to.
+- **Explore**, genre browsing and search across tracks, albums, playlists and people.
+- **Real streaming**, not just file downloads: seek, queue, shuffle, repeat.
+- **Accounts via OIDC login**, with an optional anonymous listening mode.
+- Light and dark themes, and a layout that works on both desktop and mobile.
+
+## How it's built
+
+**Backend**: .NET 10, split into a REST API, a background worker, and a
+dedicated streaming gateway.
+- Clean architecture (Domain / Application / Infrastructure) with CQRS (Mediator) and `ErrorOr` results.
+- PostgreSQL via EF Core for metadata. RabbitMQ and MassTransit handle async processing (audio transcoding, thumbnails) with saga-based rollback.
+- SeaweedFS (S3-compatible) for file storage. Uploads and downloads go straight between the client and storage, never through the API.
+- ffmpeg for audio transcoding, ImageSharp for thumbnails.
+- A YARP reverse proxy that streams the audio and checks a signed, short-lived ticket on every request.
+- Zitadel for login (OIDC/OAuth2).
+
+**Web client**: SvelteKit 2 on Svelte 5 (runes), TypeScript, Tailwind 4.
+The session lives on the server, so the backend access token never reaches the browser.
+
+**Infrastructure**: the whole stack runs from Docker Compose (dev and
+production overlays), with Postgres, RabbitMQ, SeaweedFS, Zitadel and Jaeger
+alongside the apps.
+
+## Project layout
 
 ```
-backend/      .NET 10 — Domain / Application / Infrastructure / Api / Worker / StreamingGateway / Tests
-web-player/   SvelteKit 2 + Svelte 5 + Tailwind 4 web client
-deploy/       Docker Compose stacks — self-contained, no wrapper scripts
-docs/         What each piece does and why (in Spanish)
+backend/      .NET solution: Api, Worker, StreamingGateway, and the shared Domain/Application/Infrastructure
+web-player/   the SvelteKit web client
+deploy/       Docker Compose stacks for dev and production
+docs/         architecture notes, one file per area
 ```
 
-```sh
-dotnet test backend/Musify.slnx   # backend/Tests/ — Docker running (Testcontainers: Postgres, SeaweedFS)
-```
+## Digging deeper
 
-## Run it
-
-Development (Docker Desktop):
-
-```sh
-docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
-```
-
-Infrastructure plus stream-ticket keys, database migrations and Zitadel OIDC
-provisioning — all as one-shot jobs baked into the compose file. Apps run from
-the IDE by default; add `--profile apps up -d --build` as a second command to
-run them in Docker instead.
-
-Production, on a server with a domain:
-
-```sh
-cp deploy/.env.prod.example deploy/.env.prod   # fill in the domain and secrets
-docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
-docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
-```
-
-Idempotent — run the same commands again to deploy an update. See
-[deploy/README.md](deploy/README.md) for the details, the port map and the
-production prerequisites.
-
-## Components
-
-| Service | Port (dev) | Role |
-|---|---|---|
-| `Musify.Api` | 5111 | REST API, issues presigned upload URLs and stream tickets |
-| `Musify.StreamingGateway` | 8081 | YARP proxy that validates the stream ticket and serves the audio |
-| `Musify.Worker` | — | MassTransit consumers: transcoding, thumbnails |
-| `web-player` | 5173 / 3000 | Web client (SvelteKit, server-side OIDC session) |
-| Zitadel | 8080 | Identity (OIDC/OAuth2) |
-| PostgreSQL / RabbitMQ / SeaweedFS / Jaeger | 59000 / 5672 / 8333 / 16686 | Metadata, messaging, object storage, traces |
-
-More in [docs/](docs/README.md): [architecture](docs/architecture.md),
-[authentication](docs/authentication.md), [storage](docs/storage.md),
-[streaming](docs/streaming.md), [media processing](docs/media-processing.md),
-[development](docs/development.md).
+[docs/](docs/README.md) covers how each piece works and why: architecture,
+authentication, storage, streaming, media processing, and the local dev
+setup. [deploy/README.md](deploy/README.md) has the full instructions for
+running the stack, in development or on a production server.

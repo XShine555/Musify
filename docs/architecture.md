@@ -1,55 +1,55 @@
-# Arquitectura
+# Architecture
 
-## Principios
+## Principles
 
-- **Clean architecture / capas** en `backend/`: el dominio y la aplicación no dependen de infraestructura; la infraestructura implementa las interfaces (`Application/Contracts`).
-- **CQRS**: cada operación es un `Command` o `Query` con su handler (Mediator). Los handlers devuelven `Ardalis.Result` (Ok/NotFound/Unauthorized/Conflict/Invalid…), que la API traduce a códigos HTTP.
-- **Los bytes pesados no pasan por la API**: subidas con URLs prefirmadas (cliente → S3) y reproducción vía un reverse proxy dedicado (gateway → S3). La API solo mueve metadatos y emite permisos.
-- **Procesado asíncrono**: crear una pista no transcodifica en caliente; publica un evento y un worker hace el trabajo pesado con compensación (sagas/routing slips de MassTransit).
+- **Clean architecture / layers** in `backend/`: the domain and application layers don't depend on infrastructure; infrastructure implements their interfaces (`Application/Contracts`).
+- **CQRS**: every operation is a `Command` or `Query` with its own handler (Mediator). Handlers return `Ardalis.Result` (Ok/NotFound/Unauthorized/Conflict/Invalid…), which the API translates into HTTP status codes.
+- **Heavy bytes never touch the API**: uploads use presigned URLs (client → S3) and playback goes through a dedicated reverse proxy (gateway → S3). The API only moves metadata and issues permissions.
+- **Async processing**: creating a track doesn't transcode it on the spot. It publishes an event, and a worker does the heavy lifting, with compensation (MassTransit sagas/routing slips).
 
-## Componentes
+## Components
 
-| Componente | Responsabilidad | Por qué separado |
+| Component | Responsibility | Why it's separate |
 |---|---|---|
-| **Musify.Api** | API REST (usuarios, pistas, playlists), autoriza, emite presigned URLs y stream-tickets | Punto de entrada fino; no procesa medios ni sirve bytes |
-| **Domain/Application/Infrastructure** | Dominio + casos de uso + infraestructura compartida (EF, S3, MassTransit, ffmpeg) | Lógica reutilizada por la API y el Worker |
-| **StreamingGateway** | Reverse proxy (YARP) que valida el ticket y sirve el audio (`.m4a`) desde SeaweedFS | Escala con el tráfico de bytes, independiente de la API; SeaweedFS queda privado detrás |
-| **Worker** | Consume eventos de MassTransit: transcodifica audio a `.m4a` y genera miniaturas | Trabajo CPU/IO intensivo fuera del request HTTP |
-| **PostgreSQL** | Metadatos (usuarios, pistas, playlists, upload intents) | — |
-| **RabbitMQ** | Cola de eventos + outbox transaccional | Desacopla creación de procesado |
-| **SeaweedFS** | Almacenamiento de objetos (S3 + filer) | Guarda originales y derivados (audio `.m4a`, miniaturas) |
-| **Zitadel** | Identidad (OIDC/OAuth2) | Login y emisión de JWT |
+| **Musify.Api** | REST API (users, tracks, playlists), authorizes requests, issues presigned URLs and stream tickets | A thin entry point, it doesn't process media or serve bytes |
+| **Domain/Application/Infrastructure** | Domain + use cases + shared infrastructure (EF, S3, MassTransit, ffmpeg) | Logic shared between the API and the Worker |
+| **StreamingGateway** | Reverse proxy (YARP) that validates the ticket and serves the audio (`.m4a`) from SeaweedFS | Scales with byte traffic independently of the API, and keeps SeaweedFS private behind it |
+| **Worker** | Consumes MassTransit events: transcodes audio to `.m4a` and generates thumbnails | Keeps CPU/IO-heavy work off the HTTP request path |
+| **PostgreSQL** | Metadata (users, tracks, playlists, upload intents) | n/a |
+| **RabbitMQ** | Event queue + transactional outbox | Decouples creation from processing |
+| **SeaweedFS** | Object storage (S3 + filer) | Stores originals and derivatives (`.m4a` audio, thumbnails) |
+| **Zitadel** | Identity (OIDC/OAuth2) | Login and JWT issuance |
 
-## Flujos principales
+## Main flows
 
-### 1. Subida de una pista
-1. Cliente pide `POST /tracks/upload-urls` → la API crea **UploadIntents** (reservas) y devuelve **URLs prefirmadas PUT** (imagen + audio).
-2. Cliente sube los ficheros **directo a SeaweedFS** con esas URLs (no pasan por la API).
-3. Cliente llama `POST /tracks` con los `intentId`s → la API valida los intents, crea el `Track` (+ `UserHasTrack`) y publica `CreateTrackResourcesEvent`.
-4. El **Worker** consume el evento: mueve los originales a su sitio, genera miniaturas y transcodifica el audio a `.m4a`, y actualiza el estado del track.
+### 1. Uploading a track
+1. The client requests `POST /tracks/upload-urls`. The API creates **UploadIntents** (reservations) and returns **presigned PUT URLs** (image + audio).
+2. The client uploads the files **directly to SeaweedFS** using those URLs (never through the API).
+3. The client calls `POST /tracks` with the `intentId`s. The API validates the intents, creates the `Track` (+ `UserHasTrack`), and publishes `CreateTrackResourcesEvent`.
+4. The **Worker** consumes the event: moves the originals into place, generates thumbnails, transcodes the audio to `.m4a`, and updates the track's status.
 
-Ver detalle en [media-processing.md](media-processing.md) y [storage.md](storage.md).
+See [media-processing.md](media-processing.md) and [storage.md](storage.md) for details.
 
-### 2. Reproducción (streaming)
-1. Cliente pide `GET /tracks/{id}/stream` (autenticado) → la API autoriza y devuelve `{ manifestUrl, ticket }` (URL al `.m4a` + ticket RS256 acotado a la carpeta de esa pista).
-2. El reproductor abre la URL del audio añadiendo `?t=<ticket>` (o cabecera `X-Stream-Ticket`) y descarga por HTTP range.
-3. El **StreamingGateway** valida el ticket y reenvía al filer de SeaweedFS; los bytes van storage → cliente.
+### 2. Playback (streaming)
+1. The client requests `GET /tracks/{id}/stream` (authenticated). The API authorizes it and returns `{ manifestUrl, ticket }` (a URL to the `.m4a` plus an RS256 ticket scoped to that track's folder).
+2. The player opens the audio URL with `?t=<ticket>` appended (or an `X-Stream-Ticket` header) and downloads it via HTTP range requests.
+3. The **StreamingGateway** validates the ticket and forwards the request to the SeaweedFS filer. The bytes flow storage → client.
 
-Ver [streaming.md](streaming.md).
+See [streaming.md](streaming.md).
 
-### 3. Autenticación
-1. Cliente hace login OIDC contra **Zitadel** y obtiene un access token (JWT).
-2. La Musify.Api valida la firma/iss/aud del JWT.
-3. En cada token validado, se **sincroniza** el usuario local (crea/actualiza nombre y foto) — provisioning just-in-time.
+### 3. Authentication
+1. The client logs in via OIDC against **Zitadel** and gets an access token (JWT).
+2. Musify.Api validates the JWT's signature, issuer and audience.
+3. On every validated token, the local user is **synced** (name and picture created or updated). This is just-in-time provisioning.
 
-Ver [authentication.md](authentication.md).
+See [authentication.md](authentication.md).
 
-## Modelo de datos (entidades)
+## Data model (entities)
 
-- **User** — `Id` es el `sub` numérico de Zitadel (`long`), más nombre y `ProfilePictureUrl`.
-- **Track** — pista: nombres de originales/derivados, `AudioFolderName` (carpeta del `.m4a` transcodificado), estados de procesado (`ProcessingStatus`), `LifeCycleStatus`.
-- **PlayList** — lista del usuario (`UserId`).
-- **PlayListHasTrack** — pistas dentro de una playlist (con `Position`).
-- **UserHasTrack** — propiedad: qué usuario posee qué pista.
-- **UploadIntent** — reserva de subida (clave, bucket, tamaño esperado, estado, expiración) para validar y aplicar cuota.
-- **Upload** — registro de objetos subidos/transferidos al storage.
+- **User**: `Id` is Zitadel's numeric `sub` (`long`), plus a name and `ProfilePictureUrl`.
+- **Track**: original/derivative file names, `AudioFolderName` (the transcoded `.m4a`'s folder), processing state (`ProcessingStatus`), `LifeCycleStatus`.
+- **PlayList**: a user's playlist (`UserId`).
+- **PlayListHasTrack**: the tracks inside a playlist (with `Position`).
+- **UserHasTrack**: ownership, which user owns which track.
+- **UploadIntent**: an upload reservation (key, bucket, expected size, status, expiration) used for validation and quota.
+- **Upload**: a record of objects uploaded or transferred to storage.

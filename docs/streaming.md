@@ -1,55 +1,55 @@
-# Streaming de audio
+# Audio streaming
 
-## Objetivo
+## Goal
 
-Reproducir el audio **sin que los bytes pasen por la API**, pero con control de acceso. La API solo emite un permiso corto; el reverse proxy sirve los bytes desde SeaweedFS.
+Play audio **without the bytes passing through the API**, while still controlling access. The API only issues a short-lived permission; the reverse proxy serves the bytes from SeaweedFS.
 
-## Formato: fichero único AAC (.m4a) por HTTP range
+## Format: a single AAC file (.m4a), served via HTTP range
 
-El audio se transcodifica a **un único `audio.m4a`** (AAC, contenedor MP4 con `+faststart` para que el átomo `moov` quede al inicio y el seek por range funcione), dentro de la carpeta `Tracks/ProcessedAudios/{AudioFolderName}/`. No hay manifest ni segmentos: el reproductor descarga el fichero por **HTTP range requests** (modelo tipo Spotify para VOD musical).
+Audio is transcoded into **one `audio.m4a`** (AAC, MP4 container with `+faststart` so the `moov` atom sits at the start and range-based seeking works), stored under `Tracks/ProcessedAudios/{AudioFolderName}/`. There's no manifest or segments: the player downloads the file via **HTTP range requests** (the same model Spotify uses for on-demand music).
 
-Multi-bitrate no está implementado hoy; el camino para añadirlo es transcodificar varias calidades (`audio_96.m4a`, …) y que el cliente elija una al iniciar (sin ABR fluido a mitad de pista, igual que Spotify).
+Multi-bitrate isn't implemented yet; the path to add it is transcoding several qualities (`audio_96.m4a`, …) and letting the client pick one at playback start (no seamless mid-track ABR, same as Spotify).
 
-## El acceso: stream-ticket de prefijo
+## Access control: a prefix-scoped stream ticket
 
-Se autoriza **el prefijo de la carpeta** de la pista con un *stream-ticket* de corta vida, y el proxy lo valida en cada petición. Aunque hoy sea un único objeto, el ticket sigue acotado al prefijo `Tracks/ProcessedAudios/<folder>/` (cubre el fichero actual y cualquier calidad futura).
+Access is authorized for **the track's folder prefix** via a short-lived *stream ticket*, validated by the proxy on every request. Even though there's only one object today, the ticket is still scoped to the prefix `Tracks/ProcessedAudios/<folder>/` (covering the current file and any future quality variants).
 
-## Flujo
+## Flow
 
-1. `GET /tracks/{id}/stream` (autenticado) → la API autoriza y devuelve:
+1. `GET /tracks/{id}/stream` (authenticated) → the API authorizes the request and returns:
    ```json
    { "manifestUrl": "http://<gateway>/media/Tracks/ProcessedAudios/<folder>/audio.m4a",
      "ticket": "<JWT RS256>", "expiresInSeconds": 3600 }
    ```
-   El ticket lleva el claim `prefix = "Tracks/ProcessedAudios/<folder>/"`.
-2. El reproductor abre la URL del audio añadiéndole `?t=<ticket>` (o la cabecera `X-Stream-Ticket`).
-3. El **StreamingGateway** (YARP) valida el ticket y reenvía al filer; los bytes van SeaweedFS → cliente (con range/seek).
+   The ticket carries the claim `prefix = "Tracks/ProcessedAudios/<folder>/"`.
+2. The player opens the audio URL with `?t=<ticket>` appended (or the `X-Stream-Ticket` header).
+3. The **StreamingGateway** (YARP) validates the ticket and forwards the request to the filer; the bytes flow SeaweedFS → client (with range/seek support).
 
-## El ticket (RS256)
+## The ticket (RS256)
 
-- Lo firma la API con clave **privada** (`StreamTicketService`); el gateway valida con la **pública** (`TicketValidator`). Así el gateway **no puede emitir** tickets, solo verificarlos.
-- Claims: `sub`, `prefix`, `aud = media-gateway`, `iss = musify-webapi`, `exp` (TTL ~1h).
+- Signed by the API with a **private** key (`StreamTicketService`); validated by the gateway with the **public** one (`TicketValidator`). That way the gateway **can't issue** tickets, only verify them.
+- Claims: `sub`, `prefix`, `aud = media-gateway`, `iss = musify-webapi`, `exp` (~1h TTL).
 
-**Por qué RS256 (asimétrica)**: separa responsabilidades — emisor (la API) y verificador (gateway) no comparten secreto; el gateway, aunque se comprometa, no puede crear permisos.
+**Why RS256 (asymmetric)**: it separates responsibilities. The issuer (API) and the verifier (gateway) don't share a secret, so even if the gateway is compromised, it can't mint permissions.
 
-## El gateway (validación + proxy)
+## The gateway (validation + proxy)
 
-`TicketValidationMiddleware` en cada petición a `/media/**`:
-1. Lee `?t=`, valida firma/aud/iss/exp.
-2. Comprueba que la clave pedida **empieza por** el `prefix` del ticket (`StartsWith`). Si no → 403.
-3. Quita el `?t=` y deja pasar a YARP, que reescribe `/media/{key}` → `/buckets/webapi-storage/{key}` del filer.
+`TicketValidationMiddleware`, on every request to `/media/**`:
+1. Reads `?t=`, validates its signature/aud/iss/exp.
+2. Checks that the requested key **starts with** the ticket's `prefix`. If not → 403.
+3. Strips the `?t=` and passes the request on to YARP, which rewrites `/media/{key}` → `/buckets/webapi-storage/{key}` for the filer.
 
-- Sin ticket → **401**; fuera de prefijo → **403**; ok → **200** (y **206** en range requests, así que el seek funciona).
-- Pasa `Range`/`Accept-Ranges` y expone esos headers por CORS.
+- No ticket → **401**; outside the prefix → **403**; ok → **200** (and **206** for range requests, so seeking works).
+- Passes through `Range`/`Accept-Ranges` and exposes those headers via CORS.
 
-## ¿Un ticket por canción?
+## One ticket per track?
 
-Sí. Cada ticket está acotado a **una** carpeta (una pista). Para reproducir otra, se pide otro ticket. Es barato (la API solo firma un JWT) y es lo más seguro: cada permiso abre solo lo que vas a reproducir.
+Yes. Each ticket is scoped to **one** folder (one track). Playing a different one means requesting a new ticket. It's cheap (the API just signs a JWT) and it's the safest option: every permission only unlocks what you're about to play.
 
-- Si algún día molesta (muchísimos cambios de pista), el mismo mecanismo del claim `prefix` permite ampliar el alcance: a nivel de playlist o de toda la biblioteca (`Tracks/ProcessedAudios/`). Trade-off seguridad ↔ comodidad. Por defecto, **por canción**.
+- If that ever becomes a problem (very frequent track switching), the same `prefix` claim mechanism can widen the scope to a whole playlist or the whole library (`Tracks/ProcessedAudios/`). It's a security/convenience trade-off. The default is **per track**.
 
-## Pendiente / notas de seguridad
+## Open items / security notes
 
-- La política de quién puede pedir el ticket es hoy "cualquier autenticado" (TODO: restringir con `UserHasTrack`/visibilidad).
-- El check de prefijo es `StartsWith` literal; conviene endurecer rechazando claves con `..` (path traversal), aunque navegadores y ASP.NET normalizan `..`.
-- El ticket viaja en la query (`?t=`); el gateway lo elimina antes de reenviar (no llega a los logs del filer).
+- Today, the policy for who can request a ticket is "any authenticated user" (TODO: restrict it with `UserHasTrack`/visibility).
+- The prefix check is a literal `StartsWith`; it would be worth hardening it against `..` path traversal, even though browsers and ASP.NET normalize `..`.
+- The ticket travels in the query string (`?t=`); the gateway strips it before forwarding, so it never reaches the filer's logs.

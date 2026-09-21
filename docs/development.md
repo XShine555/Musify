@@ -1,21 +1,21 @@
-# Entorno de desarrollo
+# Development environment
 
-Cómo levantar todo en local y probarlo. El detalle completo del deploy (y el de
-producción) está en [deploy/README.md](../deploy/README.md).
+How to run everything locally and test it. The full deployment details (dev
+and prod) live in [deploy/README.md](../deploy/README.md).
 
-## Arranque
+## Startup
 
 ```sh
 docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
 ```
 
-Ese único comando levanta la infraestructura y corre los jobs *one-shot* de
-bootstrap: genera las claves RS256 de stream-ticket en `deploy/keys/`, aplica
-las migraciones EF Core y provisiona Zitadel (proyecto + apps OIDC), dejando
-los client ids en `deploy/.env`. Detalle completo, incluido cómo arrancar las
-apps en Docker con `--profile apps`, en [deploy/README.md](../deploy/README.md).
+That one command brings up the infrastructure and runs the one-shot bootstrap
+jobs: generates the RS256 stream-ticket keys in `deploy/keys/`, applies the
+EF Core migrations, and provisions Zitadel (project + OIDC apps), writing the
+client ids into `deploy/.env`. Full details, including how to run the apps in
+Docker with `--profile apps`, are in [deploy/README.md](../deploy/README.md).
 
-## Aplicaciones
+## Applications
 
 ```powershell
 dotnet run --project backend/Hosts/Musify.Api               # :5111
@@ -24,45 +24,46 @@ dotnet run --project backend/Hosts/Musify.Worker            # background
 npm --prefix web-player run dev                       # :5173
 ```
 
-## Mapa de puertos
+## Port map
 
-| Servicio | Puerto |
+| Service | Port |
 |---|---|
 | Musify.Api | 5111 (`/scalar/v1`, `/openapi/v1.json`) |
 | Musify.StreamingGateway | 8081 (`/health`, `/media/...`) |
-| web-player | 5173 (`npm run dev`) o 3000 (contenedor) |
+| web-player | 5173 (`npm run dev`) or 3000 (container) |
 | SeaweedFS S3 / filer / master | 8333 / 8888 / 9333 |
 | Zitadel | 8080 |
-| PostgreSQL | 59000 (→ 5432 en el contenedor) |
+| PostgreSQL | 59000 (→ 5432 in the container) |
 | RabbitMQ AMQP / management | 5672 / 15672 |
 | Jaeger UI / OTLP | 16686 / 4317 |
 | pgAdmin (`-Tools`) | 5050 |
 
-DB: `musify_db`, usuario `postgres`/`postgres`. Bucket S3: `webapi-storage`
-(credenciales `admin_access_key`/`admin_secret_key`). Todos los valores salen de
+DB: `musify_db`, user `postgres`/`postgres`. S3 bucket: `webapi-storage`
+(credentials `admin_access_key`/`admin_secret_key`). All of these come from
 `deploy/.env`.
 
-## Migraciones
+## Migrations
 
-El servicio `migrate` de `deploy/compose.yml` las aplica en cada `docker
-compose up -d` (no-op si el esquema ya está al día). A mano, tras cambios de
-esquema, contra la base local:
+The `migrate` service in `deploy/compose.yml` applies them on every `docker
+compose up -d` (a no-op if the schema is already current). To run them by
+hand after a schema change, against the local database:
 
 ```powershell
 dotnet ef database update --project backend/Core/Musify.Infrastructure --startup-project backend/Core/Musify.Infrastructure --context Database
 ```
 
-`Musify.Infrastructure` es a la vez el proyecto de migraciones y el de arranque:
-tiene el `IDesignTimeDbContextFactory` y el paquete `EFCore.Design`. La cadena
-de conexión se lee de sus user-secrets, o de la variable de entorno
-`Database__ConnectionString` si no hay user-secrets (así es como la usa el
-contenedor `migrate`, ver `backend/Musify.Migrator.Dockerfile`).
+`Musify.Infrastructure` is both the migrations project and the startup
+project: it has the `IDesignTimeDbContextFactory` and the `EFCore.Design`
+package. The connection string is read from its user-secrets, or from the
+`Database__ConnectionString` environment variable if there are no
+user-secrets (which is how the `migrate` container uses it, see
+`backend/Musify.Migrator.Dockerfile`).
 
-## Stream-tickets (claves RS256)
+## Stream tickets (RS256 keys)
 
-La API firma los stream-tickets con la clave privada y el gateway los valida con
-la pública. El servicio `keys-init` de `deploy/compose.yml` las genera en
-`deploy/keys/` si no existen; a mano:
+The API signs stream tickets with the private key, and the gateway validates
+them with the public one. The `keys-init` service in `deploy/compose.yml`
+generates them in `deploy/keys/` if they don't exist yet; to do it by hand:
 
 ```powershell
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out deploy/keys/stream_private.pem
@@ -78,74 +79,74 @@ openssl rsa -in deploy/keys/stream_private.pem -pubout -out deploy/keys/stream_p
 dotnet test backend/Musify.slnx
 ```
 
-`backend/Tests/` (carpeta `/Tests/` en el `.slnx`) tiene cinco proyectos xUnit:
+`backend/Tests/` (the `/Tests/` folder in the `.slnx`) has five xUnit projects:
 
-| Proyecto | Cubre | Docker |
+| Project | Covers | Docker |
 |---|---|---|
-| `Musify.Domain.Tests` | Lógica de los value objects (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Las entidades son en su mayoría anémicas — sin comportamiento propio, nada más que testear ahí. | No |
-| `Musify.Application.Tests` | Los ~45 handlers y servicios de `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes). | No |
-| `Musify.Infrastructure.Tests` | `Database`/migraciones, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `SingleFlightCache`, `PlayListPresetSeeder`. | **Sí** |
-| `Musify.Api.Tests` | Endpoints HTTP reales (routing, auth, `ValidationFilter`, mapeo `ErrorOr`→HTTP) vía `WebApplicationFactory`, más `ErrorOrHttpExtensions`/`CurrentUser`/validators FluentValidation en aislado. | **Sí** |
-| `Musify.StreamingGateway.Tests` | `TicketValidator` (RS256) y `TicketValidationMiddleware` (traversal, límites de prefijo, extracción de ticket). | No |
+| `Musify.Domain.Tests` | Value object logic (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Entities are mostly anemic, with no behavior of their own beyond that. | No |
+| `Musify.Application.Tests` | The ~45 handlers and services in `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes). | No |
+| `Musify.Infrastructure.Tests` | `Database`/migrations, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `SingleFlightCache`, `PlayListPresetSeeder`. | **Yes** |
+| `Musify.Api.Tests` | Real HTTP endpoints (routing, auth, `ValidationFilter`, `ErrorOr`→HTTP mapping) via `WebApplicationFactory`, plus `ErrorOrHttpExtensions`/`CurrentUser`/FluentValidation validators in isolation. | **Yes** |
+| `Musify.StreamingGateway.Tests` | `TicketValidator` (RS256) and `TicketValidationMiddleware` (traversal, prefix limits, ticket extraction). | No |
 
-`Musify.Worker` no tiene proyecto de test: su `Program.cs` es puro *wiring* de
-DI/host (Hangfire, MassTransit, jobs) — la lógica real que ejecuta vive en
-`Musify.Infrastructure`, ya cubierta ahí.
+`Musify.Worker` has no test project: its `Program.cs` is pure DI/host wiring
+(Hangfire, MassTransit, jobs). The actual logic it runs lives in
+`Musify.Infrastructure`, already covered there.
 
-### Application.Tests: por qué SQLite en memoria y no mocks
+### Application.Tests: why in-memory SQLite instead of mocks
 
-`IDatabase` expone `DbSet<T>` directamente, así que los handlers arman LINQ
-real (`Where`, `Include`, `Select`...) contra él — no se puede mockear eso con
-NSubstitute, no hay `IQueryable` detrás de un mock. En su lugar,
-`TestSupport/TestDatabase.cs` es un `DbContext` real sobre SQLite en memoria
-(una conexión `:memory:` nueva por test, con foreign keys reales — a diferencia
-del proveedor InMemory de EF Core, SQLite además soporta transacciones, que dos
-handlers usan). `TestSupport/TestEntities.cs` y `TestConfigurations.cs`
-construyen entidades y configuración con valores por defecto sensatos.
-`IStorageService`, `IEventBus`, etc. sí se mockean con NSubstitute, al ser
-interfaces normales.
+`IDatabase` exposes `DbSet<T>` directly, so handlers build real LINQ
+(`Where`, `Include`, `Select`...) against it. That can't be mocked with
+NSubstitute, since there's no `IQueryable` behind a mock. Instead,
+`TestSupport/TestDatabase.cs` is a real `DbContext` on top of in-memory
+SQLite (a fresh `:memory:` connection per test, with real foreign keys,
+unlike EF Core's InMemory provider, SQLite also supports transactions,
+which two handlers rely on). `TestSupport/TestEntities.cs` and
+`TestConfigurations.cs` build entities and configuration with sensible
+defaults. `IStorageService`, `IEventBus`, etc. are mocked with NSubstitute,
+since those are plain interfaces.
 
-### Infrastructure.Tests y Api.Tests: Testcontainers
+### Infrastructure.Tests and Api.Tests: Testcontainers
 
-Estos dos sí necesitan Docker corriendo. Levantan un Postgres real
-(`Testcontainers.PostgreSql`) y, en `Infrastructure.Tests`, también un
-SeaweedFS real (mismo `chrislusf/seaweedfs:latest` e imagen/comando que
-`deploy/compose.yml`, no MinIO) — así `StorageService` se prueba contra el
-mismo backend S3-compatible que usa producción, no contra AWS S3. Los
-contenedores se levantan una vez por corrida (`ICollectionFixture`), con
-migraciones EF Core reales aplicadas contra el Postgres efímero.
+These two need Docker running. They spin up a real Postgres
+(`Testcontainers.PostgreSql`) and, in `Infrastructure.Tests`, a real
+SeaweedFS too (the same `chrislusf/seaweedfs:latest` image/command as
+`deploy/compose.yml`, not MinIO), so `StorageService` is tested against the
+same S3-compatible backend production uses, not against AWS S3. Containers
+are started once per run (`ICollectionFixture`), with real EF Core
+migrations applied against the ephemeral Postgres.
 
-`Api.Tests` usa `WebApplicationFactory<Program>` contra ese mismo Postgres —
-routing, auth y validación reales — pero sustituye por fakes los servicios que
-hablan por red (`IStorageService`, `IEventBus`, `IStreamTicketService`) y el
-esquema de autenticación JWT real por un handler
-de prueba (ver `TestSupport/FakeAuthenticationHandler.cs`) que autentica según
-un header, sin necesitar un Zitadel real.
+`Api.Tests` uses `WebApplicationFactory<Program>` against that same
+Postgres, with real routing, auth, and validation, but replaces the services
+that talk over the network with fakes (`IStorageService`, `IEventBus`,
+`IStreamTicketService`), and swaps the real JWT auth scheme for a test
+handler (see `TestSupport/FakeAuthenticationHandler.cs`) that authenticates
+based on a header, with no real Zitadel needed.
 
-Escribir estos tests contra el backend real encontró y arregló dos bugs reales
-(no simulados): `StorageService.RemoveFolderAsync` reventaba con
-`NullReferenceException` contra SeaweedFS (su respuesta `DeleteObjects` omite
-la lista `<Error>` cuando no hay errores, a diferencia de AWS S3), y
-`AuditableEntityInterceptor` nunca actualizaba `UpdatedAt` en una actualización
-normal (carga → modifica → guarda) porque corría antes de que EF detectara los
-cambios pendientes.
+Writing these tests against the real backend found and fixed two actual
+bugs (not staged ones): `StorageService.RemoveFolderAsync` threw a
+`NullReferenceException` against SeaweedFS (its `DeleteObjects` response
+omits the `<Error>` list when there are no errors, unlike AWS S3), and
+`AuditableEntityInterceptor` never updated `UpdatedAt` on a normal update
+(load → modify → save) because it ran before EF had detected the pending
+changes.
 
 ## Config (AppSettings)
 
-Convención: `AppSettings.json` es la plantilla con valores vacíos o neutros;
-`AppSettings.Development.json` tiene los valores reales de dev; en Docker todo
-se sobreescribe con variables de entorno (`Seccion__Clave`) desde
-`deploy/compose.yml`. Para correr `Musify.Api` desde el IDE, los valores de
-`Authentication` van en user-secrets (no en el repo) — cópialos de
-`deploy/.env` una vez que `zitadel-init` los haya generado (ver
+Convention: `AppSettings.json` is the template, with empty or neutral
+values; `AppSettings.Development.json` has the real dev values; in Docker
+everything is overridden with environment variables (`Section__Key`) from
+`deploy/compose.yml`. To run `Musify.Api` from the IDE, the `Authentication`
+values go into user-secrets (not the repo). Copy them from `deploy/.env`
+once `zitadel-init` has generated them (see
 [deploy/README.md](../deploy/README.md)).
 
-Secciones clave: `Authentication` (Zitadel), `Database`, `MassTransit`,
+Key sections: `Authentication` (Zitadel), `Database`, `MassTransit`,
 `InfrastructureStorage` (S3), `ApplicationStorage` (bucket), `Track`, `PlayList`,
 `UploadIntent`, `AudioTranscoder`, `Workers`, `StreamGateway` / `StreamTicket`.
 
-## Requisitos del host
+## Host requirements
 
-- .NET 10 SDK y Node 22.
-- **ffmpeg** en el PATH (transcode de audio del Worker).
+- .NET 10 SDK and Node 22.
+- **ffmpeg** on the PATH (for the Worker's audio transcoding).
 - Docker Desktop.
