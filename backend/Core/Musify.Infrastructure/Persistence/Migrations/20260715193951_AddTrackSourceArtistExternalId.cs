@@ -4,10 +4,10 @@
 
 namespace Musify.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+
     public partial class AddTrackSourceArtistExternalId : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -41,7 +41,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 filter: "\"ExternalId\" <> ''");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(

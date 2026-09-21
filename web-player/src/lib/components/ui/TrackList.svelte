@@ -109,7 +109,7 @@
 	<div class="mt-1 flex flex-col gap-0.5">
 		{#each tracks as track, i (track.id)}
 			{@const active = player.current.id === track.id}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
+
 			<div
 				class="group grid track-grid items-center gap-3 rounded-control py-3 pr-4 pl-2 transition-colors sm:gap-8 sm:pr-6 sm:pl-3 {active
 					? 'bg-accent-tint'
@@ -132,7 +132,7 @@
 						{/if}
 					</button>
 				{/if}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
+
 				<div
 					role="button"
 					tabindex="0"

@@ -15,8 +15,6 @@ export async function getAllowAnonymousListening(fetchFn: typeof fetch): Promise
 		cached = { allowAnonymousListening, expiresAt: Date.now() + CACHE_TTL_MS };
 		return allowAnonymousListening;
 	} catch {
-		// The API being unreachable shouldn't take down every page in the app;
-		// fail closed (as if anonymous listening were off) and retry next time.
 		return false;
 	}
 }

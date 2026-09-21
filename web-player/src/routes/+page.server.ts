@@ -11,7 +11,6 @@ import {
 import { pickGreeting } from '$lib/server/greeting';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
-	// This dashboard is personal; an anonymous listener goes to /explore instead.
 	if (!locals.user) redirect(302, '/explore');
 	const user = requireUser(locals, url);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });

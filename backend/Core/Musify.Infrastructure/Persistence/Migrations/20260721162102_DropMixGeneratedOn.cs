@@ -4,10 +4,10 @@
 
 namespace Musify.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+
     public partial class DropMixGeneratedOn : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
@@ -15,7 +15,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 table: "Mixes");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<DateOnly>(

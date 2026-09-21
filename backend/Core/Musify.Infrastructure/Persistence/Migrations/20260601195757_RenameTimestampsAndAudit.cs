@@ -4,10 +4,10 @@
 
 namespace Musify.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+
     public partial class RenameTimestampsAndAudit : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(
@@ -31,7 +31,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 newName: "CreatedAt");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(

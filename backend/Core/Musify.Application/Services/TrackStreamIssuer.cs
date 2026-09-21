@@ -30,8 +30,6 @@ public sealed class TrackStreamIssuer(
             folderPath,
             streamGatewayConfiguration.AudioFileName);
 
-        // Anonymous listeners have no User row to satisfy ListeningHistory's foreign key against, and
-        // their plays aren't "history" anyone can look back on anyway, so there's nothing to record.
         if (userId != null)
         {
             var newListeningHistory = new ListeningHistory

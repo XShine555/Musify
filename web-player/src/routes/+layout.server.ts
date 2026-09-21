@@ -23,7 +23,6 @@ async function fetchSidebarPlaylists(
 		});
 		return data?.items ?? [];
 	} catch {
-		// The sidebar shell must render even when the API is unreachable.
 		return [];
 	}
 }

@@ -11,8 +11,6 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const query = url.searchParams.get('q')?.trim() ?? '';
 	const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 
-	// This page is reachable without a session when anonymous listening is on
-	// (see +layout.server.ts), so `user` may be null here.
 	const user = locals.user;
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 

@@ -4,10 +4,10 @@
 
 namespace Musify.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+
     public partial class AddExternalAlbumThumbnail : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
@@ -18,7 +18,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 nullable: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

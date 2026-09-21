@@ -7,11 +7,6 @@ using Musify.Infrastructure.Services;
 
 var builder = Host.CreateApplicationBuilder();
 
-// Registering Mediator pulls in every handler in Musify.Application, including ones
-// (e.g. CreatePlayList, CreateTrack) that depend on IEventBus, which the Worker never
-// registers because it only consumes events, it never publishes them. Only the handlers
-// this process actually dispatches (GenerateMixesForUserCommand) are ever constructed,
-// so the default eager validate-on-build check is too strict for this host.
 builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProviderOptions
 {
     ValidateOnBuild = false,

@@ -48,6 +48,4 @@ app
 
 app.Run();
 
-// Makes the top-level-statements Program class public so
-// WebApplicationFactory<Program> (Musify.Api.Tests) can see it.
 public partial class Program;

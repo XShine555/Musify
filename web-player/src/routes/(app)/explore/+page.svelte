@@ -273,7 +273,6 @@
 				<PlayButton as="span" size="lg" label="Reproducir" class="group-hover/top:brightness-110" />
 			{/snippet}
 
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<svelte:element
 				this={topResult.kind === 'track' ? 'button' : 'a'}
 				type={topResult.kind === 'track' ? 'button' : undefined}
@@ -308,7 +307,6 @@
 	{/if}
 
 	{#if !data.query}
-		<!-- GÉNEROS -->
 		<div class="grid-wide">
 			{#each genreTiles as genre, i (genre.query)}
 				<a

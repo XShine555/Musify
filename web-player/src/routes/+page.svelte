@@ -182,7 +182,6 @@
 	</div>
 
 	<div class="mt-10 flex flex-col gap-section">
-		<!-- CONTINUAR ESCUCHANDO -->
 		<section>
 			<SectionHeading title="Continuar escuchando" subtitle="Retomalo donde lo dejaste" />
 			{#if continueItems.length > 0}
@@ -209,7 +208,6 @@
 			{/if}
 		</section>
 
-		<!-- PLAYLIST DESTACADA -->
 		{#if spotlight}
 			<section>
 				<div
@@ -274,7 +272,6 @@
 			</section>
 		{/if}
 
-		<!-- MIXES -->
 		<section>
 			<SectionHeading title="Mixes" subtitle="Generados a partir de lo que más repites" />
 			{#if mixes.length > 0}
@@ -299,7 +296,6 @@
 			{/if}
 		</section>
 
-		<!-- POPULARES ESTA SEMANA -->
 		<section>
 			<SectionHeading title="Populares esta semana" subtitle="Lo más escuchado de tu biblioteca" />
 			{#if popularTracks.length > 0}
@@ -339,7 +335,6 @@
 			{/if}
 		</section>
 
-		<!-- TUS PLAYLISTS -->
 		<section>
 			<SectionHeading
 				title="Tus playlists"

@@ -72,12 +72,6 @@ public sealed class TicketValidationMiddleware(
         await next(context);
     }
 
-    /// <summary>Rewrites the request's <c>Range</c> header so nothing past <paramref name="maxBytes"/>
-    /// is ever asked of the filer — this is what actually enforces the anonymous preview length,
-    /// downstream of the ticket carrying that cap. A request with no <c>Range</c> header (a plain,
-    /// whole-file GET) gets one synthesized, so the filer always responds with a bounded 206 instead of
-    /// streaming the full object. Returns false when the requested range starts at or past the cap, in
-    /// which case the caller should answer 416 directly instead of proxying anything.</summary>
     private static bool TryClampRange(HttpContext context, long maxBytes)
     {
         var rangeHeader = context.Request.Headers.Range;

@@ -12,11 +12,6 @@ namespace Musify.Application.Mixes
     public record GenerateMixesForUserCommand(long UserId)
         : ICommand<ErrorOr<Success>>;
 
-    /// <summary>Builds each user's mixes purely from their own library: a "Descubrimiento" mix of
-    /// tracks they own but haven't listened to yet, and a "Tu mezcla diaria" mix blending recently
-    /// listened tracks with unheard ones. There's no artist/genre metadata for local uploads today,
-    /// so mixes can't be seeded by "similar artist" the way the old YouTube-backed discovery did —
-    /// once a tagging system exists, this is the place to seed mixes by tag instead.</summary>
     public class GenerateMixesForUserCommandHandler(
         IDatabase database,
         MixConfiguration mixConfiguration,

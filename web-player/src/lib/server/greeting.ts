@@ -88,10 +88,6 @@ export interface Birthday {
 	day: number;
 }
 
-/**
- * `birthday` is optional because the user's date of birth isn't part of the
- * session/profile data yet. Wire it up here once that field exists upstream.
- */
 export function pickGreeting(date: Date, birthday?: Birthday | null): string {
 	const month = date.getMonth() + 1;
 	const day = date.getDate();

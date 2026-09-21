@@ -9,8 +9,7 @@ using Musify.Application.Tracks.Responses;
 
 namespace Musify.Application.Tracks
 {
-    /// <param name="UserId">Null for an anonymous request — allowed only when
-    /// <see cref="PlaybackConfiguration.AllowAnonymousListening"/> is enabled.</param>
+
     public record GetTrackStreamQuery(Guid TrackId, long? UserId)
         : IQuery<ErrorOr<TrackStreamResponse>>;
 

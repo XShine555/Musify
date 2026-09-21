@@ -5,25 +5,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Musify.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+
     public partial class RemoveYouTubeIntegration : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Data cleanup first, while the External*/Local*/UserAlbums tables (and the loose
-            // MixItem columns) still exist to query/cascade from. Deleting the base Tracks/Albums
-            // rows for anything that only ever existed as an ExternalTrack/ExternalAlbum cascades
-            // (FKs are ON DELETE CASCADE) to their own ExternalTracks/ExternalAlbums row, TrackArtist,
-            // PlayListHasTrack, AlbumHasTrack, TrackLike, ListeningHistory, UserHasTrack and MixItems
-            // rows that referenced them — this is deliberately lossy: those rows only existed to back
-            // the YouTube integration being removed here.
+
             migrationBuilder.Sql("""DELETE FROM "Tracks" WHERE "Id" IN (SELECT "Id" FROM "ExternalTracks");""");
             migrationBuilder.Sql("""DELETE FROM "Albums" WHERE "Id" IN (SELECT "Id" FROM "ExternalAlbums");""");
 
-            // Live YouTube search hits that were seeded into a mix but never materialized into a
-            // real track (MixItemSource.YouTube, no TrackId) — MixItem.TrackId is about to become
-            // required, so these rows can't be kept.
             migrationBuilder.Sql("""DELETE FROM "MixItems" WHERE "TrackId" IS NULL;""");
 
             migrationBuilder.AddColumn<long>(
@@ -132,7 +123,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 onDelete: ReferentialAction.Restrict);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

@@ -13,10 +13,6 @@ function tc(alpha: number, l: number, hue: number): string {
 	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
 }
 
-// Light-mode counterpart of tc(): fades toward a soft tinted glass (~0.88
-// lightness) instead of toward black, so the "glow" gradients read as a
-// visible colored tint instead of a dark smudge — or, at the old lightness
-// floor of 0.97, an almost invisible wash next to the near-white canvas.
 function tcLight(alpha: number, l: number, hue: number): string {
 	const depth = (88 - l) / 58;
 	const lightness = 0.88 - 0.16 * depth;
@@ -28,15 +24,6 @@ export interface ThemeTokens {
 	[cssVar: string]: string;
 }
 
-/**
- * Every color in the app derives from the hue of the track in playback.
- * See design_handoff_musify_player/README.md § "Sistema de color dinámico".
- *
- * `mode` only affects the neutral canvas tokens (bg/elevated/panel/hairline):
- * these are re-applied as inline styles on every hue change, so a light-mode
- * override in theme.css alone can never win against them — the light values
- * have to come from here instead.
- */
 export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): ThemeTokens {
 	const h = ((hue % 360) + 360) % 360;
 	const h2 = (h + 40) % 360;
@@ -44,11 +31,6 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 	const H2 = r(h2, 1);
 	const light = mode === 'light';
 
-	// Dark mode wants a bright, light accent (pops on a near-black canvas).
-	// Light mode needs the opposite: the same hue pulled down to a dark,
-	// saturated shade so it still reads against a near-white canvas — using
-	// the dark-mode lightness here is what made accent text/icons/buttons
-	// nearly invisible in light mode.
 	const accentL = light ? 0.52 : L;
 	const accentC = light ? 0.16 : C;
 	const titleL = light ? 0.4 : 0.87;

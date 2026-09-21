@@ -1,5 +1,3 @@
-// No hay sistema de tags/géneros todavía: esta lista es un placeholder de
-// cliente y cada tile enlaza a una búsqueda normal por ese término.
 export const GENRE_INFO: Record<string, { label: string; tagline: string }> = {
 	pop: { label: 'Pop', tagline: 'Éxitos que suenan en todas partes' },
 	rock: { label: 'Rock', tagline: 'Guitarras, actitud y ruido' },

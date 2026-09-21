@@ -4,13 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace Musify.Application.Serialization;
 
-// Zitadel-issued user ids routinely exceed Number.MAX_SAFE_INTEGER (2^53-1).
-// Serialized as a raw JSON number, the frontend's JSON.parse silently rounds
-// them to the nearest representable double, corrupting the id (it becomes a
-// different, sometimes valid, user id). Applied via [property: JsonConverter(...)]
-// on the specific id-shaped `long`/`long?` response properties (not globally —
-// unrelated `long` fields like byte sizes must stay numbers), this serializes
-// them as a JSON string instead, which round-trips exactly.
 public sealed class LongAsStringConverter : JsonConverter<long>
 {
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

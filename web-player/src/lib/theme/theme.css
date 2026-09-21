@@ -1,10 +1,4 @@
 :root {
-	/* Hue-based tokens (--mf-accent*, --mf-bg/elevated/panel-bg/bar-bg/hairline,
-	   --mf-ambient, --mf-hero-bg/spotlight-bg/modal-glow, --mf-logo-grad,
-	   --mf-cover-grad) are NOT defined here: they come only from
-	   buildThemeTokens() in theme/tokens.ts, inlined as SSR <style> by
-	   +layout.svelte and reapplied on every hue change. A duplicate default
-	   here could never be overridden by a light-mode selector (see A.2). */
 	--mf-liked-grad: linear-gradient(150deg, oklch(0.4 0.09 330), oklch(0.18 0.04 10));
 	--mf-accent-dim: color-mix(in oklch, var(--mf-accent) 22%, transparent);
 	--mf-tile-l: 0.34;
@@ -12,7 +6,6 @@
 	--mf-tile-shade-l: 0.14;
 	--mf-tile-shade-c: 0.035;
 
-	/* Fixed neutrals: deliberately hue-less, so only the accent carries color. */
 	--mf-text: #d9d8dc;
 	--mf-text-2: #8a8a8e;
 	--mf-text-3: #7d7d81;
@@ -62,14 +55,12 @@
 	--z-grain: 80;
 }
 
-/* PlayerBar switches from its compact row to the full layout at `sm` (640px). */
 @media (width >= 40rem) {
 	:root {
 		--mf-player-h: 100px;
 	}
 }
 
-/* TabsBar (mobile/tablet nav) is replaced by the Sidebar at `lg` (1024px). */
 @media (width >= 64rem) {
 	:root {
 		--mf-nav-h: 0px;
@@ -82,9 +73,6 @@
 	}
 }
 
-/* "Modo blanco" — flips the neutral canvas/surface/text tokens to a light
-   palette. Components that reference these tokens re-theme correctly;
-   components hardcoding literal dark-mode hex colors do not. */
 :root[data-theme='light'] {
 	--mf-text: #17171a;
 	--mf-text-2: #4a4a4e;

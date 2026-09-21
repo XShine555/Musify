@@ -41,13 +41,8 @@ public sealed class JwtBearerEventsHandler(
         if (cache.TryGetValue(cacheKey, out _))
             return;
 
-        // Access tokens from the IdP are minimal (just sub/scope/aud) — profile attributes live on
-        // the userinfo endpoint, so ask for them there instead of relying on token claims alone.
         var userInfo = await FetchUserInfoAsync(tokenValidatedContext, tokenValidatedContext.HttpContext.RequestAborted);
 
-        // Zitadel also issues short-form JWT claim names ("name", "given_name", "family_name", "email"),
-        // but the newer JsonWebTokenHandler (default since .NET 8) no longer auto-maps those to the
-        // legacy ClaimTypes.* URIs the way JwtSecurityTokenHandler used to — so check both forms too.
         var username = userInfo?.Name
             ?? userInfo?.PreferredUsername
             ?? principal.FindFirstValue("name")

@@ -6,10 +6,6 @@ using Musify.StreamingGateway.Configuration;
 
 namespace Musify.StreamingGateway.Authentication;
 
-/// <param name="Prefix">The storage key prefix the ticket authorizes reading from. Empty means the
-/// ticket was missing, malformed, expired, or otherwise invalid.</param>
-/// <param name="MaxBytes">When set, the caller is limited to the first <c>MaxBytes</c> bytes of the
-/// object — the anonymous preview fragment cap carried by the <c>maxBytes</c> claim.</param>
 public sealed record TicketValidationResult(string Prefix, long? MaxBytes)
 {
     public static readonly TicketValidationResult Invalid = new(string.Empty, null);
