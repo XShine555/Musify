@@ -15,7 +15,7 @@
 </script>
 
 <div
-	class="animate-enter pointer-events-auto flex items-center gap-4.5 glass-bar px-4 py-3 sm:hidden"
+	class="animate-enter pointer-events-auto flex items-center gap-icon-md glass-bar px-4 py-3 sm:hidden"
 >
 	<div class="min-w-0 flex-1">
 		<TrackInfo compact />
