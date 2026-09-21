@@ -137,7 +137,7 @@
 
 <section class="page-x pt-3 sm:pt-4">
 	<div
-		class="relative overflow-hidden rounded-3xl bg-[image:var(--mf-hero-bg)] px-6 py-8 transition-[background] duration-500 sm:px-9 sm:py-8.5"
+		class="relative overflow-hidden rounded-3xl bg-[image:var(--mf-hero-bg)] px-6 py-8 theme-transition sm:px-9 sm:py-8.5"
 	>
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
@@ -220,7 +220,7 @@
 	{#if spotlight}
 		<section>
 			<div
-				class="grid grid-cols-1 overflow-hidden rounded-panel-lg transition-[background] duration-500 lg:grid-cols-2"
+				class="grid grid-cols-1 overflow-hidden rounded-panel-lg theme-transition lg:grid-cols-2"
 				style="background-image:var(--mf-spotlight-bg), linear-gradient(to right, transparent 50%, color-mix(in oklch, var(--mf-scrim) 22%, transparent) 61%, transparent 92.5%)"
 			>
 				<div class="flex flex-col justify-center p-8 sm:p-9">

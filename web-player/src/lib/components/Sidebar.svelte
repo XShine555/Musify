@@ -1,18 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { isSectionActive } from '$lib/navigation.svelte';
+	import { isSectionActive, appNavLinks } from '$lib/navigation.svelte';
 	import { liked } from '$lib/player/liked.svelte';
 	import { createPlaylistModal } from '$lib/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
 	import ListRow from './ui/ListRow.svelte';
 	import IconButton from './ui/IconButton.svelte';
-	import Home from '@lucide/svelte/icons/house';
-	import Compass from '@lucide/svelte/icons/compass';
-	import ListMusic from '@lucide/svelte/icons/list-music';
-	import Heart from '@lucide/svelte/icons/heart';
-	import Disc from '@lucide/svelte/icons/disc-2';
-	import Folder from '@lucide/svelte/icons/folder';
-	import Upload from '@lucide/svelte/icons/upload';
+	import Logo from './ui/Logo.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 
 	interface SidebarPlaylist {
@@ -29,19 +23,7 @@
 
 	let { user, playlists }: Props = $props();
 
-	const navLinks = $derived(
-		user
-			? [
-					{ href: '/', label: 'Inicio', icon: Home },
-					{ href: '/explore', label: 'Descubrir', icon: Compass },
-					{ href: '/playlists', label: 'Playlists', icon: ListMusic, count: playlists.length },
-					{ href: '/liked', label: 'Me gusta', icon: Heart, count: liked.count },
-					{ href: '/albums', label: 'Mis álbumes', icon: Disc },
-					{ href: '/library', label: 'Canciones subidas', icon: Folder },
-					{ href: '/upload', label: 'Subir música', icon: Upload }
-				]
-			: [{ href: '/explore', label: 'Descubrir', icon: Compass }]
-	);
+	const navLinks = $derived(appNavLinks(user, { playlists: playlists.length, liked: liked.count }));
 
 	function isActive(href: string) {
 		return isSectionActive(href, page.url.pathname, page.data.section);
@@ -49,10 +31,12 @@
 </script>
 
 <aside
-	class="hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 transition-[background] duration-500 ease-out lg:flex"
+	class="theme-transition hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
-	<a href="/" class="px-3 pb-3 font-display text-lg font-semibold tracking-tight text-fg">Musify</a>
+	<a href="/" class="px-3 pb-3">
+		<Logo size="sm" />
+	</a>
 
 	<nav class="flex flex-col gap-1">
 		{#each navLinks as link (link.href)}

@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { isSectionActive } from '$lib/navigation.svelte';
+	import { isSectionActive, appNavLinks } from '$lib/navigation.svelte';
 	import type { SessionUser } from '$lib/types';
-	import Home from '@lucide/svelte/icons/house';
-	import Compass from '@lucide/svelte/icons/compass';
-	import ListMusic from '@lucide/svelte/icons/list-music';
-	import Heart from '@lucide/svelte/icons/heart';
 
 	interface Props {
 		user: SessionUser | null;
@@ -14,16 +10,7 @@
 
 	let { user, class: klass = '' }: Props = $props();
 
-	const links = $derived(
-		user
-			? [
-					{ href: '/', label: 'Inicio', icon: Home },
-					{ href: '/explore', label: 'Descubrir', icon: Compass },
-					{ href: '/playlists', label: 'Playlists', icon: ListMusic },
-					{ href: '/liked', label: 'Me gusta', icon: Heart }
-				]
-			: [{ href: '/explore', label: 'Descubrir', icon: Compass }]
-	);
+	const links = $derived(appNavLinks(user).filter((link) => link.primary));
 
 	function isActive(href: string) {
 		return isSectionActive(href, page.url.pathname, page.data.section);
@@ -31,7 +18,7 @@
 </script>
 
 <nav
-	class="pointer-events-auto flex items-center justify-around border-t border-hairline bg-[image:var(--mf-bar-bg)] px-4 py-1.75 backdrop-blur-xl transition-[background] duration-500 lg:hidden {klass}"
+	class="pointer-events-auto flex items-center justify-around glass-bar px-4 py-1.75 lg:hidden {klass}"
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}

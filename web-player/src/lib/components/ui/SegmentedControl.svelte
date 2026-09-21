@@ -23,7 +23,7 @@
 		<button
 			type="button"
 			onclick={() => (value = option.value)}
-			class="relative z-10 flex-1 px-4 py-1.5 text-center text-xs font-medium transition-colors {value ===
+			class="relative z-(--z-raised) flex-1 px-4 py-1.5 text-center text-xs font-medium transition-colors {value ===
 			option.value
 				? 'text-ink'
 				: 'text-muted hover:text-fg-2'}"

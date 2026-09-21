@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import Logo from '$lib/components/ui/Logo.svelte';
 
 	let { data } = $props();
 
@@ -15,12 +16,7 @@
 	<div class="pointer-events-none absolute inset-0" style="background:var(--mf-ambient)"></div>
 
 	<div class="relative flex w-full max-w-4xl flex-col items-center gap-12 text-center">
-		<div class="flex items-center gap-3">
-			<span class="h-8 w-8 rounded-xl bg-[image:var(--mf-logo-grad)]"></span>
-			<span class="font-display text-[clamp(1.5rem,3vw,2.5rem)] font-semibold tracking-tight">
-				Musify
-			</span>
-		</div>
+		<Logo size="lg" />
 
 		<div class="animate-enter flex flex-col items-center gap-5">
 			<h1
@@ -32,7 +28,7 @@
 			<p class="text-lg text-fg-2">Inicia sesión para continuar.</p>
 		</div>
 
-		<div class="flex w-full max-w-80 flex-col gap-3">
+		<div class="flex w-full max-w-cta flex-col gap-3">
 			<Button href={`/auth/login?${returnParam}`} reload size="lg" class="w-full">
 				Iniciar sesión
 			</Button>

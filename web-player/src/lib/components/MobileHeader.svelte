@@ -7,6 +7,7 @@
 	import AccountMenu from './ui/AccountMenu.svelte';
 	import Avatar from './ui/Avatar.svelte';
 	import IconButton from './ui/IconButton.svelte';
+	import Logo from './ui/Logo.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -17,14 +18,10 @@
 </script>
 
 <header
-	class="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-hairline bg-bg/85 page-x backdrop-blur-md sm:hidden"
+	class="sticky top-0 z-(--z-sticky) flex h-14 items-center justify-between border-b border-hairline bg-bg/85 page-x backdrop-blur-md sm:hidden"
 >
-	<a
-		href="/"
-		class="flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em] text-fg"
-	>
-		<span class="h-5.5 w-5.5 rounded-lg bg-[image:var(--mf-logo-grad)]"></span>
-		Musify
+	<a href="/">
+		<Logo size="sm" />
 	</a>
 
 	{#if user}
