@@ -9,7 +9,7 @@ Expone:
 - **filer HTTP** (`:8888`) — sirve los ficheros por ruta; lo usa el **StreamingGateway**.
 - master (`:9333`) y volume server — internos.
 
-Bucket de la app: **`webapi-storage`** (`ApplicationStorage:Bucket`). Importante: la WebApi y el Worker usan **el mismo bucket** (el worker procesa lo que sube la API).
+Bucket de la app: **`webapi-storage`** (`ApplicationStorage:Bucket`). Importante: la API y el Worker usan **el mismo bucket** (el worker procesa lo que sube la API).
 
 ## Estructura de claves (layout)
 

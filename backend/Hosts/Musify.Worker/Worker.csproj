@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <AssemblyName>Musify.Worker</AssemblyName>
+    <RootNamespace>Musify.Worker</RootNamespace>
+    <UserSecretsId>dotnet-PictureWorker-1dfff89f-0602-41b7-8eaf-4da2c3358789</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="MimeMapping" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Musify.Application\Application.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

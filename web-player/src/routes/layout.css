@@ -1,0 +1,383 @@
+@import 'tailwindcss';
+
+@theme {
+	--font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+
+	--color-bg: var(--mf-bg);
+	--color-elevated: var(--mf-elevated);
+	--color-surface: var(--mf-surface);
+	--color-surface-2: var(--mf-surface-2);
+	--color-surface-hover: var(--mf-surface-hover);
+	--color-hover: var(--mf-surface-2);
+	--color-line: var(--mf-border);
+	--color-line-strong: var(--mf-border-strong);
+	--color-hairline: var(--mf-hairline);
+	--color-track: var(--mf-track);
+	--color-fg: var(--mf-text);
+	--color-fg-2: var(--mf-text-2);
+	--color-fg-3: var(--mf-text-3);
+	--color-muted: var(--mf-text-4);
+	--color-accent: var(--mf-accent);
+	--color-accent-soft: var(--mf-accent-title);
+	--color-accent-tint: var(--mf-accent-soft-bg);
+	--color-accent-btn: var(--mf-accent-btn-bg);
+	--color-accent-btn-hover: var(--mf-accent-btn-bg-hover);
+	--color-ink: var(--mf-ink);
+	--color-cta-strong: var(--mf-cta-strong-bg);
+	--color-scrim: var(--mf-scrim);
+	--color-on-art: var(--mf-on-art);
+	--color-on-art-2: var(--mf-on-art-2);
+	--color-danger: oklch(63.7% 0.15 25.331);
+	--color-danger-fg: oklch(88.5% 0.062 18.334);
+	--color-btn: var(--mf-btn-bg);
+	--color-btn-hover: var(--mf-btn-bg-hover);
+	--color-btn-glass: var(--mf-btn-secondary-bg);
+	--color-btn-glass-hover: var(--mf-btn-secondary-bg-hover);
+
+	--radius-tag: 0.25rem;
+	--radius-thumb: 0.5rem;
+	--radius-control: 0.625rem;
+	--radius-art: 0.8125rem;
+	--radius-art-lg: 1.125rem;
+	--radius-panel: 1.125rem;
+	--radius-panel-lg: 1.375rem;
+
+	--spacing-cover-xs: 2.25rem;
+	--spacing-cover-sm: 2.625rem;
+	--spacing-cover-md: 3rem;
+	--spacing-cover-lg: 3.5rem;
+	--spacing-cover-xl: 5.5rem;
+	--spacing-cover-2xl: 8.5rem;
+	--spacing-cover-hero: 9rem;
+	--spacing-cover-hero-sm: 10.25rem;
+
+	--spacing-icon-xs: 0.875rem;
+	--spacing-icon-sm: 1rem;
+	--spacing-icon-md: 1.125rem;
+	--spacing-icon-lg: 1.25rem;
+	--spacing-icon-xl: 2.25rem;
+	--spacing-section: 2.875rem;
+
+	--container-prose-sm: 26rem;
+	--container-hero: 34rem;
+	--container-search: 30rem;
+	--container-cta: 20rem;
+
+	--tracking-display: -0.02em;
+	--tracking-eyebrow: 0.1em;
+	--leading-body: 1.65;
+}
+
+@utility page-x {
+	padding-inline: --spacing(4);
+
+	@media (width >= 40rem) {
+		padding-inline: --spacing(8);
+	}
+}
+
+@utility media-grid {
+	grid-template-columns: repeat(auto-fill, minmax(var(--mf-grid-min-mobile), 1fr));
+
+	@media (width >= 40rem) {
+		grid-template-columns: repeat(auto-fill, minmax(var(--mf-grid-min), 1fr));
+	}
+}
+
+@utility track-grid {
+	grid-template-columns: var(--mf-track-cols-mobile);
+
+	@media (width >= 40rem) {
+		grid-template-columns: var(--mf-track-cols);
+	}
+}
+
+@utility scrollbar-stable {
+	scrollbar-gutter: stable;
+}
+
+@utility text-display-1 {
+	@apply font-display text-3xl font-medium tracking-tight sm:text-4xl;
+}
+@utility text-display-2 {
+	@apply font-display text-2xl font-medium tracking-tight;
+}
+@utility text-display-3 {
+	@apply font-display text-xl font-medium tracking-display;
+}
+@utility text-display-4 {
+	@apply font-display text-lg font-medium tracking-tight;
+}
+@utility text-eyebrow {
+	@apply text-xs font-medium tracking-widest uppercase;
+}
+@utility text-body {
+	@apply text-sm leading-body;
+}
+@utility text-count {
+	@apply text-xs tabular-nums;
+}
+
+@utility theme-transition {
+	transition: background 0.5s ease-out;
+}
+@utility glass-bar {
+	background-image: var(--mf-bar-bg);
+	border-top: 1px solid var(--mf-hairline);
+	backdrop-filter: blur(24px);
+	transition: background 0.5s ease-out;
+}
+@utility grid-cards {
+	display: grid;
+	gap: --spacing(3);
+	grid-template-columns: repeat(auto-fill, minmax(9.375rem, 1fr));
+
+	@media (width >= 40rem) {
+		gap: --spacing(4);
+		grid-template-columns: repeat(auto-fill, minmax(10.3125rem, 1fr));
+	}
+}
+@utility grid-cards-lg {
+	display: grid;
+	gap: --spacing(3);
+	grid-template-columns: repeat(auto-fill, minmax(11.25rem, 1fr));
+
+	@media (width >= 40rem) {
+		gap: --spacing(4);
+		grid-template-columns: repeat(auto-fill, minmax(13.125rem, 1fr));
+	}
+}
+@utility grid-tiles {
+	display: grid;
+	gap: --spacing(5);
+	grid-template-columns: repeat(auto-fill, minmax(10.25rem, 1fr));
+}
+@utility grid-wide {
+	display: grid;
+	gap: --spacing(3.5);
+	grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+}
+
+@utility app-backdrop {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: -10;
+	background-color: var(--mf-bg);
+	background-image: var(--mf-ambient);
+}
+@utility app-vignette {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: -10;
+	background: radial-gradient(
+		130% 85% at 50% 118%,
+		color-mix(in oklch, var(--mf-scrim) 80%, transparent),
+		transparent 62%
+	);
+}
+@utility app-main {
+	--mf-dock-h: 0px;
+	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));
+	transition: padding 0.3s;
+
+	&[data-has-track] {
+		--mf-dock-h: var(--mf-player-h);
+	}
+}
+@utility genre-tile {
+	background: linear-gradient(
+		140deg,
+		oklch(var(--mf-tile-l) var(--mf-tile-c) var(--tile-hue)),
+		oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) var(--tile-hue))
+	);
+}
+@utility hero-surface {
+	background-image: var(--mf-hero-bg);
+}
+@utility spotlight-surface {
+	background-image:
+		var(--mf-spotlight-bg),
+		linear-gradient(
+			to right,
+			transparent 50%,
+			color-mix(in oklch, var(--mf-scrim) 22%, transparent) 61%,
+			transparent 92.5%
+		);
+}
+@utility field-control {
+	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-muted focus:bg-surface-2 focus:outline-none;
+}
+
+@layer base {
+	svg.lucide {
+		stroke-width: 1.8;
+	}
+}
+
+:root {
+	color-scheme: dark;
+}
+
+button:not(:disabled),
+[role='button'],
+label:has(input[type='file']),
+summary {
+	cursor: pointer;
+}
+
+button:disabled {
+	cursor: not-allowed;
+}
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(0.75rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes pop-in {
+	from {
+		opacity: 0;
+		transform: scale(0.96) translateY(0.5rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes slide-in-left {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes equalize {
+	0%,
+	100% {
+		transform: scaleY(0.35);
+	}
+	50% {
+		transform: scaleY(1);
+	}
+}
+
+@keyframes breathe {
+	0%,
+	100% {
+		opacity: 0.55;
+		transform: scale(1.2);
+	}
+	50% {
+		opacity: 0.78;
+		transform: scale(1.32);
+	}
+}
+
+@keyframes sheen {
+	from {
+		background-position: 200% 0;
+	}
+	to {
+		background-position: -200% 0;
+	}
+}
+
+.animate-enter {
+	animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+	animation-delay: calc(min(var(--i, 0), 10) * 45ms);
+}
+
+.animate-pop {
+	animation: pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade {
+	animation: fade-in 0.4s ease both;
+}
+
+.glass-panel {
+	background-color: var(--mf-panel-bg);
+	background-image: var(--mf-modal-glow);
+	backdrop-filter: blur(22px);
+	-webkit-backdrop-filter: blur(22px);
+	transition: background 0.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-delay: 0ms !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+html {
+	scroll-behavior: smooth;
+	scrollbar-width: thin;
+	scrollbar-color: var(--mf-scrollbar) transparent;
+	background-color: var(--mf-bg);
+	-webkit-tap-highlight-color: transparent;
+	overflow-x: hidden;
+}
+
+::selection {
+	background-color: var(--mf-accent-dim);
+	color: var(--mf-text);
+}
+
+body {
+	position: relative;
+}
+
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: var(--z-grain);
+	pointer-events: none;
+	opacity: 0.035;
+	mix-blend-mode: overlay;
+	background-image: var(--mf-noise);
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--mf-scrollbar);
+	border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--mf-scrollbar-hover);
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}

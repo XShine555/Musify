@@ -8,3 +8,5 @@
 .claude/
 **/DesignSettings.json
 *.user
+# Test projects: never shipped, no app Dockerfile needs them in its build context.
+Tests/

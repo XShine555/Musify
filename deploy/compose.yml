@@ -1,0 +1,504 @@
+# Musify — base stack, shared by development and production.
+#
+# This file publishes no host ports and hardcodes no domain: everything that
+# differs between environments comes from the .env file (see .env.example) or
+# from the overlay that is merged on top of it.
+#
+#   dev   docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
+#   prod  docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
+#
+# The four application services sit behind the `apps` profile, so a plain `up`
+# starts the infrastructure plus the one-shot bootstrap jobs (stream-ticket
+# keys, database migrations, Zitadel project/apps) and stops there — the usual
+# dev setup, with the apps running from the IDE. Add `--profile apps up -d
+# --build` as a SECOND command to also build and run them in Docker: by then
+# zitadel-init has already written the OIDC client ids into the env file, so
+# the apps start with real values. See deploy/README.md.
+
+x-app-depends: &app-depends
+  postgres:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+  seaweedfs:
+    condition: service_healthy
+
+# Backend settings that are identical for the API and the Worker. ASP.NET Core
+# maps `__` to `:`, so these override the matching AppSettings.json sections.
+x-backend-env: &backend-env
+  Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+  MassTransit__Address: "rabbitmq://rabbitmq:5672"
+  MassTransit__Username: ${RABBITMQ_DEFAULT_USER}
+  MassTransit__Password: ${RABBITMQ_DEFAULT_PASS}
+  # The public S3 URL, not the internal one: the same address is used to sign
+  # the presigned upload/download URLs the browser has to be able to reach.
+  InfrastructureStorage__Address: ${S3_PUBLIC_URL}
+  InfrastructureStorage__AccessKey: ${S3_ACCESS_KEY}
+  InfrastructureStorage__SecretAccessKey: ${S3_SECRET_KEY}
+  InfrastructureStorage__ForcePathStyle: "true"
+  InfrastructureStorage__UseHttp: ${S3_USE_HTTP}
+  ApplicationStorage__Bucket: ${S3_BUCKET}
+  OpenTelemetry__OtlpEndpoint: "http://jaeger:4317"
+
+services:
+  # --- Infrastructure -------------------------------------------------------
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: musify-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # OIDC provider. `start-from-init` runs init + setup (both idempotent) and
+  # then starts, so the same command works on a cold and on a warm volume.
+  # It reuses the Postgres above: the admin user creates the `zitadel` database
+  # and role on first start.
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:latest
+    container_name: musify-zitadel
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
+    environment:
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY}
+      # The external domain/port forms the token issuer and must be identical
+      # for the browser, the apps and the containers (Zitadel routes by Host).
+      ZITADEL_EXTERNALSECURE: ${ZITADEL_EXTERNAL_SECURE}
+      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_EXTERNAL_DOMAIN}
+      ZITADEL_EXTERNALPORT: ${ZITADEL_EXTERNAL_PORT}
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DATABASE_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${POSTGRES_USER}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # Initial console admin. Login: <username>@zitadel.<external domain>
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_USERNAME}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
+      # Service account + PAT written on init; the provisioning script uses it
+      # to create the Musify project and its OIDC apps.
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: zitadel-admin-sa
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Admin Service Account
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /output/admin-sa.pat
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./zitadel/.output:/output
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: musify-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # All-in-one object store: master + volume + filer + S3 gateway.
+  # The S3 identity file is rendered from the environment on start so the
+  # credentials can never drift from the ones handed to the apps.
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: musify-seaweedfs
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        cat > /tmp/s3.conf <<'JSON'
+        {
+          "identities": [
+            {
+              "name": "musify",
+              "credentials": [{ "accessKey": "${S3_ACCESS_KEY}", "secretKey": "${S3_SECRET_KEY}" }],
+              "actions": ["Admin", "Read", "Write"]
+            }
+          ]
+        }
+        JSON
+        exec weed server \
+          -ip.bind=0.0.0.0 \
+          -dir=/data \
+          -master.volumeSizeLimitMB=1024 \
+          -volume.max=0 \
+          -filer \
+          -s3 \
+          -s3.config=/tmp/s3.conf
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9333/cluster/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # One-shot: SeaweedFS does not auto-create buckets.
+  seaweedfs-init:
+    image: amazon/aws-cli:latest
+    container_name: musify-seaweedfs-init
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        aws --endpoint-url http://seaweedfs:8333 s3 mb s3://${S3_BUCKET} 2>/dev/null || true
+        aws --endpoint-url http://seaweedfs:8333 s3 ls
+    restart: "no"
+
+  # One-shot: generates the RS256 key pair used to sign (API) and verify
+  # (Gateway) stream tickets, if it is not already in ./keys. No host tools
+  # required — openssl runs inside the container.
+  keys-init:
+    image: alpine:3.20
+    container_name: musify-keys-init
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if [ -f /keys/stream_private.pem ] && [ -f /keys/stream_public.pem ]; then
+          echo "stream-ticket keys already present"
+        else
+          apk add --no-cache openssl >/dev/null
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /keys/stream_private.pem
+          openssl rsa -in /keys/stream_private.pem -pubout -out /keys/stream_public.pem
+          chmod 644 /keys/stream_public.pem
+          chmod 600 /keys/stream_private.pem
+          echo "generated stream-ticket keys"
+        fi
+    volumes:
+      - ./keys:/keys
+    restart: "no"
+
+  # One-shot: applies the EF Core migrations, then exits. See
+  # backend/Musify.Migrator.Dockerfile.
+  migrate:
+    build:
+      context: ../backend
+      dockerfile: Musify.Migrator.Dockerfile
+    container_name: musify-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    restart: "no"
+
+  # One-shot: creates the Musify project and its two OIDC apps in Zitadel (or
+  # reuses them if they already exist), then writes AUTH_CLIENT_ID,
+  # WEB_CLIENT_ID and WEB_CLIENT_SECRET back into the env file mounted at
+  # /workspace/.env (see compose.dev.yml / compose.prod.yml) — so a later
+  # `--profile apps up` picks up real values instead of empty ones.
+  zitadel-init:
+    image: alpine:3.20
+    container_name: musify-zitadel-init
+    depends_on:
+      zitadel:
+        condition: service_started
+    environment:
+      PUBLIC_AUTH_URL: ${PUBLIC_AUTH_URL}
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL}
+      ZITADEL_DEV_MODE: ${ZITADEL_DEV_MODE:-false}
+    volumes:
+      - ./zitadel/.output:/output:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        apk add --no-cache curl jq >/dev/null
+
+        ENV_FILE=/workspace/.env
+        if [ ! -f "$$ENV_FILE" ]; then
+          echo "no env file mounted at $$ENV_FILE, skipping"
+          exit 0
+        fi
+
+        # The env file may have CRLF line endings (edited on Windows), so
+        # strip \r on read and drop it on write — otherwise a "blank" value
+        # is actually a lone \r, and `[ -z ... ]` lies.
+        env_get() { grep -E "^$$2=" "$$1" 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r'; }
+        env_set() {
+          # $$1 is a bind-mounted file: rewrite its content in place rather
+          # than renaming a temp file over it (rename onto a bind-mounted
+          # inode fails with "Resource busy").
+          if grep -qE "^$$2=" "$$1"; then
+            awk -v k="$$2" -v v="$$3" '{ sub(/\r$$/, "") } index($$0,k "=")==1{print k "=" v; next} {print}' "$$1" >"$$1.tmp" && cat "$$1.tmp" >"$$1" && rm -f "$$1.tmp"
+          else
+            printf '%s=%s\n' "$$2" "$$3" >>"$$1"
+          fi
+        }
+
+        echo "==> waiting for the Zitadel service-account PAT"
+        deadline=$$(( $$(date +%s) + 180 ))
+        while [ ! -f /output/admin-sa.pat ]; do
+          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "PAT not found, check 'docker logs musify-zitadel'" >&2; exit 1; }
+          sleep 3
+        done
+        PAT=$$(tr -d '\r\n' </output/admin-sa.pat)
+        MGMT="$$PUBLIC_AUTH_URL/management/v1"
+
+        echo "==> waiting for Zitadel to answer at $$PUBLIC_AUTH_URL"
+        deadline=$$(( $$(date +%s) + 120 ))
+        until curl -fsS "$$PUBLIC_AUTH_URL/.well-known/openid-configuration" >/dev/null 2>&1; do
+          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "Zitadel did not respond at $$PUBLIC_AUTH_URL" >&2; exit 1; }
+          sleep 3
+        done
+
+        api_call() {
+          if [ $$# -ge 3 ]; then
+            curl -fsS -X "$$1" "$$MGMT$$2" -H "Authorization: Bearer $$PAT" -H "Content-Type: application/json" -d "$$3"
+          else
+            curl -fsS -X "$$1" "$$MGMT$$2" -H "Authorization: Bearer $$PAT"
+          fi
+        }
+        name_query() { printf '{"queries":[{"nameQuery":{"name":"%s","method":"TEXT_QUERY_METHOD_EQUALS"}}]}' "$$1"; }
+
+        # `latest` images require the standalone Login UI v2 container, which
+        # this stack does not run; opting out keeps the built-in /ui/login.
+        curl -fsS -X PUT "$$PUBLIC_AUTH_URL/v2/features/instance" \
+          -H "Authorization: Bearer $$PAT" -H "Content-Type: application/json" \
+          -d '{"loginV2":{"required":false}}' >/dev/null 2>&1 || echo "warning: could not disable Login UI v2"
+
+        echo "==> project"
+        PROJECT_NAME=Musify
+        PROJECT_ID=$$(api_call POST /projects/_search "$$(name_query "$$PROJECT_NAME")" | jq -r --arg n "$$PROJECT_NAME" '.result // [] | map(select(.name==$$n)) | first | .id // empty')
+        if [ -z "$$PROJECT_ID" ]; then
+          PROJECT_ID=$$(api_call POST /projects "$$(printf '{"name":"%s"}' "$$PROJECT_NAME")" | jq -r '.id')
+          echo "  created (id $$PROJECT_ID)"
+        else
+          echo "  reused (id $$PROJECT_ID)"
+        fi
+
+        find_app() { api_call POST "/projects/$$PROJECT_ID/apps/_search" "$$(name_query "$$1")" | jq -r --arg n "$$1" '.result // [] | map(select(.name==$$n)) | first | .id // empty'; }
+
+        echo "==> API app"
+        API_APP_NAME="Musify API (Scalar)"
+        API_APP_ID=$$(find_app "$$API_APP_NAME")
+        if [ -n "$$API_APP_ID" ]; then
+          API_CLIENT_ID=$$(api_call GET "/projects/$$PROJECT_ID/apps/$$API_APP_ID" | jq -r '.app.oidcConfig.clientId')
+          echo "  reused (clientId $$API_CLIENT_ID)"
+        else
+          API_CLIENT_ID=$$(api_call POST "/projects/$$PROJECT_ID/apps/oidc" "$$(jq -n --arg name "$$API_APP_NAME" --arg api "$$PUBLIC_API_URL" '{
+            name: $$name,
+            redirectUris: [($$api + "/scalar/"), ($$api + "/scalar/oauth2-redirect.html")],
+            postLogoutRedirectUris: [($$api + "/scalar/")],
+            responseTypes: ["OIDC_RESPONSE_TYPE_CODE"],
+            grantTypes: ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"],
+            appType: "OIDC_APP_TYPE_USER_AGENT",
+            authMethodType: "OIDC_AUTH_METHOD_TYPE_NONE",
+            version: "OIDC_VERSION_1_0",
+            devMode: ($$ENV.ZITADEL_DEV_MODE == "true"),
+            accessTokenType: "OIDC_TOKEN_TYPE_JWT",
+            accessTokenRoleAssertion: true,
+            idTokenRoleAssertion: true,
+            idTokenUserinfoAssertion: true
+          }')" | jq -r '.clientId')
+          echo "  created (clientId $$API_CLIENT_ID)"
+        fi
+
+        echo "==> web app"
+        WEB_APP_NAME="Musify Web"
+        WEB_APP_ID=$$(find_app "$$WEB_APP_NAME")
+        WEB_CLIENT_SECRET=$$(env_get "$$ENV_FILE" WEB_CLIENT_SECRET)
+        if [ -n "$$WEB_APP_ID" ]; then
+          WEB_CLIENT_ID=$$(api_call GET "/projects/$$PROJECT_ID/apps/$$WEB_APP_ID" | jq -r '.app.oidcConfig.clientId')
+          if [ -z "$$WEB_CLIENT_SECRET" ]; then
+            WEB_CLIENT_SECRET=$$(api_call POST "/projects/$$PROJECT_ID/apps/$$WEB_APP_ID/oidc_config/_generate_client_secret" '{}' | jq -r '.clientSecret')
+            echo "  reused (clientId $$WEB_CLIENT_ID, secret regenerated)"
+          else
+            echo "  reused (clientId $$WEB_CLIENT_ID)"
+          fi
+        else
+          CREATED=$$(api_call POST "/projects/$$PROJECT_ID/apps/oidc" "$$(jq -n --arg name "$$WEB_APP_NAME" --arg web "$$PUBLIC_WEB_URL" '{
+            name: $$name,
+            redirectUris: [($$web + "/auth/callback")],
+            postLogoutRedirectUris: [($$web + "/")],
+            responseTypes: ["OIDC_RESPONSE_TYPE_CODE"],
+            grantTypes: ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
+            appType: "OIDC_APP_TYPE_WEB",
+            authMethodType: "OIDC_AUTH_METHOD_TYPE_BASIC",
+            version: "OIDC_VERSION_1_0",
+            devMode: ($$ENV.ZITADEL_DEV_MODE == "true"),
+            accessTokenType: "OIDC_TOKEN_TYPE_JWT",
+            accessTokenRoleAssertion: true,
+            idTokenRoleAssertion: true,
+            idTokenUserinfoAssertion: true
+          }')")
+          WEB_CLIENT_ID=$$(echo "$$CREATED" | jq -r '.clientId')
+          WEB_CLIENT_SECRET=$$(echo "$$CREATED" | jq -r '.clientSecret')
+          echo "  created (clientId $$WEB_CLIENT_ID)"
+        fi
+
+        echo "==> native app (KMP client: desktop loopback + mobile custom scheme)"
+        NATIVE_APP_NAME="Musify Native"
+        NATIVE_APP_ID=$$(find_app "$$NATIVE_APP_NAME")
+        if [ -n "$$NATIVE_APP_ID" ]; then
+          NATIVE_CLIENT_ID=$$(api_call GET "/projects/$$PROJECT_ID/apps/$$NATIVE_APP_ID" | jq -r '.app.oidcConfig.clientId')
+          echo "  reused (clientId $$NATIVE_CLIENT_ID)"
+        else
+          NATIVE_CLIENT_ID=$$(api_call POST "/projects/$$PROJECT_ID/apps/oidc" '{
+            "name": "Musify Native",
+            "redirectUris": ["http://127.0.0.1:17453/callback", "musify://callback"],
+            "postLogoutRedirectUris": ["http://127.0.0.1:17453/logout", "musify://logout"],
+            "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
+            "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
+            "appType": "OIDC_APP_TYPE_NATIVE",
+            "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
+            "version": "OIDC_VERSION_1_0",
+            "devMode": true,
+            "accessTokenType": "OIDC_TOKEN_TYPE_JWT",
+            "accessTokenRoleAssertion": true,
+            "idTokenRoleAssertion": true,
+            "idTokenUserinfoAssertion": true
+          }' | jq -r '.clientId')
+          echo "  created (clientId $$NATIVE_CLIENT_ID)"
+        fi
+
+        env_set "$$ENV_FILE" AUTH_CLIENT_ID "$$API_CLIENT_ID"
+        env_set "$$ENV_FILE" WEB_CLIENT_ID "$$WEB_CLIENT_ID"
+        env_set "$$ENV_FILE" WEB_CLIENT_SECRET "$$WEB_CLIENT_SECRET"
+        env_set "$$ENV_FILE" NATIVE_CLIENT_ID "$$NATIVE_CLIENT_ID"
+        echo "==> wired into $$ENV_FILE"
+    restart: "no"
+
+  # OTLP collector + trace UI (MassTransit / EF Core / HTTP spans).
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: musify-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    restart: unless-stopped
+
+  # --- Applications (profile: apps) -----------------------------------------
+
+  api:
+    profiles: [apps]
+    build:
+      context: ../backend
+      dockerfile: Musify.Api.Dockerfile
+    container_name: musify-api
+    depends_on:
+      <<: *app-depends
+      migrate:
+        condition: service_completed_successfully
+      keys-init:
+        condition: service_completed_successfully
+    environment:
+      <<: *backend-env
+      ASPNETCORE_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:5111
+      StreamGateway__PublicBaseUrl: ${PUBLIC_STREAM_URL}
+      StreamTicket__PrivateKeyPath: /keys/stream_private.pem
+      Workers__Routes__TemporaryFilesDirectory: /tmp/musify
+      # AUTH_CLIENT_ID is written to the env file by the zitadel-init service.
+      Authentication__MetadataAddress: "${PUBLIC_AUTH_URL}/.well-known/openid-configuration"
+      Authentication__IssuerAddress: ${PUBLIC_AUTH_URL}
+      Authentication__ClientId: ${AUTH_CLIENT_ID}
+      Authentication__AudienceAddress: ${AUTH_CLIENT_ID}
+      Authentication__AuthorizationEndpoint: "${PUBLIC_AUTH_URL}/oauth/v2/authorize?prompt=login"
+      Authentication__TokenEndpoint: "${PUBLIC_AUTH_URL}/oauth/v2/token"
+      Authentication__ScalarRedirectUri: "${PUBLIC_API_URL}/scalar/"
+      Authentication__Scopes__0: openid
+      Authentication__Scopes__1: profile
+      Authentication__Scopes__2: email
+      Authentication__RequireHttpsMetadata: ${AUTH_REQUIRE_HTTPS}
+    volumes:
+      - ./keys:/keys:ro
+    restart: unless-stopped
+
+  worker:
+    profiles: [apps]
+    build:
+      context: ../backend
+      dockerfile: Musify.Worker.Dockerfile
+    container_name: musify-worker
+    depends_on:
+      <<: *app-depends
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *backend-env
+      DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      AudioTranscoder__Routes__WorkingDirectory: /tmp/musify
+      Workers__Routes__TemporaryFilesDirectory: /tmp/musify
+    restart: unless-stopped
+
+  # YARP in front of the SeaweedFS filer: validates the RS256 stream ticket and
+  # streams the bytes, so audio never goes through the API.
+  gateway:
+    profiles: [apps]
+    build:
+      context: ../backend
+      dockerfile: Musify.StreamingGateway.Dockerfile
+    container_name: musify-gateway
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+      keys-init:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:8081
+      StreamTicket__PublicKeyPath: /keys/stream_public.pem
+      ReverseProxy__Clusters__seaweed-filer__Destinations__filer__Address: "http://seaweedfs:8888/"
+      ReverseProxy__Routes__media__Transforms__0__PathPattern: "/buckets/${S3_BUCKET}/{**rest}"
+      Cors__AllowedOrigins__0: ${PUBLIC_WEB_URL}
+    volumes:
+      - ./keys:/keys:ro
+    restart: unless-stopped
+
+  web-player:
+    profiles: [apps]
+    build:
+      context: ../web-player
+      dockerfile: Dockerfile
+    container_name: musify-web-player
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      ORIGIN: ${PUBLIC_WEB_URL}
+      ZITADEL_ISSUER: ${PUBLIC_AUTH_URL}
+      ZITADEL_CLIENT_ID: ${WEB_CLIENT_ID}
+      ZITADEL_CLIENT_SECRET: ${WEB_CLIENT_SECRET}
+      AUTH_REDIRECT_URI: "${PUBLIC_WEB_URL}/auth/callback"
+      AUTH_POST_LOGOUT_URI: "${PUBLIC_WEB_URL}/"
+      AUTH_ALLOW_INSECURE_HTTP: ${AUTH_ALLOW_INSECURE_HTTP}
+      SESSION_SECRET: ${SESSION_SECRET}
+      API_BASE_URL: http://api:5111
+      # Presigned PUTs are signed for the public S3 host; the container sends
+      # them straight to SeaweedFS instead of going back out through the edge.
+      S3_UPLOAD_ENDPOINT: http://seaweedfs:8333
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  seaweedfs_data:

@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Reproducir el audio **sin que los bytes pasen por la WebApi**, pero con control de acceso. La WebApi solo emite un permiso corto; el reverse proxy sirve los bytes desde SeaweedFS.
+Reproducir el audio **sin que los bytes pasen por la API**, pero con control de acceso. La API solo emite un permiso corto; el reverse proxy sirve los bytes desde SeaweedFS.
 
 ## Formato: fichero único AAC (.m4a) por HTTP range
 
@@ -16,7 +16,7 @@ Se autoriza **el prefijo de la carpeta** de la pista con un *stream-ticket* de c
 
 ## Flujo
 
-1. `GET /tracks/{id}/stream` (autenticado) → la WebApi autoriza y devuelve:
+1. `GET /tracks/{id}/stream` (autenticado) → la API autoriza y devuelve:
    ```json
    { "manifestUrl": "http://<gateway>/media/Tracks/ProcessedAudios/<folder>/audio.m4a",
      "ticket": "<JWT RS256>", "expiresInSeconds": 3600 }
@@ -27,10 +27,10 @@ Se autoriza **el prefijo de la carpeta** de la pista con un *stream-ticket* de c
 
 ## El ticket (RS256)
 
-- Lo firma la WebApi con clave **privada** (`StreamTicketService`); el gateway valida con la **pública** (`TicketValidator`). Así el gateway **no puede emitir** tickets, solo verificarlos.
+- Lo firma la API con clave **privada** (`StreamTicketService`); el gateway valida con la **pública** (`TicketValidator`). Así el gateway **no puede emitir** tickets, solo verificarlos.
 - Claims: `sub`, `prefix`, `aud = media-gateway`, `iss = musify-webapi`, `exp` (TTL ~1h).
 
-**Por qué RS256 (asimétrica)**: separa responsabilidades — emisor (WebApi) y verificador (gateway) no comparten secreto; el gateway, aunque se comprometa, no puede crear permisos.
+**Por qué RS256 (asimétrica)**: separa responsabilidades — emisor (la API) y verificador (gateway) no comparten secreto; el gateway, aunque se comprometa, no puede crear permisos.
 
 ## El gateway (validación + proxy)
 
@@ -44,7 +44,7 @@ Se autoriza **el prefijo de la carpeta** de la pista con un *stream-ticket* de c
 
 ## ¿Un ticket por canción?
 
-Sí. Cada ticket está acotado a **una** carpeta (una pista). Para reproducir otra, se pide otro ticket. Es barato (la WebApi solo firma un JWT) y es lo más seguro: cada permiso abre solo lo que vas a reproducir.
+Sí. Cada ticket está acotado a **una** carpeta (una pista). Para reproducir otra, se pide otro ticket. Es barato (la API solo firma un JWT) y es lo más seguro: cada permiso abre solo lo que vas a reproducir.
 
 - Si algún día molesta (muchísimos cambios de pista), el mismo mecanismo del claim `prefix` permite ampliar el alcance: a nivel de playlist o de toda la biblioteca (`Tracks/ProcessedAudios/`). Trade-off seguridad ↔ comodidad. Por defecto, **por canción**.
 

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Musify.Domain</AssemblyName>
+    <RootNamespace>Musify.Domain</RootNamespace>
+  </PropertyGroup>
+
+</Project>

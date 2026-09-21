@@ -4,6 +4,13 @@
 # Force LF for shell scripts
 *.sh text eol=lf
 
+# Env templates get `cp`-ed straight into deploy/.env / deploy/.env.prod,
+# which containers (e.g. zitadel-init in deploy/compose.yml) parse with
+# plain shell text tools — keep them LF so a Windows checkout can't
+# reintroduce CRLF into a value that then looks non-empty but isn't.
+.env.example text eol=lf
+.env.prod.example text eol=lf
+
 # Treat common binaries as binary
 *.png binary
 *.jpg binary

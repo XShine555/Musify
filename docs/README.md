@@ -13,12 +13,13 @@ Esta carpeta explica **qué hace cada pieza, su propósito y por qué está dise
 - [streaming.md](streaming.md) — Streaming del audio (`.m4a` por HTTP range) con stream-ticket (RS256) y el reverse proxy (StreamingGateway).
 - [media-processing.md](media-processing.md) — El worker y los workflows de MassTransit (transcode de audio, miniaturas).
 - [development.md](development.md) — Cómo levantar todo en local: contenedores, puertos y comandos.
+- [../deploy/README.md](../deploy/README.md) — El deploy en detalle: compose, scripts y producción.
 
 ## Mapa de componentes (alto nivel)
 
 ```
                  ┌─────────────────────────────────────────────┐
-   Cliente  ───► │ WebApi (:5111)  API REST + emite tickets     │
+   Cliente  ───► │ Musify.Api (:5111)  API REST + emite tickets │
                  └─────────────────────────────────────────────┘
                         │ EF Core          │ presigned (subidas)   │ MassTransit (eventos)
                         ▼                  ▼                       ▼
@@ -27,19 +28,20 @@ Esta carpeta explica **qué hace cada pieza, su propósito y por qué está dise
                                           ▲
    Cliente  ───► StreamingGateway (:8081) ┘   sirve audio .m4a (valida ticket, proxy al filer)
 
-   Login: Cliente ◄──► Zitadel (:8080, OIDC)   →  WebApi valida el JWT
+   Login: Cliente ◄──► Zitadel (:8080, OIDC)   →  Musify.Api valida el JWT
 ```
 
 ## Stack
 
-- **.NET 10**, C#. Minimal APIs (WebApi), Worker Service (Worker), ASP.NET + YARP (StreamingGateway).
-- **CQRS** con [Mediator] (source-generator) y resultados con **Ardalis.Result**.
+- **.NET 10**, C#. Minimal APIs (`Musify.Api`), Worker Service (`Musify.Worker`), ASP.NET + YARP (`Musify.StreamingGateway`).
+- **CQRS** con [Mediator] (source-generator) y resultados con **ErrorOr**.
 - **EF Core 10** + **PostgreSQL** (metadatos).
 - **MassTransit 8** + **RabbitMQ** (procesado asíncrono con routing slips/sagas).
 - **SeaweedFS** (almacenamiento de objetos compatible con S3, vía AWSSDK.S3).
 - **ffmpeg** (transcode de audio a AAC/`.m4a`), **SixLabors.ImageSharp** (miniaturas).
 - **Zitadel** (OIDC/OAuth2) para identidad.
 
-## Repositorios git
+## Estructura del repositorio
 
-Cada proyecto de nivel superior es su propio repo git: `MusifyBackend`, `Musify.WebApi`, `Musify.StreamingGateway`, `Musify.Worker`. La raíz del workspace (`docs/`, `deploy/`, `player.html`) no está versionada.
+Un solo repo: `backend/` (los seis proyectos .NET), `web-player/` (cliente web
+SvelteKit), `deploy/` (stacks de Docker Compose y scripts) y `docs/`.

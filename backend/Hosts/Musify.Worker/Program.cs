@@ -1,0 +1,46 @@
+using Hangfire;
+using Musify.Application.Configuration;
+using Musify.Infrastructure.Jobs;
+using Musify.Infrastructure.MassTransit;
+using Musify.Infrastructure.Persistence;
+using Musify.Infrastructure.Services;
+
+var builder = Host.CreateApplicationBuilder();
+
+builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProviderOptions
+{
+    ValidateOnBuild = false,
+    ValidateScopes = true
+}));
+
+var configuration = builder.Configuration;
+
+var services = builder.Services;
+
+services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
+services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
+services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
+services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
+services.AddStorageService(configuration);
+services.AddAudioTranscoder(configuration);
+services.AddHttpClient();
+services.AddPictureService(configuration);
+services.AddDatabase(configuration);
+services.AddMassTransitConsumers(configuration);
+services.AddUploadIntentJobs(configuration);
+services.AddMediator();
+services.AddDailyMixGenerationJob(configuration);
+
+var host = builder.Build();
+
+using (var scope = host.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    recurringJobManager.AddOrUpdate<DailyMixGenerationJob>(
+        "daily-mix-generation",
+        job => job.RunAsync(CancellationToken.None),
+        Cron.Daily(),
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+}
+
+host.Run();

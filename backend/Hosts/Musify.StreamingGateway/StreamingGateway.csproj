@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <AssemblyName>Musify.StreamingGateway</AssemblyName>
+    <RootNamespace>Musify.StreamingGateway</RootNamespace>
+    <UserSecretsId>media-gateway-2f1c9b6a-7d3e-4c0a-9a21-0b8e5d4c3f10</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <PackageReference Include="Yarp.ReverseProxy" />
+  </ItemGroup>
+
+</Project>
