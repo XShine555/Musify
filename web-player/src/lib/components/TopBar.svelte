@@ -69,7 +69,7 @@
 		<label
 			class="flex h-9.5 w-full items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
 		>
-			<Search class="h-3.75 w-3.75 shrink-0 text-fg-3" strokeWidth={1.8} />
+			<Search class="size-4 shrink-0 text-fg-3" strokeWidth={1.8} />
 			<input
 				type="text"
 				bind:this={searchInput}
@@ -83,9 +83,9 @@
 					type="button"
 					onclick={clearQuery}
 					aria-label="Borrar búsqueda"
-					class="grid h-5 w-5 shrink-0 place-items-center rounded-full text-muted transition hover:text-fg"
+					class="grid size-5 shrink-0 place-items-center rounded-full text-muted transition hover:text-fg"
 				>
-					<X class="h-3.5 w-3.5" />
+					<X class="size-3.5" />
 				</button>
 			{/if}
 		</label>

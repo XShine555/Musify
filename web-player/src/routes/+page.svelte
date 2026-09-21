@@ -135,7 +135,7 @@
 
 <Page>
 	<div
-		class="relative overflow-hidden rounded-3xl hero-surface px-6 py-8 theme-transition sm:px-9 sm:py-8.5"
+		class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 theme-transition sm:px-9 sm:py-8.5"
 	>
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"

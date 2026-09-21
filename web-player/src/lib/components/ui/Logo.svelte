@@ -6,7 +6,7 @@
 	let { size = 'sm' }: Props = $props();
 
 	const MARK: Record<'sm' | 'lg', string> = {
-		sm: 'size-5.5 rounded-lg',
+		sm: 'size-5.5 rounded-thumb',
 		lg: 'size-8 rounded-control'
 	};
 

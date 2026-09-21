@@ -110,14 +110,13 @@
 				<Surface padding="sm" class={stepClass(stepStates[i])}>
 					<div class="flex items-center gap-3">
 						<span
-							class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm {stepStates[
-								i
-							] === 'idle'
+							class="grid size-7 shrink-0 place-items-center rounded-full text-sm {stepStates[i] ===
+							'idle'
 								? 'bg-surface-2 text-fg-2'
 								: 'bg-accent-btn text-accent-soft'}"
 						>
 							{#if stepStates[i] === 'done'}
-								<Check class="h-3.5 w-3.5" strokeWidth={2.5} />
+								<Check class="size-3.5" strokeWidth={2.5} />
 							{:else}
 								{i + 1}
 							{/if}
@@ -132,10 +131,10 @@
 
 	{#if status === 'done'}
 		<Surface padding="lg" class="mt-10 bg-accent-tint text-center">
-			<span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-ink">
-				<Check class="h-7 w-7" strokeWidth={2.5} />
+			<span class="mx-auto grid size-14 place-items-center rounded-full bg-accent-soft text-ink">
+				<Check class="size-7" strokeWidth={2.5} />
 			</span>
-			<h2 class="mt-6 font-display text-2xl font-semibold tracking-[-0.02em] text-fg">¡Subida!</h2>
+			<h2 class="mt-6 font-display text-2xl font-semibold tracking-display text-fg">¡Subida!</h2>
 			<p class="mt-3 text-sm text-fg-2">
 				«{publishedTitle}» se está procesando. Aparecerá lista para reproducir en tu biblioteca en
 				unos momentos.
@@ -192,9 +191,9 @@
 					aria-label="Seleccionar archivo de audio"
 				/>
 				{#if audioName === ''}
-					<Headphones class="h-9 w-9 text-muted sm:h-10 sm:w-10" strokeWidth={1.4} />
+					<Headphones class="size-9 text-muted sm:size-10" strokeWidth={1.4} />
 				{:else}
-					<Music class="h-9 w-9 text-accent-soft sm:h-10 sm:w-10" strokeWidth={1.4} />
+					<Music class="size-9 text-accent-soft sm:size-10" strokeWidth={1.4} />
 				{/if}
 				{#if audioName === ''}
 					<p class="mt-4 text-sm font-medium text-fg">

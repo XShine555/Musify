@@ -49,7 +49,7 @@
 
 	const classes = $derived(
 		`flex items-center gap-3 text-left transition-colors ${
-			variant === 'card' ? 'rounded-art p-2.25 pr-3.5' : 'rounded-control p-2'
+			variant === 'card' ? 'rounded-art p-2 pr-3.5' : 'rounded-control p-2'
 		} ${active ? 'bg-accent-tint' : 'hover:bg-hover'} ${klass}`
 	);
 </script>

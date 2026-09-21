@@ -12,7 +12,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"gen:api": "npx -y openapi-typescript@7 http://localhost:5111/openapi/v1.json -o src/lib/api/schema.d.ts",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint ."
+		"lint:tokens": "node scripts/check-tokens.mjs",
+		"lint": "prettier --check . && eslint . && npm run lint:tokens"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

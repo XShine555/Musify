@@ -66,19 +66,19 @@
 		{#snippet actions()}
 			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
 				{#if isCurrentQueue && player.playing}
-					<Pause class="h-4 w-4" strokeWidth={1.5} />
+					<Pause class="size-4" strokeWidth={1.5} />
 					Pausar
 				{:else}
-					<Play class="h-4 w-4" strokeWidth={1.5} />
+					<Play class="size-4" strokeWidth={1.5} />
 					Reproducir
 				{/if}
 			</Button>
 			<Button size="sm" variant="secondary" onclick={() => (editing = true)}>
-				<SquarePencil class="h-4 w-4" strokeWidth={1.5} />
+				<SquarePencil class="size-4" strokeWidth={1.5} />
 				Editar
 			</Button>
 			<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
-				<Trash class="h-4 w-4" strokeWidth={1.5} />
+				<Trash class="size-4" strokeWidth={1.5} />
 				Eliminar
 			</Button>
 		{/snippet}

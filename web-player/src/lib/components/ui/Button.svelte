@@ -58,7 +58,7 @@
 {:else}
 	<button {type} disabled={disabled || loading} {onclick} class={classes}>
 		{#if loading}
-			<LoaderCircle class="h-4 w-4 animate-spin" />
+			<LoaderCircle class="size-4 animate-spin" />
 		{/if}
 		{@render children()}
 	</button>

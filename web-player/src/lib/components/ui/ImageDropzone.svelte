@@ -25,7 +25,7 @@
 	}: Props = $props();
 
 	const SIZE: Record<'default' | 'hero', string> = {
-		default: 'h-40 w-40 sm:h-52 sm:w-52 rounded-control',
+		default: 'size-40 sm:size-52 rounded-control',
 		hero: 'size-cover-hero rounded-art-lg'
 	};
 

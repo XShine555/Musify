@@ -31,7 +31,7 @@
 </script>
 
 <aside
-	class="theme-transition hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 lg:flex"
+	class="hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 theme-transition lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
 	<a href="/" class="px-3 pb-3">
@@ -48,7 +48,7 @@
 					? 'bg-surface-2 text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
-				<link.icon class="h-4.5 w-4.5 shrink-0" strokeWidth={1.5} />
+				<link.icon class="size-4.5 shrink-0" strokeWidth={1.5} />
 				<span class="flex-1 truncate">{link.label}</span>
 				{#if link.count}
 					<span class="text-xs text-muted tabular-nums">{link.count}</span>
@@ -85,7 +85,7 @@
 						playlist.updatedAt
 					)}"
 					trackIds={playlist.coverTrackIds}
-					class="px-3 py-1.75"
+					class="px-3 py-2"
 				/>
 			{:else}
 				<button
@@ -93,7 +93,7 @@
 					onclick={() => createPlaylistModal.show()}
 					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-muted transition-colors hover:bg-hover hover:text-fg-2"
 				>
-					<Plus class="h-3.5 w-3.5" strokeWidth={1.8} />
+					<Plus class="size-3.5" strokeWidth={1.8} />
 					Crear tu primera lista
 				</button>
 			{/each}

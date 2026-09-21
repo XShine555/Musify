@@ -12,7 +12,7 @@
 
 	const sideClass = $derived(
 		compact
-			? 'grid h-10 w-10 place-items-center text-fg opacity-70 transition active:scale-90'
+			? 'grid size-10 place-items-center text-fg opacity-70 transition active:scale-90'
 			: 'flex text-fg-2 transition-colors hover:text-fg active:scale-90'
 	);
 </script>
@@ -26,7 +26,7 @@
 			aria-label="Aleatorio"
 			class="transition-colors hover:text-fg {player.shuffle ? 'text-accent' : 'text-fg-3'}"
 		>
-			<Shuffle class="h-3.75 w-3.75" strokeWidth={1.8} />
+			<Shuffle class="size-4" strokeWidth={1.8} />
 		</button>
 	{/if}
 
@@ -58,7 +58,7 @@
 			aria-label="Repetir"
 			class="transition-colors hover:text-fg {player.repeat ? 'text-accent' : 'text-fg-3'}"
 		>
-			<Repeat class="h-3.75 w-3.75" strokeWidth={1.8} />
+			<Repeat class="size-4" strokeWidth={1.8} />
 		</button>
 	{/if}
 </div>

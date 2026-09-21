@@ -212,7 +212,7 @@
 			)} en canciones, álbumes, playlists y usuarios"
 		/>
 
-		<div class="mb-7 flex flex-wrap gap-1.75 sm:mb-8">
+		<div class="mb-7 flex flex-wrap gap-2 sm:mb-8">
 			{#each chips as chip (chip.label)}
 				<Chip
 					selected={sfilter === chip.label}
@@ -249,11 +249,11 @@
 				{/if}
 
 				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
-					<div class="text-xs leading-none font-semibold tracking-[0.14em] text-fg-3 uppercase">
+					<div class="text-eyebrow leading-none font-semibold text-fg-3">
 						Mejor resultado · {TOP_RESULT_KIND_LABEL[topResult.kind]}
 					</div>
 					<div
-						class="truncate font-display text-lg leading-none font-medium tracking-[-0.02em] text-fg"
+						class="truncate font-display text-lg leading-none font-medium tracking-display text-fg"
 					>
 						{topResult.kind === 'track'
 							? topResult.track.title
@@ -313,7 +313,7 @@
 			{#each genreTiles as genre, i (genre.query)}
 				<a
 					href={searchHref(genre.query)}
-					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-panel p-4.25 transition-[filter] genre-tile hover:brightness-110"
+					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-panel p-4 transition-[filter] genre-tile hover:brightness-110"
 					style="--i:{i}; --tile-hue:{genre.hue}"
 				>
 					<div class="text-on-art">

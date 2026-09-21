@@ -30,7 +30,7 @@
 		{title}
 	</h2>
 	{#if subtitle}
-		<p class="mt-1.25 text-xs text-fg-3">{subtitle}</p>
+		<p class="mt-1 text-xs text-fg-3">{subtitle}</p>
 	{/if}
 {/snippet}
 

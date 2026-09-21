@@ -18,7 +18,7 @@
 </script>
 
 <nav
-	class="pointer-events-auto flex items-center justify-around glass-bar px-4 py-1.75 lg:hidden {klass}"
+	class="pointer-events-auto flex items-center justify-around glass-bar px-4 py-2 lg:hidden {klass}"
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}
@@ -26,11 +26,11 @@
 		<a
 			href={link.href}
 			aria-current={active ? 'page' : undefined}
-			class="flex flex-col items-center gap-1.25 rounded-xl px-2.5 py-1.5 {active
+			class="flex flex-col items-center gap-1 rounded-control px-2.5 py-1.5 {active
 				? 'text-fg'
 				: 'text-fg-2'}"
 		>
-			<link.icon class="h-4.25 w-4.25" strokeWidth={1.6} />
+			<link.icon class="size-4" strokeWidth={1.6} />
 			<span class="text-xs font-medium">{link.label}</span>
 		</a>
 	{/each}

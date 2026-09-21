@@ -34,6 +34,6 @@
 
 <div bind:this={sentinel} class="flex min-h-12 items-center justify-center py-8">
 	{#if loading}
-		<LoaderCircle class="h-5 w-5 animate-spin text-muted" />
+		<LoaderCircle class="size-5 animate-spin text-muted" />
 	{/if}
 </div>

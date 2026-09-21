@@ -28,7 +28,7 @@
 	}
 </script>
 
-<div class="flex min-w-0 items-center gap-2.5 md:gap-3.25">
+<div class="flex min-w-0 items-center gap-2.5 md:gap-3">
 	{#if player.current.id}
 		<Artwork
 			trackIds={[player.current.id]}

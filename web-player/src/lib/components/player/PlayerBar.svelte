@@ -15,7 +15,7 @@
 </script>
 
 <div
-	class="animate-enter pointer-events-auto flex items-center gap-4.5 glass-bar px-4 py-2.75 sm:hidden"
+	class="animate-enter pointer-events-auto flex items-center gap-4.5 glass-bar px-4 py-3 sm:hidden"
 >
 	<div class="min-w-0 flex-1">
 		<TrackInfo compact />
@@ -24,14 +24,14 @@
 </div>
 
 <div
-	class="animate-enter pointer-events-auto hidden items-center gap-5 glass-bar px-4 py-2.75 sm:flex"
+	class="animate-enter pointer-events-auto hidden items-center gap-5 glass-bar px-4 py-3 sm:flex"
 >
 	<div class="w-(--mf-player-side-w) min-w-0 shrink-0">
 		<TrackInfo />
 	</div>
 	<div class="flex min-w-0 flex-1 flex-col items-center gap-2">
 		<TransportControls />
-		<div class="flex w-full max-w-hero items-center gap-2.75">
+		<div class="flex w-full max-w-hero items-center gap-3">
 			<span class="min-w-8 text-right text-xs text-fg-3 tabular-nums">
 				{fmtTime(player.progress)}
 			</span>

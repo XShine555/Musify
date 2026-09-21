@@ -14,7 +14,7 @@
 	const classes = $derived(
 		href
 			? 'rounded-full border border-line-strong px-3.5 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg'
-			: `flex items-center gap-1.75 rounded-full px-3.5 py-1.75 text-xs font-medium transition ${
+			: `flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-medium transition ${
 					selected
 						? 'bg-cta-strong text-ink'
 						: 'bg-surface-2 text-fg-2 hover:bg-surface-hover hover:text-fg'

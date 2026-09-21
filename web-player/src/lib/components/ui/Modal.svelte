@@ -95,7 +95,7 @@
 						</h2>
 					</div>
 					<IconButton label="Cerrar" onclick={onClose} class="shrink-0">
-						<X class="h-4 w-4" />
+						<X class="size-4" />
 					</IconButton>
 				</div>
 			{/if}

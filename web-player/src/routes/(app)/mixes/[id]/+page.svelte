@@ -75,10 +75,10 @@
 		{#snippet actions()}
 			<Button size="sm" onclick={() => playAllOrToggle(queue)} disabled={queue.length === 0}>
 				{#if isCurrentQueue && player.playing}
-					<Pause class="h-4 w-4" strokeWidth={1.5} />
+					<Pause class="size-4" strokeWidth={1.5} />
 					Pausar
 				{:else}
-					<Play class="h-4 w-4" strokeWidth={1.5} />
+					<Play class="size-4" strokeWidth={1.5} />
 					Reproducir
 				{/if}
 			</Button>
@@ -88,7 +88,7 @@
 				onclick={() => playShuffled(queue)}
 				disabled={queue.length === 0}
 			>
-				<Shuffle class="h-4 w-4" />
+				<Shuffle class="size-4" />
 				Aleatorio
 			</Button>
 		{/snippet}
