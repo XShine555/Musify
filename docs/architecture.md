@@ -15,10 +15,10 @@
 | **Domain/Application/Infrastructure** | Domain + use cases + shared infrastructure (EF, S3, MassTransit, ffmpeg) | Logic shared between the API and the Worker |
 | **StreamingGateway** | Reverse proxy (YARP) that validates the ticket and serves the audio (`.m4a`) from SeaweedFS | Scales with byte traffic independently of the API, and keeps SeaweedFS private behind it |
 | **Worker** | Consumes MassTransit events: transcodes audio to `.m4a` and generates thumbnails | Keeps CPU/IO-heavy work off the HTTP request path |
-| **PostgreSQL** | Metadata (users, tracks, playlists, upload intents) | n/a |
-| **RabbitMQ** | Event queue + transactional outbox | Decouples creation from processing |
-| **SeaweedFS** | Object storage (S3 + filer) | Stores originals and derivatives (`.m4a` audio, thumbnails) |
-| **Zitadel** | Identity (OIDC/OAuth2) | Login and JWT issuance |
+| **PostgreSQL** *(shared, runs in the separate `Infrastructure` repo)* | Metadata (users, tracks, playlists, upload intents) | n/a |
+| **RabbitMQ** *(shared, runs in Infrastructure)* | Event queue + transactional outbox | Decouples creation from processing |
+| **SeaweedFS** *(shared, runs in Infrastructure)* | Object storage (S3 + filer) | Stores originals and derivatives (`.m4a` audio, thumbnails) |
+| **Zitadel** *(shared, runs in Infrastructure)* | Identity (OIDC/OAuth2) | Login and JWT issuance |
 
 ## Main flows
 

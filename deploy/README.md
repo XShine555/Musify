@@ -1,51 +1,65 @@
 # Deploy
 
-Everything needed to run Musify, in development and in production, from the
-same set of compose files — no wrapper scripts, just `docker compose`.
+Everything needed to run Musify itself, in development and in production,
+from the same set of compose files, no wrapper scripts, just `docker
+compose`. Postgres, Zitadel, SeaweedFS, RabbitMQ and Jaeger are **not**
+started here: they're shared infrastructure that lives in the separate
+`Infrastructure` repository and has to already be running (see its own
+README). `../../Infrastructure` below is just an example path, assuming
+that repo happens to be checked out as a sibling of this one. Adjust it to
+wherever you actually cloned it.
 
 | File | Role |
 |---|---|
-| `compose.yml` | Every service, including the one-shot bootstrap jobs. No published ports, no domains, no environment-specific values. |
-| `compose.dev.yml` | Development overlay: publishes the ports to the host, adds pgAdmin. |
-| `compose.prod.yml` | Production overlay: adds the nginx edge. |
+| `compose.yml` | Musify's own services, including the one-shot bootstrap jobs. No published ports, no domains, no environment-specific values. |
+| `compose.dev.yml` | Development overlay: publishes Musify's ports to the host. |
+| `compose.prod.yml` | Production overlay: adds the nginx edge and joins Infrastructure's `infra-net` network. |
 | `.env` / `.env.prod` | The values compose interpolates. Not versioned; templates in `.env.example` / `.env.prod.example`. |
 
-The four applications (`api`, `worker`, `gateway`, `web-player`) sit behind the
-`apps` compose profile, so a plain `up` starts infrastructure only — the usual
-development setup, with the apps running from the IDE.
+The four applications (`api`, `worker`, `gateway`, `web-player`) sit behind
+the `apps` compose profile, so a plain `up` starts only the one-shot
+bootstrap jobs, the usual development setup, with the apps running from the
+IDE.
 
 ### The one-shot bootstrap jobs
 
-Three services in `compose.yml` run once and exit, so a plain `docker compose
+Four services in `compose.yml` run once and exit, so a plain `docker compose
 up -d` leaves the stack fully ready with no manual steps:
 
 | Service | Does |
 |---|---|
+| `wait-for-postgres` | Waits for Infrastructure's Postgres to accept connections. Replaces an in-file health-check `depends_on`, which only works within the same compose file. |
 | `keys-init` | Generates the RS256 stream-ticket key pair in `./keys`, if it is not there already. |
 | `migrate` | Applies the EF Core migrations (built from `backend/Musify.Migrator.Dockerfile`). |
-| `zitadel-init` | Creates the Musify project and its two OIDC apps in Zitadel (or reuses them), then writes `AUTH_CLIENT_ID` / `WEB_CLIENT_ID` / `WEB_CLIENT_SECRET` into the env file. |
+| `seaweedfs-init` | Creates Musify's own bucket on the shared SeaweedFS, if it doesn't exist yet. |
+| `zitadel-init` | Creates the Musify project and its OIDC apps in the shared Zitadel (or reuses them), then writes `AUTH_CLIENT_ID` / `WEB_CLIENT_ID` / `WEB_CLIENT_SECRET` / `NATIVE_CLIENT_ID` into the env file. |
 
-`api` and `worker` wait for `migrate`; `api` and `gateway` wait for
-`keys-init` (`depends_on: condition: service_completed_successfully`). They do
-**not** wait for `zitadel-init` — compose interpolates `${AUTH_CLIENT_ID}` once,
-when a command starts, so a container that starts in the *same* `up` as
-`zitadel-init` would still get the empty value it had before provisioning ran.
-That's why bringing up the apps is a second command: by the time you run it,
+`api` and `worker` wait for `migrate`; `api` waits for `keys-init`
+(`depends_on: condition: service_completed_successfully`). Nothing waits on
+`zitadel-init`, `seaweedfs-init` or the shared infrastructure services
+directly. Compose interpolates `${AUTH_CLIENT_ID}` once, when a command
+starts, so a container that started in the *same* `up` as `zitadel-init`
+would still get the empty value it had before provisioning ran. That's why
+bringing up the apps is a second command: by the time you run it,
 `zitadel-init` has already finished and the env file has real values.
 
 ---
 
 ## Development
 
+Start the separate `Infrastructure` repository first, from wherever you
+cloned it (see its own README for the exact command). Then, from this
+repository's root:
+
 ```sh
 docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
 docker compose -f deploy/compose.yml -f deploy/compose.dev.yml --profile apps up -d --build
 ```
 
-The first command starts the infrastructure and runs the bootstrap jobs
-(keys, migrations, Zitadel project/apps). The second builds and runs `api`,
-`worker`, `gateway` and `web-player` in Docker too — skip it to run the apps
-from the IDE instead (the usual dev loop):
+The first command starts Musify's own bootstrap jobs (Postgres wait, keys,
+migrations, the bucket, the Zitadel project/apps). The second builds and runs
+`api`, `worker`, `gateway` and `web-player` in Docker too. Skip it to run the
+apps from the IDE instead (the usual dev loop):
 
 ```sh
 dotnet run --project backend/Hosts/Musify.Api               # :5111
@@ -55,53 +69,55 @@ npm --prefix web-player run dev                              # :5173
 ```
 
 When running the apps from the IDE, `Musify.Api` reads `Authentication:*`
-from user-secrets and `web-player` reads its own `web-player/.env` — neither
-looks at `deploy/.env`. Copy the three values `zitadel-init` wrote
-(`AUTH_CLIENT_ID`, `WEB_CLIENT_ID`, `WEB_CLIENT_SECRET`) into
-`dotnet user-secrets set Authentication:ClientId <value> --project
-backend/Hosts/Musify.Api` and into `web-player/.env` once; they stay valid
-until you wipe the Zitadel volume.
-
-Add `--profile tools` to also start pgAdmin.
+from user-secrets and `web-player` reads its own `web-player/.env`, neither
+looks at `deploy/.env`. Copy the four values `zitadel-init` wrote
+(`AUTH_CLIENT_ID`, `WEB_CLIENT_ID`, `WEB_CLIENT_SECRET`, `NATIVE_CLIENT_ID`)
+into `dotnet user-secrets set Authentication:ClientId <value> --project
+backend/Hosts/Musify.Api` and into `web-player/.env` once. They stay valid
+until Infrastructure's Zitadel volume is wiped.
 
 ### Ports
 
 | Service | Port | Used by |
 |---|---|---|
-| PostgreSQL | `59000` → 5432 | API + Worker (EF Core) and Zitadel |
-| Zitadel | `8080` | OIDC/OAuth2, console at `/ui/console` |
-| RabbitMQ | `5672` / `15672` | MassTransit / management UI |
-| SeaweedFS | `8333` / `8888` / `9333` | S3 / filer (→ gateway) / master |
-| Jaeger | `16686` / `4317` / `4318` | traces UI / OTLP gRPC / OTLP HTTP |
-| pgAdmin (`--profile tools`) | `5050` | Postgres UI |
-| API, gateway, web player (`--profile apps`) | `5111` / `8081` / `3000` | |
+| Musify.Api | `5111` | `/scalar/v1`, `/openapi/v1.json` |
+| Musify.StreamingGateway | `8081` | `/health`, `/media/...` |
+| web-player | `5173` (`npm run dev`) or `3000` (container) | |
 
-Host requirements: .NET 10 SDK, Node 22, Docker Desktop. (ffmpeg is only
-needed on the host if you run the Worker outside Docker — inside Docker its
-image already has it.)
+Postgres, Zitadel, SeaweedFS, RabbitMQ and Jaeger ports come from
+Infrastructure. See its own README for that table.
+
+Host requirements: .NET 10 SDK, Node 22, Docker Desktop. ffmpeg is only
+needed on the host if you run the Worker outside Docker; inside Docker its
+image already has it.
 
 ### Why `host.docker.internal`
 
 `PUBLIC_AUTH_URL` and `S3_PUBLIC_URL` point at `host.docker.internal`, which
 resolves to the same address from the browser, from apps running on the host
 and from inside the containers. That keeps the OIDC token issuer and the
-presigned S3 URLs valid whichever way the apps are running. Zitadel routes by
-the `Host` header, so the domain has to be identical everywhere; changing it
-requires wiping the Postgres/Zitadel volumes and starting over (`docker
-compose -f compose.yml -f compose.dev.yml down -v`, then `up -d` again).
+presigned S3 URLs valid whichever way the apps are running, and is the same
+address Infrastructure's own dev ports are published on.
 
 ### Resetting
 
 ```sh
 docker compose -f deploy/compose.yml -f deploy/compose.dev.yml down          # stop, keep data
-docker compose -f deploy/compose.yml -f deploy/compose.dev.yml down -v       # stop, wipe volumes
+docker compose -f deploy/compose.yml -f deploy/compose.dev.yml down -v       # stop, wipe Musify's own volumes
 ```
+
+This only touches Musify's own containers and volumes. Resetting Zitadel or
+SeaweedFS is done from the `Infrastructure` repo instead.
 
 ---
 
 ## Production
 
-On a server with a domain, from the repository root:
+On a server with a domain:
+
+1. Bring up the `Infrastructure` repo first, with its own `.env.prod` filled
+   in. It creates the `infra-net` network this stack joins.
+2. From this repository's root:
 
 ```sh
 cp deploy/.env.prod.example deploy/.env.prod
@@ -110,31 +126,29 @@ cp deploy/.env.prod.example deploy/.env.prod
 Fill it in:
 
 1. Replace every `example.com` with your domain and every `CHANGE_ME` with a
-   random value (`openssl rand -hex 24`; the Zitadel masterkey needs exactly
-   32 characters). `chmod 600 deploy/.env.prod`.
-2. Drop **`deploy/nginx/certs/origin.pem` and `origin.key`** — the origin
+   random value (`openssl rand -hex 24`). `chmod 600 deploy/.env.prod`.
+2. Drop **`deploy/nginx/certs/origin.pem` and `origin.key`**, the origin
    certificate nginx serves. The stack assumes Cloudflare in *Full (strict)*
    mode in front of it, so a Cloudflare Origin Certificate is enough; any
    certificate valid for the five hostnames works.
 3. Point `example.com`, `www`, `api`, `auth`, `stream` and `s3` at the server,
-   proxied/TLS-terminated the same way.
+   proxied and TLS-terminated the same way.
 
-Then, same two commands as development, with the prod env file and overlay:
+Then:
 
 ```sh
 docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
 docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
 ```
 
-The first command starts the infrastructure, the nginx edge and the bootstrap
-jobs; the second builds and starts the applications, already wired to the
-OIDC client ids the first one produced. Both are idempotent — run them again
-to deploy a new version (`docker compose ... --profile apps up -d --build`
-alone is enough for an update once the stack already exists; it reuses the
-infra containers and only rebuilds and restarts the apps).
+The first command starts Musify's bootstrap jobs and the nginx edge; the
+second builds and starts the applications, already wired to the OIDC client
+ids the first one produced. Both are idempotent, so running them again
+deploys a new version (`... --profile apps up -d --build` alone is enough for
+an update once the stack already exists).
 
-Only nginx publishes ports (80/443); everything else is reachable only on the
-internal compose network.
+Only nginx publishes ports (80/443). Every other Musify service, and all of
+Infrastructure's, is reachable only on the internal `infra-net` network.
 
 ---
 
@@ -142,17 +156,16 @@ internal compose network.
 
 ```
 deploy/
-├─ compose.yml                     # all services, incl. keys-init / migrate / zitadel-init
-├─ compose.dev.yml                 # dev overlay: host ports, pgAdmin
-├─ compose.prod.yml                # prod overlay: nginx edge
+├─ compose.yml                     # Musify's own services: wait-for-postgres, keys-init,
+│                                   #   migrate, seaweedfs-init, zitadel-init, api/worker/gateway/web-player
+├─ compose.dev.yml                 # dev overlay: host ports
+├─ compose.prod.yml                # prod overlay: nginx edge, joins infra-net
 ├─ .env.example / .env.prod.example
 ├─ keys/                           # RS256 stream-ticket key pair (generated)
-├─ nginx/
-│  ├─ templates/default.conf.template # vhosts, rendered with the domain by envsubst
-│  ├─ snippets/proxy.conf             # proxy headers shared by every vhost
-│  └─ certs/                          # origin.pem + origin.key (not versioned)
-└─ zitadel/
-   └─ .output/                    # PAT written by Zitadel on init (not versioned)
+└─ nginx/
+   ├─ templates/default.conf.template # vhosts, rendered with the domain by envsubst
+   ├─ snippets/proxy.conf             # proxy headers shared by every vhost
+   └─ certs/                          # origin.pem + origin.key (not versioned)
 ```
 
 The application images are built from `backend/Musify.*.Dockerfile` (build
@@ -161,18 +174,15 @@ and `web-player/Dockerfile`.
 
 ## Notes
 
-- **S3 credentials** are rendered into the SeaweedFS identity file from
-  `S3_ACCESS_KEY` / `S3_SECRET_KEY` when the container starts, so they cannot
-  drift from the ones the apps are given.
+- **S3 credentials, the Postgres admin user, the RabbitMQ user and the
+  Zitadel masterkey** all live in Infrastructure's own `.env`/`.env.prod` now.
+  This project's env files only duplicate the values that have to match (see
+  the comments in `.env.example`).
 - **Zitadel** runs `start-from-init`, which is idempotent: the same command
   works on an empty volume and on an existing one.
-- **`latest` Zitadel images** require the standalone Login UI v2 container,
-  which this stack does not run. `zitadel-init` turns that requirement off so
-  the built-in `/ui/login` is used.
 - **`AppSettings*.json` are PascalCase** in `Musify.Api` and `Musify.Worker`;
   on case-sensitive Linux the host looks for `appsettings*.json`, so their
   Dockerfiles create lowercase copies at publish time.
-- **Re-running `zitadel-init` or `migrate`** is safe: the former reuses the
-  existing project/apps by name (regenerating the web app's secret only if it
-  is missing from the env file), the latter is a normal `dotnet ef database
-  update`, a no-op once the schema is current.
+- **Re-running `zitadel-init`, `seaweedfs-init` or `migrate`** is safe: they
+  reuse the existing project/apps/bucket by name, and `migrate` is a normal
+  `dotnet ef database update`, a no-op once the schema is current.

@@ -34,6 +34,11 @@ this way**.
    Login: Client ◄──► Zitadel (:8080, OIDC)   →  Musify.Api validates the JWT
 ```
 
+PostgreSQL, Zitadel, SeaweedFS and RabbitMQ are not run by this repository.
+They're shared infrastructure, provided by the separate `Infrastructure`
+repository, that this stack connects to the same way any other project
+does.
+
 ## Stack
 
 - **.NET 10**, C#. Minimal APIs (`Musify.Api`), Worker Service (`Musify.Worker`), ASP.NET + YARP (`Musify.StreamingGateway`).
@@ -48,4 +53,6 @@ this way**.
 
 A single repo: `backend/` (the six .NET projects), `web-player/` (the
 SvelteKit web client), `deploy/` (Docker Compose stacks and scripts), and
-`docs/`.
+`docs/`. The shared infrastructure (Postgres, Zitadel, SeaweedFS, RabbitMQ,
+Jaeger) lives in the separate `Infrastructure` repository, a sibling of this
+one, and is not part of this layout.

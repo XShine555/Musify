@@ -5,15 +5,19 @@ and prod) live in [deploy/README.md](../deploy/README.md).
 
 ## Startup
 
+Bring up the separate `Infrastructure` repository first (Postgres, Zitadel,
+SeaweedFS, RabbitMQ, Jaeger, see its own README for the exact command), then:
+
 ```sh
 docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
 ```
 
-That one command brings up the infrastructure and runs the one-shot bootstrap
-jobs: generates the RS256 stream-ticket keys in `deploy/keys/`, applies the
-EF Core migrations, and provisions Zitadel (project + OIDC apps), writing the
-client ids into `deploy/.env`. Full details, including how to run the apps in
-Docker with `--profile apps`, are in [deploy/README.md](../deploy/README.md).
+That runs Musify's own one-shot bootstrap jobs: it generates the RS256
+stream-ticket keys in `deploy/keys/`, applies the EF Core migrations, creates
+Musify's storage bucket, and provisions Zitadel (project + OIDC apps),
+writing the client ids into `deploy/.env`. Full details, including how to run
+the apps in Docker with `--profile apps`, are in
+[deploy/README.md](../deploy/README.md).
 
 ## Applications
 
@@ -31,16 +35,15 @@ npm --prefix web-player run dev                       # :5173
 | Musify.Api | 5111 (`/scalar/v1`, `/openapi/v1.json`) |
 | Musify.StreamingGateway | 8081 (`/health`, `/media/...`) |
 | web-player | 5173 (`npm run dev`) or 3000 (container) |
-| SeaweedFS S3 / filer / master | 8333 / 8888 / 9333 |
-| Zitadel | 8080 |
-| PostgreSQL | 59000 (→ 5432 in the container) |
-| RabbitMQ AMQP / management | 5672 / 15672 |
-| Jaeger UI / OTLP | 16686 / 4317 |
-| pgAdmin (`-Tools`) | 5050 |
 
-DB: `musify_db`, user `postgres`/`postgres`. S3 bucket: `webapi-storage`
-(credentials `admin_access_key`/`admin_secret_key`). All of these come from
-`deploy/.env`.
+Postgres, Zitadel, SeaweedFS, RabbitMQ and Jaeger are not run by this repo.
+Their ports are documented in the separate `Infrastructure` repository's own
+README.
+
+DB: `musify_db`, user `postgres`/`postgres` on Infrastructure's shared
+Postgres. S3 bucket: `webapi-storage` (credentials
+`admin_access_key`/`admin_secret_key`, also Infrastructure's). All of these
+come from `deploy/.env`.
 
 ## Migrations
 

@@ -1,33 +1,32 @@
-# Musify — base stack, shared by development and production.
+# Musify: base stack, shared by development and production.
 #
-# This file publishes no host ports and hardcodes no domain: everything that
-# differs between environments comes from the .env file (see .env.example) or
-# from the overlay that is merged on top of it.
+# Postgres, Zitadel, SeaweedFS, RabbitMQ and Jaeger are NOT part of this
+# file. They're shared infrastructure that lives in ../../../Infrastructure
+# and must already be running (see Infrastructure/README.md). This file only
+# has what's specific to Musify: its own database, its own OIDC apps and
+# storage bucket (created against the shared instances below), and its own
+# apps.
 #
 #   dev   docker compose -f deploy/compose.yml -f deploy/compose.dev.yml up -d
 #   prod  docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
 #
-# The four application services sit behind the `apps` profile, so a plain `up`
-# starts the infrastructure plus the one-shot bootstrap jobs (stream-ticket
-# keys, database migrations, Zitadel project/apps) and stops there — the usual
-# dev setup, with the apps running from the IDE. Add `--profile apps up -d
-# --build` as a SECOND command to also build and run them in Docker: by then
-# zitadel-init has already written the OIDC client ids into the env file, so
-# the apps start with real values. See deploy/README.md.
-
-x-app-depends: &app-depends
-  postgres:
-    condition: service_healthy
-  rabbitmq:
-    condition: service_healthy
-  seaweedfs:
-    condition: service_healthy
+# The four application services sit behind the `apps` profile, so a plain
+# `up` runs only the one-shot bootstrap jobs (stream-ticket keys, database
+# migrations, Zitadel project/apps, the storage bucket) and stops there. That's
+# the usual dev setup, with the apps running from the IDE. Add `--profile apps
+# up -d --build` as a SECOND command to also build and run them in Docker: by
+# then zitadel-init has already written the OIDC client ids into the env
+# file, so the apps start with real values. See deploy/README.md.
 
 # Backend settings that are identical for the API and the Worker. ASP.NET Core
 # maps `__` to `:`, so these override the matching AppSettings.json sections.
+# POSTGRES_HOST / RABBITMQ_HOST / JAEGER_HOST differ between environments
+# (host.docker.internal in dev, the container name over infra-net in prod,
+# see .env.example / .env.prod.example), same as PUBLIC_AUTH_URL/S3_PUBLIC_URL
+# already do.
 x-backend-env: &backend-env
-  Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-  MassTransit__Address: "rabbitmq://rabbitmq:5672"
+  Database__ConnectionString: "Host=${POSTGRES_HOST};Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+  MassTransit__Address: "rabbitmq://${RABBITMQ_HOST}:5672"
   MassTransit__Username: ${RABBITMQ_DEFAULT_USER}
   MassTransit__Password: ${RABBITMQ_DEFAULT_PASS}
   # The public S3 URL, not the internal one: the same address is used to sign
@@ -38,128 +37,35 @@ x-backend-env: &backend-env
   InfrastructureStorage__ForcePathStyle: "true"
   InfrastructureStorage__UseHttp: ${S3_USE_HTTP}
   ApplicationStorage__Bucket: ${S3_BUCKET}
-  OpenTelemetry__OtlpEndpoint: "http://jaeger:4317"
+  OpenTelemetry__OtlpEndpoint: "http://${JAEGER_HOST}:4317"
 
 services:
-  # --- Infrastructure -------------------------------------------------------
+  # --- Shared-infrastructure bootstrap ---------------------------------------
 
-  postgres:
+  # Waits for Infrastructure's Postgres to accept connections before `migrate`
+  # runs. This replaces a `depends_on: postgres: condition: service_healthy`:
+  # that only works within the same compose file, and Postgres now lives in a
+  # separate one (../../../Infrastructure).
+  wait-for-postgres:
     image: postgres:17-alpine
-    container_name: musify-postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
-  # OIDC provider. `start-from-init` runs init + setup (both idempotent) and
-  # then starts, so the same command works on a cold and on a warm volume.
-  # It reuses the Postgres above: the admin user creates the `zitadel` database
-  # and role on first start.
-  zitadel:
-    image: ghcr.io/zitadel/zitadel:latest
-    container_name: musify-zitadel
-    command: start-from-init --masterkeyFromEnv --tlsMode disabled
-    environment:
-      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY}
-      # The external domain/port forms the token issuer and must be identical
-      # for the browser, the apps and the containers (Zitadel routes by Host).
-      ZITADEL_EXTERNALSECURE: ${ZITADEL_EXTERNAL_SECURE}
-      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_EXTERNAL_DOMAIN}
-      ZITADEL_EXTERNALPORT: ${ZITADEL_EXTERNAL_PORT}
-      ZITADEL_TLS_ENABLED: "false"
-      ZITADEL_DATABASE_POSTGRES_HOST: postgres
-      ZITADEL_DATABASE_POSTGRES_PORT: 5432
-      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
-      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
-      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DATABASE_PASSWORD}
-      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
-      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${POSTGRES_USER}
-      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD}
-      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
-      # Initial console admin. Login: <username>@zitadel.<external domain>
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_USERNAME}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
-      # Service account + PAT written on init; the provisioning script uses it
-      # to create the Musify project and its OIDC apps.
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: zitadel-admin-sa
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Admin Service Account
-      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
-      ZITADEL_FIRSTINSTANCE_PATPATH: /output/admin-sa.pat
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./zitadel/.output:/output
-    restart: unless-stopped
-
-  rabbitmq:
-    image: rabbitmq:4-management-alpine
-    container_name: musify-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
-  # All-in-one object store: master + volume + filer + S3 gateway.
-  # The S3 identity file is rendered from the environment on start so the
-  # credentials can never drift from the ones handed to the apps.
-  seaweedfs:
-    image: chrislusf/seaweedfs:latest
-    container_name: musify-seaweedfs
+    container_name: musify-wait-for-postgres
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        cat > /tmp/s3.conf <<'JSON'
-        {
-          "identities": [
-            {
-              "name": "musify",
-              "credentials": [{ "accessKey": "${S3_ACCESS_KEY}", "secretKey": "${S3_SECRET_KEY}" }],
-              "actions": ["Admin", "Read", "Write"]
-            }
-          ]
-        }
-        JSON
-        exec weed server \
-          -ip.bind=0.0.0.0 \
-          -dir=/data \
-          -master.volumeSizeLimitMB=1024 \
-          -volume.max=0 \
-          -filer \
-          -s3 \
-          -s3.config=/tmp/s3.conf
-    volumes:
-      - seaweedfs_data:/data
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:9333/cluster/healthz"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
+        set -e
+        deadline=$$(( $$(date +%s) + 60 ))
+        until pg_isready -h ${POSTGRES_HOST} -p 5432 -U ${POSTGRES_USER} >/dev/null 2>&1; do
+          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "postgres did not respond at ${POSTGRES_HOST}:5432. Is Infrastructure running?" >&2; exit 1; }
+          sleep 2
+        done
+    restart: "no"
 
-  # One-shot: SeaweedFS does not auto-create buckets.
+  # One-shot: SeaweedFS does not auto-create buckets. `aws s3 ls` doubles as
+  # the readiness probe, since seaweedfs-init no longer has an in-file
+  # `depends_on: seaweedfs: condition: service_healthy` to wait for.
   seaweedfs-init:
     image: amazon/aws-cli:latest
     container_name: musify-seaweedfs-init
-    depends_on:
-      seaweedfs:
-        condition: service_healthy
     environment:
       AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
@@ -167,13 +73,19 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        aws --endpoint-url http://seaweedfs:8333 s3 mb s3://${S3_BUCKET} 2>/dev/null || true
-        aws --endpoint-url http://seaweedfs:8333 s3 ls
+        set -e
+        deadline=$$(( $$(date +%s) + 60 ))
+        until aws --endpoint-url ${S3_PUBLIC_URL} s3 ls >/dev/null 2>&1; do
+          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "seaweedfs did not respond at ${S3_PUBLIC_URL}. Is Infrastructure running?" >&2; exit 1; }
+          sleep 2
+        done
+        aws --endpoint-url ${S3_PUBLIC_URL} s3 mb s3://${S3_BUCKET} 2>/dev/null || true
+        aws --endpoint-url ${S3_PUBLIC_URL} s3 ls
     restart: "no"
 
   # One-shot: generates the RS256 key pair used to sign (API) and verify
   # (Gateway) stream tickets, if it is not already in ./keys. No host tools
-  # required — openssl runs inside the container.
+  # required, since openssl runs inside the container.
   keys-init:
     image: alpine:3.20
     container_name: musify-keys-init
@@ -203,30 +115,27 @@ services:
       dockerfile: Musify.Migrator.Dockerfile
     container_name: musify-migrate
     depends_on:
-      postgres:
-        condition: service_healthy
+      wait-for-postgres:
+        condition: service_completed_successfully
     environment:
-      Database__ConnectionString: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Database__ConnectionString: "Host=${POSTGRES_HOST};Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     restart: "no"
 
-  # One-shot: creates the Musify project and its two OIDC apps in Zitadel (or
-  # reuses them if they already exist), then writes AUTH_CLIENT_ID,
-  # WEB_CLIENT_ID and WEB_CLIENT_SECRET back into the env file mounted at
-  # /workspace/.env (see compose.dev.yml / compose.prod.yml) — so a later
-  # `--profile apps up` picks up real values instead of empty ones.
+  # One-shot: creates the Musify project and its two OIDC apps in the shared
+  # Zitadel (or reuses them if they already exist), then writes
+  # AUTH_CLIENT_ID, WEB_CLIENT_ID and WEB_CLIENT_SECRET back into the env file
+  # mounted at /workspace/.env (see compose.dev.yml / compose.prod.yml), so a
+  # later `--profile apps up` picks up real values instead of empty ones.
   zitadel-init:
     image: alpine:3.20
     container_name: musify-zitadel-init
-    depends_on:
-      zitadel:
-        condition: service_started
     environment:
       PUBLIC_AUTH_URL: ${PUBLIC_AUTH_URL}
       PUBLIC_API_URL: ${PUBLIC_API_URL}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL}
       ZITADEL_DEV_MODE: ${ZITADEL_DEV_MODE:-false}
     volumes:
-      - ./zitadel/.output:/output:ro
+      - ${ZITADEL_ADMIN_PAT_DIR}:/output:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -240,7 +149,7 @@ services:
         fi
 
         # The env file may have CRLF line endings (edited on Windows), so
-        # strip \r on read and drop it on write — otherwise a "blank" value
+        # strip \r on read and drop it on write, otherwise a "blank" value
         # is actually a lone \r, and `[ -z ... ]` lies.
         env_get() { grep -E "^$$2=" "$$1" 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r'; }
         env_set() {
@@ -257,7 +166,7 @@ services:
         echo "==> waiting for the Zitadel service-account PAT"
         deadline=$$(( $$(date +%s) + 180 ))
         while [ ! -f /output/admin-sa.pat ]; do
-          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "PAT not found, check 'docker logs musify-zitadel'" >&2; exit 1; }
+          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "PAT not found under /output. Is Infrastructure's Zitadel running? Check 'docker logs infra-zitadel'." >&2; exit 1; }
           sleep 3
         done
         PAT=$$(tr -d '\r\n' </output/admin-sa.pat)
@@ -387,14 +296,6 @@ services:
         echo "==> wired into $$ENV_FILE"
     restart: "no"
 
-  # OTLP collector + trace UI (MassTransit / EF Core / HTTP spans).
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: musify-jaeger
-    environment:
-      COLLECTOR_OTLP_ENABLED: "true"
-    restart: unless-stopped
-
   # --- Applications (profile: apps) -----------------------------------------
 
   api:
@@ -404,7 +305,6 @@ services:
       dockerfile: Musify.Api.Dockerfile
     container_name: musify-api
     depends_on:
-      <<: *app-depends
       migrate:
         condition: service_completed_successfully
       keys-init:
@@ -439,7 +339,6 @@ services:
       dockerfile: Musify.Worker.Dockerfile
     container_name: musify-worker
     depends_on:
-      <<: *app-depends
       migrate:
         condition: service_completed_successfully
     environment:
@@ -458,15 +357,13 @@ services:
       dockerfile: Musify.StreamingGateway.Dockerfile
     container_name: musify-gateway
     depends_on:
-      seaweedfs:
-        condition: service_healthy
       keys-init:
         condition: service_completed_successfully
     environment:
       ASPNETCORE_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
       ASPNETCORE_URLS: http://+:8081
       StreamTicket__PublicKeyPath: /keys/stream_public.pem
-      ReverseProxy__Clusters__seaweed-filer__Destinations__filer__Address: "http://seaweedfs:8888/"
+      ReverseProxy__Clusters__seaweed-filer__Destinations__filer__Address: "http://${SEAWEEDFS_HOST}:8888/"
       ReverseProxy__Routes__media__Transforms__0__PathPattern: "/buckets/${S3_BUCKET}/{**rest}"
       Cors__AllowedOrigins__0: ${PUBLIC_WEB_URL}
     volumes:
@@ -495,10 +392,5 @@ services:
       API_BASE_URL: http://api:5111
       # Presigned PUTs are signed for the public S3 host; the container sends
       # them straight to SeaweedFS instead of going back out through the edge.
-      S3_UPLOAD_ENDPOINT: http://seaweedfs:8333
+      S3_UPLOAD_ENDPOINT: ${S3_INTERNAL_URL}
     restart: unless-stopped
-
-volumes:
-  postgres_data:
-  rabbitmq_data:
-  seaweedfs_data:

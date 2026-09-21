@@ -29,9 +29,11 @@ dedicated streaming gateway.
 **Web client**: SvelteKit 2 on Svelte 5 (runes), TypeScript, Tailwind 4.
 The session lives on the server, so the backend access token never reaches the browser.
 
-**Infrastructure**: the whole stack runs from Docker Compose (dev and
-production overlays), with Postgres, RabbitMQ, SeaweedFS, Zitadel and Jaeger
-alongside the apps.
+**Infrastructure**: Musify's own apps run from Docker Compose (dev and
+production overlays). Postgres, RabbitMQ, SeaweedFS, Zitadel and Jaeger are
+shared infrastructure that lives in a separate `Infrastructure` git
+repository, used by Musify and by other projects that need the same OIDC
+provider and object storage.
 
 ## Project layout
 
@@ -41,6 +43,9 @@ web-player/   the SvelteKit web client
 deploy/       Docker Compose stacks for dev and production
 docs/         architecture notes, one file per area
 ```
+
+Postgres, Zitadel, SeaweedFS, RabbitMQ and Jaeger are not part of this
+layout. They live in the separate `Infrastructure` repository instead.
 
 ## Digging deeper
 

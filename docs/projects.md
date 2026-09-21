@@ -69,6 +69,8 @@ real Postgres + SeaweedFS), and `Musify.StreamingGateway.Tests`. Details in
 
 ## Other folders
 
-- **`deploy/`**: self-contained Docker Compose stacks (dev and prod). See
+- **`deploy/`**: Musify's own Docker Compose stacks (dev and prod). The
+  shared infrastructure (Postgres, Zitadel, SeaweedFS, RabbitMQ, Jaeger)
+  lives in the separate `Infrastructure` repo instead. See
   [../deploy/README.md](../deploy/README.md).
 - **`docs/`**: this documentation.
