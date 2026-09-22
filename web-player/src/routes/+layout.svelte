@@ -6,9 +6,9 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import PlayerDock from '$lib/components/player/PlayerDock.svelte';
 	import Queue from '$lib/components/player/Queue.svelte';
-	import Sidebar from '$lib/components/Sidebar.svelte';
-	import TopBar from '$lib/components/TopBar.svelte';
-	import MobileHeader from '$lib/components/MobileHeader.svelte';
+	import Sidebar from '$lib/components/layout/Sidebar.svelte';
+	import TopBar from '$lib/components/layout/TopBar.svelte';
+	import MobileHeader from '$lib/components/layout/MobileHeader.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';
