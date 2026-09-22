@@ -52,7 +52,6 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-panel-bg': light ? `oklch(0.97 0.014 ${H} / 0.7)` : `oklch(0.1 0.022 ${H} / 0.28)`,
 		'--mf-bar-bg': light ? `oklch(0.97 0.014 ${H} / 0.9)` : `oklch(0.115 0.025 ${H} / 0.9)`,
 		'--mf-hairline': light ? `oklch(0.3 0.035 ${H} / 0.1)` : `oklch(0.62 0.05 ${H} / 0.08)`,
-		'--mf-chrome-bg': light ? 'var(--mf-bg)' : `color-mix(in srgb, ${tc(1, 42, h)} 40%, var(--mf-bg))`,
 		'--mf-ambient': light
 			? 'none'
 			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
