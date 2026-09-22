@@ -9,7 +9,7 @@
 		playShuffled,
 		toQueueItem
 	} from '$lib/player/player.svelte';
-	import { fmtTime, plural } from '$lib/format';
+	import { fmtTime, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import Button from '$lib/components/ui/Button.svelte';

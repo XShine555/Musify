@@ -17,7 +17,7 @@
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import TrackList from '$lib/components/ui/TrackList.svelte';
-	import { albumMeta } from '$lib/format';
+	import { albumMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
 

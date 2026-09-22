@@ -15,7 +15,7 @@
 	import { pressable } from '$lib/actions/pressable';
 	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
 	import { mixItemTrack } from '$lib/data/mixes';
-	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/format';
+	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import Artwork from '$lib/components/ui/Artwork.svelte';
 	import MediaCard from '$lib/components/ui/MediaCard.svelte';

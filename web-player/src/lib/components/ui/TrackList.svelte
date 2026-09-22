@@ -32,7 +32,7 @@
 	import Hash from '@lucide/svelte/icons/hash';
 	import Play from '@lucide/svelte/icons/play';
 	import { player } from '$lib/player/player.svelte';
-	import { fmtTime, fmtDate } from '$lib/format';
+	import { fmtTime, fmtDate } from '$lib/utils/format';
 	import { pressable } from '$lib/actions/pressable';
 	import MediaIdentity from './MediaIdentity.svelte';
 	import EqBars from './EqBars.svelte';

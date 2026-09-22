@@ -6,7 +6,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { createPlaylistModal } from '$lib/state/playlists.svelte';
-	import { fmtDurationLong, plural, playlistMeta } from '$lib/format';
+	import { fmtDurationLong, plural, playlistMeta } from '$lib/utils/format';
 
 	let { data } = $props();
 

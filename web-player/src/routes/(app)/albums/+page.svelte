@@ -8,7 +8,7 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { albumMeta } from '$lib/format';
+	import { albumMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
 

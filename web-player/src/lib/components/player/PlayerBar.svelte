@@ -5,7 +5,7 @@
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
-	import { fmtTime } from '$lib/format';
+	import { fmtTime } from '$lib/utils/format';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 

@@ -15,7 +15,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import TrackList from '$lib/components/ui/TrackList.svelte';
-	import { playlistMeta } from '$lib/format';
+	import { playlistMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
 

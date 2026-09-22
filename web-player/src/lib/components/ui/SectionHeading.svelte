@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { plural } from '$lib/format';
+	import { plural } from '$lib/utils/format';
 
 	interface Props {
 		title: string;

@@ -2,7 +2,7 @@
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItem } from '$lib/player/player.svelte';
 	import { fetchAlbumQueueItems } from '$lib/data/albums';
-	import { fmtTime, fmtPlays, plural } from '$lib/format';
+	import { fmtTime, fmtPlays, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Alert from '$lib/components/ui/Alert.svelte';

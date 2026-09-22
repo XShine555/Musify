@@ -4,7 +4,7 @@
 	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
 	import ListRow from '$lib/components/ui/ListRow.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import { fmtTime } from '$lib/format';
+	import { fmtTime } from '$lib/utils/format';
 	import X from '@lucide/svelte/icons/x';
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';

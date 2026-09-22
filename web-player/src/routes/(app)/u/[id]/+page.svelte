@@ -9,7 +9,7 @@
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import { plural, playlistMeta } from '$lib/format';
+	import { plural, playlistMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
 

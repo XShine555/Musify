@@ -3,7 +3,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems } from '$lib/player/player.svelte';
-	import { plural } from '$lib/format';
+	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
