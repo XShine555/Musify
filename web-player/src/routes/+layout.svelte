@@ -14,11 +14,11 @@
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { createPlaylistModal } from '$lib/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/playlists.svelte';
 	import { ACCENT_HUE } from '$lib/theme/color';
 	import { buildThemeTokens, applyThemeTokens, tokensToCss } from '$lib/theme/tokens';
 	import { themeMode } from '$lib/theme/mode.svelte';
-	import { trackNavigation } from '$lib/navigation.svelte';
+	import { trackNavigation } from '$lib/state/navigation.svelte';
 	import { page } from '$app/state';
 
 	let { children, data } = $props();

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { isSectionActive, appNavLinks } from '$lib/navigation.svelte';
+	import { isSectionActive, appNavLinks } from '$lib/state/navigation.svelte';
 	import type { SessionUser } from '$lib/types';
 
 	interface Props {

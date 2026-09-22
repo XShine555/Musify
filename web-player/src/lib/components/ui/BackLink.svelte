@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import { previousPage } from '$lib/navigation.svelte';
+	import { previousPage } from '$lib/state/navigation.svelte';
 
 	interface Props {
 		href: string;

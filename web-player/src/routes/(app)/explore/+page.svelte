@@ -16,8 +16,8 @@
 	import Chip from '$lib/components/ui/Chip.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
-	import { searchHref } from '$lib/navigation.svelte';
-	import { createTrackMenu } from '$lib/menus.svelte';
+	import { searchHref } from '$lib/state/navigation.svelte';
+	import { createTrackMenu } from '$lib/state/menus.svelte';
 	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';

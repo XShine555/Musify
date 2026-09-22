@@ -26,7 +26,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import { createTrackMenu } from '$lib/menus.svelte';
+	import { createTrackMenu } from '$lib/state/menus.svelte';
 	import { HOME_CONTINUE_LIMIT, HOME_POPULAR_MAX } from '$lib/config';
 
 	let { data } = $props();

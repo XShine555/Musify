@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { isSectionActive, appNavLinks } from '$lib/navigation.svelte';
+	import { isSectionActive, appNavLinks } from '$lib/state/navigation.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { createPlaylistModal } from '$lib/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
 	import ListRow from './ui/ListRow.svelte';
 	import IconButton from './ui/IconButton.svelte';

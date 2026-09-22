@@ -5,7 +5,7 @@
 	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { createPlaylistModal } from '$lib/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/playlists.svelte';
 	import { fmtDurationLong, plural, playlistMeta } from '$lib/format';
 
 	let { data } = $props();
