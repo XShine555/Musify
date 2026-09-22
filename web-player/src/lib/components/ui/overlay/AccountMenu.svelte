@@ -44,7 +44,10 @@
 	{@render trigger({ toggle, open })}
 
 	{#if open}
-		<GlassMenu class="absolute top-full right-0 z-(--z-menu) mt-2 overflow-hidden {WIDTH[width]}">
+		<GlassMenu
+			border={false}
+			class="absolute top-full right-0 z-(--z-menu) mt-2 overflow-hidden {WIDTH[width]}"
+		>
 			<MenuItem icon={User} label="Ver perfil" href="/user/{user.sub}" onclick={close} />
 			{@render extraItems?.({ close })}
 			{#if accountUrl}
