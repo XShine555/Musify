@@ -256,12 +256,12 @@
 								subtitleHref={track.ownerUserId}
 							>
 								{#snippet leading()}
-									<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums"
+									<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"
 										>{i + 1}</span
 									>
 								{/snippet}
 								{#snippet trailing()}
-									<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
+									<span class="shrink-0 text-xs text-fg-2 tabular-nums">{fmtTime(seconds)}</span>
 								{/snippet}
 							</ListRow>
 						{:else}
