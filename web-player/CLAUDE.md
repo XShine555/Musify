@@ -1,22 +1,22 @@
-# Musify — web-player
+# Musify: web-player
 
 Musify's public web app (`web-player/` folder). For design and UI recipes, use the **`musify-web`** skill.
 
 ## Stack
 
-SvelteKit 2 (`adapter-node`) · Svelte 5 **runes** · Tailwind 4 · TypeScript strict · Zitadel OIDC auth (`openid-client` + `jose`).
+SvelteKit 2 (`adapter-node`), Svelte 5 **runes**, Tailwind 4, TypeScript strict, Zitadel OIDC auth (`openid-client` + `jose`).
 
-There is no `svelte.config.js` (config is inline in `vite.config.ts`) nor `tailwind.config.js` (config lives in `src/routes/layout.css`).
+There's no `svelte.config.js` (config is inline in `vite.config.ts`) and no `tailwind.config.js` (config lives in `src/routes/layout.css`).
 
 ## Commands
 
 ```sh
-npm run dev         # dev server (port 5173)
+npm run dev          # dev server (port 5173)
 npm run build
-npm run check        # svelte-check — must exit 0 errors before closing a change
-npm run format        # prettier --write .
-npm run lint          # prettier --check . && eslint . && npm run lint:tokens
-npm run lint:tokens   # scripts/check-tokens.mjs — design-system guardrail (see below)
+npm run check         # svelte-check, must exit 0 errors before closing a change
+npm run format         # prettier --write .
+npm run lint            # prettier --check . && eslint . && npm run lint:tokens
+npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail (see below)
 ```
 
 ## Rules
@@ -24,50 +24,48 @@ npm run lint:tokens   # scripts/check-tokens.mjs — design-system guardrail (se
 - **No comments** in code unless essential.
 - `npm run lint` and `npm run check` must exit clean before closing a change.
 - **Always Svelte 5 runes:** `$props()` with `interface Props`, `$state`, `$derived`, `$effect`. No `export let` or `$:`. `{#each}` always keyed.
-- **Server-only code under `$lib/server/`**; never imported from client code.
-- SSR data via `load` in `+page.server.ts`/`+layout.server.ts` → `data` prop.
+- **Server only code goes under `$lib/server/`**, and it's never imported from client code.
+- SSR data comes through `load` in `+page.server.ts`/`+layout.server.ts` and lands in the `data` prop.
 - Links to `+server.ts` endpoints (`/auth/login`, `/auth/logout`) carry `data-sveltekit-reload`.
-- Reuse design-system tokens/recipes; extract to `$lib/components/ui/` whatever repeats.
+- Reuse design system tokens and recipes before writing new CSS. If something repeats, extract it to `$lib/components/ui/`.
 
 ## Folder structure
 
-Full rationale and history in `docs/folder-structure-plan.md`.
-
-- `src/lib/state/` — reactive rune-based state (`*.svelte.ts` with no other home; player state stays in `$lib/player/`, theme mode in `$lib/theme/`).
-- `src/lib/data/` — client-side domain/data helpers (albums, collections, genres, mixes, recentlyPlayed, search).
-- `src/lib/utils/` — generic, domain-agnostic utilities (e.g. `format.ts`).
-- `src/lib/components/layout/` — app chrome (Sidebar, TopBar, TabsBar, MobileHeader).
-- `src/lib/components/player/` — player UI (PlayerBar, PlayerDock, Queue, TrackInfo, TransportControls).
-- `src/lib/components/ui/` — design-system components, split by category:
-  - `primitives/` — generic controls with no music-domain knowledge (Button, Input, Chip, Slider, …).
-  - `overlay/` — anything that floats above content (Modal, ContextMenu, AccountMenu, …).
-  - `media/` — music-domain display components (Artwork, TrackList, MediaCard, PlayButton, …).
-  - `forms/` — composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
-  - `layout/` — page-level scaffolding (Page, PageHeader, SectionHeading) — distinct from `components/layout/`, which is the global app chrome.
-- Auth routes live under `src/routes/auth/` (`+page.svelte` = login screen, `login/`, `logout/`, `callback/` = OIDC endpoints). Public user profile is `src/routes/(app)/user/[id]/`.
+- `src/lib/state/` holds reactive rune based state (`*.svelte.ts` files that don't have a more specific home). Player state stays in `$lib/player/`, theme mode in `$lib/theme/`.
+- `src/lib/data/` holds client side domain helpers: albums, collections, genres, mixes, recentlyPlayed, search.
+- `src/lib/utils/` holds generic utilities with no domain knowledge, like `format.ts`.
+- `src/lib/components/layout/` holds the app chrome: Sidebar, TopBar, TabsBar, MobileHeader.
+- `src/lib/components/player/` holds the player UI: PlayerBar, PlayerDock, Queue, TrackInfo, TransportControls.
+- `src/lib/components/ui/` holds the design system components, split into five categories:
+  - `primitives/` for generic controls with no music domain knowledge (Button, Input, Chip, Slider, and so on).
+  - `overlay/` for anything that floats above the content (Modal, ContextMenu, AccountMenu, and so on).
+  - `media/` for music domain display components (Artwork, TrackList, MediaCard, PlayButton, and so on).
+  - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
+  - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading). This is different from `components/layout/` above, which is the global app chrome.
+- Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`.
 
 ## Styles
 
-The design system lives in `src/routes/layout.css` (`@theme` tokens + `@utility` recipes) and `src/lib/theme/` (`theme.css` for static neutrals, `tokens.ts` for user-hue-dependent dynamic tokens). `scripts/check-tokens.mjs` (`npm run lint:tokens`, part of `lint`) fails if `src/**/*.svelte` reintroduces what the `docs/frontend-refactor-plan.md` (P0–P14) refactor removed — read it before adding an arbitrary value or a "stock" radius/size.
+The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utility` recipes) and in `src/lib/theme/` (`theme.css` for the static neutrals, `tokens.ts` for the dynamic tokens that depend on the user's hue). `scripts/check-tokens.mjs` (run as `npm run lint:tokens`, part of `lint`) fails if `src/**/*.svelte` brings back what the refactor in `docs/frontend-refactor-plan.md` (parts P0 through P14) removed, so read that doc before adding an arbitrary value or a stock radius or size.
 
-- **Radii:** always `rounded-tag/thumb/control/art/art-lg/panel/panel-lg` (or `rounded-full` for pills/circles). Never `rounded-sm/md/lg/xl/2xl/3xl` or bare `rounded`.
-- **Square sizes:** `size-*` instead of repeated `h-N w-N` (icons: `size-icon-xs/sm/md/lg/xl`; covers: `size-cover-xs…hero`).
-- **Typography:** recipes `text-display-1/2/3/4`, `text-eyebrow`, `text-body`, `text-count`; tracking via `tracking-display`/`tracking-eyebrow`, not a loose `tracking-[…]`.
-- **Spacing:** Tailwind scale in `.5` steps (avoid quarters like `.25`/`.75`; only acceptable if the semantic token calls for it, e.g. `mb-4.5` in `SectionHeading`).
-- **Colors:** always `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never literal hex or `rgba()` in a `.svelte` file (those literals only exist as the source of truth inside `theme.css`/`tokens.ts`).
-- **`style="…"` and arbitrary `-[…]` values:** only the whitelist in section B.4 of `docs/frontend-refactor-plan.md` (stagger `--i`, tile hue, menu position, dynamic widths/heights via `var(--mf-*)`, `text-[clamp(…)]`, `grid-cols-[auto_1fr]`, `max-h-[85dvh]`, `vh` paddings for vertical centering). Everything else goes to a token.
-- Base components to reuse before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `SegmentedControl`, `CoverForm`.
-- Known, accepted gaps (documented in `scripts/check-tokens.mjs`): `strokeWidth={n}` on icons isn't unified (13 distinct values spread across almost every component; safely migrating it to `stroke-thin/regular/bold` recipes would require visually verifying that `lucide-svelte` respects `stroke-width` via CSS, so it was left out of that pass).
+- **Radii:** always `rounded-tag/thumb/control/art/art-lg/panel/panel-lg` (or `rounded-full` for pills and circles). Never `rounded-sm/md/lg/xl/2xl/3xl` or a bare `rounded`.
+- **Square sizes:** use `size-*` instead of repeating `h-N w-N` (icons: `size-icon-xs/sm/md/lg/xl`; covers: `size-cover-xs` through `size-cover-hero`).
+- **Typography:** use the recipes `text-display-1/2/3/4`, `text-eyebrow`, `text-body`, `text-count`, with tracking through `tracking-display`/`tracking-eyebrow` rather than a loose `tracking-[…]`.
+- **Spacing:** stick to the Tailwind scale in `.5` steps and avoid quarters like `.25`/`.75`, unless the semantic token calls for it (for example `mb-4.5` in `SectionHeading`).
+- **Colors:** always use `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never a literal hex or `rgba()` inside a `.svelte` file; those literals only belong in `theme.css`/`tokens.ts` as the source of truth.
+- **Inline `style="…"` and arbitrary `-[…]` values:** only the ones whitelisted in section B.4 of `docs/frontend-refactor-plan.md` (the stagger variable `--i`, tile hue, menu position, dynamic widths and heights through `var(--mf-*)`, `text-[clamp(…)]`, `grid-cols-[auto_1fr]`, `max-h-[85dvh]`, and `vh` paddings for vertical centering). Everything else should become a token.
+- Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `SegmentedControl`, `CoverForm`.
+- Known and accepted gap (documented in `scripts/check-tokens.mjs`): icon `strokeWidth={n}` isn't unified yet. There are 13 different values spread across almost every component, and migrating them to `stroke-thin/regular/bold` recipes safely would require visually confirming that `lucide-svelte` actually respects `stroke-width` through CSS, so that was left out of the last pass.
 
 ## Auth
 
-`hooks.server.ts` validates the encrypted session cookie (`mf_session`), refreshes the `access_token`, and populates `locals.user` / `locals.accessToken`. To protect a route, check `locals.user` in its `load` and redirect to `/auth?returnTo=…`. For the backend, send `locals.accessToken` as a Bearer token to `API_BASE_URL`.
+`hooks.server.ts` validates the encrypted session cookie (`mf_session`), refreshes the `access_token`, and fills `locals.user` and `locals.accessToken`. To protect a route, check `locals.user` in its `load` and redirect to `/auth?returnTo=…`. When talking to the backend, send `locals.accessToken` as a Bearer token to `API_BASE_URL`.
 
-Environment variables in `.env` (see `.env.example`): `ZITADEL_*`, `AUTH_REDIRECT_URI`, `AUTH_POST_LOGOUT_URI`, `SESSION_SECRET`, `API_BASE_URL`.
+Environment variables live in `.env` (see `.env.example`): `ZITADEL_*`, `AUTH_REDIRECT_URI`, `AUTH_POST_LOGOUT_URI`, `SESSION_SECRET`, `API_BASE_URL`.
 
 ## Backend API
 
-Typed client via `openapi-fetch` over `Musify.Api`'s OpenAPI spec. In a server `load`/action:
+Typed client via `openapi-fetch` over the `Musify.Api` OpenAPI spec. Inside a server `load` or action:
 
 ```ts
 import { createApiClient } from '$lib/server/api';
@@ -75,4 +73,4 @@ const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefine
 const { data, error: err } = await api.GET('/tracks');
 ```
 
-Returns `{ data, error }` (ErrorOr-style), never throws. Types live in `src/lib/api/schema.d.ts` and are regenerated with `npm run gen:api` (requires the dev API running at `API_BASE_URL`, which exposes `/openapi/v1.json` only in Development).
+It returns `{ data, error }` (ErrorOr style) and never throws. The types live in `src/lib/api/schema.d.ts` and get regenerated with `npm run gen:api` (this needs the dev API running at `API_BASE_URL`, which only exposes `/openapi/v1.json` in Development).

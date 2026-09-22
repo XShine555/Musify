@@ -1,160 +1,128 @@
-# Musify — Guía de páginas
+# Musify, page guide
 
-Documento vivo de qué debe contener cada página del frontend web. Sirve como mapa
-para priorizar features. El sistema de diseño (tokens, recetas, componentes) vive en
-el skill `musify-web`; aquí describimos **contenido y estructura**, no estilos.
+Living document describing what each page of the web frontend should contain. It works as a map for prioritizing features. The design system (tokens, recipes, components) lives in the `musify-web` skill; here we describe **content and structure**, not styling.
 
-Leyenda de estado: ✅ hecho · 🟡 parcial / maqueta · ⬜ pendiente.
+Status legend: ✅ done · 🟡 partial / mockup · ⬜ pending.
 
-> **Nota (rediseño app):** se está portando el prototipo `Musify.dc.html` (app: sidebar +
-> vistas + player persistente con acento dinámico por pista). La landing de marketing se
-> eliminó. Las secciones de abajo describen el diseño anterior y quedan pendientes de
-> actualizar a las vistas de la app (Inicio, Buscar, Biblioteca, Subir, Importar, Descargas,
-> Playlists). El **player** ya está hecho por componentes en `$lib/components/player/` con el
-> tema en `$lib/theme/` (`theme.css` paleta + `color.ts` acento/gradiente).
+> **Note (app redesign):** the `Musify.dc.html` prototype is being ported over (an app with a sidebar, views, and a persistent player with a dynamic accent per track). The marketing landing page was removed. The sections below still describe the older design and are pending an update to match the app views (Home, Search, Library, Upload, Import, Downloads, Playlists). The **player** is already built as components in `$lib/components/player/`, with its theme in `$lib/theme/` (`theme.css` for the palette, `color.ts` for the accent and gradient).
 
-## Inicio (app) `/` 🟡
+## Home (app) `/` 🟡
 
-- **Hero**: saludo + "Tu música. Sin límites." con color-wash del hue de la pista actual.
-- **Acceso rápido = escuchado recientemente** (`player.recentlyPlayed`, hoy en cliente).
-  Estado vacío con icono + CTA «Explorar».
-- **Tus playlists**: tarjetas mosaico de las playlists (hoy datos de muestra). Estado vacío.
+- **Hero**: a greeting plus "Your music. No limits." with a color wash taken from the current track's hue.
+- **Quick access, meaning recently played** (`player.recentlyPlayed`, client side for now). Empty state with an icon and an "Explore" CTA.
+- **Your playlists**: mosaic cards for the user's playlists (sample data for now). Has an empty state.
 
-### Backend pendiente (ASP.NET) para Inicio
+### Pending backend work (ASP.NET) for Home
 
-- **Escuchado recientemente**: registrar reproducciones por usuario (tabla de historial:
-  `userId`, `trackId`, `playedAt`) y exponer `GET /me/recently-played?limit=` (o
-  `/users/{id}/recently-played`) devolviendo pistas ordenadas por `playedAt` desc, sin
-  duplicados. El front lo cargaría en un `load` y lo pasaría al store en vez de `recentlyPlayed`.
-- **Playlists por última escucha**: añadir `lastPlayedAt` a la playlist (hoy el schema solo
-  tiene `createdAt`/`updatedAt`) y permitir ordenar `GET /playlists/users/{userId}` por ese
-  campo (p. ej. `?sort=lastPlayed`), para mostrar «tus últimas escuchadas».
-- Las pistas necesitarán **artista** y un **color/hue** (o portada real de la que extraerlo)
-  para el arte y el acento dinámico; hoy `TrackApplicationResponse` no trae artista ni color.
+- **Recently played**: track plays per user (a history table with `userId`, `trackId`, `playedAt`) and expose `GET /me/recently-played?limit=` (or `/users/{id}/recently-played`), returning tracks ordered by `playedAt` descending, with no duplicates. The frontend would load this in a `load` function and pass it to the store instead of using `recentlyPlayed`.
+- **Playlists by last listen**: add `lastPlayedAt` to the playlist (the schema currently only has `createdAt`/`updatedAt`) and allow sorting `GET /playlists/users/{userId}` by that field (for example `?sort=lastPlayed`), to show "your most recently played" playlists.
+- Tracks will need an **artist** and a **color/hue** (or a real cover to extract one from) for the artwork and the dynamic accent. Right now `TrackApplicationResponse` carries neither artist nor color.
 
-## Estructura de rutas
+## Route structure
 
-Rutas agrupadas para separar lo público de lo autenticado (los grupos no cambian la URL):
+Routes are grouped to separate the public experience from the authenticated one (the groups don't change the URL):
 
 ```
 src/routes/
-  (marketing)/        Público, sin sesión obligatoria
+  (marketing)/        Public, no session required
     +page.svelte        /            Landing            ✅
-  (app)/              Experiencia de la app
-    explore/            /explore     Explorar / buscar  ✅
-    upload/             /upload      Subir música       🟡 maqueta
-    library/            /library     Tu biblioteca      ⬜
-    playlists/          /playlists   Tus playlists      ⬜
-      [id]/             /playlists/:id  Detalle playlist ⬜
-  auth  auth/login  auth/logout  auth/callback  Auth (página + endpoints)   ✅
-  api/tracks/[id]/stream             Proxy de stream    ✅
+  (app)/              The app experience
+    explore/            /explore     Explore / search    ✅
+    upload/             /upload      Upload music         🟡 mockup
+    library/             /library     Your library          ⬜
+    playlists/            /playlists   Your playlists         ⬜
+      [id]/                /playlists/:id  Playlist detail    ⬜
+  auth  auth/login  auth/logout  auth/callback  Auth (page + endpoints)   ✅
+  api/tracks/[id]/stream             Stream proxy         ✅
 ```
 
-Componentes globales (en todas las páginas): **Navbar**, **Footer** y **PlayerBar**
-(barra de reproducción fija, aparece al reproducir).
+Global components (present on every page): **Navbar**, **Footer**, and **PlayerBar** (the fixed playback bar, shown while something is playing).
 
 ---
 
 ## 1. Landing `/` ✅ (marketing)
 
-Página de entrada para no autenticados. Vender el producto y llevar a registro/explorar.
+The entry page for logged out visitors. Its job is to sell the product and drive people to sign up or explore.
 
-- **Hero**: badge de estado (beta), título, subtítulo, CTAs primario (Empezar gratis →
-  registro) y secundario (Explorar canciones).
-- **Features**: 3 cards (escuchar, playlists, subir).
-- **Pendiente sugerido**: sección de capturas/demo, prueba social, FAQ corta.
+- **Hero**: a status badge (beta), a title, a subtitle, a primary CTA (Start for free, leading to sign up) and a secondary one (Explore songs).
+- **Features**: three cards covering listening, playlists, and uploading.
+- **Suggested next steps**: a screenshots or demo section, social proof, a short FAQ.
 
 ## 2. Login / Auth ✅ (endpoints)
 
-`/auth` es la pantalla de login de Musify; sus botones llevan a `/auth/login`, que inicia
-el flujo OIDC de Zitadel y redirige. `?mode=register` arranca en registro; `?returnTo=`
-vuelve a la ruta pedida tras entrar. `/auth/logout` cierra sesión. `/auth/callback`
-intercambia el código y crea la cookie cifrada `mf_session`. La UI de credenciales la
-sirve Zitadel, no Musify.
+`/auth` is Musify's login screen; its buttons lead to `/auth/login`, which kicks off the Zitadel OIDC flow and redirects. `?mode=register` starts on the sign up variant, and `?returnTo=` sends the user back to the route they came from once they're in. `/auth/logout` ends the session. `/auth/callback` exchanges the code and creates the encrypted `mf_session` cookie. The credentials UI itself is served by Zitadel, not by Musify.
 
-## 3. Explorar / Buscar `/explore` ✅ (app)
+## 3. Explore / Search `/explore` ✅ (app)
 
-Descubrimiento y búsqueda de canciones del catálogo.
+Discovery and search over the catalog.
 
-- **Buscador**: input de texto (`?q=`) que filtra por nombre en el backend.
-- **Contador de resultados** y **grid de tracks** (2→4 columnas): portada, título, fecha,
-  botón play/pausa en hover que encola y reproduce vía el player global.
-- **Paginación** anterior/siguiente (`?page=`, 24 por página).
-- **Estado vacío**: sin resultados / catálogo vacío.
-- **Pendiente sugerido**: filtros (más recientes, por usuario), skeletons de carga,
-  portada real del track (hoy la API de listado no devuelve la key de imagen).
+- **Search box**: a text input (`?q=`) that filters by name on the backend.
+- **Results count** and a **track grid** (2 to 4 columns): cover, title, date, and a play/pause button on hover that queues and plays through the global player.
+- **Pagination**: previous/next (`?page=`, 24 per page).
+- **Empty state**: no results, or an empty catalog.
+- **Suggested next steps**: filters (most recent, by user), loading skeletons, a real track cover (the listing API doesn't currently return the image key).
 
-## 4. Subir música `/upload` 🟡 maqueta (app)
+## 4. Upload music `/upload` 🟡 mockup (app)
 
-Alta de una canción nueva. Flujo real de backend (para cuando se cablee):
+Adding a new song. The real backend flow, for when it gets wired up:
 
-1. `POST /tracks/upload-urls` → URLs presignadas para portada y audio + `intentId`s.
-2. `PUT` de cada archivo a su URL presignada (subida directa al almacenamiento).
-3. `POST /tracks` con `title`, `pictureIntentId`, `audioIntentId`.
-4. El backend procesa el audio (transcodifica a DASH) de forma asíncrona.
+1. `POST /tracks/upload-urls` returns presigned URLs for cover and audio, plus `intentId`s.
+2. `PUT` each file to its presigned URL (a direct upload to storage).
+3. `POST /tracks` with `title`, `pictureIntentId`, `audioIntentId`.
+4. The backend processes the audio asynchronously (transcoding it to DASH).
 
-Contenido de la página:
+What the page needs:
 
-- **Zona de audio**: drag & drop o selector; muestra nombre y tamaño del archivo, validación
-  de tipo (audio) y tamaño.
-- **Portada**: selector de imagen con vista previa cuadrada.
-- **Metadatos**: título (obligatorio). Espacio para futuros campos (descripción, etc.).
-- **Pipeline visible**: pasos Subir → Procesar → Publicar con su estado.
-- **Barra de progreso** de subida y estado de procesado.
-- **Estados**: vacío, archivo seleccionado, subiendo, procesando, publicado, error.
-- **Requiere sesión** (al cablear: redirigir a `/auth?returnTo=/upload`).
+- **Audio zone**: drag and drop or a file picker, showing the file's name and size, with type (audio) and size validation.
+- **Cover**: an image picker with a square preview.
+- **Metadata**: title (required), with room for future fields like a description.
+- **Visible pipeline**: the Upload, Process, Publish steps and their status.
+- **Progress bar** for the upload and the processing state.
+- **States**: empty, file selected, uploading, processing, published, error.
+- **Requires a session** (once wired up: redirect to `/auth?returnTo=/upload`).
 
-## 5. Tu biblioteca `/library` ⬜ (app)
+## 5. Your library `/library` ⬜ (app)
 
-Panel personal del usuario autenticado: lo suyo en un sitio.
+The authenticated user's personal panel, everything of theirs in one place.
 
-- **Tabs / secciones**: «Tus canciones» (`GET /tracks/users/{userId}`) y «Tus playlists»
-  (`GET /playlists/users/{userId}`).
-- **Tus canciones**: lista con play, y acciones de gestión (borrar `DELETE /tracks/{id}`,
-  añadir a playlist).
-- **Tus playlists**: grid de portadas + botón «Crear playlist».
-- **Estado vacío** con CTA a subir / crear.
-- **Requiere sesión**.
+- **Tabs / sections**: "Your songs" (`GET /tracks/users/{userId}`) and "Your playlists" (`GET /playlists/users/{userId}`).
+- **Your songs**: a list with play, plus management actions (delete via `DELETE /tracks/{id}`, add to a playlist).
+- **Your playlists**: a grid of covers with a "Create playlist" button.
+- **Empty state** with a CTA to upload or create.
+- **Requires a session.**
 
 ## 6. Playlists `/playlists` ⬜ (app)
 
-Listado de las playlists del usuario.
+A listing of the user's playlists.
 
-- **Grid** de playlists (portada, nombre, nº de tracks) → enlaza al detalle.
-- **Crear playlist**: modal/página con nombre, descripción y portada
-  (`POST /playlists`, portada vía `POST /playlists/upload-picture`).
-- **Estado vacío** con CTA.
-- **Requiere sesión**.
+- **Grid** of playlists (cover, name, track count), linking to the detail page.
+- **Create playlist**: a modal or page with a name, description, and cover (`POST /playlists`, cover via `POST /playlists/upload-picture`).
+- **Empty state** with a CTA.
+- **Requires a session.**
 
-## 7. Detalle de playlist `/playlists/[id]` ⬜ (app)
+## 7. Playlist detail `/playlists/[id]` ⬜ (app)
 
-- **Cabecera**: portada grande, nombre, descripción, nº de tracks, botón «Reproducir todo».
-- **Lista de tracks** (`GET /playlists/{id}/tracks`, paginada): índice, título, fecha,
-  play, quitar de la playlist (`DELETE /playlists/{id}/tracks/{trackId}`).
-- **Acciones del dueño**: editar (`PUT`), borrar (`DELETE`) la playlist, reordenar (futuro).
-- **Añadir tracks**: desde explorar/biblioteca (`POST /playlists/{id}/tracks/{trackId}`).
+- **Header**: a large cover, name, description, track count, and a "Play all" button.
+- **Track list** (`GET /playlists/{id}/tracks`, paginated): index, title, date, play, and remove from the playlist (`DELETE /playlists/{id}/tracks/{trackId}`).
+- **Owner actions**: edit (`PUT`), delete (`DELETE`) the playlist, reorder (a future addition).
+- **Add tracks**: from explore or the library (`POST /playlists/{id}/tracks/{trackId}`).
 
-## 8. Perfil de usuario `/user/[id]` ⬜ (futuro)
+## 8. User profile `/user/[id]` ⬜ (future)
 
-Vista pública de un usuario: avatar, nombre, sus canciones y playlists públicas
-(`GET /users/{id}`, `GET /tracks/users/{id}`, `GET /playlists/users/{id}`).
+A public view of a user: avatar, name, their public songs and playlists (`GET /users/{id}`, `GET /tracks/users/{id}`, `GET /playlists/users/{id}`).
 
 ---
 
-## Player global (PlayerBar) ✅
+## Global player (PlayerBar) ✅
 
-Barra fija inferior visible al reproducir. Info de la pista, transporte
-(anterior/play-pausa/siguiente), barra de progreso y control de volumen. Encola listas
-desde cualquier grid (`player.playQueue`). Reproduce DASH vía el proxy
-`/api/tracks/:id/stream`, que pide manifiesto + ticket firmado al backend.
+A fixed bottom bar, visible while something is playing. Shows track info, transport controls (previous, play/pause, next), a progress bar, and volume control. Queues lists from any grid (`player.playQueue`). Plays DASH through the `/api/tracks/:id/stream` proxy, which requests a manifest and a signed ticket from the backend.
 
-## Backend disponible (resumen)
+## Available backend (summary)
 
-| Recurso   | Endpoints                                                               |
-| --------- | ----------------------------------------------------------------------- |
-| Tracks    | listar/buscar, detalle, por usuario, stream, crear, borrar, upload-urls |
-| Playlists | CRUD, tracks de la playlist, add/remove track, upload-picture           |
-| Users     | listar/buscar, detalle, crear                                           |
+| Resource  | Endpoints                                                            |
+| --------- | --------------------------------------------------------------------- |
+| Tracks    | list/search, detail, by user, stream, create, delete, upload-urls     |
+| Playlists | CRUD, playlist tracks, add/remove track, upload-picture               |
+| Users     | list/search, detail, create                                            |
 
-Cliente tipado en `$lib/server/api.ts` (`openapi-fetch`, estilo ErrorOr). Consumir en
-`load`/actions server, nunca desde cliente. Tipos en `src/lib/api/schema.d.ts`.
+Typed client in `$lib/server/api.ts` (`openapi-fetch`, ErrorOr style). Use it inside `load`/server actions, never from the client. Types live in `src/lib/api/schema.d.ts`.
