@@ -42,7 +42,7 @@
 	};
 
 	const classes = $derived(
-		`inline-flex items-center justify-center gap-2 rounded-control transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
+		`inline-flex items-center justify-center gap-2 rounded-control btn-transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
 	);
 </script>
 
