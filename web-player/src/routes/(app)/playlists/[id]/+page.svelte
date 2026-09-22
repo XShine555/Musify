@@ -1,10 +1,6 @@
 <script lang="ts">
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import X from '@lucide/svelte/icons/x';
-	import Play from '@lucide/svelte/icons/play';
-	import Pause from '@lucide/svelte/icons/pause';
-	import SquarePencil from '@lucide/svelte/icons/square-pen';
-	import Trash from '@lucide/svelte/icons/trash';
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
@@ -66,19 +62,15 @@
 		{#snippet actions()}
 			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
 				{#if isCurrentQueue && player.playing}
-					<Pause class="size-4" strokeWidth={1.5} />
 					Pausar
 				{:else}
-					<Play class="size-4" strokeWidth={1.5} />
 					Reproducir
 				{/if}
 			</Button>
 			<Button size="sm" variant="secondary" onclick={() => (editing = true)}>
-				<SquarePencil class="size-4" strokeWidth={1.5} />
 				Editar
 			</Button>
 			<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
-				<Trash class="size-4" strokeWidth={1.5} />
 				Eliminar
 			</Button>
 		{/snippet}

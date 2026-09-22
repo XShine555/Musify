@@ -17,6 +17,6 @@
 </script>
 
 <span class="flex items-center gap-3">
-	<span class="{MARK[size]} bg-[image:var(--mf-logo-grad)]"></span>
+	<span class="{MARK[size]} bg-(image:--mf-logo-grad)"></span>
 	<span class={TEXT[size]}>Musify</span>
 </span>

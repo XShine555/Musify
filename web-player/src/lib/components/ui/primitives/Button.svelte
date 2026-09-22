@@ -3,7 +3,7 @@
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'glass' | 'accent' | 'strong' | 'danger';
+		variant?: 'primary' | 'secondary' | 'accent' | 'danger';
 		size?: 'sm' | 'md' | 'lg';
 		type?: 'button' | 'submit';
 		href?: string;
@@ -34,15 +34,10 @@
 		lg: 'px-6 py-3.5 text-sm'
 	};
 
-	const subtle = 'bg-btn text-fg-2 hover:bg-btn-hover hover:text-fg';
-	const glass = 'font-normal bg-btn-glass text-fg-2 hover:bg-btn-glass-hover hover:text-fg';
-
 	const variants = {
-		primary: subtle,
-		secondary: subtle,
-		glass,
+		primary: 'bg-cta-strong text-ink hover:brightness-95',
+		secondary: 'bg-btn text-fg-2 hover:bg-btn-hover hover:text-fg',
 		accent: 'bg-accent-btn text-accent-soft hover:bg-accent-btn-hover',
-		strong: 'bg-cta-strong text-ink hover:brightness-95',
 		danger: 'bg-danger text-on-art hover:brightness-110'
 	};
 

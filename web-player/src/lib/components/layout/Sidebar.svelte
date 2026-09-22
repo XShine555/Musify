@@ -34,10 +34,6 @@
 	class="hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 theme-transition lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
-	<a href="/" class="px-3 pb-3">
-		<Logo size="sm" />
-	</a>
-
 	<nav class="flex flex-col gap-1">
 		{#each navLinks as link (link.href)}
 			{@const active = isActive(link.href)}
@@ -48,7 +44,7 @@
 					? 'bg-surface-2 text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
-				<link.icon class="size-4.5 shrink-0" strokeWidth={1.5} />
+				<link.icon class="size-icon-md shrink-0" strokeWidth={1.5} />
 				<span class="flex-1 truncate">{link.label}</span>
 				{#if link.count}
 					<span class="text-xs text-muted tabular-nums">{link.count}</span>
@@ -68,12 +64,12 @@
 					size="xs"
 					onclick={() => createPlaylistModal.show()}
 				>
-					<Plus class="size-icon-sm" strokeWidth={1.25} />
+					<Plus class="size-icon-sm text-muted" strokeWidth={1.25} />
 				</IconButton>
 			{/if}
 		</div>
 
-		<div class="flex flex-1 flex-col gap-px overflow-y-auto pb-4.5">
+		<div class="flex flex-1 flex-col gap-px overflow-y-auto pb-icon-md">
 			{#each playlists as playlist (playlist.id)}
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
 				<ListRow

@@ -151,12 +151,12 @@
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
 					{#if spotlight}
-						<Button variant="strong" onclick={playSpotlight}>
+						<Button variant="primary" onclick={playSpotlight}>
 							{heroPlaying ? 'Pausar' : 'Reanudar'}
 							{spotlight.name}
 						</Button>
 					{/if}
-					<Button href="/explore" variant="glass">Explorar música</Button>
+					<Button href="/explore" variant="secondary">Explorar música</Button>
 				</div>
 			</div>
 
@@ -242,7 +242,7 @@
 						</p>
 						<div class="mt-5 flex gap-2.5">
 							<Button variant="accent" onclick={playSpotlight}>Reproducir</Button>
-							<Button variant="glass" onclick={shuffleSpotlight}>Aleatorio</Button>
+							<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
 						</div>
 					</div>
 					<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">
@@ -314,7 +314,7 @@
 							trackId={track.id}
 						>
 							{#snippet leading()}
-								<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
+								<span class="flex h-3.5 w-icon-md shrink-0 items-end justify-center">
 									{#if isCurrent}
 										<EqBars size={13} paused={!player.playing} />
 									{:else}

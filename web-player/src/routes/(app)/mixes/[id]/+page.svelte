@@ -1,6 +1,4 @@
 <script lang="ts">
-	import Play from '@lucide/svelte/icons/play';
-	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import {
 		player,
@@ -75,10 +73,8 @@
 		{#snippet actions()}
 			<Button size="sm" onclick={() => playAllOrToggle(queue)} disabled={queue.length === 0}>
 				{#if isCurrentQueue && player.playing}
-					<Pause class="size-4" strokeWidth={1.5} />
 					Pausar
 				{:else}
-					<Play class="size-4" strokeWidth={1.5} />
 					Reproducir
 				{/if}
 			</Button>
