@@ -41,7 +41,7 @@
 	};
 
 	const TEXT: Record<'muted' | 'subtle' | 'plain', string> = {
-		muted: 'text-muted hover:text-fg',
+		muted: 'text-fg-2 hover:text-fg',
 		subtle: 'text-fg-2 hover:text-fg',
 		plain: 'text-fg-2 hover:text-fg'
 	};

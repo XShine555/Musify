@@ -63,6 +63,6 @@
 			>
 			{@render badge?.()}
 		</div>
-		<ArtistLink name={artist} {ownerUserId} class="mt-0.5 text-xs text-fg-3" />
+		<ArtistLink name={artist} {ownerUserId} class="mt-0.5 text-xs text-fg-2" />
 	</div>
 </div>

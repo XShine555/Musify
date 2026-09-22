@@ -91,7 +91,7 @@
 
 <div class="overflow-x-auto {klass}">
 	<div
-		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-3 pl-2 text-sm text-fg-3 sm:gap-8 sm:pr-6 sm:pl-3"
+		class="grid track-grid items-center gap-3 border-b border-line pr-4 pb-3 pl-2 text-sm text-fg-2 sm:gap-8 sm:pr-6 sm:pl-3"
 		style="--mf-track-cols:{gridColumns}; --mf-track-cols-mobile:{gridColumnsMobile}"
 	>
 		{#if index}
@@ -106,13 +106,14 @@
 			<span></span>
 		{/if}
 	</div>
-	<div class="mt-1 flex flex-col gap-0.5">
+	<div class="mt-1 flex flex-col gap-0.5" role="list">
 		{#each tracks as track, i (track.id)}
 			{@const active = player.current.id === track.id}
 
 			<div
+				role="listitem"
 				class="group grid track-grid items-center gap-3 rounded-control py-3 pr-4 pl-2 transition-colors sm:gap-8 sm:pr-6 sm:pl-3 {active
-					? 'bg-accent-tint'
+					? 'surface-active'
 					: 'hover:bg-hover'}"
 				style="--mf-track-cols:{gridColumns}; --mf-track-cols-mobile:{gridColumnsMobile}"
 				oncontextmenu={oncontextmenu ? (event) => oncontextmenu(event, track, i) : undefined}
@@ -122,7 +123,7 @@
 						type="button"
 						onclick={() => onPlay(i)}
 						aria-label={active && player.playing ? 'Pausar' : 'Reproducir'}
-						class="relative grid size-8 place-items-center rounded-tag text-xs text-muted tabular-nums"
+						class="relative grid size-8 place-items-center rounded-tag text-xs text-fg-2 tabular-nums"
 					>
 						{#if active}
 							<EqBars paused={!player.playing} />
@@ -138,6 +139,7 @@
 					tabindex="0"
 					use:pressable={() => onPlay(i)}
 					onclick={(event) => event.stopPropagation()}
+					onkeydown={(event) => event.stopPropagation()}
 					class="flex min-w-0 flex-1 text-left"
 				>
 					<MediaIdentity
@@ -156,7 +158,7 @@
 					</MediaIdentity>
 				</div>
 				{#each columns as column (column)}
-					<span class="hidden truncate text-center text-xs text-muted tabular-nums sm:block">
+					<span class="hidden truncate text-center text-xs text-fg-2 tabular-nums sm:block">
 						{#if column === 'plays'}
 							{Number(track.listensCount ?? 0)}
 						{:else if column === 'added' && track.addedAt}
@@ -166,7 +168,7 @@
 						{/if}
 					</span>
 				{/each}
-				<span class="truncate text-center text-xs text-muted tabular-nums">
+				<span class="truncate text-center text-xs text-fg-2 tabular-nums">
 					{fmtTime(Number(track.duration))}
 				</span>
 				{#if rowAction}

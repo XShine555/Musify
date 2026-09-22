@@ -88,7 +88,7 @@
 		<div class="flex items-center justify-between gap-4 rounded-art bg-surface px-4 py-3.5">
 			<div class="min-w-0">
 				<div class="text-sm font-medium text-fg-2">Visibilidad</div>
-				<div class="mt-0.5 text-xs text-muted">
+				<div class="mt-0.5 text-xs text-fg-2">
 					{visibility === 'private'
 						? 'Solo tú la ves en tu biblioteca'
 						: 'Cualquiera con el enlace puede verla'}

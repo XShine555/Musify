@@ -29,20 +29,20 @@
 	}: Props = $props();
 
 	const sizes = {
-		sm: 'px-4 py-2.5 text-xs',
-		md: 'px-5 py-3 text-sm',
-		lg: 'px-6 py-3.5 text-sm'
+		sm: 'rounded-control px-4 py-2 text-xs',
+		md: 'rounded-btn-sm px-4.5 py-2.5 text-control-sm',
+		lg: 'rounded-btn px-6 py-3.5 text-sm'
 	};
 
 	const variants = {
-		primary: 'bg-cta-strong text-ink hover:brightness-95',
+		primary: 'bg-cta-strong text-ink hover:bg-cta-strong-hover',
 		secondary: 'bg-btn text-fg hover:bg-btn-hover',
-		accent: 'bg-accent-tint text-accent-soft hover:bg-accent-btn-hover',
+		accent: 'surface-active text-accent-soft hover:surface-active-hover',
 		danger: 'bg-danger text-on-art hover:brightness-110'
 	};
 
 	const classes = $derived(
-		`inline-flex items-center justify-center gap-2 rounded-control btn-transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
+		`inline-flex items-center justify-center gap-2 font-medium btn-transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
 	);
 </script>
 

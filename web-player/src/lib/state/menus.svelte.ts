@@ -1,4 +1,7 @@
-import { contextMenuPosition, type MenuPosition } from '$lib/components/ui/overlay/ContextMenu.svelte';
+import {
+	contextMenuPosition,
+	type MenuPosition
+} from '$lib/components/ui/overlay/ContextMenu.svelte';
 import { player, toQueueItem, type ApiTrackLike } from '../player/player.svelte';
 
 export type TrackMenuState = { track: ApiTrackLike } & MenuPosition;

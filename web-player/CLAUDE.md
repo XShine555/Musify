@@ -57,6 +57,14 @@ The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utili
 - Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `SegmentedControl`, `CoverForm`.
 - Known and accepted gap (documented in `scripts/check-tokens.mjs`): icon `strokeWidth={n}` isn't unified yet. There are 13 different values spread across almost every component, and migrating them to `stroke-thin/regular/bold` recipes safely would require visually confirming that `lucide-svelte` actually respects `stroke-width` through CSS, so that was left out of the last pass.
 
+## Motion
+
+Every animation follows one scale of three durations and one easing curve, all defined in `theme.css`. Fast (`--mf-motion-fast`, 150ms) is for hover, focus and press feedback: color, opacity and small scale changes. Plain `transition` or `transition-colors` already uses it because it is the Tailwind default, so never write `duration-150`. Base (`--mf-motion-base`, 200ms) is for things that appear on top of the page or move inside a control: modals, menus, the queue panel, `animate-pop`, `animate-fade` and the segmented control thumb. Slow (`--mf-motion-slow`, 300ms) is for content entering the page and larger movement: `animate-enter`, cover zoom on hover and the player dock padding.
+
+Entrances and movement always use `--mf-ease` (`ease-snappy` in Tailwind, `expoOut` in Svelte transitions), which feels immediate because most of the motion happens at the start. Color transitions keep the Tailwind default curve. Overlays must feel instant: the modal backdrop uses `transition:fade={{ duration: 200 }}` and the panel uses a local `pop` transition (opacity + scale + translateY, `expoOut`, 200ms) mirroring `animate-pop`'s keyframes — both directives so the modal fades and pops on close too, not just on open, and the whole thing settles in 200ms. Staggered lists use `--i` with 40ms steps capped at ten items.
+
+The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in `+layout.svelte` (600ms), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
+
 ## Auth
 
 `hooks.server.ts` validates the encrypted session cookie (`mf_session`), refreshes the `access_token`, and fills `locals.user` and `locals.accessToken`. To protect a route, check `locals.user` in its `load` and redirect to `/auth?returnTo=…`. When talking to the backend, send `locals.accessToken` as a Bearer token to `API_BASE_URL`.

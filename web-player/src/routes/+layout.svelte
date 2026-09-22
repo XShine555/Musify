@@ -10,6 +10,7 @@
 	import TopBar from '$lib/components/layout/TopBar.svelte';
 	import MobileHeader from '$lib/components/layout/MobileHeader.svelte';
 	import Modal from '$lib/components/ui/overlay/Modal.svelte';
+	import DialogHost from '$lib/components/ui/overlay/DialogHost.svelte';
 	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
@@ -87,6 +88,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- CSS generado a partir de números, sin entrada de usuario -->
 	{@html `<style>${initialThemeCss}</style>`}
 </svelte:head>
 
@@ -134,3 +136,5 @@
 		</Modal>
 	</div>
 {/if}
+
+<DialogHost />

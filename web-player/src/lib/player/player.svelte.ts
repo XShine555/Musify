@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
 import { shuffle } from '$lib/data/collections';
+import { dialog } from '$lib/state/dialog.svelte';
 
 export interface PlayerTrack {
 	id: string | number;
@@ -119,7 +120,6 @@ class PlayerState {
 	progress = $state(0);
 	volume = $state(browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100);
 	loading = $state(false);
-	error = $state('');
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
 	shuffle = $state(false);
@@ -173,7 +173,7 @@ class PlayerState {
 			this.#stopProgressLoop();
 			this.loading = false;
 			this.playing = false;
-			this.error = 'No se pudo reproducir la pista.';
+			this.#fail();
 		});
 		this.#audio = audio;
 		this.#setupMediaSession(audio);
@@ -268,7 +268,6 @@ class PlayerState {
 		if (track) this.#syncMediaSessionMetadata(track);
 		const token = ++this.#loadToken;
 		this.loading = true;
-		this.error = '';
 		this.progress = 0;
 		try {
 			const src = await this.#resolveLocalSrc(String(id));
@@ -283,11 +282,21 @@ class PlayerState {
 			if (token !== this.#loadToken) return;
 			this.loading = false;
 			this.playing = false;
-			this.error =
-				exception instanceof Error && exception.message
+			if (exception instanceof DOMException && exception.name === 'AbortError') return;
+			this.#fail(
+				exception instanceof Error && !(exception instanceof DOMException)
 					? exception.message
-					: 'No se pudo reproducir la pista.';
+					: undefined
+			);
 		}
+	}
+
+	#fail(detail?: string) {
+		dialog.error(
+			'No se pudo reproducir la pista',
+			detail || 'El archivo no está disponible o su formato no es compatible.',
+			[{ label: 'Cerrar' }]
+		);
 	}
 
 	async #resolveLocalSrc(id: string): Promise<string> {

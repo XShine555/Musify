@@ -20,7 +20,7 @@
 	{/if}
 	{@render children()}
 	{#if hint}
-		<div class="mt-2 flex items-center justify-between gap-3 text-xs text-muted">
+		<div class="mt-2 flex items-center justify-between gap-3 text-xs text-fg-2">
 			{@render hint()}
 		</div>
 	{/if}

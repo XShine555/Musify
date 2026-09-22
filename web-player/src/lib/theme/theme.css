@@ -7,14 +7,14 @@
 	--mf-tile-shade-c: 0.035;
 
 	--mf-text: #d9d8dc;
-	--mf-text-2: #8a8a8e;
-	--mf-text-3: #7d7d81;
-	--mf-text-4: #646468;
+	--mf-text-2: #b1b0b5;
 
 	--mf-surface: rgba(255, 255, 255, 0.022);
-	--mf-surface-2: rgba(255, 255, 255, 0.045);
+	--mf-surface-2: rgba(255, 255, 255, 0.055);
 	--mf-surface-hover: rgba(255, 255, 255, 0.06);
-	--mf-btn-bg-hover: var(--mf-surface-hover);
+	--mf-row-hover: rgba(255, 255, 255, 0.035);
+	--mf-btn-bg: rgba(255, 255, 255, 0.055);
+	--mf-btn-bg-hover: rgba(255, 255, 255, 0.09);
 
 	--mf-border: rgba(255, 255, 255, 0.04);
 	--mf-border-strong: rgba(255, 255, 255, 0.09);
@@ -24,7 +24,14 @@
 	--mf-on-art: #fefdfb;
 	--mf-on-art-2: #cac8c3;
 	--mf-ink: #0a0a0d;
-	--mf-cta-strong-bg: #c4c4c8;
+	--mf-cta-strong-bg: #c6c4cb;
+	--mf-cta-strong-hover: #d8d7dc;
+	--mf-danger-fg: oklch(0.885 0.062 18.334);
+
+	--mf-motion-fast: 150ms;
+	--mf-motion-base: 200ms;
+	--mf-motion-slow: 300ms;
+	--mf-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
 	--mf-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
@@ -71,15 +78,15 @@
 }
 
 :root[data-theme='light'] {
-	--mf-text: #17171a;
-	--mf-text-2: #4a4a4e;
-	--mf-text-3: #6b6b6f;
-	--mf-text-4: #8c8c90;
+	--mf-text: #17161c;
+	--mf-text-2: #5d5c66;
 
 	--mf-surface: rgba(0, 0, 0, 0.035);
 	--mf-surface-2: rgba(0, 0, 0, 0.06);
-	--mf-surface-hover: #e8eceb;
-	--mf-btn-bg-hover: var(--mf-surface-hover);
+	--mf-surface-hover: rgba(26, 24, 38, 0.06);
+	--mf-row-hover: rgba(26, 24, 38, 0.04);
+	--mf-btn-bg: rgba(255, 255, 255, 0.7);
+	--mf-btn-bg-hover: #ffffff;
 
 	--mf-scrollbar: rgba(0, 0, 0, 0.18);
 	--mf-scrollbar-hover: rgba(0, 0, 0, 0.32);
@@ -89,8 +96,10 @@
 	--mf-track: rgba(0, 0, 0, 0.12);
 
 	--mf-scrim: #ffffff;
-	--mf-ink: #ffffff;
-	--mf-cta-strong-bg: #17171a;
+	--mf-ink: #f7f6f9;
+	--mf-cta-strong-bg: #1b1a20;
+	--mf-cta-strong-hover: #2e2d36;
+	--mf-danger-fg: oklch(0.5 0.16 25);
 
 	--mf-tile-l: 0.58;
 	--mf-tile-c: 0.085;

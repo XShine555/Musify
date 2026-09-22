@@ -24,7 +24,7 @@
 <a
 	href={target.url}
 	{onclick}
-	class="inline-flex items-center text-fg-3 transition-colors hover:text-accent-soft"
+	class="inline-flex items-center text-fg-2 transition-colors hover:text-accent-soft"
 >
 	<span class="grid size-8 place-items-center">
 		<ArrowLeft class="size-icon-sm" />

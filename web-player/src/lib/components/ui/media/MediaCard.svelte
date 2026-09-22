@@ -38,7 +38,7 @@
 				{trackIds}
 				size="fill"
 				alt={title}
-				class="rounded-art transition duration-300 group-hover:scale-105"
+				class="rounded-art transition duration-300 ease-snappy group-hover:scale-105"
 			/>
 		{/if}
 		{#if onPlay}
@@ -50,12 +50,12 @@
 				size="sm"
 				onclick={onPlay}
 				label="Reproducir {title}"
-				class="absolute right-2.5 bottom-2.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+				class="absolute right-2.5 bottom-2.5 opacity-0 transition-opacity group-hover:opacity-100"
 			/>
 		{/if}
 	</div>
 	<div class="mt-2.5 truncate text-sm text-fg">{title}</div>
 	{#if subtitle}
-		<div class="mt-0.5 truncate text-xs text-fg-3">{subtitle}</div>
+		<div class="mt-0.5 truncate text-xs text-fg-2">{subtitle}</div>
 	{/if}
 </a>

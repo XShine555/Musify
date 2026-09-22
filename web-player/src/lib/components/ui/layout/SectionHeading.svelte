@@ -30,21 +30,21 @@
 		{title}
 	</h2>
 	{#if subtitle}
-		<p class="mt-1 text-xs text-fg-3">{subtitle}</p>
+		<p class="mt-1 text-xs text-fg-2">{subtitle}</p>
 	{/if}
 {/snippet}
 
 {#snippet autoActions()}
 	{#if count !== undefined}
 		<div class="h-px flex-1 self-center bg-line"></div>
-		<span class="shrink-0 text-xs text-muted tabular-nums">
+		<span class="shrink-0 text-xs text-fg-2 tabular-nums">
 			{plural(count, 'resultado', 'resultados')}
 		</span>
 	{/if}
 	{#if href}
 		<a
 			{href}
-			class="shrink-0 text-xs font-medium tracking-wider text-fg-3 uppercase transition-colors hover:text-fg"
+			class="shrink-0 text-xs font-medium tracking-wider text-fg-2 uppercase transition-colors hover:text-fg"
 		>
 			{linkLabel}
 		</a>

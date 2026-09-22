@@ -69,21 +69,21 @@
 		<label
 			class="flex h-9.5 w-full items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
 		>
-			<Search class="size-4 shrink-0 text-fg-3" strokeWidth={1.8} />
+			<Search class="size-4 shrink-0 text-fg-2" strokeWidth={1.8} />
 			<input
 				type="text"
 				bind:this={searchInput}
 				bind:value={query}
 				oninput={onInput}
 				placeholder="Canciones, artistas, álbumes o playlists"
-				class="w-full min-w-0 bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
+				class="w-full min-w-0 bg-transparent text-sm text-fg placeholder:text-fg-2 focus:outline-none"
 			/>
 			{#if query}
 				<button
 					type="button"
 					onclick={clearQuery}
 					aria-label="Borrar búsqueda"
-					class="grid size-5 shrink-0 place-items-center rounded-full text-muted transition hover:text-fg"
+					class="grid size-5 shrink-0 place-items-center rounded-full text-fg-2 transition hover:text-fg"
 				>
 					<X class="size-3.5" />
 				</button>

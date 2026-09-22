@@ -12,7 +12,9 @@
 </script>
 
 <div
-	class="glass-panel animate-pop rounded-panel p-1.5 {border ? 'border border-hairline' : ''} {klass}"
+	class="glass-panel animate-pop rounded-panel p-1.5 {border
+		? 'border border-hairline'
+		: ''} {klass}"
 	{style}
 >
 	{@render children()}

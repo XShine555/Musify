@@ -16,7 +16,7 @@
 
 <div class="relative flex shrink-0 rounded-full bg-surface-2 p-1">
 	<div
-		class="absolute inset-y-1 left-1 rounded-full bg-fg transition-transform duration-300 ease-out"
+		class="absolute inset-y-1 left-1 rounded-full bg-fg transition-transform duration-200 ease-snappy"
 		style="width:calc((100% - 0.5rem) / {options.length}); transform:translateX(calc({index} * 100%))"
 	></div>
 	{#each options as option (option.value)}
@@ -26,7 +26,7 @@
 			class="relative z-(--z-raised) flex-1 px-4 py-1.5 text-center text-xs font-medium transition-colors {value ===
 			option.value
 				? 'text-ink'
-				: 'text-muted hover:text-fg-2'}"
+				: 'text-fg-2 hover:text-fg-2'}"
 		>
 			{option.label}
 		</button>

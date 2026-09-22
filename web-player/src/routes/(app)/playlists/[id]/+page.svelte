@@ -67,9 +67,7 @@
 					Reproducir
 				{/if}
 			</Button>
-			<Button size="sm" variant="secondary" onclick={() => (editing = true)}>
-				Editar
-			</Button>
+			<Button size="sm" variant="secondary" onclick={() => (editing = true)}>Editar</Button>
 			<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
 				Eliminar
 			</Button>

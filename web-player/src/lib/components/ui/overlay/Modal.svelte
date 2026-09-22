@@ -2,6 +2,9 @@
 	import type { Snippet } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
 	import IconButton from '../primitives/IconButton.svelte';
+	import { fade } from 'svelte/transition';
+	import { expoOut } from 'svelte/easing';
+	import type { TransitionConfig } from 'svelte/transition';
 
 	interface Props {
 		open: boolean;
@@ -45,6 +48,15 @@
 		);
 	}
 
+	function pop(node: Element, { duration = 200 }: { duration?: number } = {}): TransitionConfig {
+		return {
+			duration,
+			easing: expoOut,
+			css: (t) =>
+				`opacity: ${t}; transform: scale(${0.98 + 0.02 * t}) translateY(${0.25 * (1 - t)}rem);`
+		};
+	}
+
 	function onWindowKeydown(event: KeyboardEvent) {
 		if (!open) return;
 		if (event.key === 'Escape') {
@@ -70,13 +82,15 @@
 
 {#if open}
 	<div
-		class="animate-fade fixed inset-0 z-(--z-modal) grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm"
+		transition:fade={{ duration: 200 }}
+		class="fixed inset-0 z-(--z-modal) grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm"
 		role="presentation"
 		onclick={onBackdropClick}
 	>
 		<div
 			bind:this={panel}
-			class="glass-panel animate-pop max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
+			transition:pop={{ duration: 200 }}
+			class="glass-panel max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}
@@ -86,7 +100,7 @@
 				<div class="flex items-center justify-between gap-4">
 					<div class="min-w-0">
 						{#if eyebrow}
-							<p class="mb-2.5 text-eyebrow text-muted">
+							<p class="mb-2.5 text-eyebrow text-fg-2">
 								{eyebrow}
 							</p>
 						{/if}

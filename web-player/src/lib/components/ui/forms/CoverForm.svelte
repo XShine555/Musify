@@ -80,7 +80,7 @@
 
 	<div class="flex items-center justify-between gap-4">
 		{#if helperText}
-			<p class="text-sm text-muted">{helperText}</p>
+			<p class="text-sm text-fg-2">{helperText}</p>
 		{:else}
 			<span></span>
 		{/if}

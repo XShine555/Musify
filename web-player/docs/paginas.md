@@ -119,10 +119,10 @@ A fixed bottom bar, visible while something is playing. Shows track info, transp
 
 ## Available backend (summary)
 
-| Resource  | Endpoints                                                            |
-| --------- | --------------------------------------------------------------------- |
-| Tracks    | list/search, detail, by user, stream, create, delete, upload-urls     |
-| Playlists | CRUD, playlist tracks, add/remove track, upload-picture               |
-| Users     | list/search, detail, create                                            |
+| Resource  | Endpoints                                                         |
+| --------- | ----------------------------------------------------------------- |
+| Tracks    | list/search, detail, by user, stream, create, delete, upload-urls |
+| Playlists | CRUD, playlist tracks, add/remove track, upload-picture           |
+| Users     | list/search, detail, create                                       |
 
 Typed client in `$lib/server/api.ts` (`openapi-fetch`, ErrorOr style). Use it inside `load`/server actions, never from the client. Types live in `src/lib/api/schema.d.ts`.

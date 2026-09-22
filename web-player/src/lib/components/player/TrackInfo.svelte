@@ -49,7 +49,7 @@
 		<ArtistLink
 			name={player.current.artist || '—'}
 			ownerUserId={player.current.ownerUserId}
-			class="mt-0.5 text-xs text-fg-3"
+			class="mt-0.5 text-xs text-fg-2"
 		/>
 	</div>
 	{#if !compact}

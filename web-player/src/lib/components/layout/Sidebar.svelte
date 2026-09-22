@@ -6,7 +6,6 @@
 	import type { SessionUser } from '$lib/types';
 	import ListRow from '../ui/media/ListRow.svelte';
 	import IconButton from '../ui/primitives/IconButton.svelte';
-	import Logo from '../ui/primitives/Logo.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 
 	interface SidebarPlaylist {
@@ -40,14 +39,14 @@
 			<a
 				href={link.href}
 				aria-current={active ? 'page' : undefined}
-				class="flex items-center gap-3 rounded-control px-3 py-2 text-sm transition-colors duration-150 {active
+				class="flex items-center gap-3 rounded-control px-3 py-2 text-sm transition-colors {active
 					? 'bg-surface-2 text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
 				<link.icon class="size-icon-md shrink-0" strokeWidth={1.5} />
 				<span class="flex-1 truncate">{link.label}</span>
 				{#if link.count}
-					<span class="text-xs text-muted tabular-nums">{link.count}</span>
+					<span class="text-xs text-fg-2 tabular-nums">{link.count}</span>
 				{/if}
 			</a>
 		{/each}
@@ -56,7 +55,7 @@
 	{#if user}
 		<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
 		<div class="flex items-center justify-between px-3 pb-1.5">
-			<span class="text-eyebrow text-muted">Tus playlists</span>
+			<span class="text-eyebrow text-fg-2">Tus playlists</span>
 			{#if playlists.length > 0}
 				<IconButton
 					label="Crear playlist"
@@ -64,7 +63,7 @@
 					size="xs"
 					onclick={() => createPlaylistModal.show()}
 				>
-					<Plus class="size-icon-sm text-muted" strokeWidth={1.25} />
+					<Plus class="size-icon-sm text-fg-2" strokeWidth={1.25} />
 				</IconButton>
 			{/if}
 		</div>
@@ -87,7 +86,7 @@
 				<button
 					type="button"
 					onclick={() => createPlaylistModal.show()}
-					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-muted transition-colors hover:bg-hover hover:text-fg-2"
+					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg-2"
 				>
 					<Plus class="size-3.5" strokeWidth={1.8} />
 					Crear tu primera lista

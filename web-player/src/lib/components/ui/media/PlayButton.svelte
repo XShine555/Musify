@@ -26,12 +26,12 @@
 	};
 
 	const VARIANT: Record<'strong' | 'glass', string> = {
-		strong: 'bg-cta-strong text-ink hover:brightness-95',
+		strong: 'bg-cta-strong text-ink hover:bg-cta-strong-hover',
 		glass: 'border border-on-art/12 bg-ink/76 text-fg backdrop-blur'
 	};
 
 	const classes = $derived(
-		`grid shrink-0 place-items-center rounded-full transition duration-150 ${SIZE[size]} ${VARIANT[variant]} ${klass}`
+		`grid shrink-0 place-items-center rounded-full transition ${SIZE[size]} ${VARIANT[variant]} ${klass}`
 	);
 </script>
 

@@ -9,3 +9,5 @@ package
 package-lock.json
 src/lib/api/schema.d.ts
 static
+.agents
+skills-lock.json

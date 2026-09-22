@@ -134,9 +134,7 @@
 </svelte:head>
 
 <Page>
-	<div
-		class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 sm:px-9 sm:py-8.5"
-	>
+	<div class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 sm:px-9 sm:py-8.5">
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
@@ -173,7 +171,7 @@
 					{#each statsList as stat (stat.label)}
 						<div>
 							<div class="text-display-2 text-fg">{stat.value}</div>
-							<div class="mt-1 text-xs text-fg-3">{stat.label}</div>
+							<div class="mt-1 text-xs text-fg-2">{stat.label}</div>
 						</div>
 					{/each}
 				</div>
@@ -245,7 +243,7 @@
 							<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
 						</div>
 					</div>
-					<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">
+					<div class="flex flex-col gap-2 p-5.5 sm:p-6">
 						{#each spotlightRows as { track, seconds }, i (track.id)}
 							<ListRow
 								onclick={() => playSpotlightTrack(i)}
@@ -265,7 +263,7 @@
 								{/snippet}
 							</ListRow>
 						{:else}
-							<p class="p-2 text-sm text-fg-3">Esta playlist todavía no tiene canciones.</p>
+							<p class="p-2 text-sm text-fg-2">Esta playlist todavía no tiene canciones.</p>
 						{/each}
 					</div>
 				</div>
@@ -318,12 +316,12 @@
 									{#if isCurrent}
 										<EqBars size={13} paused={!player.playing} />
 									{:else}
-										<span class="text-xs text-muted tabular-nums">{i + 1}</span>
+										<span class="text-xs text-fg-2 tabular-nums">{i + 1}</span>
 									{/if}
 								</span>
 							{/snippet}
 							{#snippet trailing()}
-								<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+								<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
 									{fmtPlays(track.listensCount)}
 								</span>
 							{/snippet}

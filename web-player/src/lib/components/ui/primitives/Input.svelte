@@ -36,7 +36,7 @@
 
 <div class="relative w-full">
 	{#if Icon}
-		<span class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-muted">
+		<span class="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-fg-2">
 			<Icon class="size-icon-lg" />
 		</span>
 	{/if}

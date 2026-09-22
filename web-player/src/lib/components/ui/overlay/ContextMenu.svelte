@@ -63,7 +63,7 @@
 				class="flex items-center gap-3 rounded-control px-2 py-2.5 text-sm font-medium text-fg-2 transition group-hover/addmenu:bg-hover"
 			>
 				<span class="flex-1 cursor-default">{playlistAction.label}</span>
-				<ChevronRight class="size-icon-sm shrink-0 text-fg-3" />
+				<ChevronRight class="size-icon-sm shrink-0 text-fg-2" />
 			</div>
 			<div
 				class="invisible absolute top-0 z-(--z-submenu) opacity-0 transition group-hover/addmenu:visible group-hover/addmenu:opacity-100 max-sm:top-full max-sm:right-0 max-sm:left-0 max-sm:px-0 max-sm:pt-1.5 {openLeft
@@ -75,7 +75,7 @@
 				>
 					<div class="max-h-80 overflow-y-auto">
 						{#if playlists.length === 0}
-							<p class="px-2 py-2.5 text-sm text-fg-3">Todavía no tienes playlists.</p>
+							<p class="px-2 py-2.5 text-sm text-fg-2">Todavía no tienes playlists.</p>
 						{/if}
 						{#each playlists as playlist (playlist.id)}
 							<form

@@ -249,7 +249,7 @@
 				{/if}
 
 				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
-					<div class="text-eyebrow leading-none font-semibold text-fg-3">
+					<div class="text-eyebrow leading-none font-semibold text-fg-2">
 						Mejor resultado · {TOP_RESULT_KIND_LABEL[topResult.kind]}
 					</div>
 					<div
@@ -264,7 +264,7 @@
 									: topResult.user.name}
 					</div>
 					{#if topResult.kind === 'track' && topResult.track.artist}
-						<div class="truncate text-sm leading-none text-fg-3">
+						<div class="truncate text-sm leading-none text-fg-2">
 							{topResult.track.artist}
 						</div>
 					{/if}
@@ -276,6 +276,7 @@
 			<svelte:element
 				this={topResult.kind === 'track' ? 'button' : 'a'}
 				type={topResult.kind === 'track' ? 'button' : undefined}
+				role={topResult.kind === 'track' ? 'button' : 'link'}
 				href={topResult.kind === 'track' ? undefined : topResultHref}
 				onclick={topResult.kind === 'track' ? playTopResult : undefined}
 				class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
@@ -348,7 +349,7 @@
 											{/if}
 										{/snippet}
 										{#snippet trailing()}
-											<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+											<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
 												{fmtTime(seconds)} · {fmtPlays(track.listensCount)}
 											</span>
 										{/snippet}
@@ -383,7 +384,7 @@
 									oncontextmenu={(e) => openAlbumMenu(e, album.id)}
 								>
 									{#snippet trailing()}
-										<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+										<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
 											{Number(album.trackCount)} canciones
 										</span>
 									{/snippet}
