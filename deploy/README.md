@@ -180,9 +180,6 @@ and `web-player/Dockerfile`.
   the comments in `.env.example`).
 - **Zitadel** runs `start-from-init`, which is idempotent: the same command
   works on an empty volume and on an existing one.
-- **`AppSettings*.json` are PascalCase** in `Musify.Api` and `Musify.Worker`;
-  on case-sensitive Linux the host looks for `appsettings*.json`, so their
-  Dockerfiles create lowercase copies at publish time.
 - **Re-running `zitadel-init`, `seaweedfs-init` or `migrate`** is safe: they
   reuse the existing project/apps/bucket by name, and `migrate` is a normal
   `dotnet ef database update`, a no-op once the schema is current.

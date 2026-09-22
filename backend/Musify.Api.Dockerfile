@@ -12,10 +12,6 @@ RUN dotnet restore Hosts/Musify.Api/Api.csproj
 
 COPY . .
 RUN dotnet publish Hosts/Musify.Api/Api.csproj -c Release -o /app --no-restore
-# Config files are AppSettings*.json (PascalCase); on case-sensitive Linux the host
-# looks for appsettings*.json. Add lowercase copies so they get loaded.
-RUN cp /app/AppSettings.json /app/appsettings.json \
-    && cp /app/AppSettings.Development.json /app/appsettings.Development.json
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

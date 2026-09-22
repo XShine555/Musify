@@ -11,9 +11,6 @@ RUN dotnet restore Hosts/Musify.Worker/Worker.csproj
 
 COPY . .
 RUN dotnet publish Hosts/Musify.Worker/Worker.csproj -c Release -o /app --no-restore
-# AppSettings*.json (PascalCase) -> lowercase copies for case-sensitive Linux.
-RUN cp /app/AppSettings.json /app/appsettings.json \
-    && cp /app/AppSettings.Development.json /app/appsettings.Development.json
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

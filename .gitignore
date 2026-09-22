@@ -7,6 +7,9 @@ obj/
 *.userosscache
 .vs/
 artifacts/
+TestResults/
+*.trx
+*.coverage
 
 # Rider / VS
 .idea/

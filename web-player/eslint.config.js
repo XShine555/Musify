@@ -36,12 +36,6 @@ export default ts.config(
 		}
 	},
 	{
-		ignores: [
-			'build/',
-			'.svelte-kit/',
-			'static/',
-			'src/lib/api/schema.d.ts',
-			'design_handoff_musify_player/'
-		]
+		ignores: ['build/', '.svelte-kit/', 'static/', 'src/lib/api/schema.d.ts']
 	}
 );
