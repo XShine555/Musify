@@ -109,8 +109,12 @@ para este tamaño):
 Sin barrels/`index.ts` — actualizar cada ruta de import directamente, no hace falta esa
 indirección para esto.
 
-Hacer **un sub-commit por categoría** (mover + actualizar imports + `npm run check`) en vez
-de mover las 38 de una vez, para mantener el diff revisable.
+Idealmente un sub-commit por categoría, pero en la práctica hay imports relativos
+(`./X.svelte`) que cruzan categorías (p. ej. `AlbumForm` → `CoverForm`+`Field`+`Input`, que
+caen en `forms/`+`primitives/`), así que mover una categoría a la vez deja `npm run check`
+roto a mitad de camino. Se hizo en **un único commit** que mueve las 38 a la vez y reescribe
+todos los imports (internos y externos) — sigue siendo revisable porque son solo
+renames + cambios de ruta de import, sin lógica nueva.
 
 **Cierre:** las 5 subcarpetas creadas, `ui/` raíz sin `.svelte` sueltos, imports
 actualizados, `npm run check` y `npm run lint` limpios.
@@ -119,9 +123,9 @@ actualizados, `npm run check` y `npm run lint` limpios.
 
 ## Registro
 
-- [ ] F1 — estado reactivo → `lib/state/`
-- [ ] F2 — helpers de dominio → `lib/data/`
-- [ ] F3 — utilidades genéricas (`format.ts` → `lib/utils/`)
-- [ ] F4 — componentes de layout/chrome → `components/layout/`
+- [x] F1 — estado reactivo → `lib/state/`
+- [x] F2 — helpers de dominio → `lib/data/`
+- [x] F3 — utilidades genéricas (`format.ts` → `lib/utils/`)
+- [x] F4 — componentes de layout/chrome → `components/layout/`
 - [ ] F5 — consolidar rutas de auth bajo `/auth/` (opcional, pendiente de confirmación)
-- [ ] F6 — categorizar `components/ui/` (primitives/overlay/media/forms/layout)
+- [x] F6 — categorizar `components/ui/` (primitives/overlay/media/forms/layout)
