@@ -63,7 +63,6 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-spotlight-bg': light
 			? `linear-gradient(120deg, ${glow(0.9, 0.04, 0.55)}, ${glow(0.96, 0.02, 0.35)} 55%)`
 			: `linear-gradient(120deg, ${glow(0.22, 0.04, 0.5)}, ${glow(0.13, 0.02, 0.3)} 55%, ${glow(0.11, 0.015, 0.2)})`,
-		'--mf-logo-grad': `linear-gradient(${accent}, ${accent})`,
 		'--mf-cover-grad': light
 			? `linear-gradient(150deg, oklch(0.84 0.03 ${H}), oklch(0.74 0.02 ${H}))`
 			: `linear-gradient(150deg, oklch(0.34 0.03 ${H}), oklch(0.18 0.015 ${H}))`

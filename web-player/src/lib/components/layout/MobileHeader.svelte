@@ -18,7 +18,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-(--z-sticky) flex h-14 items-center justify-between border-b border-hairline bg-bg/85 page-x backdrop-blur-md sm:hidden"
+	class="sticky top-0 z-(--z-sticky) flex h-14 items-center justify-between bg-transparent page-x backdrop-blur-md sm:hidden"
 >
 	<a href="/">
 		<Logo size="sm" />

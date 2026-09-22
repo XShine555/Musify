@@ -7,6 +7,7 @@
 	import ListRow from '../ui/media/ListRow.svelte';
 	import IconButton from '../ui/primitives/IconButton.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Logo from '../ui/primitives/Logo.svelte';
 
 	interface SidebarPlaylist {
 		id: string;
@@ -33,6 +34,10 @@
 	class="hidden shrink-0 flex-col border-r border-hairline p-5 lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
+	<a href="/" class="mb-4">
+		<Logo size="sm" />
+	</a>
+
 	<nav class="flex flex-col gap-1">
 		{#each navLinks as link (link.href)}
 			{@const active = isActive(link.href)}
