@@ -35,14 +35,13 @@
 	};
 
 	const subtle = 'bg-btn text-fg-2 hover:bg-btn-hover hover:text-fg';
-	const glass =
-		'font-normal border border-hairline bg-btn-glass backdrop-blur-md text-fg-2 hover:bg-btn-glass-hover hover:text-fg';
+	const glass = 'font-normal bg-btn-glass text-fg-2 hover:bg-btn-glass-hover hover:text-fg';
 
 	const variants = {
 		primary: subtle,
 		secondary: subtle,
 		glass,
-		accent: 'bg-accent-btn text-accent-muted hover:bg-accent-btn-hover',
+		accent: 'bg-accent-btn text-accent-soft hover:bg-accent-btn-hover',
 		strong: 'bg-cta-strong text-ink hover:brightness-95',
 		danger: 'bg-danger text-on-art hover:brightness-110'
 	};
