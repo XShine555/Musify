@@ -18,7 +18,7 @@
 {#if queuePanel.open}
 	<aside
 		transition:fly={{ x: 24, duration: 220, easing: cubicOut }}
-		class="hidden shrink-0 flex-col border-l border-hairline bg-bg px-4 pt-5 sm:flex"
+		class="hidden shrink-0 flex-col border-l border-hairline bg-chrome px-4 pt-5 sm:flex"
 		style="width:var(--mf-queue-w); padding-bottom:calc(var(--mf-player-h) + 2rem)"
 	>
 		<div class="mb-5 flex items-center justify-between">

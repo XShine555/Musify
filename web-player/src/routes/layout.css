@@ -5,6 +5,7 @@
 	--font-display: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
 
 	--color-bg: var(--mf-bg);
+	--color-chrome: var(--mf-chrome-bg);
 	--color-elevated: var(--mf-elevated);
 	--color-surface: var(--mf-surface);
 	--color-surface-2: var(--mf-surface-2);
@@ -127,7 +128,7 @@
 	transition-duration: var(--default-transition-duration);
 }
 @utility glass-bar {
-	background-image: var(--mf-bar-bg);
+	background-color: var(--mf-bar-bg);
 	border-top: 1px solid var(--mf-hairline);
 	backdrop-filter: blur(24px);
 }

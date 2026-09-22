@@ -8,8 +8,8 @@ function r(value: number, digits = 4): string {
 }
 
 function tc(alpha: number, l: number, hue: number): string {
-	const lightness = 0.34 - l / 380;
-	const chroma = Math.max(0, 0.11 - l / 1600);
+	const lightness = 0.37 - l / 380;
+	const chroma = Math.max(0, 0.15 - l / 1600);
 	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
 }
 
@@ -47,11 +47,12 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-accent-hair': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.09)`,
 		'--mf-accent-btn-bg': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.15)`,
 		'--mf-accent-btn-bg-hover': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.24)`,
-		'--mf-bg': light ? `oklch(0.97 0.014 ${H})` : `oklch(0.068 0.008 ${H})`,
-		'--mf-elevated': light ? `oklch(0.99 0.008 ${H})` : `oklch(0.11 0.012 ${H})`,
-		'--mf-panel-bg': light ? `oklch(0.97 0.014 ${H} / 0.7)` : `oklch(0.09 0.01 ${H} / 0.28)`,
-		'--mf-bar-bg': light ? `oklch(0.97 0.014 ${H} / 0.9)` : `oklch(0.105 0.012 ${H} / 0.9)`,
-		'--mf-hairline': light ? `oklch(0.3 0.035 ${H} / 0.1)` : `oklch(0.62 0.03 ${H} / 0.08)`,
+		'--mf-bg': light ? `oklch(0.97 0.014 ${H})` : `oklch(0.075 0.02 ${H})`,
+		'--mf-elevated': light ? `oklch(0.99 0.008 ${H})` : `oklch(0.12 0.025 ${H})`,
+		'--mf-panel-bg': light ? `oklch(0.97 0.014 ${H} / 0.7)` : `oklch(0.1 0.022 ${H} / 0.28)`,
+		'--mf-bar-bg': light ? `oklch(0.97 0.014 ${H} / 0.9)` : `oklch(0.115 0.025 ${H} / 0.9)`,
+		'--mf-hairline': light ? `oklch(0.3 0.035 ${H} / 0.1)` : `oklch(0.62 0.05 ${H} / 0.08)`,
+		'--mf-chrome-bg': light ? 'var(--mf-bg)' : `color-mix(in srgb, ${tc(1, 42, h)} 40%, var(--mf-bg))`,
 		'--mf-ambient': light
 			? 'none'
 			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
