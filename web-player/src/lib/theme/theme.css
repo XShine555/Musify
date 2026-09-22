@@ -14,7 +14,6 @@
 	--mf-surface: rgba(255, 255, 255, 0.022);
 	--mf-surface-2: rgba(255, 255, 255, 0.045);
 	--mf-surface-hover: rgba(255, 255, 255, 0.06);
-	--mf-btn-bg-hover: var(--mf-surface-hover);
 
 	--mf-border: rgba(255, 255, 255, 0.04);
 	--mf-border-strong: rgba(255, 255, 255, 0.09);
@@ -79,7 +78,6 @@
 	--mf-surface: rgba(0, 0, 0, 0.035);
 	--mf-surface-2: rgba(0, 0, 0, 0.06);
 	--mf-surface-hover: #e8eceb;
-	--mf-btn-bg-hover: var(--mf-surface-hover);
 
 	--mf-scrollbar: rgba(0, 0, 0, 0.18);
 	--mf-scrollbar-hover: rgba(0, 0, 0, 0.32);
