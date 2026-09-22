@@ -79,18 +79,20 @@ Crear `src/lib/components/layout/` y mover:
 
 **Cierre:** igual que F1.
 
-## F5 (opcional, requiere confirmación) — Consolidar rutas de auth
+## F5 — Consolidar rutas de auth y perfil de usuario
 
-Unificar `/login`, `/logout`, `/auth/login`, `/auth/callback` bajo `/auth/`:
+Unificar `/login`, `/logout`, `/auth/login`, `/auth/callback` bajo `/auth/`, y renombrar
+`/u/[id]` a `/user/[id]`:
 
-- `/auth` → page (login screen, hoy en `/login/+page.svelte`)
-- `/auth/login` → server endpoint (ya existe)
-- `/auth/logout` → server endpoint (hoy `/logout/+server.ts`)
-- `/auth/callback` → server endpoint (ya existe)
+- `/auth` → page (login screen, antes `/login/+page.svelte`)
+- `/auth/login` → server endpoint (ya existía)
+- `/auth/logout` → server endpoint (antes `/logout/+server.ts`)
+- `/auth/callback` → server endpoint (ya existía)
+- `/user/[id]` → page (antes `/u/[id]`)
 
-**Cambia URLs públicas.** Si `AUTH_REDIRECT_URI` / `AUTH_POST_LOGOUT_URI` en la config de
-Zitadel apuntan a las rutas actuales, hay que actualizarlas ahí también antes de mergear.
-No empezar esta fase sin confirmación explícita.
+**Cambia URLs públicas.** Se verificó `.env.example`: `AUTH_REDIRECT_URI` ya apunta a
+`/auth/callback` y `AUTH_POST_LOGOUT_URI` a `/`, ninguno de los dos cambia con esta fase,
+así que no hace falta tocar la config de Zitadel.
 
 ## F6 — Categorizar `components/ui/`
 
@@ -127,5 +129,5 @@ actualizados, `npm run check` y `npm run lint` limpios.
 - [x] F2 — helpers de dominio → `lib/data/`
 - [x] F3 — utilidades genéricas (`format.ts` → `lib/utils/`)
 - [x] F4 — componentes de layout/chrome → `components/layout/`
-- [ ] F5 — consolidar rutas de auth bajo `/auth/` (opcional, pendiente de confirmación)
+- [x] F5 — consolidar rutas de auth bajo `/auth/` y `/u/[id]` → `/user/[id]`
 - [x] F6 — categorizar `components/ui/` (primitives/overlay/media/forms/layout)

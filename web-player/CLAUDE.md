@@ -26,7 +26,7 @@ npm run lint:tokens # scripts/check-tokens.mjs — guardrail del sistema de dise
 - **Svelte 5 runes siempre:** `$props()` con `interface Props`, `$state`, `$derived`, `$effect`. Nada de `export let` ni `$:`. `{#each}` siempre con clave.
 - **Server-only bajo `$lib/server/`**; nunca importado desde cliente.
 - Datos SSR vía `load` en `+page.server.ts`/`+layout.server.ts` → prop `data`.
-- Enlaces a endpoints `+server.ts` (login/logout) llevan `data-sveltekit-reload`.
+- Enlaces a endpoints `+server.ts` (`/auth/login`, `/auth/logout`) llevan `data-sveltekit-reload`.
 - Reutiliza los tokens/recetas del sistema de diseño; extrae a `$lib/components/ui/` lo que se repita.
 
 ## Estilos
