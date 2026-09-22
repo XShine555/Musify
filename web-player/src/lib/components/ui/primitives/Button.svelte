@@ -36,7 +36,7 @@
 
 	const variants = {
 		primary: 'bg-cta-strong text-ink hover:brightness-95',
-		secondary: 'bg-btn text-fg-2 hover:bg-btn-hover hover:text-fg',
+		secondary: 'bg-btn backdrop-blur-md text-fg-2 hover:bg-btn-hover hover:text-fg',
 		accent: 'bg-accent-btn text-accent-soft hover:bg-accent-btn-hover',
 		danger: 'bg-danger text-on-art hover:brightness-110'
 	};

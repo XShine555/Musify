@@ -32,8 +32,6 @@
 	--color-danger-fg: oklch(88.5% 0.062 18.334);
 	--color-btn: var(--mf-btn-bg);
 	--color-btn-hover: var(--mf-btn-bg-hover);
-	--color-btn-glass: var(--mf-btn-secondary-bg);
-	--color-btn-glass-hover: var(--mf-btn-secondary-bg-hover);
 
 	--radius-tag: 0.25rem;
 	--radius-thumb: 0.5rem;
