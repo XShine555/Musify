@@ -33,7 +33,7 @@
 	--color-btn: color-mix(
 		in srgb,
 		var(--mf-elevated) 45%,
-		color-mix(in srgb, var(--mf-hero-tint) 16%, var(--mf-bg))
+		color-mix(in srgb, var(--mf-hero-tint) 8%, var(--mf-bg))
 	);
 	--color-btn-hover: var(--mf-btn-bg-hover);
 

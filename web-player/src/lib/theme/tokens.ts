@@ -57,13 +57,13 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
 		'--mf-hero-tint': light ? tcLight(1, 55, h) : tc(1, 42, h),
 		'--mf-hero-bg': light
-			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
+			? `linear-gradient(${tcLight(0.08, 55, h)}, ${tcLight(0.08, 55, h)})`
 			: `linear-gradient(105deg, ${tc(0.34, 42, h)} 0%, ${tc(0.11, 70, h)} 37%, ${tc(0.03, 88, h)} 65%, rgba(6,6,9,0) 92%)`,
 		'--mf-modal-glow': light
 			? `linear-gradient(135deg, ${tcLight(0.34, 42, h)} 0%, ${tcLight(0.2, 55, h)} 30%, ${tcLight(0.1, 70, h)} 55%, ${tcLight(0.04, 85, h)} 80%, ${tcLight(0.02, 88, h)} 100%)`
 			: `linear-gradient(135deg, ${tc(0.34, 42, h)} 0%, ${tc(0.11, 70, h)} 28%, ${tc(0.03, 88, h)} 50%, rgba(6,6,9,0) 70%)`,
 		'--mf-spotlight-bg': light
-			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
+			? `linear-gradient(${tcLight(0.08, 55, h)}, ${tcLight(0.08, 55, h)})`
 			: `linear-gradient(100deg, ${tc(0.28, 46, h)} 0%, ${tc(0.1, 74, h)} 40%, ${tc(0.03, 88, h)} 69%, rgba(6,6,9,0) 96%)`,
 		'--mf-logo-grad': light
 			? `linear-gradient(140deg, oklch(0.74 0.18 ${H}), oklch(0.58 0.16 ${H2}) 92%)`
