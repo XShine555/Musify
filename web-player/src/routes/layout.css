@@ -121,14 +121,10 @@
 	@apply text-xs tabular-nums;
 }
 
-@utility theme-transition {
-	transition: background 0.5s ease-out;
-}
 @utility glass-bar {
 	background-image: var(--mf-bar-bg);
 	border-top: 1px solid var(--mf-hairline);
 	backdrop-filter: blur(24px);
-	transition: background 0.5s ease-out;
 }
 @utility grid-cards {
 	display: grid;
