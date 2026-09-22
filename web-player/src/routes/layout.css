@@ -30,6 +30,12 @@
 	--color-on-art-2: var(--mf-on-art-2);
 	--color-danger: oklch(63.7% 0.15 25.331);
 	--color-danger-fg: oklch(88.5% 0.062 18.334);
+	--color-btn: color-mix(
+		in srgb,
+		var(--mf-elevated) 45%,
+		color-mix(in srgb, var(--mf-hero-tint) 16%, var(--mf-bg))
+	);
+	--color-btn-hover: var(--mf-btn-bg-hover);
 
 	--radius-tag: 0.25rem;
 	--radius-thumb: 0.5rem;
