@@ -13,6 +13,7 @@ export function mixItemTrack(item: MixItem): ApiTrackLike {
 		id: item.trackId,
 		title: item.title,
 		artist: item.artist,
+		duration: item.durationSeconds,
 		listensCount: item.listensCount
 	};
 }

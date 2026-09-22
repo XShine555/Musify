@@ -23,6 +23,7 @@ export interface QueueItem {
 	id: string | number;
 	title: string;
 	artist?: string;
+	duration?: number | string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 	listensCount?: number | string;
@@ -32,6 +33,7 @@ export interface ApiTrackLike {
 	id: string | number;
 	title: string;
 	artist?: string | null;
+	duration?: number | string;
 	isExplicit?: boolean;
 	ownerUserId?: string | number | null;
 	listensCount?: number | string;
@@ -42,6 +44,7 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 		id: track.id,
 		title: track.title,
 		artist: track.artist ?? undefined,
+		duration: track.duration,
 		explicit: track.isExplicit,
 		ownerUserId: track.ownerUserId,
 		listensCount: track.listensCount
@@ -57,6 +60,7 @@ export function trackFromQueueItem(item: QueueItem): ApiTrackLike {
 		id: item.id,
 		title: item.title,
 		artist: item.artist,
+		duration: item.duration,
 		isExplicit: item.explicit,
 		ownerUserId: item.ownerUserId,
 		listensCount: item.listensCount
@@ -101,7 +105,7 @@ function toTrack(item: QueueItem): PlayerTrack {
 		id: item.id,
 		title: item.title,
 		artist: item.artist ?? '',
-		duration: 0,
+		duration: Number(item.duration) || 0,
 		explicit: item.explicit,
 		ownerUserId: item.ownerUserId,
 		listensCount: item.listensCount
