@@ -1,7 +1,6 @@
-import { ACCENT_CHROMA, ACCENT_LIGHTNESS } from './color';
+import { ACCENT_LIGHTNESS } from './color';
 
 const L = ACCENT_LIGHTNESS / 100;
-const C = ACCENT_CHROMA;
 
 function r(value: number, digits = 4): string {
 	return value.toFixed(digits);
@@ -32,9 +31,9 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 	const light = mode === 'light';
 
 	const accentL = light ? 0.52 : L;
-	const accentC = light ? 0.16 : C;
+	const accentC = light ? 0.16 : 0.09;
 	const titleL = light ? 0.4 : 0.87;
-	const titleC = light ? 0.13 : 0.07;
+	const titleC = light ? 0.13 : 0.05;
 	const mutedL = light ? 0.48 : 0.79;
 	const mutedC = light ? 0.06 : 0.035;
 
