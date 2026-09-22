@@ -46,7 +46,7 @@ src/routes/
     library/            /library     Tu biblioteca      ⬜
     playlists/          /playlists   Tus playlists      ⬜
       [id]/             /playlists/:id  Detalle playlist ⬜
-  login  logout  auth/callback       Auth (endpoints)   ✅
+  auth  auth/login  auth/logout  auth/callback  Auth (página + endpoints)   ✅
   api/tracks/[id]/stream             Proxy de stream    ✅
 ```
 
@@ -66,10 +66,11 @@ Página de entrada para no autenticados. Vender el producto y llevar a registro/
 
 ## 2. Login / Auth ✅ (endpoints)
 
-No es una página visual propia: `/login` inicia el flujo OIDC de Zitadel y redirige.
-`?mode=register` arranca en registro; `?returnTo=` vuelve a la ruta pedida tras entrar.
-`/logout` cierra sesión. `/auth/callback` intercambia el código y crea la cookie
-cifrada `mf_session`. La UI de credenciales la sirve Zitadel, no Musify.
+`/auth` es la pantalla de login de Musify; sus botones llevan a `/auth/login`, que inicia
+el flujo OIDC de Zitadel y redirige. `?mode=register` arranca en registro; `?returnTo=`
+vuelve a la ruta pedida tras entrar. `/auth/logout` cierra sesión. `/auth/callback`
+intercambia el código y crea la cookie cifrada `mf_session`. La UI de credenciales la
+sirve Zitadel, no Musify.
 
 ## 3. Explorar / Buscar `/explore` ✅ (app)
 
@@ -101,7 +102,7 @@ Contenido de la página:
 - **Pipeline visible**: pasos Subir → Procesar → Publicar con su estado.
 - **Barra de progreso** de subida y estado de procesado.
 - **Estados**: vacío, archivo seleccionado, subiendo, procesando, publicado, error.
-- **Requiere sesión** (al cablear: redirigir a `/login?returnTo=/upload`).
+- **Requiere sesión** (al cablear: redirigir a `/auth?returnTo=/upload`).
 
 ## 5. Tu biblioteca `/library` ⬜ (app)
 
@@ -133,7 +134,7 @@ Listado de las playlists del usuario.
 - **Acciones del dueño**: editar (`PUT`), borrar (`DELETE`) la playlist, reordenar (futuro).
 - **Añadir tracks**: desde explorar/biblioteca (`POST /playlists/{id}/tracks/{trackId}`).
 
-## 8. Perfil de usuario `/users/[id]` ⬜ (futuro)
+## 8. Perfil de usuario `/user/[id]` ⬜ (futuro)
 
 Vista pública de un usuario: avatar, nombre, sus canciones y playlists públicas
 (`GET /users/{id}`, `GET /tracks/users/{id}`, `GET /playlists/users/{id}`).

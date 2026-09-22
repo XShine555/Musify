@@ -19,7 +19,7 @@ export function createApiClient({ fetch, accessToken }: ApiClientOptions) {
 
 export function requireUser(locals: App.Locals, url: URL): SessionUser {
 	if (!locals.user)
-		redirect(302, `/login?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
 	return locals.user;
 }
 
@@ -30,7 +30,7 @@ export function optionalUser(
 ): SessionUser | null {
 	if (locals.user) return locals.user;
 	if (!allowAnonymousListening)
-		redirect(302, `/login?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
 	return null;
 }
 

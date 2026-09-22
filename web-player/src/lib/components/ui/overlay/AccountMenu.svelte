@@ -45,7 +45,7 @@
 
 	{#if open}
 		<GlassMenu class="absolute top-full right-0 z-(--z-menu) mt-2 overflow-hidden {WIDTH[width]}">
-			<MenuItem icon={User} label="Ver perfil" href="/u/{user.sub}" onclick={close} />
+			<MenuItem icon={User} label="Ver perfil" href="/user/{user.sub}" onclick={close} />
 			{@render extraItems?.({ close })}
 			{#if accountUrl}
 				<MenuItem
@@ -61,7 +61,7 @@
 				label={themeMode.current === 'dark' ? 'Modo blanco' : 'Modo oscuro'}
 				onclick={() => themeMode.toggle()}
 			/>
-			<form method="POST" action="/logout" data-sveltekit-reload>
+			<form method="POST" action="/auth/logout" data-sveltekit-reload>
 				<MenuItem icon={LogOut} label="Cerrar sesión" type="submit" />
 			</form>
 		</GlassMenu>

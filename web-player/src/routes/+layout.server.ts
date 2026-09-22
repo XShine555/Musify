@@ -5,7 +5,7 @@ import { createApiClient } from '$lib/server/api';
 import { authConfig } from '$lib/server/config';
 import { LIKED_TRACKS_PAGE_SIZE } from '$lib/config';
 
-const PUBLIC_PATHS = new Set(['/login']);
+const PUBLIC_PATHS = new Set(['/auth']);
 const SIDEBAR_PLAYLISTS_LIMIT = 8;
 
 async function fetchSidebarPlaylists(
@@ -43,7 +43,7 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 	const allowAnonymousListening = await getAllowAnonymousListening(fetch);
 
 	if (!locals.user && !allowAnonymousListening && !PUBLIC_PATHS.has(url.pathname)) {
-		redirect(302, `/login?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
 	}
 
 	const accountUrl = authConfig.issuer

@@ -29,7 +29,7 @@
 		if (data.likedTracks?.length) liked.hydrate(data.likedTracks);
 	});
 
-	const isAuthPage = $derived(page.url.pathname === '/login');
+	const isAuthPage = $derived(page.url.pathname === '/auth');
 	const hasTrack = $derived(player.currentId !== null);
 
 	const initialThemeCss = `:root{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'dark'))}}:root[data-theme='light']{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'light'))}}`;

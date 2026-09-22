@@ -131,7 +131,7 @@
 		if (!topResult || topResult.kind === 'track') return undefined;
 		if (topResult.kind === 'album') return `/albums/${topResult.album.id}`;
 		if (topResult.kind === 'playlist') return `/playlists/${topResult.playlist.id}`;
-		return `/u/${topResult.user.id}`;
+		return `/user/${topResult.user.id}`;
 	});
 
 	function togglePlay(index: number) {
@@ -400,7 +400,7 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, users) as u (u.id)}
 							<li>
-								<ListRow title={u.name} href="/u/{u.id}" size="lg">
+								<ListRow title={u.name} href="/user/{u.id}" size="lg">
 									{#snippet art()}
 										<Avatar name={u.name} src={u.profilePictureUrl} size="md" />
 									{/snippet}

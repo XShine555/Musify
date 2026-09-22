@@ -11,7 +11,7 @@
 {#if name}
 	{#if ownerUserId}
 		<a
-			href="/u/{ownerUserId}"
+			href="/user/{ownerUserId}"
 			onclick={(e) => e.stopPropagation()}
 			class="block max-w-full truncate hover:text-fg-2 hover:underline {klass}"
 		>
