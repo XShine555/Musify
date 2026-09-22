@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PlayerBar from './PlayerBar.svelte';
 	import TabsBar from '../layout/TabsBar.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import type { SessionUser } from '$lib/types';
 

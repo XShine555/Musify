@@ -2,13 +2,13 @@
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import ListMusic from '@lucide/svelte/icons/list-music';
-	import Page from '$lib/components/ui/Page.svelte';
-	import MediaCard from '$lib/components/ui/MediaCard.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import Avatar from '$lib/components/ui/media/Avatar.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { plural, playlistMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();

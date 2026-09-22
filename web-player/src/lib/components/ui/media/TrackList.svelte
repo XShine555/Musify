@@ -36,7 +36,7 @@
 	import { pressable } from '$lib/actions/pressable';
 	import MediaIdentity from './MediaIdentity.svelte';
 	import EqBars from './EqBars.svelte';
-	import IconButton from './IconButton.svelte';
+	import IconButton from '../primitives/IconButton.svelte';
 
 	interface RowAction {
 		action?: string;

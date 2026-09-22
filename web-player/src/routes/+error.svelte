@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 </script>
 
 <div class="animate-enter mx-auto my-[14vh] max-w-prose-sm text-center">

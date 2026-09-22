@@ -1,8 +1,8 @@
 <script lang="ts">
 	import TrackInfo from './TrackInfo.svelte';
 	import TransportControls from './TransportControls.svelte';
-	import Slider from '$lib/components/ui/Slider.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import Slider from '$lib/components/ui/primitives/Slider.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
 	import { fmtTime } from '$lib/utils/format';

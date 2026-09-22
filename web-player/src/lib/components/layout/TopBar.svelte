@@ -7,10 +7,10 @@
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import AccountMenu from '../ui/AccountMenu.svelte';
-	import Avatar from '../ui/Avatar.svelte';
-	import IconButton from '../ui/IconButton.svelte';
-	import Button from '../ui/Button.svelte';
+	import AccountMenu from '../ui/overlay/AccountMenu.svelte';
+	import Avatar from '../ui/media/Avatar.svelte';
+	import IconButton from '../ui/primitives/IconButton.svelte';
+	import Button from '../ui/primitives/Button.svelte';
 
 	interface Props {
 		user: SessionUser | null;

@@ -6,15 +6,15 @@
 	import SquarePencil from '@lucide/svelte/icons/square-pen';
 	import Trash from '@lucide/svelte/icons/trash';
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import TrackList from '$lib/components/ui/TrackList.svelte';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import Modal from '$lib/components/ui/overlay/Modal.svelte';
+	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
+	import Artwork from '$lib/components/ui/media/Artwork.svelte';
+	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import TrackList from '$lib/components/ui/media/TrackList.svelte';
 	import { playlistMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();

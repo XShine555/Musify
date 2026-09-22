@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
-	import IconButton from './IconButton.svelte';
+	import IconButton from '../primitives/IconButton.svelte';
 
 	interface Props {
 		open: boolean;

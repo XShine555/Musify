@@ -9,8 +9,8 @@
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import TopBar from '$lib/components/layout/TopBar.svelte';
 	import MobileHeader from '$lib/components/layout/MobileHeader.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
+	import Modal from '$lib/components/ui/overlay/Modal.svelte';
+	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
 	import { liked } from '$lib/player/liked.svelte';

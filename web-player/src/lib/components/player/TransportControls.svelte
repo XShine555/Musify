@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
-	import PlayButton from '$lib/components/ui/PlayButton.svelte';
+	import PlayButton from '$lib/components/ui/media/PlayButton.svelte';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import Repeat from '@lucide/svelte/icons/repeat';
 

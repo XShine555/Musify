@@ -4,9 +4,9 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { createPlaylistModal } from '$lib/state/playlists.svelte';
 	import type { SessionUser } from '$lib/types';
-	import ListRow from '../ui/ListRow.svelte';
-	import IconButton from '../ui/IconButton.svelte';
-	import Logo from '../ui/Logo.svelte';
+	import ListRow from '../ui/media/ListRow.svelte';
+	import IconButton from '../ui/primitives/IconButton.svelte';
+	import Logo from '../ui/primitives/Logo.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 
 	interface SidebarPlaylist {

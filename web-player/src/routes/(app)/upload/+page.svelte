@@ -4,15 +4,15 @@
 	import Music from '@lucide/svelte/icons/music';
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import Check from '@lucide/svelte/icons/check';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Surface from '$lib/components/ui/Surface.svelte';
-	import ImageDropzone from '$lib/components/ui/ImageDropzone.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import Field from '$lib/components/ui/Field.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Checkbox from '$lib/components/ui/Checkbox.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import Surface from '$lib/components/ui/primitives/Surface.svelte';
+	import ImageDropzone from '$lib/components/ui/forms/ImageDropzone.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Input from '$lib/components/ui/primitives/Input.svelte';
+	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';

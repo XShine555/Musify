@@ -4,11 +4,11 @@
 	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
 	import { plural } from '$lib/utils/format';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import TrackList from '$lib/components/ui/TrackList.svelte';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import TrackList from '$lib/components/ui/media/TrackList.svelte';
 
 	const tracks = $derived(liked.list);
 	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.likedAt })));

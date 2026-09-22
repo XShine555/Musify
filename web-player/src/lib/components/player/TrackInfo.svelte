@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import ExplicitBadge from '$lib/components/ui/ExplicitBadge.svelte';
-	import ArtistLink from '$lib/components/ui/ArtistLink.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import Artwork from '$lib/components/ui/media/Artwork.svelte';
+	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
+	import ArtistLink from '$lib/components/ui/media/ArtistLink.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import Heart from '@lucide/svelte/icons/heart';
 
 	interface Props {

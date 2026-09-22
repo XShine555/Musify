@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
-	import MediaIdentity from '$lib/components/ui/MediaIdentity.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import MediaIdentity from '$lib/components/ui/media/MediaIdentity.svelte';
+	import ListRow from '$lib/components/ui/media/ListRow.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { fmtTime } from '$lib/utils/format';
 	import X from '@lucide/svelte/icons/x';
 	import { fly } from 'svelte/transition';

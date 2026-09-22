@@ -2,10 +2,10 @@
 	import { untrack } from 'svelte';
 	import Music from '@lucide/svelte/icons/music';
 	import CoverForm from './CoverForm.svelte';
-	import Field from './Field.svelte';
-	import Input from './Input.svelte';
-	import Textarea from './Textarea.svelte';
-	import SegmentedControl from './SegmentedControl.svelte';
+	import Field from '../primitives/Field.svelte';
+	import Input from '../primitives/Input.svelte';
+	import Textarea from '../primitives/Textarea.svelte';
+	import SegmentedControl from '../primitives/SegmentedControl.svelte';
 
 	const NAME_MAX_LENGTH = 60;
 	const DESCRIPTION_MAX_LENGTH = 300;

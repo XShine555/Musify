@@ -21,7 +21,7 @@
 	import { enhance } from '$app/forms';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import MediaIdentity from './MediaIdentity.svelte';
+	import MediaIdentity from '../media/MediaIdentity.svelte';
 	import GlassMenu from './GlassMenu.svelte';
 	import MenuItem from './MenuItem.svelte';
 

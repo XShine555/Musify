@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Plus from '@lucide/svelte/icons/plus';
 	import Disc from '@lucide/svelte/icons/disc-3';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import MediaCard from '$lib/components/ui/MediaCard.svelte';
-	import AlbumForm from '$lib/components/ui/AlbumForm.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
+	import AlbumForm from '$lib/components/ui/forms/AlbumForm.svelte';
+	import Modal from '$lib/components/ui/overlay/Modal.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import { albumMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
