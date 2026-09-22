@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItem } from '$lib/player/player.svelte';
-	import { fetchAlbumQueueItems } from '$lib/albums';
+	import { fetchAlbumQueueItems } from '$lib/data/albums';
 	import { fmtTime, fmtPlays, plural } from '$lib/format';
 	import Page from '$lib/components/ui/Page.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -21,8 +21,8 @@
 	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';
-	import { appendUnique } from '$lib/collections';
-	import { genreTiles } from '$lib/genres';
+	import { appendUnique } from '$lib/data/collections';
+	import { genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,
 		showGroup,
@@ -31,7 +31,7 @@
 		searchCounts,
 		searchChips,
 		findTopResult
-	} from '$lib/search';
+	} from '$lib/data/search';
 
 	type AlbumMenuState = { x: number; y: number; openLeft: boolean; albumId: string };
 

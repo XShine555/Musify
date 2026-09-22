@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
-import { shuffle } from '$lib/collections';
+import { shuffle } from '$lib/data/collections';
 
 export interface PlayerTrack {
 	id: string | number;

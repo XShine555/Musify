@@ -20,7 +20,7 @@
 	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import { mixItemTrack } from '$lib/mixes';
+	import { mixItemTrack } from '$lib/data/mixes';
 
 	let { data, form } = $props();
 
