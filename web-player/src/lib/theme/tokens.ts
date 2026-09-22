@@ -54,7 +54,7 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-hairline': light ? `oklch(0.3 0.035 ${H} / 0.1)` : `oklch(0.62 0.05 ${H} / 0.08)`,
 		'--mf-ambient': light
 			? 'none'
-			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
+			: `radial-gradient(95% 85% at 20% 0%, ${tc(0.12, 30, h)}, transparent 88%), radial-gradient(90% 80% at 80% 0%, ${tc(0.09, 40, h)}, transparent 88%)`,
 		'--mf-hero-tint': light ? tcLight(1, 55, h) : tc(1, 42, h),
 		'--mf-hero-bg': light
 			? `linear-gradient(${tcLight(0.08, 55, h)}, ${tcLight(0.08, 55, h)})`
