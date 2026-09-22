@@ -31,7 +31,7 @@
 </script>
 
 <aside
-	class="hidden shrink-0 flex-col border-r border-hairline bg-bg p-5 lg:flex"
+	class="hidden shrink-0 flex-col border-r border-hairline p-5 lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
 	<nav class="flex flex-col gap-1">
