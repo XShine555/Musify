@@ -15,8 +15,8 @@ function tc(alpha: number, l: number, hue: number): string {
 
 function tcLight(alpha: number, l: number, hue: number): string {
 	const depth = (88 - l) / 58;
-	const lightness = 0.88 - 0.16 * depth;
-	const chroma = 0.03 + 0.11 * depth;
+	const lightness = 0.9 - 0.14 * depth;
+	const chroma = 0.05 + 0.13 * depth;
 	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
 }
 
@@ -47,11 +47,11 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-accent-hair': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.09)`,
 		'--mf-accent-btn-bg': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.15)`,
 		'--mf-accent-btn-bg-hover': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.24)`,
-		'--mf-bg': light ? `oklch(0.97 0.006 ${H})` : `oklch(0.068 0.008 ${H})`,
-		'--mf-elevated': light ? `oklch(0.99 0.003 ${H})` : `oklch(0.11 0.012 ${H})`,
-		'--mf-panel-bg': light ? `oklch(0.97 0.006 ${H} / 0.7)` : `oklch(0.09 0.01 ${H} / 0.28)`,
-		'--mf-bar-bg': light ? `oklch(0.97 0.006 ${H} / 0.9)` : `oklch(0.105 0.012 ${H} / 0.9)`,
-		'--mf-hairline': light ? `oklch(0.3 0.02 ${H} / 0.1)` : `oklch(0.62 0.03 ${H} / 0.08)`,
+		'--mf-bg': light ? `oklch(0.97 0.014 ${H})` : `oklch(0.068 0.008 ${H})`,
+		'--mf-elevated': light ? `oklch(0.99 0.008 ${H})` : `oklch(0.11 0.012 ${H})`,
+		'--mf-panel-bg': light ? `oklch(0.97 0.014 ${H} / 0.7)` : `oklch(0.09 0.01 ${H} / 0.28)`,
+		'--mf-bar-bg': light ? `oklch(0.97 0.014 ${H} / 0.9)` : `oklch(0.105 0.012 ${H} / 0.9)`,
+		'--mf-hairline': light ? `oklch(0.3 0.035 ${H} / 0.1)` : `oklch(0.62 0.03 ${H} / 0.08)`,
 		'--mf-ambient': light
 			? 'none'
 			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
@@ -66,10 +66,10 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
 			: `linear-gradient(100deg, ${tc(0.28, 46, h)} 0%, ${tc(0.1, 74, h)} 40%, ${tc(0.03, 88, h)} 69%, rgba(6,6,9,0) 96%)`,
 		'--mf-logo-grad': light
-			? `linear-gradient(140deg, oklch(0.68 0.16 ${H}), oklch(0.5 0.14 ${H2}) 92%)`
+			? `linear-gradient(140deg, oklch(0.74 0.18 ${H}), oklch(0.58 0.16 ${H2}) 92%)`
 			: `linear-gradient(140deg, oklch(0.78 0.15 ${H}), oklch(0.62 0.13 ${H2}) 92%)`,
 		'--mf-cover-grad': light
-			? `linear-gradient(150deg, oklch(0.62 0.14 ${H}), oklch(0.44 0.08 ${H}))`
+			? `linear-gradient(150deg, oklch(0.7 0.16 ${H}), oklch(0.54 0.11 ${H}))`
 			: `linear-gradient(150deg, oklch(0.5 0.13 ${H}), oklch(0.16 0.035 ${H}))`
 	};
 }
