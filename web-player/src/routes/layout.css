@@ -20,6 +20,7 @@
 	--color-muted: var(--mf-text-4);
 	--color-accent: var(--mf-accent);
 	--color-accent-soft: var(--mf-accent-title);
+	--color-accent-muted: var(--mf-accent-muted);
 	--color-accent-tint: var(--mf-accent-soft-bg);
 	--color-accent-btn: var(--mf-accent-btn-bg);
 	--color-accent-btn-hover: var(--mf-accent-btn-bg-hover);
