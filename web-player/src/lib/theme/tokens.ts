@@ -26,7 +26,7 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 	const H2 = r(h2, 1);
 	const light = mode === 'light';
 
-	const accentL = light ? 0.52 : 0.65;
+	const accentL = light ? 0.52 : 0.74;
 	const accentC = light ? 0.16 : 0.09;
 	const titleL = light ? 0.4 : 0.87;
 	const titleC = light ? 0.13 : 0.05;
