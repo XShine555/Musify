@@ -169,10 +169,16 @@
 @utility app-backdrop {
 	pointer-events: none;
 	position: fixed;
-	inset: 0;
+	inset: -10%;
 	z-index: -10;
 	background-color: var(--mf-bg);
 	background-image: var(--mf-ambient);
+	animation: ambient-drift 48s ease-in-out infinite alternate;
+	will-change: transform;
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
 }
 @utility app-vignette {
 	pointer-events: none;
@@ -304,6 +310,18 @@ button:disabled {
 	50% {
 		opacity: 0.78;
 		transform: scale(1.32);
+	}
+}
+
+@keyframes ambient-drift {
+	0% {
+		transform: translate3d(-3%, -2%, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(2%, 3%, 0) scale(1.06);
+	}
+	100% {
+		transform: translate3d(3%, -1%, 0) scale(1.02);
 	}
 }
 
