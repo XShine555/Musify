@@ -5,12 +5,13 @@ import { EXPLORE_PAGE_SIZE } from '$lib/config';
 
 export const GET: RequestHandler = async ({ url, locals, fetch }) => {
 	const name = url.searchParams.get('name')?.trim() || undefined;
+	const genre = url.searchParams.get('genre')?.trim() || undefined;
 	const pageNumber = Math.max(1, Number(url.searchParams.get('pageNumber')) || 1);
 	const pageSize = Math.max(1, Number(url.searchParams.get('pageSize')) || EXPLORE_PAGE_SIZE);
 
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 	const result = await api.GET('/tracks', {
-		params: { query: { name, pageNumber, pageSize } }
+		params: { query: { name, genre, pageNumber, pageSize } }
 	});
 
 	return json(unwrapOrError(result, 'No se pudieron cargar las canciones.'));

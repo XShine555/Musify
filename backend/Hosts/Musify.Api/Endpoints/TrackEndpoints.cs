@@ -1,4 +1,5 @@
 using Mediator;
+using Musify.Domain.ValueObjects;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Shared;
@@ -19,8 +20,9 @@ public static class TrackEndpoints
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
-            .WithSummary("Get Paginated Tracks, Optionally Filtered By Name.")
-            .Produces<TracksSearchResponse>();
+            .WithSummary("Get Paginated Tracks, Optionally Filtered By Name And Genre.")
+            .Produces<TracksSearchResponse>()
+            .ProducesValidationProblem();
 
         group.MapGet("/{id}", GetTrackById)
             .WithName("GetTrackById")
@@ -92,10 +94,25 @@ public static class TrackEndpoints
         IMediator mediator,
         CancellationToken cancellationToken,
         string? name,
+        string? genre,
         int pageNumber = 1,
         int pageSize = 10)
     {
-        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize), cancellationToken);
+        Genre? parsedGenre = null;
+        if (!string.IsNullOrWhiteSpace(genre))
+        {
+            if (!Enum.TryParse<Genre>(genre, ignoreCase: true, out var value) || !Enum.IsDefined(value))
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    [nameof(genre)] = [$"'{genre}' is not a valid genre."]
+                });
+            }
+
+            parsedGenre = value;
+        }
+
+        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize, parsedGenre), cancellationToken);
         return result.ToHttpResult();
     }
 

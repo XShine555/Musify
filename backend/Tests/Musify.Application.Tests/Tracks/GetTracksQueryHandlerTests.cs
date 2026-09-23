@@ -1,5 +1,6 @@
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
+using Musify.Domain.ValueObjects;
 using Xunit;
 
 namespace Musify.Application.Tests.Tracks
@@ -42,6 +43,24 @@ namespace Musify.Application.Tests.Tracks
             Assert.False(result.IsError);
             var item = Assert.Single(result.Value.Items);
             Assert.Equal("Bohemian Rhapsody", item.Track.Title);
+        }
+
+        [Fact]
+        public async Task Handle_GenreFilter_ReturnsOnlyTracksWithThatTag()
+        {
+            var owner = TestEntities.User();
+            var rock = TestEntities.Track(owner, "Loud", tags: [Genre.Rock, Genre.Indie]);
+            var jazz = TestEntities.Track(owner, "Smooth", tags: [Genre.Jazz]);
+            await SeedAsync(
+                owner, rock, jazz,
+                new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = rock.Id },
+                new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = jazz.Id });
+
+            var result = await CreateHandler().Handle(new GetTracksQuery(null, 1, 10, Genre.Indie), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            var item = Assert.Single(result.Value.Items);
+            Assert.Equal("Loud", item.Track.Title);
         }
     }
 }
