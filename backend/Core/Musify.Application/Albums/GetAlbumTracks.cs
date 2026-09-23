@@ -36,7 +36,7 @@ namespace Musify.Application.Albums
 
             var pagedEntities = await tracksQuery
                 .OrderBy(albumTrack => albumTrack.TrackNumber)
-                .Select(albumTrack => new { albumTrack.Track, ListensCount = albumTrack.Track.ListeningHistories.Count })
+                .Select(albumTrack => new { albumTrack.Track, ListensCount = albumTrack.Track.ListeningHistories.Count(l => l.IsCounted) })
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             var pagedTracks = new StaticPagedList<TrackApplicationResponse>(

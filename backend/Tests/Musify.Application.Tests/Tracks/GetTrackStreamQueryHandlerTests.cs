@@ -45,6 +45,9 @@ namespace Musify.Application.Tests.Tracks
             var history = Assert.Single(await Database.ListeningHistories.ToListAsync(TestContext.Current.CancellationToken));
             Assert.Equal(owner.Id, history.UserId);
             Assert.Equal(track.Id, history.TrackId);
+            Assert.Equal(history.Id, result.Value.ListenId);
+            Assert.False(history.IsCounted);
+            Assert.Null(history.PlayedSeconds);
         }
 
         [Fact]

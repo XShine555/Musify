@@ -19,7 +19,7 @@ namespace Musify.Application.Mixes
                 .AsNoTracking()
                 .Include(track => track.Owner)
                 .Where(track => trackIds.Contains(track.Id))
-                .Select(track => new { Track = track, ListensCount = track.ListeningHistories.Count })
+                .Select(track => new { Track = track, ListensCount = track.ListeningHistories.Count(l => l.IsCounted) })
                 .ToDictionaryAsync(x => x.Track.Id, cancellationToken);
 
             return orderedItems

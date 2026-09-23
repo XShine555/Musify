@@ -177,12 +177,16 @@ namespace Musify.Application.Tests.TestSupport
         public static ListeningHistory ListeningHistory(
             long userId,
             Guid trackId,
-            DateTime? listenedAt = null) =>
+            DateTime? listenedAt = null,
+            double? playedSeconds = null,
+            bool isCounted = true) =>
             new()
             {
                 UserId = userId,
                 TrackId = trackId,
-                ListenedAt = listenedAt ?? DateTime.UtcNow
+                ListenedAt = listenedAt ?? DateTime.UtcNow,
+                PlayedSeconds = playedSeconds,
+                IsCounted = isCounted
             };
     }
 }
