@@ -381,6 +381,10 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      # adapter-node rejects request bodies over 512K by default; audio
+      # uploads are posted to /upload. Keep in line with the edge's
+      # client_max_body_size.
+      BODY_SIZE_LIMIT: 1G
       ORIGIN: ${PUBLIC_WEB_URL}
       ZITADEL_ISSUER: ${PUBLIC_AUTH_URL}
       ZITADEL_CLIENT_ID: ${WEB_CLIENT_ID}

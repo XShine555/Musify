@@ -1,15 +1,16 @@
 import type { Handle } from '@sveltejs/kit';
 import {
+	clearSessionCookie,
 	decodeSession,
 	encodeSession,
+	readSessionCookie,
 	refreshSession,
-	sessionCookieOptions,
-	SESSION_COOKIE
+	writeSessionCookie
 } from '$lib/server/auth';
 import { authConfig } from '$lib/server/config';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	let session = await decodeSession(event.cookies.get(SESSION_COOKIE));
+	let session = await decodeSession(readSessionCookie(event.cookies));
 
 	if (
 		session &&
@@ -17,13 +18,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	) {
 		session = await refreshSession(session);
 		if (session) {
-			event.cookies.set(
-				SESSION_COOKIE,
-				await encodeSession(session),
-				sessionCookieOptions(event.url)
-			);
+			writeSessionCookie(event.cookies, await encodeSession(session), event.url);
 		} else {
-			event.cookies.delete(SESSION_COOKIE, { path: '/' });
+			clearSessionCookie(event.cookies);
 		}
 	}
 

@@ -714,7 +714,9 @@ export interface components {
             pictureIntentId: string;
             
             audioIntentId: string;
+            tags: components["schemas"]["Genre"][];
         };
+        Genre: "Pop" | "Rock" | "HipHop" | "RnB" | "Jazz" | "Blues" | "Classical" | "Electronic" | "House" | "Techno" | "Trance" | "Dubstep" | "DrumAndBass" | "Metal" | "Punk" | "Reggae" | "Reggaeton" | "Country" | "Folk" | "Indie" | "KPop" | "Latin" | "Soul" | "Funk" | "Ambient" | "Lofi";
         CreateUserRequest: {
             
             id: number | string;
