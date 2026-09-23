@@ -224,53 +224,62 @@
 				{/if}
 			</div>
 
-			<div class="grid items-start gap-6 sm:grid-cols-[auto_1fr] sm:gap-8">
-				<Field label="Portada">
-					{#key coverResetToken}
-						<ImageDropzone
-							name="cover"
-							icon={ImageIcon}
-							gradient
-							size="hero"
-							onselect={() => (hasCover = true)}
-						/>
-					{/key}
-				</Field>
+			<Surface padding="md">
+				<div class="grid items-start gap-6 md:grid-cols-[auto_1fr] md:gap-10">
+					<Field label="Portada" class="items-center md:items-start">
+						{#key coverResetToken}
+							<ImageDropzone
+								name="cover"
+								icon={ImageIcon}
+								gradient
+								onselect={() => (hasCover = true)}
+							/>
+						{/key}
+						{#snippet hint()}
+							<p>{hasCover ? 'Portada lista' : 'Haz clic para elegir'}</p>
+						{/snippet}
+					</Field>
 
-				<Field label="Título" for="title">
-					<Input
-						id="title"
-						name="title"
-						bind:value={title}
-						maxlength={MAX_TITLE}
-						placeholder="Nombre de la canción"
-					/>
-					{#snippet hint()}
-						<p>Se usa como nombre público de la pista en el catálogo.</p>
-						<span class="shrink-0 tabular-nums">{title.length}/{MAX_TITLE}</span>
-					{/snippet}
-				</Field>
-			</div>
+					<div class="flex min-w-0 flex-col gap-7">
+						<Field label="Título" for="title">
+							<Input
+								id="title"
+								name="title"
+								bind:value={title}
+								maxlength={MAX_TITLE}
+								placeholder="Nombre de la canción"
+							/>
+							{#snippet hint()}
+								<p>Se usa como nombre público de la pista en el catálogo.</p>
+								<span class="shrink-0 tabular-nums">{title.length}/{MAX_TITLE}</span>
+							{/snippet}
+						</Field>
 
-			<Field label="Géneros">
-				<div class="flex flex-wrap gap-2">
-					{#each TRACK_GENRES as genre (genre.value)}
-						<Chip
-							selected={tags.includes(genre.value)}
-							disabled={tagBlocked(genre.value)}
-							onclick={() => toggleTag(genre.value)}
-						>
-							{genre.label}
-						</Chip>
-					{/each}
+						<Field label="Géneros">
+							<div class="mb-2 flex flex-wrap gap-2">
+								{#each TRACK_GENRES as genre (genre.value)}
+									<Chip
+										selected={tags.includes(genre.value)}
+										disabled={tagBlocked(genre.value)}
+										onclick={() => toggleTag(genre.value)}
+									>
+										{genre.label}
+									</Chip>
+								{/each}
+							</div>
+							{#each tags as tag (tag)}
+								<input type="hidden" name="tags" value={tag} />
+							{/each}
+							{#snippet hint()}
+								<p>
+									Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient.
+								</p>
+								<span class="shrink-0 tabular-nums">{tags.length} elegidos</span>
+							{/snippet}
+						</Field>
+					</div>
 				</div>
-				{#each tags as tag (tag)}
-					<input type="hidden" name="tags" value={tag} />
-				{/each}
-				{#snippet hint()}
-					<p>Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient.</p>
-				{/snippet}
-			</Field>
+			</Surface>
 
 			<Checkbox bind:checked={acceptedTerms}>
 				Acepto los
