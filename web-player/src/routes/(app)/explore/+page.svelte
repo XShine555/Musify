@@ -338,6 +338,7 @@
 										title={track.title}
 										subtitle={track.artist}
 										subtitleHref={track.ownerUserId}
+										explicit={track.isExplicit}
 										active={player.current.id === track.id}
 										size="lg"
 										trackId={track.id}
