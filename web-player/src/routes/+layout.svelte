@@ -6,19 +6,20 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import PlayerDock from '$lib/components/player/PlayerDock.svelte';
 	import Queue from '$lib/components/player/Queue.svelte';
-	import Sidebar from '$lib/components/Sidebar.svelte';
-	import TopBar from '$lib/components/TopBar.svelte';
-	import MobileHeader from '$lib/components/MobileHeader.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import PlaylistForm from '$lib/components/ui/PlaylistForm.svelte';
+	import Sidebar from '$lib/components/layout/Sidebar.svelte';
+	import TopBar from '$lib/components/layout/TopBar.svelte';
+	import MobileHeader from '$lib/components/layout/MobileHeader.svelte';
+	import Modal from '$lib/components/ui/overlay/Modal.svelte';
+	import DialogHost from '$lib/components/ui/overlay/DialogHost.svelte';
+	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { createPlaylistModal } from '$lib/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/playlists.svelte';
 	import { ACCENT_HUE } from '$lib/theme/color';
 	import { buildThemeTokens, applyThemeTokens, tokensToCss } from '$lib/theme/tokens';
 	import { themeMode } from '$lib/theme/mode.svelte';
-	import { trackNavigation } from '$lib/navigation.svelte';
+	import { trackNavigation } from '$lib/state/navigation.svelte';
 	import { page } from '$app/state';
 
 	let { children, data } = $props();
@@ -29,15 +30,19 @@
 		if (data.likedTracks?.length) liked.hydrate(data.likedTracks);
 	});
 
-	const isAuthPage = $derived(page.url.pathname === '/login');
+	$effect(() => {
+		if (data.lastPlayedTrack) player.hydrate(data.lastPlayedTrack);
+	});
+
+	const isAuthPage = $derived(page.url.pathname === '/auth');
 	const hasTrack = $derived(player.currentId !== null);
 
 	const initialThemeCss = `:root{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'dark'))}}:root[data-theme='light']{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'light'))}}`;
 
-	let hadTrack = false;
+	let wasPlaying = false;
 	$effect(() => {
-		if (hasTrack && !hadTrack) queuePanel.show();
-		hadTrack = hasTrack;
+		if (player.playing && !wasPlaying) queuePanel.show();
+		wasPlaying = player.playing;
 	});
 
 	function isTypingTarget(target: EventTarget | null): boolean {
@@ -87,6 +92,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- CSS generado a partir de números, sin entrada de usuario -->
 	{@html `<style>${initialThemeCss}</style>`}
 </svelte:head>
 
@@ -134,3 +140,5 @@
 		</Modal>
 	</div>
 {/if}
+
+<DialogHost />

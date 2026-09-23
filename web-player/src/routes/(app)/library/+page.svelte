@@ -3,12 +3,12 @@
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItems } from '$lib/player/player.svelte';
-	import { plural } from '$lib/format';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import TrackList from '$lib/components/ui/TrackList.svelte';
+	import { plural } from '$lib/utils/format';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import TrackList from '$lib/components/ui/media/TrackList.svelte';
 
 	let { data } = $props();
 

@@ -1,28 +1,28 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
 	import { player, toQueueItem } from '$lib/player/player.svelte';
-	import { fetchAlbumQueueItems } from '$lib/albums';
-	import { fmtTime, fmtPlays, plural } from '$lib/format';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import InfiniteScroll from '$lib/components/ui/InfiniteScroll.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import PlayButton from '$lib/components/ui/PlayButton.svelte';
-	import EqBars from '$lib/components/ui/EqBars.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import Chip from '$lib/components/ui/Chip.svelte';
-	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import { fetchAlbumQueueItems } from '$lib/data/albums';
+	import { fmtTime, fmtPlays, plural } from '$lib/utils/format';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
+	import Artwork from '$lib/components/ui/media/Artwork.svelte';
+	import Avatar from '$lib/components/ui/media/Avatar.svelte';
+	import PlayButton from '$lib/components/ui/media/PlayButton.svelte';
+	import EqBars from '$lib/components/ui/media/EqBars.svelte';
+	import ListRow from '$lib/components/ui/media/ListRow.svelte';
+	import Chip from '$lib/components/ui/primitives/Chip.svelte';
+	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
-	import { searchHref } from '$lib/navigation.svelte';
-	import { createTrackMenu } from '$lib/menus.svelte';
-	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/ContextMenu.svelte';
+	import { searchHref } from '$lib/state/navigation.svelte';
+	import { createTrackMenu } from '$lib/state/menus.svelte';
+	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';
-	import { appendUnique } from '$lib/collections';
-	import { genreTiles } from '$lib/genres';
+	import { appendUnique } from '$lib/data/collections';
+	import { genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,
 		showGroup,
@@ -31,7 +31,7 @@
 		searchCounts,
 		searchChips,
 		findTopResult
-	} from '$lib/search';
+	} from '$lib/data/search';
 
 	type AlbumMenuState = { x: number; y: number; openLeft: boolean; albumId: string };
 
@@ -131,7 +131,7 @@
 		if (!topResult || topResult.kind === 'track') return undefined;
 		if (topResult.kind === 'album') return `/albums/${topResult.album.id}`;
 		if (topResult.kind === 'playlist') return `/playlists/${topResult.playlist.id}`;
-		return `/u/${topResult.user.id}`;
+		return `/user/${topResult.user.id}`;
 	});
 
 	function togglePlay(index: number) {
@@ -249,7 +249,7 @@
 				{/if}
 
 				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
-					<div class="text-eyebrow leading-none font-semibold text-fg-3">
+					<div class="text-eyebrow leading-none font-semibold text-fg-2">
 						Mejor resultado · {TOP_RESULT_KIND_LABEL[topResult.kind]}
 					</div>
 					<div
@@ -264,7 +264,7 @@
 									: topResult.user.name}
 					</div>
 					{#if topResult.kind === 'track' && topResult.track.artist}
-						<div class="truncate text-sm leading-none text-fg-3">
+						<div class="truncate text-sm leading-none text-fg-2">
 							{topResult.track.artist}
 						</div>
 					{/if}
@@ -276,6 +276,7 @@
 			<svelte:element
 				this={topResult.kind === 'track' ? 'button' : 'a'}
 				type={topResult.kind === 'track' ? 'button' : undefined}
+				role={topResult.kind === 'track' ? 'button' : 'link'}
 				href={topResult.kind === 'track' ? undefined : topResultHref}
 				onclick={topResult.kind === 'track' ? playTopResult : undefined}
 				class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
@@ -348,7 +349,7 @@
 											{/if}
 										{/snippet}
 										{#snippet trailing()}
-											<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+											<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
 												{fmtTime(seconds)} · {fmtPlays(track.listensCount)}
 											</span>
 										{/snippet}
@@ -383,7 +384,7 @@
 									oncontextmenu={(e) => openAlbumMenu(e, album.id)}
 								>
 									{#snippet trailing()}
-										<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+										<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
 											{Number(album.trackCount)} canciones
 										</span>
 									{/snippet}
@@ -400,7 +401,7 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, users) as u (u.id)}
 							<li>
-								<ListRow title={u.name} href="/u/{u.id}" size="lg">
+								<ListRow title={u.name} href="/user/{u.id}" size="lg">
 									{#snippet art()}
 										<Avatar name={u.name} src={u.profilePictureUrl} size="md" />
 									{/snippet}

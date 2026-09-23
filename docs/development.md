@@ -134,10 +134,10 @@ omits the `<Error>` list when there are no errors, unlike AWS S3), and
 (load → modify → save) because it ran before EF had detected the pending
 changes.
 
-## Config (AppSettings)
+## Config (appsettings)
 
-Convention: `AppSettings.json` is the template, with empty or neutral
-values; `AppSettings.Development.json` has the real dev values; in Docker
+Convention: `appsettings.json` is the template, with empty or neutral
+values; `appsettings.Development.json` has the real dev values; in Docker
 everything is overridden with environment variables (`Section__Key`) from
 `deploy/compose.yml`. To run `Musify.Api` from the IDE, the `Authentication`
 values go into user-secrets (not the repo). Copy them from `deploy/.env`

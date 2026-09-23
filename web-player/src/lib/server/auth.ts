@@ -17,7 +17,7 @@ export interface Session extends SessionUser {
 	expiresAt: number;
 }
 
-let configPromise: Promise<client.Configuration>;
+let configPromise: Promise<client.Configuration> | undefined;
 export function getOidcConfig(): Promise<client.Configuration> {
 	configPromise ??= (async () => {
 		const issuer = new URL(authConfig.issuer);
@@ -28,7 +28,10 @@ export function getOidcConfig(): Promise<client.Configuration> {
 		return secret
 			? client.discovery(issuer, authConfig.clientId, secret, undefined, options)
 			: client.discovery(issuer, authConfig.clientId, undefined, client.None(), options);
-	})();
+	})().catch((exception) => {
+		configPromise = undefined;
+		throw exception;
+	});
 	return configPromise;
 }
 

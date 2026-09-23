@@ -1,23 +1,5 @@
-import { ACCENT_CHROMA, ACCENT_LIGHTNESS } from './color';
-
-const L = ACCENT_LIGHTNESS / 100;
-const C = ACCENT_CHROMA;
-
 function r(value: number, digits = 4): string {
 	return value.toFixed(digits);
-}
-
-function tc(alpha: number, l: number, hue: number): string {
-	const lightness = 0.34 - l / 380;
-	const chroma = Math.max(0, 0.11 - l / 1600);
-	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
-}
-
-function tcLight(alpha: number, l: number, hue: number): string {
-	const depth = (88 - l) / 58;
-	const lightness = 0.88 - 0.16 * depth;
-	const chroma = 0.03 + 0.11 * depth;
-	return `oklch(${r(lightness)} ${r(chroma)} ${r(hue, 1)} / ${alpha})`;
 }
 
 export interface ThemeTokens {
@@ -26,50 +8,64 @@ export interface ThemeTokens {
 
 export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): ThemeTokens {
 	const h = ((hue % 360) + 360) % 360;
-	const h2 = (h + 40) % 360;
 	const H = r(h, 1);
-	const H2 = r(h2, 1);
 	const light = mode === 'light';
 
-	const accentL = light ? 0.52 : L;
-	const accentC = light ? 0.16 : C;
-	const titleL = light ? 0.4 : 0.87;
-	const titleC = light ? 0.13 : 0.07;
-	const mutedL = light ? 0.48 : 0.79;
-	const mutedC = light ? 0.06 : 0.035;
+	const accentL = light ? 0.5 : 0.72;
+	const accentC = light ? 0.07 : 0.06;
+	const titleL = light ? 0.36 : 0.86;
+	const titleC = light ? 0.06 : 0.03;
+	const mutedL = light ? 0.42 : 0.8;
+	const mutedC = light ? 0.05 : 0.02;
+	const accent = `oklch(${r(accentL)} ${r(accentC)} ${H})`;
+
+	const g = (l1: number, c1: number, a1: number, l2: number, c2: number, a2: number) =>
+		`linear-gradient(90deg, oklch(${l1} ${c1} ${H} / ${a1}), oklch(${l2} ${c2} ${H} / ${a2}))`;
+	const gActive = light
+		? g(0.82, 0.05, 0.55, 0.87, 0.035, 0.36)
+		: g(0.46, 0.06, 0.34, 0.4, 0.045, 0.22);
+	const gHover = light
+		? g(0.86, 0.035, 0.38, 0.9, 0.025, 0.24)
+		: g(0.42, 0.045, 0.26, 0.38, 0.035, 0.17);
+	const glow = (l: number, c: number, a: number) => `oklch(${l} ${c} ${H} / ${a})`;
+	// Fixed danger hue so error dialogs read red whatever the theme hue is.
+	const dangerGlow = (l: number, c: number, a: number) => `oklch(${l} ${c} 25 / ${a})`;
 
 	return {
-		'--mf-accent': `oklch(${r(accentL)} ${r(accentC)} ${H})`,
+		'--mf-accent': accent,
 		'--mf-accent-title': `oklch(${r(titleL)} ${r(titleC)} ${H})`,
 		'--mf-accent-muted': `oklch(${r(mutedL)} ${r(mutedC)} ${H})`,
-		'--mf-accent-soft-bg': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.08)`,
+		'--mf-accent-soft-bg': `color-mix(in srgb, ${accent} 12%, var(--mf-bg))`,
 		'--mf-accent-line': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.2)`,
 		'--mf-accent-hair': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.09)`,
-		'--mf-accent-btn-bg': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.15)`,
-		'--mf-accent-btn-bg-hover': `oklch(${r(accentL)} ${r(accentC)} ${H} / 0.24)`,
-		'--mf-bg': light ? `oklch(0.97 0.006 ${H})` : `oklch(0.068 0.008 ${H})`,
-		'--mf-elevated': light ? `oklch(0.99 0.003 ${H})` : `oklch(0.11 0.012 ${H})`,
-		'--mf-panel-bg': light ? `oklch(0.97 0.006 ${H} / 0.7)` : `oklch(0.09 0.01 ${H} / 0.28)`,
-		'--mf-bar-bg': light ? `oklch(0.97 0.006 ${H} / 0.9)` : `oklch(0.105 0.012 ${H} / 0.9)`,
-		'--mf-hairline': light ? `oklch(0.3 0.02 ${H} / 0.1)` : `oklch(0.62 0.03 ${H} / 0.08)`,
+		'--mf-accent-btn-bg': `color-mix(in srgb, ${accent} 18%, var(--mf-bg))`,
+		'--mf-accent-btn-bg-hover': `color-mix(in srgb, ${accent} 26%, var(--mf-bg))`,
+		'--mf-g-active': gActive,
+		'--mf-g-hover': gHover,
+		'--mf-bg': light ? `oklch(0.975 0.012 ${H})` : `oklch(0.068 0.008 ${H})`,
+		'--mf-elevated': light ? `oklch(0.99 0.008 ${H})` : `oklch(0.12 0.012 ${H})`,
+		'--mf-panel-bg': light ? 'rgba(255, 255, 255, 0.28)' : 'rgba(0, 0, 0, 0.16)',
+		'--mf-bar-bg': light ? `oklch(0.99 0.01 ${H} / 0.86)` : `oklch(0.105 0.012 ${H} / 0.9)`,
+		'--mf-hairline': light ? `oklch(0.3 0.02 ${H} / 0.06)` : `oklch(0.62 0.02 ${H} / 0.05)`,
 		'--mf-ambient': light
-			? 'none'
-			: `radial-gradient(52% 38% at 14% 0%, ${tc(0.26, 30, h)}, transparent 54%), radial-gradient(46% 34% at 78% 0%, ${tc(0.2, 40, h)}, transparent 56%)`,
+			? `radial-gradient(80% 70% at 12% 0%, ${glow(0.9, 0.05, 0.55)}, transparent 75%), radial-gradient(70% 60% at 88% 8%, ${glow(0.92, 0.035, 0.4)}, transparent 75%), radial-gradient(90% 70% at 50% 110%, ${glow(0.93, 0.03, 0.35)}, transparent 80%), linear-gradient(180deg, ${glow(0.96, 0.02, 0.4)}, transparent 60%)`
+			: `radial-gradient(75% 65% at 12% 0%, ${glow(0.3, 0.045, 0.5)}, transparent 75%), radial-gradient(65% 55% at 85% 5%, ${glow(0.24, 0.035, 0.35)}, transparent 75%), radial-gradient(90% 70% at 50% 105%, ${glow(0.18, 0.025, 0.3)}, transparent 80%), linear-gradient(180deg, ${glow(0.14, 0.02, 0.35)}, transparent 55%)`,
+		'--mf-hero-tint': light ? `oklch(0.8 0.05 ${H})` : `oklch(0.3 0.04 ${H})`,
 		'--mf-hero-bg': light
-			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
-			: `linear-gradient(105deg, ${tc(0.34, 42, h)} 0%, ${tc(0.11, 70, h)} 37%, ${tc(0.03, 88, h)} 65%, rgba(6,6,9,0) 92%)`,
+			? `linear-gradient(120deg, ${glow(0.9, 0.04, 0.6)}, ${glow(0.96, 0.02, 0.4)} 60%)`
+			: `linear-gradient(120deg, ${glow(0.24, 0.04, 0.55)}, ${glow(0.14, 0.02, 0.35)} 60%, ${glow(0.12, 0.015, 0.25)})`,
 		'--mf-modal-glow': light
-			? `linear-gradient(135deg, ${tcLight(0.34, 42, h)} 0%, ${tcLight(0.2, 55, h)} 30%, ${tcLight(0.1, 70, h)} 55%, ${tcLight(0.04, 85, h)} 80%, ${tcLight(0.02, 88, h)} 100%)`
-			: `linear-gradient(135deg, ${tc(0.34, 42, h)} 0%, ${tc(0.11, 70, h)} 28%, ${tc(0.03, 88, h)} 50%, rgba(6,6,9,0) 70%)`,
+			? `linear-gradient(135deg, ${glow(0.88, 0.05, 0.5)} 0%, ${glow(0.93, 0.03, 0.2)} 40%, transparent 75%)`
+			: `linear-gradient(135deg, ${glow(0.3, 0.045, 0.4)} 0%, ${glow(0.2, 0.03, 0.15)} 35%, transparent 70%)`,
+		'--mf-modal-glow-danger': light
+			? `linear-gradient(135deg, ${dangerGlow(0.86, 0.07, 0.55)} 0%, ${dangerGlow(0.92, 0.04, 0.22)} 40%, transparent 75%)`
+			: `linear-gradient(135deg, ${dangerGlow(0.34, 0.1, 0.45)} 0%, ${dangerGlow(0.22, 0.06, 0.18)} 35%, transparent 70%)`,
 		'--mf-spotlight-bg': light
-			? `linear-gradient(${tcLight(0.16, 55, h)}, ${tcLight(0.16, 55, h)})`
-			: `linear-gradient(100deg, ${tc(0.28, 46, h)} 0%, ${tc(0.1, 74, h)} 40%, ${tc(0.03, 88, h)} 69%, rgba(6,6,9,0) 96%)`,
-		'--mf-logo-grad': light
-			? `linear-gradient(140deg, oklch(0.68 0.16 ${H}), oklch(0.5 0.14 ${H2}) 92%)`
-			: `linear-gradient(140deg, oklch(0.78 0.15 ${H}), oklch(0.62 0.13 ${H2}) 92%)`,
+			? `linear-gradient(120deg, ${glow(0.9, 0.04, 0.55)}, ${glow(0.96, 0.02, 0.35)} 55%)`
+			: `linear-gradient(120deg, ${glow(0.22, 0.04, 0.5)}, ${glow(0.13, 0.02, 0.3)} 55%, ${glow(0.11, 0.015, 0.2)})`,
 		'--mf-cover-grad': light
-			? `linear-gradient(150deg, oklch(0.62 0.14 ${H}), oklch(0.44 0.08 ${H}))`
-			: `linear-gradient(150deg, oklch(0.5 0.13 ${H}), oklch(0.16 0.035 ${H}))`
+			? `linear-gradient(150deg, oklch(0.84 0.03 ${H}), oklch(0.74 0.02 ${H}))`
+			: `linear-gradient(150deg, oklch(0.34 0.03 ${H}), oklch(0.18 0.015 ${H}))`
 	};
 }
 

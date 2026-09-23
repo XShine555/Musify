@@ -71,7 +71,7 @@ for (const file of files) {
 if (violations.length > 0) {
 	console.error(`\n${violations.length} violación(es) del sistema de diseño:\n`);
 	for (const v of violations) console.error(`  ${v}`);
-	console.error('\nVer docs/frontend-refactor-plan.md, sección B.4.\n');
+	console.error('\nVer la lista blanca (ARBITRARY_WHITELIST) en este script, o CLAUDE.md.\n');
 	process.exit(1);
 }
 

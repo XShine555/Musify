@@ -553,6 +553,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{id}/last-listened-track": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+
+        get: operations["GetLastTrackListenedByUserId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{id}/listening-stats": {
         parameters: {
             query?: never;
@@ -560,7 +577,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        
+
         get: operations["GetListeningStats"];
         put?: never;
         post?: never;
@@ -2364,7 +2381,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            
+
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2372,6 +2389,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ListeningStatsResponse"];
                 };
+            };
+        };
+    };
+    GetLastTrackListenedByUserId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackApplicationResponse"];
+                };
+            };
+
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

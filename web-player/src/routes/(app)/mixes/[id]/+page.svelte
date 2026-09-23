@@ -1,6 +1,4 @@
 <script lang="ts">
-	import Play from '@lucide/svelte/icons/play';
-	import Pause from '@lucide/svelte/icons/pause';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import {
 		player,
@@ -9,18 +7,18 @@
 		playShuffled,
 		toQueueItem
 	} from '$lib/player/player.svelte';
-	import { fmtTime, plural } from '$lib/format';
-	import Page from '$lib/components/ui/Page.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import TrackList from '$lib/components/ui/TrackList.svelte';
-	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
+	import { fmtTime, plural } from '$lib/utils/format';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
+	import Artwork from '$lib/components/ui/media/Artwork.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import { createTrackMenu } from '$lib/menus.svelte';
-	import { mixItemTrack } from '$lib/mixes';
+	import { createTrackMenu } from '$lib/state/menus.svelte';
+	import { mixItemTrack } from '$lib/data/mixes';
 
 	let { data, form } = $props();
 
@@ -75,10 +73,8 @@
 		{#snippet actions()}
 			<Button size="sm" onclick={() => playAllOrToggle(queue)} disabled={queue.length === 0}>
 				{#if isCurrentQueue && player.playing}
-					<Pause class="size-4" strokeWidth={1.5} />
 					Pausar
 				{:else}
-					<Play class="size-4" strokeWidth={1.5} />
 					Reproducir
 				{/if}
 			</Button>

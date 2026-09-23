@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
-	import PlayButton from '$lib/components/ui/PlayButton.svelte';
+	import PlayButton from '$lib/components/ui/media/PlayButton.svelte';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import Repeat from '@lucide/svelte/icons/repeat';
 
@@ -13,7 +13,7 @@
 	const sideClass = $derived(
 		compact
 			? 'grid size-10 place-items-center text-fg opacity-70 transition active:scale-90'
-			: 'flex text-fg-2 transition-colors hover:text-fg active:scale-90'
+			: 'flex text-fg-2 transition hover:text-fg active:scale-90'
 	);
 </script>
 
@@ -24,7 +24,7 @@
 			onclick={() => player.toggleShuffle()}
 			aria-pressed={player.shuffle}
 			aria-label="Aleatorio"
-			class="transition-colors hover:text-fg {player.shuffle ? 'text-accent' : 'text-fg-3'}"
+			class="transition-colors hover:text-fg {player.shuffle ? 'text-accent' : 'text-fg-2'}"
 		>
 			<Shuffle class="size-4" strokeWidth={1.8} />
 		</button>
@@ -56,7 +56,7 @@
 			onclick={() => player.toggleRepeat()}
 			aria-pressed={player.repeat}
 			aria-label="Repetir"
-			class="transition-colors hover:text-fg {player.repeat ? 'text-accent' : 'text-fg-3'}"
+			class="transition-colors hover:text-fg {player.repeat ? 'text-accent' : 'text-fg-2'}"
 		>
 			<Repeat class="size-4" strokeWidth={1.8} />
 		</button>

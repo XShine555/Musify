@@ -2,22 +2,18 @@
 	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
-	import Play from '@lucide/svelte/icons/play';
-	import Pause from '@lucide/svelte/icons/pause';
-	import SquarePencil from '@lucide/svelte/icons/square-pen';
-	import Trash from '@lucide/svelte/icons/trash';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import AlbumForm from '$lib/components/ui/AlbumForm.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import BackLink from '$lib/components/ui/BackLink.svelte';
-	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import TrackList from '$lib/components/ui/TrackList.svelte';
-	import { albumMeta } from '$lib/format';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import Modal from '$lib/components/ui/overlay/Modal.svelte';
+	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
+	import Artwork from '$lib/components/ui/media/Artwork.svelte';
+	import AlbumForm from '$lib/components/ui/forms/AlbumForm.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
+	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
+	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import { albumMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
 
@@ -76,20 +72,14 @@
 		{#snippet actions()}
 			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
 				{#if isCurrentQueue && player.playing}
-					<Pause class="size-4" strokeWidth={1.5} />
 					Pausar
 				{:else}
-					<Play class="size-4" strokeWidth={1.5} />
 					Reproducir
 				{/if}
 			</Button>
 			{#if isOwner}
-				<Button size="sm" variant="secondary" onclick={() => (editing = true)}>
-					<SquarePencil class="size-4" strokeWidth={1.5} />
-					Editar
-				</Button>
+				<Button size="sm" variant="secondary" onclick={() => (editing = true)}>Editar</Button>
 				<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
-					<Trash class="size-4" strokeWidth={1.5} />
 					Eliminar
 				</Button>
 			{/if}

@@ -9,15 +9,13 @@
 	--color-surface: var(--mf-surface);
 	--color-surface-2: var(--mf-surface-2);
 	--color-surface-hover: var(--mf-surface-hover);
-	--color-hover: var(--mf-surface-2);
+	--color-hover: var(--mf-row-hover);
 	--color-line: var(--mf-border);
 	--color-line-strong: var(--mf-border-strong);
 	--color-hairline: var(--mf-hairline);
 	--color-track: var(--mf-track);
 	--color-fg: var(--mf-text);
 	--color-fg-2: var(--mf-text-2);
-	--color-fg-3: var(--mf-text-3);
-	--color-muted: var(--mf-text-4);
 	--color-accent: var(--mf-accent);
 	--color-accent-soft: var(--mf-accent-title);
 	--color-accent-tint: var(--mf-accent-soft-bg);
@@ -29,15 +27,17 @@
 	--color-on-art: var(--mf-on-art);
 	--color-on-art-2: var(--mf-on-art-2);
 	--color-danger: oklch(63.7% 0.15 25.331);
-	--color-danger-fg: oklch(88.5% 0.062 18.334);
+	--color-danger-fg: var(--mf-danger-fg);
 	--color-btn: var(--mf-btn-bg);
 	--color-btn-hover: var(--mf-btn-bg-hover);
-	--color-btn-glass: var(--mf-btn-secondary-bg);
-	--color-btn-glass-hover: var(--mf-btn-secondary-bg-hover);
+	--color-cta-strong-hover: var(--mf-cta-strong-hover);
+	--color-row-hover: var(--mf-row-hover);
 
 	--radius-tag: 0.25rem;
 	--radius-thumb: 0.5rem;
 	--radius-control: 0.625rem;
+	--radius-btn-sm: 0.6875rem;
+	--radius-btn: 0.75rem;
 	--radius-art: 0.8125rem;
 	--radius-art-lg: 1.125rem;
 	--radius-panel: 1.125rem;
@@ -63,6 +63,11 @@
 	--container-hero: 34rem;
 	--container-search: 30rem;
 	--container-cta: 20rem;
+
+	--text-control-sm: 0.78125rem;
+
+	--ease-snappy: var(--mf-ease);
+	--default-transition-duration: var(--mf-motion-fast);
 
 	--tracking-display: -0.02em;
 	--tracking-eyebrow: 0.1em;
@@ -119,14 +124,16 @@
 	@apply text-xs tabular-nums;
 }
 
-@utility theme-transition {
-	transition: background 0.5s ease-out;
+@utility btn-transition {
+	transition-property:
+		color, background-color, border-color, outline-color, opacity, box-shadow, filter;
+	transition-timing-function: var(--default-transition-timing-function);
+	transition-duration: var(--default-transition-duration);
 }
 @utility glass-bar {
-	background-image: var(--mf-bar-bg);
+	background-color: var(--mf-bar-bg);
 	border-top: 1px solid var(--mf-hairline);
 	backdrop-filter: blur(24px);
-	transition: background 0.5s ease-out;
 }
 @utility grid-cards {
 	display: grid;
@@ -181,7 +188,7 @@
 @utility app-main {
 	--mf-dock-h: 0px;
 	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));
-	transition: padding 0.3s;
+	transition: padding var(--mf-motion-slow) var(--mf-ease);
 
 	&[data-has-track] {
 		--mf-dock-h: var(--mf-player-h);
@@ -193,6 +200,12 @@
 		oklch(var(--mf-tile-l) var(--mf-tile-c) var(--tile-hue)),
 		oklch(var(--mf-tile-shade-l) var(--mf-tile-shade-c) var(--tile-hue))
 	);
+}
+@utility surface-active {
+	background-image: var(--mf-g-active);
+}
+@utility surface-active-hover {
+	background-image: var(--mf-g-hover);
 }
 @utility hero-surface {
 	background-image: var(--mf-hero-bg);
@@ -208,7 +221,7 @@
 		);
 }
 @utility field-control {
-	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-muted focus:bg-surface-2 focus:outline-none;
+	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-fg-2 focus:bg-surface-2 focus:outline-none;
 }
 
 @layer base {
@@ -255,7 +268,7 @@ button:disabled {
 @keyframes pop-in {
 	from {
 		opacity: 0;
-		transform: scale(0.96) translateY(0.5rem);
+		transform: scale(0.98) translateY(0.25rem);
 	}
 	to {
 		opacity: 1;
@@ -304,16 +317,16 @@ button:disabled {
 }
 
 .animate-enter {
-	animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-	animation-delay: calc(min(var(--i, 0), 10) * 45ms);
+	animation: fade-up var(--mf-motion-slow) var(--mf-ease) both;
+	animation-delay: calc(min(var(--i, 0), 10) * 40ms);
 }
 
 .animate-pop {
-	animation: pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+	animation: pop-in var(--mf-motion-base) var(--mf-ease) both;
 }
 
 .animate-fade {
-	animation: fade-in 0.4s ease both;
+	animation: fade-in var(--mf-motion-base) var(--mf-ease) both;
 }
 
 .glass-panel {
@@ -321,7 +334,11 @@ button:disabled {
 	background-image: var(--mf-modal-glow);
 	backdrop-filter: blur(22px);
 	-webkit-backdrop-filter: blur(22px);
-	transition: background 0.6s;
+	transition: background var(--mf-motion-slow) var(--mf-ease);
+}
+
+.glass-panel.glass-panel-danger {
+	background-image: var(--mf-modal-glow-danger);
 }
 
 @media (prefers-reduced-motion: reduce) {

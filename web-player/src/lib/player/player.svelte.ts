@@ -1,7 +1,8 @@
 import { browser } from '$app/environment';
 import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
-import { shuffle } from '$lib/collections';
+import { shuffle } from '$lib/data/collections';
+import { dialog } from '$lib/state/dialog.svelte';
 
 export interface PlayerTrack {
 	id: string | number;
@@ -23,6 +24,7 @@ export interface QueueItem {
 	id: string | number;
 	title: string;
 	artist?: string;
+	duration?: number | string;
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 	listensCount?: number | string;
@@ -32,6 +34,7 @@ export interface ApiTrackLike {
 	id: string | number;
 	title: string;
 	artist?: string | null;
+	duration?: number | string;
 	isExplicit?: boolean;
 	ownerUserId?: string | number | null;
 	listensCount?: number | string;
@@ -42,6 +45,7 @@ export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
 		id: track.id,
 		title: track.title,
 		artist: track.artist ?? undefined,
+		duration: track.duration,
 		explicit: track.isExplicit,
 		ownerUserId: track.ownerUserId,
 		listensCount: track.listensCount
@@ -57,6 +61,7 @@ export function trackFromQueueItem(item: QueueItem): ApiTrackLike {
 		id: item.id,
 		title: item.title,
 		artist: item.artist,
+		duration: item.duration,
 		isExplicit: item.explicit,
 		ownerUserId: item.ownerUserId,
 		listensCount: item.listensCount
@@ -101,7 +106,7 @@ function toTrack(item: QueueItem): PlayerTrack {
 		id: item.id,
 		title: item.title,
 		artist: item.artist ?? '',
-		duration: 0,
+		duration: Number(item.duration) || 0,
 		explicit: item.explicit,
 		ownerUserId: item.ownerUserId,
 		listensCount: item.listensCount
@@ -115,7 +120,6 @@ class PlayerState {
 	progress = $state(0);
 	volume = $state(browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100);
 	loading = $state(false);
-	error = $state('');
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
 	shuffle = $state(false);
@@ -169,7 +173,7 @@ class PlayerState {
 			this.#stopProgressLoop();
 			this.loading = false;
 			this.playing = false;
-			this.error = 'No se pudo reproducir la pista.';
+			this.#fail();
 		});
 		this.#audio = audio;
 		this.#setupMediaSession(audio);
@@ -264,7 +268,6 @@ class PlayerState {
 		if (track) this.#syncMediaSessionMetadata(track);
 		const token = ++this.#loadToken;
 		this.loading = true;
-		this.error = '';
 		this.progress = 0;
 		try {
 			const src = await this.#resolveLocalSrc(String(id));
@@ -279,11 +282,21 @@ class PlayerState {
 			if (token !== this.#loadToken) return;
 			this.loading = false;
 			this.playing = false;
-			this.error =
-				exception instanceof Error && exception.message
+			if (exception instanceof DOMException && exception.name === 'AbortError') return;
+			this.#fail(
+				exception instanceof Error && !(exception instanceof DOMException)
 					? exception.message
-					: 'No se pudo reproducir la pista.';
+					: undefined
+			);
 		}
+	}
+
+	#fail(detail?: string) {
+		dialog.error(
+			'No se pudo reproducir la pista',
+			detail || 'El archivo no está disponible o su formato no es compatible.',
+			[{ label: 'Cerrar' }]
+		);
 	}
 
 	async #resolveLocalSrc(id: string): Promise<string> {
@@ -300,6 +313,15 @@ class PlayerState {
 		if (!ticket) return url;
 		const sep = url.includes('?') ? '&' : '?';
 		return `${url}${sep}t=${encodeURIComponent(ticket)}`;
+	}
+
+	hydrate(item: ApiTrackLike) {
+		if (this.currentId !== null || this.tracks.length > 0) return;
+		const track = toTrack(toQueueItem(item));
+		this.tracks = [track];
+		this.currentId = track.id;
+		this.#applyAccent(track.id);
+		this.#syncMediaSessionMetadata(track);
 	}
 
 	playlistTracks(ids: (string | number)[]): PlayerTrack[] {
@@ -371,6 +393,10 @@ class PlayerState {
 	toggle() {
 		const audio = this.#audioEl();
 		if (!audio || this.currentId === null) return;
+		if (!audio.src) {
+			this.#loadCurrent();
+			return;
+		}
 		if (audio.paused) audio.play().catch(() => {});
 		else audio.pause();
 	}

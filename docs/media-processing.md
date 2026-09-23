@@ -36,7 +36,7 @@ Grouped by area:
 
 ## What the Worker needs configured
 
-The Worker registers: storage (S3), transcoder (ffmpeg), pictures, the DB, the MassTransit consumers, and the upload-intent jobs. Its `AppSettings` needs the right sections: `Bucket` (= `webapi-storage`, same as the API), `PlayList`, `Track`, `MassTransit`, `AudioTranscoder`, `UploadIntent`, `Workers` (temp directory), `InfrastructureStorage`, `Database`.
+The Worker registers: storage (S3), transcoder (ffmpeg), pictures, the DB, the MassTransit consumers, and the upload-intent jobs. Its `appsettings` needs the right sections: `Bucket` (= `webapi-storage`, same as the API), `PlayList`, `Track`, `MassTransit`, `AudioTranscoder`, `UploadIntent`, `Workers` (temp directory), `InfrastructureStorage`, `Database`.
 
 ## Background jobs
 

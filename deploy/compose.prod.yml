@@ -1,11 +1,10 @@
 name: musify-prod
 
-# Production overlay: adds the nginx edge and joins Infrastructure's shared
-# `infra-net` network so this project's containers can reach Postgres,
-# Zitadel, SeaweedFS, RabbitMQ and Jaeger by container name. None of them
-# run as part of this compose project anymore (see
-# ../../../Infrastructure/README.md, which must already be up). Nothing but
-# nginx publishes a port; every other service is reachable only on infra-net.
+# Production overlay: joins Infrastructure's shared `infra-net` network so
+# this project's containers can reach Postgres, Zitadel, SeaweedFS, RabbitMQ
+# and Jaeger by container name, and so the shared edge nginx (Infrastructure's
+# `edge/`, which owns host ports 80/443 and terminates TLS for every domain)
+# can reach api, gateway and web-player. Nothing here publishes a port.
 #
 #   docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml up -d
 #   docker compose --env-file deploy/.env.prod -f deploy/compose.yml -f deploy/compose.prod.yml --profile apps up -d --build
@@ -20,31 +19,3 @@ services:
   zitadel-init:
     volumes:
       - ./.env.prod:/workspace/.env
-
-  # Every vhost proxies through `set $upstream ...; proxy_pass $upstream;`
-  # with the embedded Docker DNS resolver (see nginx/templates), so nginx
-  # does not need api/gateway/web-player to exist at its own startup, only
-  # at request time. That is what lets it start in the FIRST command
-  # (profile-gated services aren't part of that invocation yet) and still be
-  # reachable at the auth domain for zitadel-init to provision through.
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: musify-nginx
-    environment:
-      # The entrypoint renders /etc/nginx/templates/*.template with envsubst.
-      # The filter keeps it from eating nginx's own $host / $remote_addr.
-      MUSIFY_ROOT_DOMAIN: ${ROOT_DOMAIN}
-      MUSIFY_MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-1024m}
-      NGINX_ENVSUBST_FILTER: ^MUSIFY_
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/templates:/etc/nginx/templates:ro
-      - ./nginx/snippets:/etc/nginx/snippets:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-      - nginx_cache:/var/cache/nginx
-    restart: unless-stopped
-
-volumes:
-  nginx_cache:

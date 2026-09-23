@@ -9,12 +9,17 @@ function positiveInt(value: string | undefined, fallback: number): number {
 	return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function required(name: string, value: string | undefined): string {
+	if (!value) throw new Error(`Missing required environment variable: ${name}`);
+	return value;
+}
+
 export const authConfig = {
 	get issuer() {
-		return env.ZITADEL_ISSUER;
+		return required('ZITADEL_ISSUER', env.ZITADEL_ISSUER);
 	},
 	get clientId() {
-		return env.ZITADEL_CLIENT_ID;
+		return required('ZITADEL_CLIENT_ID', env.ZITADEL_CLIENT_ID);
 	},
 	get clientSecret(): string | undefined {
 		const secret = env.ZITADEL_CLIENT_SECRET;
@@ -24,10 +29,10 @@ export const authConfig = {
 		return env.OIDC_SCOPE || DEFAULT_OIDC_SCOPE;
 	},
 	get redirectUri() {
-		return env.AUTH_REDIRECT_URI;
+		return required('AUTH_REDIRECT_URI', env.AUTH_REDIRECT_URI);
 	},
 	get postLogoutUri() {
-		return env.AUTH_POST_LOGOUT_URI;
+		return required('AUTH_POST_LOGOUT_URI', env.AUTH_POST_LOGOUT_URI);
 	},
 	get sessionSecret() {
 		return env.SESSION_SECRET;

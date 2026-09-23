@@ -13,20 +13,20 @@
 		type ApiTrackLike
 	} from '$lib/player/player.svelte';
 	import { pressable } from '$lib/actions/pressable';
-	import { mergeRecentlyPlayed } from '$lib/recentlyPlayed';
-	import { mixItemTrack } from '$lib/mixes';
-	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/format';
-	import Page from '$lib/components/ui/Page.svelte';
-	import Artwork from '$lib/components/ui/Artwork.svelte';
-	import MediaCard from '$lib/components/ui/MediaCard.svelte';
-	import EqBars from '$lib/components/ui/EqBars.svelte';
-	import ListRow from '$lib/components/ui/ListRow.svelte';
-	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import ContextMenu from '$lib/components/ui/ContextMenu.svelte';
+	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
+	import { mixItemTrack } from '$lib/data/mixes';
+	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/utils/format';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import Artwork from '$lib/components/ui/media/Artwork.svelte';
+	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
+	import EqBars from '$lib/components/ui/media/EqBars.svelte';
+	import ListRow from '$lib/components/ui/media/ListRow.svelte';
+	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
+	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import { createTrackMenu } from '$lib/menus.svelte';
+	import { createTrackMenu } from '$lib/state/menus.svelte';
 	import { HOME_CONTINUE_LIMIT, HOME_POPULAR_MAX } from '$lib/config';
 
 	let { data } = $props();
@@ -134,9 +134,7 @@
 </svelte:head>
 
 <Page>
-	<div
-		class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 theme-transition sm:px-9 sm:py-8.5"
-	>
+	<div class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 sm:px-9 sm:py-8.5">
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
@@ -151,12 +149,12 @@
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
 					{#if spotlight}
-						<Button variant="strong" onclick={playSpotlight}>
+						<Button variant="primary" onclick={playSpotlight}>
 							{heroPlaying ? 'Pausar' : 'Reanudar'}
 							{spotlight.name}
 						</Button>
 					{/if}
-					<Button href="/explore" variant="glass">Explorar música</Button>
+					<Button href="/explore" variant="secondary">Explorar música</Button>
 				</div>
 			</div>
 
@@ -173,7 +171,7 @@
 					{#each statsList as stat (stat.label)}
 						<div>
 							<div class="text-display-2 text-fg">{stat.value}</div>
-							<div class="mt-1 text-xs text-fg-3">{stat.label}</div>
+							<div class="mt-1 text-xs text-fg-2">{stat.label}</div>
 						</div>
 					{/each}
 				</div>
@@ -211,7 +209,7 @@
 		{#if spotlight}
 			<section>
 				<div
-					class="grid grid-cols-1 overflow-hidden rounded-panel-lg spotlight-surface theme-transition lg:grid-cols-2"
+					class="grid grid-cols-1 overflow-hidden rounded-panel-lg spotlight-surface lg:grid-cols-2"
 				>
 					<div class="flex flex-col justify-center p-8 sm:p-9">
 						<div
@@ -242,10 +240,10 @@
 						</p>
 						<div class="mt-5 flex gap-2.5">
 							<Button variant="accent" onclick={playSpotlight}>Reproducir</Button>
-							<Button variant="glass" onclick={shuffleSpotlight}>Aleatorio</Button>
+							<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
 						</div>
 					</div>
-					<div class="flex flex-col gap-0.5 p-5.5 sm:p-6">
+					<div class="flex flex-col gap-2 p-5.5 sm:p-6">
 						{#each spotlightRows as { track, seconds }, i (track.id)}
 							<ListRow
 								onclick={() => playSpotlightTrack(i)}
@@ -256,16 +254,16 @@
 								subtitleHref={track.ownerUserId}
 							>
 								{#snippet leading()}
-									<span class="w-5 shrink-0 text-center text-xs text-muted tabular-nums"
+									<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"
 										>{i + 1}</span
 									>
 								{/snippet}
 								{#snippet trailing()}
-									<span class="shrink-0 text-xs text-muted tabular-nums">{fmtTime(seconds)}</span>
+									<span class="shrink-0 text-xs text-fg-2 tabular-nums">{fmtTime(seconds)}</span>
 								{/snippet}
 							</ListRow>
 						{:else}
-							<p class="p-2 text-sm text-fg-3">Esta playlist todavía no tiene canciones.</p>
+							<p class="p-2 text-sm text-fg-2">Esta playlist todavía no tiene canciones.</p>
 						{/each}
 					</div>
 				</div>
@@ -314,16 +312,16 @@
 							trackId={track.id}
 						>
 							{#snippet leading()}
-								<span class="flex h-3.5 w-4.5 shrink-0 items-end justify-center">
+								<span class="flex h-3.5 w-icon-md shrink-0 items-end justify-center">
 									{#if isCurrent}
 										<EqBars size={13} paused={!player.playing} />
 									{:else}
-										<span class="text-xs text-muted tabular-nums">{i + 1}</span>
+										<span class="text-xs text-fg-2 tabular-nums">{i + 1}</span>
 									{/if}
 								</span>
 							{/snippet}
 							{#snippet trailing()}
-								<span class="hidden shrink-0 text-xs text-muted tabular-nums sm:block">
+								<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
 									{fmtPlays(track.listensCount)}
 								</span>
 							{/snippet}

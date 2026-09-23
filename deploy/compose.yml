@@ -19,7 +19,7 @@
 # file, so the apps start with real values. See deploy/README.md.
 
 # Backend settings that are identical for the API and the Worker. ASP.NET Core
-# maps `__` to `:`, so these override the matching AppSettings.json sections.
+# maps `__` to `:`, so these override the matching appsettings.json sections.
 # POSTGRES_HOST / RABBITMQ_HOST / JAEGER_HOST differ between environments
 # (host.docker.internal in dev, the container name over infra-net in prod,
 # see .env.example / .env.prod.example), same as PUBLIC_AUTH_URL/S3_PUBLIC_URL

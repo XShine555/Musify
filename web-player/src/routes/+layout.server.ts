@@ -5,7 +5,7 @@ import { createApiClient } from '$lib/server/api';
 import { authConfig } from '$lib/server/config';
 import { LIKED_TRACKS_PAGE_SIZE } from '$lib/config';
 
-const PUBLIC_PATHS = new Set(['/login']);
+const PUBLIC_PATHS = new Set(['/auth']);
 const SIDEBAR_PLAYLISTS_LIMIT = 8;
 
 async function fetchSidebarPlaylists(
@@ -39,11 +39,27 @@ async function fetchLikedTracks(fetchFn: typeof fetch, accessToken: string | nul
 	}
 }
 
+async function fetchLastPlayedTrack(
+	fetchFn: typeof fetch,
+	accessToken: string | null,
+	userId: string
+) {
+	try {
+		const api = createApiClient({ fetch: fetchFn, accessToken: accessToken ?? undefined });
+		const { data } = await api.GET('/users/{id}/last-listened-track', {
+			params: { path: { id: userId } }
+		});
+		return data ?? null;
+	} catch {
+		return null;
+	}
+}
+
 export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 	const allowAnonymousListening = await getAllowAnonymousListening(fetch);
 
 	if (!locals.user && !allowAnonymousListening && !PUBLIC_PATHS.has(url.pathname)) {
-		redirect(302, `/login?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
 	}
 
 	const accountUrl = authConfig.issuer
@@ -56,13 +72,15 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 			allowAnonymousListening,
 			sidebarPlaylists: [],
 			likedTracks: [],
+			lastPlayedTrack: null,
 			accountUrl
 		};
 	}
 
-	const [sidebarPlaylists, likedTracks] = await Promise.all([
+	const [sidebarPlaylists, likedTracks, lastPlayedTrack] = await Promise.all([
 		fetchSidebarPlaylists(fetch, locals.accessToken, locals.user.sub),
-		fetchLikedTracks(fetch, locals.accessToken)
+		fetchLikedTracks(fetch, locals.accessToken),
+		fetchLastPlayedTrack(fetch, locals.accessToken, locals.user.sub)
 	]);
 
 	return {
@@ -70,6 +88,7 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 		allowAnonymousListening,
 		sidebarPlaylists,
 		likedTracks,
+		lastPlayedTrack,
 		accountUrl
 	};
 };

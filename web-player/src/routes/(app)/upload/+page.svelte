@@ -4,15 +4,15 @@
 	import Music from '@lucide/svelte/icons/music';
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import Check from '@lucide/svelte/icons/check';
-	import Page from '$lib/components/ui/Page.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Surface from '$lib/components/ui/Surface.svelte';
-	import ImageDropzone from '$lib/components/ui/ImageDropzone.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import Field from '$lib/components/ui/Field.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Checkbox from '$lib/components/ui/Checkbox.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import Page from '$lib/components/ui/layout/Page.svelte';
+	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
+	import Surface from '$lib/components/ui/primitives/Surface.svelte';
+	import ImageDropzone from '$lib/components/ui/forms/ImageDropzone.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Input from '$lib/components/ui/primitives/Input.svelte';
+	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';
@@ -123,7 +123,7 @@
 						</span>
 						<span class="text-sm font-medium text-fg">{step.label}</span>
 					</div>
-					<p class="mt-2.5 text-xs text-muted">{step.hint}</p>
+					<p class="mt-2.5 text-xs text-fg-2">{step.hint}</p>
 				</Surface>
 			</li>
 		{/each}
@@ -191,7 +191,7 @@
 					aria-label="Seleccionar archivo de audio"
 				/>
 				{#if audioName === ''}
-					<Headphones class="size-9 text-muted sm:size-10" strokeWidth={1.4} />
+					<Headphones class="size-9 text-fg-2 sm:size-10" strokeWidth={1.4} />
 				{:else}
 					<Music class="size-9 text-accent-soft sm:size-10" strokeWidth={1.4} />
 				{/if}
@@ -199,12 +199,12 @@
 					<p class="mt-4 text-sm font-medium text-fg">
 						Arrastra tu audio aquí o haz clic para elegir
 					</p>
-					<p class="mt-1.5 text-xs text-muted">MP3, FLAC, WAV…</p>
+					<p class="mt-1.5 text-xs text-fg-2">MP3, FLAC, WAV…</p>
 				{:else}
 					<p class="mt-4 max-w-full truncate text-sm font-medium text-fg">
 						{audioName}
 					</p>
-					<p class="mt-1.5 text-xs text-muted">{formatSize(audioSize)} · Listo para subir</p>
+					<p class="mt-1.5 text-xs text-fg-2">{formatSize(audioSize)} · Listo para subir</p>
 				{/if}
 			</div>
 
@@ -251,7 +251,7 @@
 				<Surface padding="sm">
 					<div class="flex items-center justify-between text-sm">
 						<span class="font-medium text-fg">Subiendo y creando la pista…</span>
-						<span class="text-xs text-muted">un momento</span>
+						<span class="text-xs text-fg-2">un momento</span>
 					</div>
 					<div class="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
 						<div class="h-full w-full animate-pulse rounded-full bg-accent-soft"></div>
