@@ -11,6 +11,28 @@
 		const idx = player.tracks.findIndex((t) => t.id === player.currentId);
 		return idx === -1 ? player.tracks : player.tracks.slice(idx + 1);
 	});
+
+	let dragFrom = $state<number | null>(null);
+	let dropAt = $state<number | null>(null);
+
+	function onDragOver(event: DragEvent, index: number) {
+		if (dragFrom === null) return;
+		event.preventDefault();
+		if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		dropAt = event.clientY < rect.top + rect.height / 2 ? index : index + 1;
+	}
+
+	function onDrop(event: DragEvent) {
+		event.preventDefault();
+		if (dragFrom !== null && dropAt !== null) player.moveQueueItem(dragFrom, dropAt);
+		endDrag();
+	}
+
+	function endDrag() {
+		dragFrom = null;
+		dropAt = null;
+	}
 </script>
 
 <div
@@ -58,21 +80,45 @@
 		<div class="flex flex-1 flex-col gap-px overflow-y-auto">
 			{#each upcoming as track, i (track.id)}
 				{@const index = player.tracks.length - upcoming.length + i}
-				<ListRow
-					onclick={() => player.playQueueIndex(index)}
-					size="sm"
-					title={track.title}
-					subtitle={track.artist || '—'}
-					subtitleHref={track.ownerUserId}
-					trackId={track.id}
-					class="p-2"
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					draggable="true"
+					ondragstart={(event) => {
+						dragFrom = index;
+						if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+					}}
+					ondragover={(event) => onDragOver(event, index)}
+					ondrop={onDrop}
+					ondragend={endDrag}
+					class="relative transition-opacity {dragFrom === index ? 'opacity-40' : ''}"
 				>
-					{#snippet trailing()}
-						{#if track.duration}
-							<span class="shrink-0 text-xs text-fg-2 tabular-nums">{fmtTime(track.duration)}</span>
-						{/if}
-					{/snippet}
-				</ListRow>
+					{#if dropAt === index && dragFrom !== null}
+						<div
+							class="pointer-events-none absolute inset-x-2 top-0 h-0.5 rounded-full bg-accent"
+						></div>
+					{:else if dropAt === index + 1 && dropAt === player.tracks.length && dragFrom !== null}
+						<div
+							class="pointer-events-none absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-accent"
+						></div>
+					{/if}
+					<ListRow
+						onclick={() => player.playQueueIndex(index)}
+						size="sm"
+						title={track.title}
+						subtitle={track.artist || '—'}
+						subtitleHref={track.ownerUserId}
+						trackId={track.id}
+						class="p-2"
+					>
+						{#snippet trailing()}
+							{#if track.duration}
+								<span class="shrink-0 text-xs text-fg-2 tabular-nums"
+									>{fmtTime(track.duration)}</span
+								>
+							{/if}
+						{/snippet}
+					</ListRow>
+				</div>
 			{:else}
 				<p class="px-2 py-6 text-center text-xs text-fg-2">No hay más canciones en la cola.</p>
 			{/each}

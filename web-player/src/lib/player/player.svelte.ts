@@ -456,6 +456,16 @@ class PlayerState {
 		this.#loadCurrent();
 	}
 
+	moveQueueItem(from: number, insertAt: number) {
+		if (from < 0 || from >= this.tracks.length) return;
+		const target = insertAt > from ? insertAt - 1 : insertAt;
+		if (target === from) return;
+		const tracks = [...this.tracks];
+		const [item] = tracks.splice(from, 1);
+		tracks.splice(target, 0, item);
+		this.tracks = tracks;
+	}
+
 	clearUpcoming() {
 		this.tracks = this.currentId === null ? [] : [this.current];
 	}
