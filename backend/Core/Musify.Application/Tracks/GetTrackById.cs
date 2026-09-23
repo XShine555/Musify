@@ -18,7 +18,7 @@ namespace Musify.Application.Tracks
                 .Include(t => t.Owner)
                 .Include(t => t.Tags)
                 .Where(t => t.Id == request.TrackId)
-                .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count })
+                .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count(l => l.IsCounted) })
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (entity == null)

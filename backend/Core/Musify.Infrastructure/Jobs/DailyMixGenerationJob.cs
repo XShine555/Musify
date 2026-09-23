@@ -15,6 +15,7 @@ namespace Musify.Infrastructure.Jobs
         {
             var userIds = await database.ListeningHistories
                 .AsNoTracking()
+                .Where(history => history.IsCounted)
                 .Select(history => history.UserId)
                 .Distinct()
                 .ToListAsync(cancellationToken);

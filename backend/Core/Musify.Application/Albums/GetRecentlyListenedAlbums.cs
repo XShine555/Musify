@@ -16,7 +16,7 @@ namespace Musify.Application.Albums
         {
             var listenedTrackIds = database.ListeningHistories
                 .AsNoTracking()
-                .Where(history => history.UserId == request.UserId);
+                .Where(history => history.UserId == request.UserId && history.IsCounted);
 
             var ranked = await database.AlbumHasTracks
                 .AsNoTracking()

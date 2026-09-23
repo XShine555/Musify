@@ -41,6 +41,11 @@ using (var scope = host.Services.CreateScope())
         job => job.RunAsync(CancellationToken.None),
         Cron.Daily(),
         new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+    recurringJobManager.AddOrUpdate<ListeningHistoryCleanupJob>(
+        "listening-history-cleanup",
+        job => job.RunAsync(CancellationToken.None),
+        Cron.Daily(3),
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 }
 
 host.Run();

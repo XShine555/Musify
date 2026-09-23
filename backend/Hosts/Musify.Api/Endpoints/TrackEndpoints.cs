@@ -41,6 +41,14 @@ public static class TrackEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPut("/listens/{listenId}/progress", RecordListeningProgress)
+            .WithName("RecordListeningProgress")
+            .WithSummary("Report The Total Seconds Actually Played For A Listen Started By The Stream Endpoint.")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapGet("/users/{userId}", GetTracksByUserId)
             .WithName("GetTracksByUserId")
             .WithSummary("Get Paginated Tracks For A User.")
@@ -125,6 +133,19 @@ public static class TrackEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.Id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> RecordListeningProgress(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid listenId,
+        RecordListeningProgressRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new RecordListeningProgressCommand(currentUser.RequiredId, listenId, request.PlayedSeconds),
+            cancellationToken);
         return result.ToHttpResult();
     }
 

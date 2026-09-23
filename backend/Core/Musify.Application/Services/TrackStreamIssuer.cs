@@ -30,6 +30,7 @@ public sealed class TrackStreamIssuer(
             folderPath,
             streamGatewayConfiguration.AudioFileName);
 
+        Guid? listenId = null;
         if (userId != null)
         {
             var newListeningHistory = new ListeningHistory
@@ -39,9 +40,10 @@ public sealed class TrackStreamIssuer(
             };
             await database.ListeningHistories.AddAsync(newListeningHistory, cancellationToken);
             await database.SaveChangesAsync(cancellationToken);
+            listenId = newListeningHistory.Id;
         }
 
-        return new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds);
+        return new TrackStreamResponse(manifestUrl, ticket.Token, ticket.ExpiresInSeconds, listenId);
     }
 
     private long? AnonymousFragmentBytes(long? userId)

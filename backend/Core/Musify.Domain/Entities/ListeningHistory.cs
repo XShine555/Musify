@@ -19,6 +19,12 @@ namespace Musify.Domain.Entities
         [Required]
         public DateTime ListenedAt { get; set; } = DateTime.UtcNow;
 
+        public double? PlayedSeconds { get; set; }
+
+        public DateTime? LastProgressAt { get; set; }
+
+        public bool IsCounted { get; set; }
+
         [ForeignKey(nameof(UserId) )]
         public User User { get; set; }
 

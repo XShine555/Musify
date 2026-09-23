@@ -30,7 +30,7 @@ namespace Musify.Application.Likes
 
             var pagedEntities = await likesQuery
                 .OrderByDescending(like => like.CreatedAt)
-                .Select(like => new { like.Track, ListensCount = like.Track.ListeningHistories.Count })
+                .Select(like => new { like.Track, ListensCount = like.Track.ListeningHistories.Count(l => l.IsCounted) })
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             var pagedTracks = new StaticPagedList<TrackApplicationResponse>(

@@ -450,6 +450,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tracks/listens/{listenId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["RecordListeningProgress"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tracks/users/{userId}": {
         parameters: {
             query?: never;
@@ -861,6 +877,9 @@ export interface components {
             
             expectedSizeBytes?: null | number | string;
         };
+        RecordListeningProgressRequest: {
+            playedSeconds: number | string;
+        };
         RequestTrackUploadUrlsRequest: {
             pictureFileType: string;
             pictureContentType: string;
@@ -912,6 +931,8 @@ export interface components {
             ticket: string;
             
             expiresInSeconds: number | string;
+            /** Format: uuid */
+            listenId?: string | null;
         };
         TrackUploadUrlsResponse: {
             
@@ -2189,6 +2210,41 @@ export interface operations {
             };
             
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RecordListeningProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordListeningProgressRequest"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -3,6 +3,7 @@ import { DEFAULT_ACCENT } from '$lib/theme/color';
 import { extractAccent, type Accent } from '$lib/theme/palette';
 import { shuffle } from '$lib/data/collections';
 import { dialog } from '$lib/state/dialog.svelte';
+import { ListenTracker } from './listenTracker';
 
 export interface PlayerTrack {
 	id: string | number;
@@ -131,6 +132,7 @@ class PlayerState {
 	#loadToken = 0;
 	#accentCache = new Map<string, Accent>();
 	#rafId: number | null = null;
+	#listen = new ListenTracker();
 
 	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? EMPTY);
 	accent = $derived(this.accentColor ?? DEFAULT_ACCENT);
@@ -150,19 +152,30 @@ class PlayerState {
 		audio.volume = this.volume / 100;
 		audio.addEventListener('durationchange', () => this.#syncDuration(audio.duration));
 		audio.addEventListener('loadedmetadata', () => this.#syncDuration(audio.duration));
+		audio.addEventListener('timeupdate', () => {
+			if (!audio.paused) this.#listen.tick(audio.currentTime);
+		});
+		audio.addEventListener('seeking', () => this.#listen.interrupt());
+		audio.addEventListener('seeked', () => this.#listen.resync(audio.currentTime));
 		audio.addEventListener('play', () => {
+			this.#listen.resync(audio.currentTime);
 			this.playing = true;
 			this.#startProgressLoop();
 			this.#syncMediaSessionPlaybackState();
 		});
 		audio.addEventListener('pause', () => {
+			this.#listen.interrupt();
+			this.#listen.flush();
 			this.playing = false;
 			this.#stopProgressLoop();
 			this.#syncMediaSessionPlaybackState();
 		});
 		audio.addEventListener('ended', () => {
 			this.#stopProgressLoop();
+			this.#listen.tick(audio.currentTime);
+			this.#listen.begin(null);
 			if (this.repeat) {
+				this.#beginRepeatListen();
 				audio.currentTime = 0;
 				audio.play().catch(() => {});
 				return;
@@ -176,6 +189,10 @@ class PlayerState {
 			this.#fail();
 		});
 		this.#audio = audio;
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'hidden') this.#listen.flush();
+		});
+		window.addEventListener('pagehide', () => this.#listen.flush());
 		this.#setupMediaSession(audio);
 		return audio;
 	}
@@ -266,14 +283,16 @@ class PlayerState {
 		const track = this.tracks.find((t) => t.id === id);
 		this.#applyAccent(id);
 		if (track) this.#syncMediaSessionMetadata(track);
+		this.#listen.begin(null);
 		const token = ++this.#loadToken;
 		this.loading = true;
 		this.progress = 0;
 		try {
-			const src = await this.#resolveLocalSrc(String(id));
+			const { src, listenId } = await this.#resolveLocalSrc(String(id));
 			if (token !== this.#loadToken) return;
 			audio.src = src;
 			audio.volume = this.volume / 100;
+			this.#listen.begin(listenId);
 			await audio.play();
 			this.loading = false;
 			this.#pushRecent(this.current);
@@ -299,14 +318,28 @@ class PlayerState {
 		);
 	}
 
-	async #resolveLocalSrc(id: string): Promise<string> {
+	async #resolveLocalSrc(id: string): Promise<{ src: string; listenId: string | null }> {
 		const res = await fetch(`/api/tracks/${id}/stream`);
 		if (!res.ok) throw new Error(await readErrorMessage(res));
-		const { manifestUrl, ticket } = (await res.json()) as {
+		const { manifestUrl, ticket, listenId } = (await res.json()) as {
 			manifestUrl: string;
 			ticket: string;
+			listenId?: string | null;
 		};
-		return this.#withTicket(manifestUrl, ticket);
+		return { src: this.#withTicket(manifestUrl, ticket), listenId: listenId ?? null };
+	}
+
+	async #beginRepeatListen() {
+		const id = this.currentId;
+		if (id === null) return;
+		try {
+			const res = await fetch(`/api/tracks/${id}/stream`);
+			if (!res.ok) return;
+			const { listenId } = (await res.json()) as { listenId?: string | null };
+			if (this.currentId === id) this.#listen.begin(listenId ?? null);
+		} catch {
+			return;
+		}
 	}
 
 	#withTicket(url: string, ticket: string): string {

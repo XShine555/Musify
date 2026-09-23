@@ -19,7 +19,7 @@ namespace Musify.Application.Tracks
                 .Include(t => t.Track.Tags)
                 .Where(t => t.UserId == query.UserId)
                 .OrderByDescending(t => t.ListenedAt)
-                .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.Track.ListeningHistories.Count))
+                .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.Track.ListeningHistories.Count(l => l.IsCounted)))
                 .FirstOrDefaultAsync(cancellationToken);
 
             return track == null
