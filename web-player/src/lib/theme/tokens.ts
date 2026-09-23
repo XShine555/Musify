@@ -45,11 +45,13 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 		'--mf-bg': light ? `oklch(0.975 0.012 ${H})` : `oklch(0.068 0.008 ${H})`,
 		'--mf-elevated': light ? `oklch(0.99 0.008 ${H})` : `oklch(0.12 0.012 ${H})`,
 		'--mf-panel-bg': light ? 'rgba(255, 255, 255, 0.28)' : 'rgba(0, 0, 0, 0.16)',
-		'--mf-bar-bg': light ? `oklch(0.99 0.01 ${H} / 0.86)` : `oklch(0.105 0.012 ${H} / 0.9)`,
 		'--mf-hairline': light ? `oklch(0.3 0.02 ${H} / 0.06)` : `oklch(0.62 0.02 ${H} / 0.05)`,
 		'--mf-ambient': light
 			? `radial-gradient(80% 70% at 12% 0%, ${glow(0.9, 0.05, 0.55)}, transparent 75%), radial-gradient(70% 60% at 88% 8%, ${glow(0.92, 0.035, 0.4)}, transparent 75%), radial-gradient(90% 70% at 50% 110%, ${glow(0.93, 0.03, 0.35)}, transparent 80%), linear-gradient(180deg, ${glow(0.96, 0.02, 0.4)}, transparent 60%)`
 			: `radial-gradient(75% 65% at 12% 0%, ${glow(0.3, 0.045, 0.5)}, transparent 75%), radial-gradient(65% 55% at 85% 5%, ${glow(0.24, 0.035, 0.35)}, transparent 75%), radial-gradient(90% 70% at 50% 105%, ${glow(0.18, 0.025, 0.3)}, transparent 80%), linear-gradient(180deg, ${glow(0.14, 0.02, 0.35)}, transparent 55%)`,
+		'--mf-slider-fill': light
+			? `linear-gradient(90deg, oklch(0.5 0.1 ${H}), oklch(0.68 0.11 ${r(h + 18, 1)}), oklch(0.5 0.1 ${H}))`
+			: `linear-gradient(90deg, oklch(0.66 0.11 ${H}), oklch(0.84 0.09 ${r(h + 18, 1)}), oklch(0.66 0.11 ${H}))`,
 		'--mf-hero-tint': light ? `oklch(0.8 0.05 ${H})` : `oklch(0.3 0.04 ${H})`,
 		'--mf-hero-bg': light
 			? `linear-gradient(120deg, ${glow(0.9, 0.04, 0.6)}, ${glow(0.96, 0.02, 0.4)} 60%)`

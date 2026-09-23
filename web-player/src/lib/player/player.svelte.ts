@@ -208,10 +208,19 @@ class PlayerState {
 		});
 	}
 
-	#tickProgress = () => {
+	#clockTime = 0;
+	#clockStamp = 0;
+
+	#tickProgress = (now: number) => {
 		const audio = this.#audio;
 		if (!audio) return;
-		this.progress = audio.currentTime;
+		if (audio.currentTime !== this.#clockTime) {
+			this.#clockTime = audio.currentTime;
+			this.#clockStamp = now;
+		}
+		const elapsed = Math.min(0.25, (now - this.#clockStamp) / 1000);
+		const smooth = this.#clockTime + (audio.paused ? 0 : elapsed * audio.playbackRate);
+		this.progress = Math.min(smooth, Number.isFinite(audio.duration) ? audio.duration : smooth);
 		this.#rafId = requestAnimationFrame(this.#tickProgress);
 	};
 

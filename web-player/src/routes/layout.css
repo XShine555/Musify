@@ -131,9 +131,8 @@
 	transition-duration: var(--default-transition-duration);
 }
 @utility glass-bar {
-	background-color: var(--mf-bar-bg);
+	background-color: var(--mf-bg);
 	border-top: 1px solid var(--mf-hairline);
-	backdrop-filter: blur(24px);
 }
 @utility grid-cards {
 	display: grid;
