@@ -43,8 +43,8 @@
 	inert={!queuePanel.open}
 >
 	<aside
-		class="flex shrink-0 flex-col border-l border-hairline px-4 pt-5"
-		style="width:var(--mf-queue-w); padding-bottom:calc(var(--mf-player-h) + 2rem)"
+		class="flex min-h-0 shrink-0 flex-col border-l border-hairline px-4 pt-5 pb-5"
+		style="width:var(--mf-queue-w)"
 	>
 		<div class="mb-5 flex items-center justify-between">
 			<h2 class="font-display text-base font-medium tracking-tight text-fg">En cola</h2>
@@ -82,7 +82,7 @@
 
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="flex flex-1 flex-col gap-px overflow-y-auto"
+			class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto"
 			ondragover={(event) => dragFrom !== null && event.preventDefault()}
 			ondrop={onDrop}
 		>

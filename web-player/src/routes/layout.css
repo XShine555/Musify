@@ -98,10 +98,6 @@
 	}
 }
 
-@utility scrollbar-stable {
-	scrollbar-gutter: stable;
-}
-
 @utility text-display-1 {
 	@apply font-display text-3xl font-medium tracking-tight sm:text-4xl;
 }
@@ -131,7 +127,6 @@
 	transition-duration: var(--default-transition-duration);
 }
 @utility glass-bar {
-	background-color: var(--mf-bg);
 	border-top: 1px solid var(--mf-hairline);
 }
 @utility grid-cards {
@@ -224,14 +219,12 @@
 		margin-bottom: --spacing(14);
 	}
 }
-@utility app-main {
-	--mf-dock-h: 0px;
-	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));
-	transition: padding var(--mf-motion-slow) var(--mf-ease);
-
-	&[data-has-track] {
-		--mf-dock-h: var(--mf-player-h);
-	}
+@utility app-scroll {
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: var(--mf-scrollbar) transparent;
 }
 @utility genre-tile {
 	background: linear-gradient(

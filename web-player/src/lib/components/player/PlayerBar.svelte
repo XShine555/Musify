@@ -17,7 +17,7 @@
 </script>
 
 <div
-	class="animate-enter pointer-events-auto flex items-center gap-icon-md glass-bar px-4 py-3 sm:hidden"
+	class="animate-enter pointer-events-auto flex items-center gap-icon-md px-4 py-3 glass-bar sm:hidden"
 >
 	<div class="min-w-0 flex-1">
 		<TrackInfo compact />
@@ -26,7 +26,7 @@
 </div>
 
 <div
-	class="animate-enter pointer-events-auto hidden items-center gap-5 glass-bar px-4 py-3 sm:flex"
+	class="animate-enter pointer-events-auto hidden items-center gap-5 px-4 py-3 glass-bar sm:flex"
 >
 	<div class="w-(--mf-player-side-w) min-w-0 shrink-0">
 		<TrackInfo />

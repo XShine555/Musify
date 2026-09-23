@@ -1,4 +1,4 @@
-import { afterNavigate } from '$app/navigation';
+import { afterNavigate, beforeNavigate } from '$app/navigation';
 import type { LucideIcon } from '@lucide/svelte';
 import Home from '@lucide/svelte/icons/house';
 import Compass from '@lucide/svelte/icons/compass';
@@ -52,6 +52,26 @@ export function trackNavigation() {
 		if (url && label) visited.set(at, { url: url.pathname + url.search, label });
 		else visited.delete(at);
 		index = at;
+	});
+}
+
+const scrollPositions = new Map<number, number>();
+
+export function restoreScroll(getScroller: () => HTMLElement | undefined) {
+	let current: number | null = null;
+
+	beforeNavigate(() => {
+		const scroller = getScroller();
+		if (current !== null && scroller) scrollPositions.set(current, scroller.scrollTop);
+	});
+
+	afterNavigate((nav) => {
+		current = historyIndex();
+		const scroller = getScroller();
+		if (!scroller || nav.type === 'enter' || nav.to?.url.hash) return;
+		const saved =
+			nav.type === 'popstate' && current !== null ? scrollPositions.get(current) : undefined;
+		scroller.scrollTop = saved ?? 0;
 	});
 }
 

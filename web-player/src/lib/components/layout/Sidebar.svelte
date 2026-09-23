@@ -31,7 +31,7 @@
 </script>
 
 <aside
-	class="hidden shrink-0 flex-col border-r border-hairline p-5 lg:flex"
+	class="hidden min-h-0 shrink-0 flex-col border-r border-hairline p-5 lg:flex"
 	style="width:var(--mf-sidebar-w)"
 >
 	<a href="/" class="mb-4">
@@ -73,7 +73,7 @@
 			{/if}
 		</div>
 
-		<div class="flex flex-1 flex-col gap-px overflow-y-auto pb-icon-md">
+		<div class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto pb-icon-md">
 			{#each playlists as playlist (playlist.id)}
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
 				<ListRow
