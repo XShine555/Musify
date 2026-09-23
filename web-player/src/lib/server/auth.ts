@@ -1,3 +1,4 @@
+import type { Cookies } from '@sveltejs/kit';
 import * as client from 'openid-client';
 import { EncryptJWT, jwtDecrypt } from 'jose';
 import { dev } from '$app/environment';
@@ -51,6 +52,44 @@ export function sessionCookieOptions(url: URL) {
 		path: '/',
 		maxAge: authConfig.sessionTtlSeconds
 	};
+}
+
+const SESSION_CHUNK_SIZE = 3600;
+
+function sessionChunkName(index: number): string {
+	return index === 0 ? SESSION_COOKIE : `${SESSION_COOKIE}.${index}`;
+}
+
+export function readSessionCookie(cookies: Cookies): string | undefined {
+	const parts: string[] = [];
+	for (let index = 0; ; index++) {
+		const part = cookies.get(sessionChunkName(index));
+		if (part === undefined) break;
+		parts.push(part);
+	}
+	return parts.length > 0 ? parts.join('') : undefined;
+}
+
+export function clearSessionCookie(cookies: Cookies, keep = 0): void {
+	for (const { name } of cookies.getAll()) {
+		const match =
+			name === SESSION_COOKIE
+				? 0
+				: name.startsWith(`${SESSION_COOKIE}.`)
+					? Number(name.slice(SESSION_COOKIE.length + 1))
+					: -1;
+		if (Number.isInteger(match) && match >= keep) cookies.delete(name, { path: '/' });
+	}
+}
+
+export function writeSessionCookie(cookies: Cookies, token: string, url: URL): void {
+	const options = sessionCookieOptions(url);
+	const count = Math.ceil(token.length / SESSION_CHUNK_SIZE);
+	for (let index = 0; index < count; index++) {
+		const chunk = token.slice(index * SESSION_CHUNK_SIZE, (index + 1) * SESSION_CHUNK_SIZE);
+		cookies.set(sessionChunkName(index), chunk, options);
+	}
+	clearSessionCookie(cookies, count);
 }
 
 export async function encodeSession(session: Session): Promise<string> {

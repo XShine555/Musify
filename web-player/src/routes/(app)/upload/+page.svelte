@@ -13,6 +13,8 @@
 	import Input from '$lib/components/ui/primitives/Input.svelte';
 	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import Chip from '$lib/components/ui/primitives/Chip.svelte';
+	import { TRACK_GENRES, areCompatible, type TrackGenre } from '$lib/data/trackGenres';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';
@@ -28,6 +30,8 @@
 	let status = $state<Status>('idle');
 	let acceptedTerms = $state(false);
 	let errorMsg = $state('');
+	let errorDetail = $state('');
+	let tags = $state<TrackGenre[]>([]);
 	let publishedTitle = $state('');
 	let audioInput = $state<HTMLInputElement>();
 
@@ -40,7 +44,7 @@
 	const busy = $derived(status === 'uploading');
 
 	const canPublish = $derived(
-		title.trim() !== '' && audioName !== '' && hasCover && acceptedTerms && !busy
+		title.trim() !== '' && audioName !== '' && hasCover && tags.length > 0 && acceptedTerms && !busy
 	);
 
 	const stepStates = $derived.by<StepState[]>(() => {
@@ -81,6 +85,14 @@
 		pickAudio(file);
 	}
 
+	function toggleTag(tag: TrackGenre) {
+		tags = tags.includes(tag) ? tags.filter((current) => current !== tag) : [...tags, tag];
+	}
+
+	function tagBlocked(tag: TrackGenre) {
+		return !tags.includes(tag) && tags.some((current) => !areCompatible(current, tag));
+	}
+
 	function reset() {
 		title = '';
 		audioName = '';
@@ -90,6 +102,8 @@
 		status = 'idle';
 		acceptedTerms = false;
 		errorMsg = '';
+		errorDetail = '';
+		tags = [];
 	}
 </script>
 
@@ -153,6 +167,7 @@
 			use:enhance={() => {
 				status = 'uploading';
 				errorMsg = '';
+				errorDetail = '';
 				return async ({ result }) => {
 					if (result.type === 'success') {
 						publishedTitle = title;
@@ -160,6 +175,7 @@
 					} else if (result.type === 'failure') {
 						status = 'error';
 						errorMsg = (result.data?.message as string) ?? 'No se pudo subir la canción.';
+						errorDetail = (result.data?.detail as string | undefined) ?? '';
 					} else {
 						status = 'error';
 						errorMsg = 'Error inesperado durante la subida.';
@@ -236,6 +252,26 @@
 				</Field>
 			</div>
 
+			<Field label="Géneros">
+				<div class="flex flex-wrap gap-2">
+					{#each TRACK_GENRES as genre (genre.value)}
+						<Chip
+							selected={tags.includes(genre.value)}
+							disabled={tagBlocked(genre.value)}
+							onclick={() => toggleTag(genre.value)}
+						>
+							{genre.label}
+						</Chip>
+					{/each}
+				</div>
+				{#each tags as tag (tag)}
+					<input type="hidden" name="tags" value={tag} />
+				{/each}
+				{#snippet hint()}
+					<p>Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient.</p>
+				{/snippet}
+			</Field>
+
 			<Checkbox bind:checked={acceptedTerms}>
 				Acepto los
 				<a
@@ -260,7 +296,10 @@
 			{/if}
 
 			{#if status === 'error'}
-				<Alert tone="danger">{errorMsg}</Alert>
+				<Alert tone="danger">
+					{errorMsg}
+					{#if errorDetail}<span class="mt-1 block text-xs opacity-80">{errorDetail}</span>{/if}
+				</Alert>
 			{/if}
 
 			<div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">

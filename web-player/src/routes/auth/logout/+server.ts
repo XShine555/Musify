@@ -1,12 +1,17 @@
 import { redirect } from '@sveltejs/kit';
 import * as client from 'openid-client';
 import type { RequestHandler } from './$types';
-import { getOidcConfig, decodeSession, SESSION_COOKIE } from '$lib/server/auth';
+import {
+	clearSessionCookie,
+	decodeSession,
+	getOidcConfig,
+	readSessionCookie
+} from '$lib/server/auth';
 import { authConfig } from '$lib/server/config';
 
 const handleLogout: RequestHandler = async ({ cookies }) => {
-	const session = await decodeSession(cookies.get(SESSION_COOKIE));
-	cookies.delete(SESSION_COOKIE, { path: '/' });
+	const session = await decodeSession(readSessionCookie(cookies));
+	clearSessionCookie(cookies);
 
 	const config = await getOidcConfig();
 	const endSessionUrl = client.buildEndSessionUrl(config, {

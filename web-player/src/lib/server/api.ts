@@ -52,9 +52,27 @@ export function unwrapOrError<T>(
 	return result.data;
 }
 
+export function apiErrorDetail(error: unknown): string | undefined {
+	if (typeof error !== 'object' || error === null) return undefined;
+	const { errors, detail, title } = error as {
+		errors?: Record<string, unknown>;
+		detail?: unknown;
+		title?: unknown;
+	};
+	if (errors && typeof errors === 'object') {
+		const messages = Object.values(errors)
+			.flat()
+			.filter((entry): entry is string => typeof entry === 'string');
+		if (messages.length > 0) return messages.join(' ');
+	}
+	if (typeof detail === 'string' && detail !== '') return detail;
+	if (typeof title === 'string' && title !== '') return title;
+	return undefined;
+}
+
 export function unwrapOrFail(
 	result: { error?: unknown },
 	message: string
-): ActionFailure<{ message: string }> | undefined {
-	return result.error ? fail(502, { message }) : undefined;
+): ActionFailure<{ message: string; detail?: string }> | undefined {
+	return result.error ? fail(502, { message, detail: apiErrorDetail(result.error) }) : undefined;
 }

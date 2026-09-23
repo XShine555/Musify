@@ -7,6 +7,7 @@ import {
 	unwrapOrFail
 } from '$lib/server/api';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
+import { findConflict, genreLabel, isTrackGenre, type TrackGenre } from '$lib/data/trackGenres';
 
 const MAX_TITLE = 100;
 
@@ -23,6 +24,7 @@ export const actions: Actions = {
 		const title = String(form.get('title') ?? '').trim();
 		const audio = form.get('audio');
 		const cover = form.get('cover');
+		const rawTags = form.getAll('tags').map(String);
 
 		if (title === '' || title.length > MAX_TITLE) {
 			return fail(400, { message: 'El título es obligatorio (máx. 100 caracteres).' });
@@ -32,6 +34,20 @@ export const actions: Actions = {
 		}
 		if (!(cover instanceof File) || cover.size === 0) {
 			return fail(400, { message: 'Selecciona una portada.' });
+		}
+
+		if (rawTags.length === 0) {
+			return fail(400, { message: 'Elige al menos un género.' });
+		}
+		if (!rawTags.every(isTrackGenre)) {
+			return fail(400, { message: 'Alguno de los géneros no es válido.' });
+		}
+		const tags: TrackGenre[] = [...new Set(rawTags)];
+		const conflict = findConflict(tags);
+		if (conflict) {
+			return fail(400, {
+				message: `Los géneros ${genreLabel(conflict[0])} y ${genreLabel(conflict[1])} no se pueden combinar.`
+			});
 		}
 
 		const audioContentType = contentTypeOf(audio, AUDIO_TYPES);
@@ -73,7 +89,8 @@ export const actions: Actions = {
 			body: {
 				title,
 				pictureIntentId: urls.pictureIntentId,
-				audioIntentId: urls.audioIntentId
+				audioIntentId: urls.audioIntentId,
+				tags
 			}
 		});
 

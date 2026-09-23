@@ -13,9 +13,13 @@ namespace Musify.Infrastructure.Persistence
     public class Database(DatabaseConfiguration configuration)
         : DbContext, AppIDatabase
     {
+        private static readonly AuditableEntityInterceptor AuditInterceptor = new();
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(configuration.ConnectionString, o => o.MapEnum<Genre>("genre"));
+            optionsBuilder
+                .UseNpgsql(configuration.ConnectionString, o => o.MapEnum<Genre>("genre"))
+                .AddInterceptors(AuditInterceptor);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
