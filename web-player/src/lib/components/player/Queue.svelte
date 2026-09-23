@@ -5,6 +5,8 @@
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { fmtTime } from '$lib/utils/format';
+	import { flip } from 'svelte/animate';
+	import { expoOut } from 'svelte/easing';
 	import X from '@lucide/svelte/icons/x';
 
 	const upcoming = $derived.by(() => {
@@ -77,7 +79,12 @@
 			{/if}
 		</div>
 
-		<div class="flex flex-1 flex-col gap-px overflow-y-auto">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="flex flex-1 flex-col gap-px overflow-y-auto"
+			ondragover={(event) => dragFrom !== null && event.preventDefault()}
+			ondrop={onDrop}
+		>
 			{#each upcoming as track, i (track.id)}
 				{@const index = player.tracks.length - upcoming.length + i}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -90,15 +97,24 @@
 					ondragover={(event) => onDragOver(event, index)}
 					ondrop={onDrop}
 					ondragend={endDrag}
-					class="relative transition-opacity {dragFrom === index ? 'opacity-40' : ''}"
+					class="queue-row"
+					data-dragging={dragFrom === index ? '' : undefined}
+					data-drop={dragFrom === null
+						? undefined
+						: dropAt === index
+							? 'before'
+							: dropAt === index + 1 && index === player.tracks.length - 1
+								? 'after'
+								: undefined}
+					animate:flip={{ duration: 300, easing: expoOut }}
 				>
 					{#if dropAt === index && dragFrom !== null}
 						<div
-							class="pointer-events-none absolute inset-x-2 top-0 h-0.5 rounded-full bg-accent"
+							class="pointer-events-none absolute inset-x-2 -top-7 h-0.5 rounded-full bg-accent"
 						></div>
 					{:else if dropAt === index + 1 && dropAt === player.tracks.length && dragFrom !== null}
 						<div
-							class="pointer-events-none absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-accent"
+							class="pointer-events-none absolute inset-x-2 -bottom-7 h-0.5 rounded-full bg-accent"
 						></div>
 					{/if}
 					<ListRow

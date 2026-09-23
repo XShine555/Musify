@@ -206,6 +206,24 @@
 		visibility: visible;
 	}
 }
+@utility queue-row {
+	position: relative;
+	transition:
+		margin var(--mf-motion-base) var(--mf-ease),
+		opacity var(--mf-motion-base) var(--mf-ease),
+		scale var(--mf-motion-base) var(--mf-ease);
+
+	&[data-dragging] {
+		opacity: 0.4;
+		scale: 0.97;
+	}
+	&[data-drop='before'] {
+		margin-top: --spacing(14);
+	}
+	&[data-drop='after'] {
+		margin-bottom: --spacing(14);
+	}
+}
 @utility app-main {
 	--mf-dock-h: 0px;
 	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));
