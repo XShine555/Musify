@@ -98,10 +98,6 @@
 	}
 }
 
-@utility scrollbar-stable {
-	scrollbar-gutter: stable;
-}
-
 @utility text-display-1 {
 	@apply font-display text-3xl font-medium tracking-tight sm:text-4xl;
 }
@@ -131,9 +127,7 @@
 	transition-duration: var(--default-transition-duration);
 }
 @utility glass-bar {
-	background-color: var(--mf-bar-bg);
 	border-top: 1px solid var(--mf-hairline);
-	backdrop-filter: blur(24px);
 }
 @utility grid-cards {
 	display: grid;
@@ -169,10 +163,16 @@
 @utility app-backdrop {
 	pointer-events: none;
 	position: fixed;
-	inset: 0;
+	inset: -10%;
 	z-index: -10;
 	background-color: var(--mf-bg);
 	background-image: var(--mf-ambient);
+	animation: ambient-drift 48s ease-in-out infinite alternate;
+	will-change: transform;
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
 }
 @utility app-vignette {
 	pointer-events: none;
@@ -185,14 +185,46 @@
 		transparent 62%
 	);
 }
-@utility app-main {
-	--mf-dock-h: 0px;
-	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));
-	transition: padding var(--mf-motion-slow) var(--mf-ease);
+@utility queue-shell {
+	display: flex;
+	justify-content: flex-end;
+	flex-shrink: 0;
+	overflow: hidden;
+	width: 0;
+	visibility: hidden;
+	transition:
+		width var(--mf-motion-slow) ease-in-out,
+		visibility var(--mf-motion-slow);
 
-	&[data-has-track] {
-		--mf-dock-h: var(--mf-player-h);
+	&[data-open] {
+		width: var(--mf-queue-w);
+		visibility: visible;
 	}
+}
+@utility queue-row {
+	position: relative;
+	transition:
+		margin var(--mf-motion-base) var(--mf-ease),
+		opacity var(--mf-motion-base) var(--mf-ease),
+		scale var(--mf-motion-base) var(--mf-ease);
+
+	&[data-dragging] {
+		opacity: 0.4;
+		scale: 0.97;
+	}
+	&[data-drop='before'] {
+		margin-top: --spacing(14);
+	}
+	&[data-drop='after'] {
+		margin-bottom: --spacing(14);
+	}
+}
+@utility app-scroll {
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: var(--mf-scrollbar) transparent;
 }
 @utility genre-tile {
 	background: linear-gradient(
@@ -203,16 +235,32 @@
 }
 @utility surface-active {
 	background-image: var(--mf-g-active);
+	background-size: 125% 100%;
+	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility surface-active-hover {
 	background-image: var(--mf-g-hover);
+	background-size: 125% 100%;
+	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility hero-surface {
-	background-image: var(--mf-hero-bg);
+	background-image: linear-gradient(
+		var(--gd-angle),
+		var(--mf-hero-c1),
+		var(--mf-hero-c2) calc(60% + var(--gd-shift)),
+		var(--mf-hero-c3)
+	);
+	animation: gradient-sway 18s ease-in-out infinite alternate;
 }
 @utility spotlight-surface {
+	animation: gradient-sway 18s ease-in-out infinite alternate;
 	background-image:
-		var(--mf-spotlight-bg),
+		linear-gradient(
+			var(--gd-angle),
+			var(--mf-spotlight-c1),
+			var(--mf-spotlight-c2) calc(55% + var(--gd-shift)),
+			var(--mf-spotlight-c3)
+		),
 		linear-gradient(
 			to right,
 			transparent 50%,
@@ -220,13 +268,17 @@
 			transparent 92.5%
 		);
 }
+@utility glow-drift {
+	background-size: 125% 100%;
+	animation: gradient-drift 18s ease-in-out infinite alternate;
+}
 @utility field-control {
 	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-fg-2 focus:bg-surface-2 focus:outline-none;
 }
 
 @layer base {
 	svg.lucide {
-		stroke-width: 1.8;
+		stroke-width: 1.5;
 	}
 }
 
@@ -307,6 +359,50 @@ button:disabled {
 	}
 }
 
+@keyframes ambient-drift {
+	0% {
+		transform: translate3d(-3%, -2%, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(2%, 3%, 0) scale(1.06);
+	}
+	100% {
+		transform: translate3d(3%, -1%, 0) scale(1.02);
+	}
+}
+
+@property --gd-angle {
+	syntax: '<angle>';
+	inherits: false;
+	initial-value: 120deg;
+}
+
+@property --gd-shift {
+	syntax: '<percentage>';
+	inherits: false;
+	initial-value: 0%;
+}
+
+@keyframes gradient-sway {
+	from {
+		--gd-angle: 110deg;
+		--gd-shift: -8%;
+	}
+	to {
+		--gd-angle: 132deg;
+		--gd-shift: 12%;
+	}
+}
+
+@keyframes gradient-drift {
+	from {
+		background-position: 0% 50%;
+	}
+	to {
+		background-position: 100% 50%;
+	}
+}
+
 @keyframes sheen {
 	from {
 		background-position: 200% 0;
@@ -346,6 +442,7 @@ button:disabled {
 	*::before,
 	*::after {
 		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
 		animation-delay: 0ms !important;
 		transition-duration: 0.001ms !important;
 		scroll-behavior: auto !important;

@@ -13,6 +13,7 @@
 	import Input from '$lib/components/ui/primitives/Input.svelte';
 	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
 	import { genreOptions } from '$lib/data/genres';
 
@@ -31,6 +32,7 @@
 	let dragging = $state(false);
 	let status = $state<Status>('idle');
 	let acceptedTerms = $state(false);
+	let isExplicit = $state(false);
 	let errorMsg = $state('');
 	let errorDetail = $state('');
 	let tags = $state<string[]>([]);
@@ -108,6 +110,7 @@
 		coverResetToken += 1;
 		status = 'idle';
 		acceptedTerms = false;
+		isExplicit = false;
 		errorMsg = '';
 		errorDetail = '';
 		tags = [];
@@ -137,7 +140,7 @@
 								: 'bg-accent-btn text-accent-soft'}"
 						>
 							{#if stepStates[i] === 'done'}
-								<Check class="size-3.5" strokeWidth={2.5} />
+								<Check class="size-3.5" />
 							{:else}
 								{i + 1}
 							{/if}
@@ -153,7 +156,7 @@
 	{#if status === 'done'}
 		<Surface padding="lg" class="mt-10 bg-accent-tint text-center">
 			<span class="mx-auto grid size-14 place-items-center rounded-full bg-accent-soft text-ink">
-				<Check class="size-7" strokeWidth={2.5} />
+				<Check class="size-7" />
 			</span>
 			<h2 class="mt-6 font-display text-2xl font-semibold tracking-display text-fg">¡Subida!</h2>
 			<p class="mt-3 text-sm text-fg-2">
@@ -214,9 +217,9 @@
 					aria-label="Seleccionar archivo de audio"
 				/>
 				{#if audioName === ''}
-					<Headphones class="size-9 text-fg-2 sm:size-10" strokeWidth={1.4} />
+					<Headphones class="size-9 text-fg-2 sm:size-10" />
 				{:else}
-					<Music class="size-9 text-accent-soft sm:size-10" strokeWidth={1.4} />
+					<Music class="size-9 text-accent-soft sm:size-10" />
 				{/if}
 				{#if audioName === ''}
 					<p class="mt-4 text-sm font-medium text-fg">
@@ -231,53 +234,69 @@
 				{/if}
 			</div>
 
-			<div class="grid items-start gap-6 sm:grid-cols-[auto_1fr] sm:gap-8">
-				<Field label="Portada">
-					{#key coverResetToken}
-						<ImageDropzone
-							name="cover"
-							icon={ImageIcon}
-							gradient
-							size="hero"
-							onselect={() => (hasCover = true)}
-						/>
-					{/key}
-				</Field>
+			<Surface padding="md">
+				<div class="grid items-start gap-6 md:grid-cols-[auto_1fr] md:gap-10">
+					<Field label="Portada" class="items-center md:items-start">
+						{#key coverResetToken}
+							<ImageDropzone
+								name="cover"
+								icon={ImageIcon}
+								gradient
+								onselect={() => (hasCover = true)}
+							/>
+						{/key}
+						{#snippet hint()}
+							<p>{hasCover ? 'Portada lista' : 'Haz clic para elegir'}</p>
+						{/snippet}
+					</Field>
 
-				<Field label="Título" for="title">
-					<Input
-						id="title"
-						name="title"
-						bind:value={title}
-						maxlength={MAX_TITLE}
-						placeholder="Nombre de la canción"
-					/>
-					{#snippet hint()}
-						<p>Se usa como nombre público de la pista en el catálogo.</p>
-						<span class="shrink-0 tabular-nums">{title.length}/{MAX_TITLE}</span>
-					{/snippet}
-				</Field>
-			</div>
+					<div class="flex min-w-0 flex-col gap-7">
+						<Field label="Título" for="title">
+							<Input
+								id="title"
+								name="title"
+								bind:value={title}
+								maxlength={MAX_TITLE}
+								placeholder="Nombre de la canción"
+							/>
+							{#snippet hint()}
+								<p>Se usa como nombre público de la pista en el catálogo.</p>
+								<span class="shrink-0 tabular-nums">{title.length}/{MAX_TITLE}</span>
+							{/snippet}
+						</Field>
 
-			<Field label="Géneros">
-				<div class="flex flex-wrap gap-2">
-					{#each options as option (option.genre)}
-						<Chip
-							selected={tags.includes(option.genre)}
-							disabled={blocked.has(option.genre)}
-							onclick={() => toggleTag(option.genre)}
-						>
-							{option.label}
-						</Chip>
-					{/each}
+						<Field label="Géneros">
+							<div class="mb-2 flex flex-wrap gap-2">
+								{#each options as option (option.genre)}
+									<Chip
+										selected={tags.includes(option.genre)}
+										disabled={blocked.has(option.genre)}
+										onclick={() => toggleTag(option.genre)}
+									>
+										{option.label}
+									</Chip>
+								{/each}
+							</div>
+							{#each tags as tag (tag)}
+								<input type="hidden" name="tags" value={tag} />
+							{/each}
+							{#snippet hint()}
+								<p>
+									Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient.
+								</p>
+								<span class="shrink-0 tabular-nums">{tags.length} elegidos</span>
+							{/snippet}
+						</Field>
+
+						<Checkbox bind:checked={isExplicit} name="isExplicit">
+							<span class="inline-flex items-center gap-2">
+								Contenido explícito
+								<ExplicitBadge />
+							</span>
+						</Checkbox>
+					</div>
 				</div>
-				{#each tags as tag (tag)}
-					<input type="hidden" name="tags" value={tag} />
-				{/each}
-				{#snippet hint()}
-					<p>Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient.</p>
-				{/snippet}
-			</Field>
+			</Surface>
 
 			<Checkbox bind:checked={acceptedTerms}>
 				Acepto los

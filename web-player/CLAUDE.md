@@ -42,7 +42,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
   - `media/` for music domain display components (Artwork, TrackList, MediaCard, PlayButton, and so on).
   - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
   - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading). This is different from `components/layout/` above, which is the global app chrome.
-- Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`.
+- Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
 
 ## Styles
 
@@ -55,15 +55,19 @@ The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utili
 - **Colors:** always use `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never a literal hex or `rgba()` inside a `.svelte` file; those literals only belong in `theme.css`/`tokens.ts` as the source of truth.
 - **Inline `style="…"` and arbitrary `-[…]` values:** only the ones whitelisted in `scripts/check-tokens.mjs` (the stagger variable `--i`, tile hue, menu position, progress width, `text-[clamp(…)]`, `leading-[…]` on login's display type, `grid-cols-[auto_1fr]`, `max-h-[85dvh]`, `my-`/`py-[Ndvh]` for vertical centering, `transition-[filter]` on genre tiles, and `bg-[image:var(--mf-*)]`). Everything else should become a token.
 - Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `SegmentedControl`, `CoverForm`.
-- Known and accepted gap (documented in `scripts/check-tokens.mjs`): icon `strokeWidth={n}` isn't unified yet. There are 13 different values spread across almost every component, and migrating them to `stroke-thin/regular/bold` recipes safely would require visually confirming that `lucide-svelte` actually respects `stroke-width` through CSS, so that was left out of the last pass.
+- **Icon stroke:** one global rule (`svg.lucide { stroke-width: 1.5 }` in `layout.css`) sets the stroke for every icon. Never pass `strokeWidth` to an icon, since any CSS rule overrides the SVG attribute and it would do nothing. For a different stroke on one icon, use a Tailwind `stroke-*` utility.
+
+## App shell
+
+The shell in `src/routes/+layout.svelte` is a fixed `h-dvh` frame: Sidebar | (content column over PlayerDock) | Queue. Only the content column (`app-scroll`) scrolls, so nothing ever passes under the dock and the chrome can stay transparent over `app-backdrop`. Because the window never scrolls, scroll reset/restore on navigation is handled by `restoreScroll()` in `$lib/state/navigation.svelte.ts`; don't use `window.scrollTo`/`scrollY`.
 
 ## Motion
 
-Every animation follows one scale of three durations and one easing curve, all defined in `theme.css`. Fast (`--mf-motion-fast`, 150ms) is for hover, focus and press feedback: color, opacity and small scale changes. Plain `transition` or `transition-colors` already uses it because it is the Tailwind default, so never write `duration-150`. Base (`--mf-motion-base`, 200ms) is for things that appear on top of the page or move inside a control: modals, menus, the queue panel, `animate-pop`, `animate-fade` and the segmented control thumb. Slow (`--mf-motion-slow`, 300ms) is for content entering the page and larger movement: `animate-enter`, cover zoom on hover and the player dock padding.
+Every animation follows one scale of three durations and one easing curve, all defined in `theme.css`. Fast (`--mf-motion-fast`, 150ms) is for hover, focus and press feedback: color, opacity and small scale changes. Plain `transition` or `transition-colors` already uses it because it is the Tailwind default, so never write `duration-150`. Base (`--mf-motion-base`, 200ms) is for things that appear on top of the page or move inside a control: modals, menus, the queue panel, `animate-pop`, `animate-fade` and the segmented control thumb. Slow (`--mf-motion-slow`, 300ms) is for content entering the page and larger movement: `animate-enter`, cover zoom on hover.
 
 Entrances and movement always use `--mf-ease` (`ease-snappy` in Tailwind, `expoOut` in Svelte transitions), which feels immediate because most of the motion happens at the start. Color transitions keep the Tailwind default curve. Overlays must feel instant: the modal backdrop uses `transition:fade={{ duration: 200 }}` and the panel uses a local `pop` transition (opacity + scale + translateY, `expoOut`, 200ms) mirroring `animate-pop`'s keyframes — both directives so the modal fades and pops on close too, not just on open, and the whole thing settles in 200ms. Staggered lists use `--i` with 40ms steps capped at ten items.
 
-The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in `+layout.svelte` (600ms), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
+The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in `+layout.svelte` (a random 2 to 4 seconds per song change), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
 
 ## Auth
 

@@ -18,7 +18,7 @@
 </script>
 
 <nav
-	class="pointer-events-auto flex items-center justify-around glass-bar px-4 py-2 lg:hidden {klass}"
+	class="pointer-events-auto flex items-center justify-around px-4 py-2 glass-bar lg:hidden {klass}"
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}
@@ -30,7 +30,7 @@
 				? 'text-fg'
 				: 'text-fg-2'}"
 		>
-			<link.icon class="size-4" strokeWidth={1.6} />
+			<link.icon class="size-4" />
 			<span class="text-xs font-medium">{link.label}</span>
 		</a>
 	{/each}

@@ -39,7 +39,7 @@
 	{:else}
 		<div class="size-cover-sm shrink-0 rounded-art bg-surface md:size-cover-md"></div>
 	{/if}
-	<div class="min-w-0 flex-1">
+	<div class="min-w-0">
 		<div class="flex min-w-0 items-center gap-1.5">
 			{#if player.current.explicit}
 				<ExplicitBadge />
@@ -56,11 +56,11 @@
 		<IconButton
 			label={isLiked ? 'Quitar de Me gusta' : 'Añadir a Me gusta'}
 			tone="plain"
-			size="xs"
+			size="md"
 			pressed={isLiked}
 			onclick={toggleLike}
 		>
-			<Heart class="size-icon-md" fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.7} />
+			<Heart class="size-icon-md" fill={isLiked ? 'currentColor' : 'none'} />
 		</IconButton>
 	{/if}
 </div>

@@ -1,29 +1,19 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
-	import { enhance } from '$app/forms';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
-	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import FollowButton from '$lib/components/ui/media/FollowButton.svelte';
 	import Avatar from '$lib/components/ui/media/Avatar.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { plural, playlistMeta } from '$lib/utils/format';
 
-	let { data, form } = $props();
+	let { data } = $props();
 
 	const profile = $derived(data.profile);
 	const playlists = $derived(data.playlists);
 	const canFollow = $derived(!data.isOwnProfile && !data.isAnonymous);
-
-	let following = $state(untrack(() => data.isFollowing));
-	let submitting = $state(false);
-
-	$effect(() => {
-		if (form && 'following' in form && typeof form.following === 'boolean')
-			following = form.following;
-	});
 </script>
 
 <svelte:head>
@@ -32,37 +22,27 @@
 </svelte:head>
 
 {#snippet followAction()}
-	<form
-		method="POST"
-		action={following ? '?/unfollow' : '?/follow'}
-		use:enhance={() => {
-			submitting = true;
-			return async ({ update }) => {
-				await update();
-				submitting = false;
-			};
-		}}
-	>
-		<Button
-			type="submit"
-			size="sm"
-			variant={following ? 'secondary' : 'primary'}
-			disabled={submitting}
-		>
-			{following ? 'Dejar de seguir' : 'Seguir'}
-		</Button>
-	</form>
+	<FollowButton following={profile.isFollowing} invalidateAll />
+{/snippet}
+
+{#snippet followStats()}
+	{@const followers = plural(Number(profile.followersCount), 'seguidor', 'seguidores')}
+	{#if data.isOwnProfile || profile.canViewFollowers}
+		<a href="/user/{profile.id}/followers" class="transition-colors hover:text-fg">{followers}</a>
+	{:else}
+		<span>{followers}</span>
+	{/if}
+	·
+	<a href="/user/{profile.id}/following" class="transition-colors hover:text-fg">
+		{profile.followingCount} siguiendo
+	</a>
 {/snippet}
 
 <Page>
 	<PageHeader
 		eyebrow="Perfil"
 		title={profile.name}
-		meta="{plural(
-			Number(profile.followersCount),
-			'seguidor',
-			'seguidores'
-		)} · {profile.followingCount} siguiendo"
+		meta={followStats}
 		align="center"
 		actions={canFollow ? followAction : undefined}
 	>

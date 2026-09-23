@@ -95,7 +95,7 @@
 		style="--mf-track-cols:{gridColumns}; --mf-track-cols-mobile:{gridColumnsMobile}"
 	>
 		{#if index}
-			<Hash size={16} strokeWidth={1.5} />
+			<Hash size={16} />
 		{/if}
 		<span>Título</span>
 		{#each columns as column (column)}

@@ -32,6 +32,9 @@ namespace Musify.Domain.Entities
         public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
 
         [Required]
+        public bool IsExplicit { get; set; }
+
+        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]

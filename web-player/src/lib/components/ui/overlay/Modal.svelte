@@ -3,8 +3,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import IconButton from '../primitives/IconButton.svelte';
 	import { fade } from 'svelte/transition';
-	import { expoOut } from 'svelte/easing';
-	import type { TransitionConfig } from 'svelte/transition';
+	import { pop } from '$lib/utils/transitions';
 
 	interface Props {
 		open: boolean;
@@ -48,15 +47,6 @@
 		);
 	}
 
-	function pop(node: Element, { duration = 200 }: { duration?: number } = {}): TransitionConfig {
-		return {
-			duration,
-			easing: expoOut,
-			css: (t) =>
-				`opacity: ${t}; transform: scale(${0.98 + 0.02 * t}) translateY(${0.25 * (1 - t)}rem);`
-		};
-	}
-
 	function onWindowKeydown(event: KeyboardEvent) {
 		if (!open) return;
 		if (event.key === 'Escape') {
@@ -90,7 +80,7 @@
 		<div
 			bind:this={panel}
 			transition:pop={{ duration: 200 }}
-			class="glass-panel max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
+			class="glass-panel max-h-[85dvh] w-full glow-drift overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}

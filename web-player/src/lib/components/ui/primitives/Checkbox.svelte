@@ -22,7 +22,6 @@
 		/>
 		<Check
 			class="pointer-events-none absolute size-3.5 text-ink opacity-0 transition peer-checked:opacity-100"
-			strokeWidth={3}
 		/>
 	</span>
 	<span class="cursor-pointer">{@render children()}</span>

@@ -58,6 +58,26 @@ namespace Musify.Application.Tests.Tracks
             Assert.Equal(ProcessingStatus.Pending, stored.Audio.TranscodeStatus);
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Handle_StoresExplicitFlag(bool isExplicit)
+        {
+            var user = TestEntities.User();
+            var (picture, audio) = SeedIntents(user.Id);
+            await SeedAsync(user, picture, audio);
+
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Pop], isExplicit);
+
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            Assert.Equal(isExplicit, result.Value.IsExplicit);
+            var stored = await Database.Tracks.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
+            Assert.NotNull(stored);
+            Assert.Equal(isExplicit, stored.IsExplicit);
+        }
+
         [Fact]
         public async Task Handle_NoTags_ReturnsValidationError()
         {

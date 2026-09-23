@@ -15,7 +15,7 @@
 
 <div class="flex flex-col items-center rounded-panel px-6 py-16 text-center {klass}">
 	{#if Icon}
-		<Icon class="size-icon-xl text-fg-2" strokeWidth={1.25} />
+		<Icon class="size-icon-xl text-fg-2" />
 	{/if}
 	{#if title}
 		<h3 class="mt-6 text-display-3 text-fg">

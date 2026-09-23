@@ -56,7 +56,8 @@ namespace Musify.Application.Tests.TestSupport
             TrackPictures? pictures = null,
             TrackAudio? audio = null,
             LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active,
-            IEnumerable<Genre>? tags = null)
+            IEnumerable<Genre>? tags = null,
+            bool isExplicit = false)
         {
             var track = new Track
             {
@@ -64,6 +65,7 @@ namespace Musify.Application.Tests.TestSupport
                 NormalizedTitle = title.ToUpperInvariant(),
                 DurationSeconds = durationSeconds,
                 LifeCycleStatus = lifeCycleStatus,
+                IsExplicit = isExplicit,
                 OwnerUserId = owner.Id,
                 Owner = owner,
                 Pictures = pictures ?? ProcessedPictures(),

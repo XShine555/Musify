@@ -436,6 +436,9 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Property<double>("DurationSeconds")
                         .HasColumnType("double precision");
 
+                    b.Property<bool>("IsExplicit")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("LifeCycleStatus")
                         .HasColumnType("integer");
 

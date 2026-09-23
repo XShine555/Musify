@@ -13,9 +13,7 @@
 	const hasTrack = $derived(player.currentId !== null);
 </script>
 
-<div
-	class="pointer-events-none fixed inset-x-0 bottom-0 z-(--z-sticky) flex flex-col lg:left-(--mf-sidebar-w)"
->
+<div class="flex shrink-0 flex-col">
 	{#if hasTrack}
 		<PlayerBar />
 	{/if}

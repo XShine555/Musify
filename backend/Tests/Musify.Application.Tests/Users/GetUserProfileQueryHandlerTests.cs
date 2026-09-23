@@ -31,6 +31,46 @@ namespace Musify.Application.Tests.Users
         }
 
         [Fact]
+        public async Task Handle_MutualFollow_ViewerCanSeeFollowersAndIsFollowing()
+        {
+            var viewer = TestEntities.User(1, "viewer");
+            var user = TestEntities.User(2, "user");
+            await SeedAsync(
+                viewer, user,
+                new UserFollow { FollowerId = viewer.Id, FollowedId = user.Id },
+                new UserFollow { FollowerId = user.Id, FollowedId = viewer.Id });
+
+            var result = await CreateHandler().Handle(new GetUserProfileQuery(user.Id, viewer.Id), TestContext.Current.CancellationToken);
+
+            Assert.True(result.Value.IsFollowing);
+            Assert.True(result.Value.CanViewFollowers);
+        }
+
+        [Fact]
+        public async Task Handle_OneWayFollow_ViewerCannotSeeFollowers()
+        {
+            var viewer = TestEntities.User(1, "viewer");
+            var user = TestEntities.User(2, "user");
+            await SeedAsync(viewer, user, new UserFollow { FollowerId = viewer.Id, FollowedId = user.Id });
+
+            var result = await CreateHandler().Handle(new GetUserProfileQuery(user.Id, viewer.Id), TestContext.Current.CancellationToken);
+
+            Assert.True(result.Value.IsFollowing);
+            Assert.False(result.Value.CanViewFollowers);
+        }
+
+        [Fact]
+        public async Task Handle_OwnProfile_CanSeeFollowersButIsNotFollowing()
+        {
+            await SeedAsync(TestEntities.User(1, "user"));
+
+            var result = await CreateHandler().Handle(new GetUserProfileQuery(1, 1), TestContext.Current.CancellationToken);
+
+            Assert.False(result.Value.IsFollowing);
+            Assert.True(result.Value.CanViewFollowers);
+        }
+
+        [Fact]
         public async Task Handle_UserMissing_ReturnsNotFound()
         {
             var result = await CreateHandler().Handle(new GetUserProfileQuery(404), TestContext.Current.CancellationToken);

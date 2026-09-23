@@ -10,6 +10,7 @@
 	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import Avatar from '$lib/components/ui/media/Avatar.svelte';
+	import UserRow from '$lib/components/ui/media/UserRow.svelte';
 	import PlayButton from '$lib/components/ui/media/PlayButton.svelte';
 	import EqBars from '$lib/components/ui/media/EqBars.svelte';
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';
@@ -348,6 +349,7 @@
 										title={track.title}
 										subtitle={track.artist}
 										subtitleHref={track.ownerUserId}
+										explicit={track.isExplicit}
 										active={player.current.id === track.id}
 										size="lg"
 										trackId={track.id}
@@ -414,11 +416,7 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, users) as u (u.id)}
 							<li>
-								<ListRow title={u.name} href="/user/{u.id}" size="lg">
-									{#snippet art()}
-										<Avatar name={u.name} src={u.profilePictureUrl} size="md" />
-									{/snippet}
-								</ListRow>
+								<UserRow user={u} />
 							</li>
 						{/each}
 					</ul>

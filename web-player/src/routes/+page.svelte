@@ -134,11 +134,11 @@
 </svelte:head>
 
 <Page>
-	<div class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 sm:px-9 sm:py-8.5">
+	<div class="relative hero-surface overflow-hidden rounded-panel-lg px-6 py-8 sm:px-9 sm:py-8.5">
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
-			<div class="animate-enter max-w-hero min-w-65">
+			<div class="animate-enter max-w-hero min-w-65 dark:shadow-accent">
 				<h1
 					class="font-display text-3xl leading-tight font-medium tracking-tight text-pretty text-fg sm:text-4xl"
 				>
@@ -195,6 +195,7 @@
 							title={item.title}
 							subtitle={item.artist}
 							subtitleHref={item.ownerUserId}
+							explicit={item.explicit}
 							trackId={item.id}
 							class="animate-enter"
 							style="--i:{i}"
@@ -209,7 +210,7 @@
 		{#if spotlight}
 			<section>
 				<div
-					class="grid grid-cols-1 overflow-hidden rounded-panel-lg spotlight-surface lg:grid-cols-2"
+					class="grid spotlight-surface grid-cols-1 overflow-hidden rounded-panel-lg lg:grid-cols-2"
 				>
 					<div class="flex flex-col justify-center p-8 sm:p-9">
 						<div
@@ -252,6 +253,7 @@
 								title={track.title}
 								subtitle={track.artist}
 								subtitleHref={track.ownerUserId}
+								explicit={track.isExplicit}
 							>
 								{#snippet leading()}
 									<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"

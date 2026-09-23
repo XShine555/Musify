@@ -658,6 +658,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{id}/followers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Users Following A User. Visible To The User And To Mutual Followers. */
+        get: operations["GetUserFollowers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Users A User Follows. */
+        get: operations["GetUserFollowing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{id}/is-following": {
         parameters: {
             query?: never;
@@ -773,6 +807,8 @@ export interface components {
             /** Format: uuid */
             audioIntentId: string;
             tags: components["schemas"]["Genre"][];
+            /** @default false */
+            isExplicit: boolean;
         };
         CreateUserRequest: {
             /** Format: int64 */
@@ -854,6 +890,19 @@ export interface components {
         };
         PaginatedResponseOfTrackApplicationResponse: {
             items: components["schemas"]["TrackApplicationResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
+        PaginatedResponseOfUserSummaryResponse: {
+            items: components["schemas"]["UserSummaryResponse"][];
             /** Format: int32 */
             pageNumber: number | string;
             /** Format: int32 */
@@ -959,6 +1008,7 @@ export interface components {
             updatedAt: string;
             ownerUserId: string;
             tags: components["schemas"]["Genre"][];
+            isExplicit: boolean;
         };
         TrackSearchItemResponse: {
             track: components["schemas"]["TrackApplicationResponse"];
@@ -1039,6 +1089,16 @@ export interface components {
             followersCount: number | string;
             /** Format: int32 */
             followingCount: number | string;
+            isFollowing: boolean;
+            canViewFollowers: boolean;
+        };
+        UserSummaryResponse: {
+            id: string;
+            name: string;
+            firstName: null | string;
+            secondName: null | string;
+            profilePictureUrl: null | string;
+            isFollowedByViewer: boolean;
         };
     };
     responses: never;
@@ -2428,7 +2488,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedResponseOfUserApplicationResponse"];
+                    "application/json": components["schemas"]["PaginatedResponseOfUserSummaryResponse"];
                 };
             };
         };
@@ -2600,6 +2660,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserFollowers: {
+        parameters: {
+            query?: {
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfUserSummaryResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserFollowing: {
+        parameters: {
+            query?: {
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path: {
+                id: number | string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfUserSummaryResponse"];
                 };
             };
             /** @description Not Found */

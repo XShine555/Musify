@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, unwrapOrError } from '$lib/server/api';
 import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/playlistActions';
+import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
 import {
 	EXPLORE_ALBUMS_PAGE_SIZE,
 	EXPLORE_PAGE_SIZE as PAGE_SIZE,
@@ -64,11 +65,14 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		tracks,
 		albums: (albumsRes?.data?.items ?? []).map((item) => item.album),
 		users: usersRes?.data?.items ?? [],
+		viewerId: user?.sub ?? null,
 		playlists: playlistsRes?.data?.items ?? []
 	};
 };
 
 export const actions: Actions = {
 	addTrack: addTrackAction,
-	addAlbumToPlaylist: addAlbumToPlaylistAction
+	addAlbumToPlaylist: addAlbumToPlaylistAction,
+	follow: followUserAction,
+	unfollow: unfollowUserAction
 };

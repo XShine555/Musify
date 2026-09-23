@@ -17,5 +17,6 @@ export const HOME_POPULAR_MAX = 8;
 export const PLAYLIST_PICKER_PAGE_SIZE = 50;
 export const LIKED_TRACKS_PAGE_SIZE = 500;
 export const EXPLORE_USERS_LIMIT = 12;
+export const FOLLOW_LIST_PAGE_SIZE = 30;
 export const MENU_WIDTH = 240;
 export const SUBMENU_WIDTH = 256;

@@ -15,7 +15,8 @@ namespace Musify.Application.Tracks.Responses
         DateTime CreatedAt,
         DateTime UpdatedAt,
         [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
-        IReadOnlyCollection<Genre> Tags)
+        IReadOnlyCollection<Genre> Tags,
+        bool IsExplicit)
     {
         public static TrackApplicationResponse FromEntity(Track track, int listensCount) =>
             new(
@@ -28,6 +29,7 @@ namespace Musify.Application.Tracks.Responses
                 track.CreatedAt,
                 track.UpdatedAt,
                 track.OwnerUserId,
-                track.Tags.Select(tag => tag.Tag).ToList());
+                track.Tags.Select(tag => tag.Tag).ToList(),
+                track.IsExplicit);
     }
 }

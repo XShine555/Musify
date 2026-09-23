@@ -120,6 +120,7 @@ class PlayerState {
 	playing = $state(false);
 	progress = $state(0);
 	volume = $state(browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100);
+	muted = $state(browser ? localStorage.getItem('player.muted') === 'true' : false);
 	loading = $state(false);
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
@@ -150,6 +151,7 @@ class PlayerState {
 		const audio = new Audio();
 		audio.preload = 'auto';
 		audio.volume = this.volume / 100;
+		audio.muted = this.muted;
 		audio.addEventListener('durationchange', () => this.#syncDuration(audio.duration));
 		audio.addEventListener('loadedmetadata', () => this.#syncDuration(audio.duration));
 		audio.addEventListener('timeupdate', () => {
@@ -223,10 +225,19 @@ class PlayerState {
 		});
 	}
 
-	#tickProgress = () => {
+	#clockTime = 0;
+	#clockStamp = 0;
+
+	#tickProgress = (now: number) => {
 		const audio = this.#audio;
 		if (!audio) return;
-		this.progress = audio.currentTime;
+		if (audio.currentTime !== this.#clockTime) {
+			this.#clockTime = audio.currentTime;
+			this.#clockStamp = now;
+		}
+		const elapsed = Math.min(0.25, (now - this.#clockStamp) / 1000);
+		const smooth = this.#clockTime + (audio.paused ? 0 : elapsed * audio.playbackRate);
+		this.progress = Math.min(smooth, Number.isFinite(audio.duration) ? audio.duration : smooth);
 		this.#rafId = requestAnimationFrame(this.#tickProgress);
 	};
 
@@ -434,6 +445,18 @@ class PlayerState {
 		else audio.pause();
 	}
 
+	toggleMute() {
+		this.#applyMuted(!this.muted);
+		if (!this.muted && this.volume === 0) this.setVolume(50);
+	}
+
+	#applyMuted(value: boolean) {
+		this.muted = value;
+		const audio = this.#audioEl();
+		if (audio) audio.muted = value;
+		if (browser) localStorage.setItem('player.muted', String(value));
+	}
+
 	next() {
 		if (this.tracks.length === 0) return;
 		const idx = this.#index();
@@ -466,6 +489,16 @@ class PlayerState {
 		this.#loadCurrent();
 	}
 
+	moveQueueItem(from: number, insertAt: number) {
+		if (from < 0 || from >= this.tracks.length) return;
+		const target = insertAt > from ? insertAt - 1 : insertAt;
+		if (target === from) return;
+		const tracks = [...this.tracks];
+		const [item] = tracks.splice(from, 1);
+		tracks.splice(target, 0, item);
+		this.tracks = tracks;
+	}
+
 	clearUpcoming() {
 		this.tracks = this.currentId === null ? [] : [this.current];
 	}
@@ -492,6 +525,7 @@ class PlayerState {
 
 	setVolume(value: number) {
 		this.volume = Math.min(100, Math.max(0, Math.round(value)));
+		if (this.muted && this.volume > 0) this.#applyMuted(false);
 		const audio = this.#audioEl();
 		if (audio) {
 			audio.volume = this.volume / 100;

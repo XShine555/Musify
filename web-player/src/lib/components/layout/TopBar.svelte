@@ -62,14 +62,14 @@
 		size="xs"
 		onclick={() => history.back()}
 	>
-		<ChevronLeft class="size-icon-sm" strokeWidth={1.9} />
+		<ChevronLeft class="size-icon-sm" />
 	</IconButton>
 
 	<form onsubmit={onSubmit} class="max-w-search min-w-0 flex-1">
 		<label
 			class="flex h-9.5 w-full items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
 		>
-			<Search class="size-4 shrink-0 text-fg-2" strokeWidth={1.8} />
+			<Search class="size-4 shrink-0 text-fg-2" />
 			<input
 				type="text"
 				bind:this={searchInput}

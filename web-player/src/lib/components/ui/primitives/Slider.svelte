@@ -24,7 +24,7 @@
 	oninput={handleInput}
 	aria-label={label}
 	class="mf-slider mf-slider-{variant}"
-	style="background:linear-gradient(to right, var(--mf-text-2) {percent}%, var(--mf-track) {percent}%)"
+	style="--p:{percent}%"
 />
 
 <style>
@@ -35,6 +35,17 @@
 		border-radius: 100px;
 		outline: none;
 		cursor: pointer;
+		background-image:
+			linear-gradient(
+				to right,
+				transparent var(--p),
+				color-mix(in srgb, var(--mf-text) 12%, var(--mf-bg)) var(--p)
+			),
+			var(--mf-slider-fill);
+		background-size:
+			100% 100%,
+			300% 100%;
+		animation: gradient-drift 10s linear infinite alternate;
 	}
 	.mf-slider-seek {
 		width: 100%;

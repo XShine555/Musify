@@ -31,6 +31,7 @@ export const actions: Actions = {
 		const audio = form.get('audio');
 		const cover = form.get('cover');
 		const rawTags = form.getAll('tags').map(String);
+		const isExplicit = form.get('isExplicit') === 'on';
 
 		if (title === '' || title.length > MAX_TITLE) {
 			return fail(400, { message: 'El título es obligatorio (máx. 100 caracteres).' });
@@ -99,7 +100,8 @@ export const actions: Actions = {
 				title,
 				pictureIntentId: urls.pictureIntentId,
 				audioIntentId: urls.audioIntentId,
-				tags
+				tags,
+				isExplicit
 			}
 		});
 

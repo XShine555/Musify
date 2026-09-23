@@ -19,12 +19,15 @@
 	import { ACCENT_HUE } from '$lib/theme/color';
 	import { buildThemeTokens, applyThemeTokens, tokensToCss } from '$lib/theme/tokens';
 	import { themeMode } from '$lib/theme/mode.svelte';
-	import { trackNavigation } from '$lib/state/navigation.svelte';
+	import { trackNavigation, restoreScroll } from '$lib/state/navigation.svelte';
 	import { page } from '$app/state';
 
 	let { children, data } = $props();
 
+	let scroller = $state<HTMLElement>();
+
 	trackNavigation();
+	restoreScroll(() => scroller);
 
 	$effect(() => {
 		if (data.likedTracks?.length) liked.hydrate(data.likedTracks);
@@ -35,7 +38,6 @@
 	});
 
 	const isAuthPage = $derived(page.url.pathname === '/auth');
-	const hasTrack = $derived(player.currentId !== null);
 
 	const initialThemeCss = `:root{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'dark'))}}:root[data-theme='light']{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'light'))}}`;
 
@@ -74,7 +76,7 @@
 		if (dh > 180) dh -= 360;
 		else if (dh < -180) dh += 360;
 		const start = performance.now();
-		const duration = 600;
+		const duration = 2000 + Math.random() * 2000;
 		const tick = (now: number) => {
 			const t = Math.min(1, (now - start) / duration);
 			const eased = 1 - Math.pow(1 - t, 3);
@@ -101,27 +103,29 @@
 		{@render children()}
 	</div>
 {:else}
-	<div class="relative flex min-h-screen text-fg antialiased">
+	<div class="relative flex h-dvh overflow-hidden text-fg antialiased">
 		<div class="app-backdrop"></div>
 		<div class="app-vignette"></div>
 
 		<Sidebar user={data.user} playlists={data.sidebarPlaylists ?? []} />
 
-		<div class="flex min-w-0 flex-1">
-			<div class="flex min-w-0 flex-1 flex-col">
-				<MobileHeader user={data.user} accountUrl={data.accountUrl} />
-				<TopBar user={data.user} accountUrl={data.accountUrl} />
-				<main class="flex-1 app-main" data-has-track={hasTrack ? '' : undefined}>
-					{#key page.url.pathname}
-						<div class="animate-fade">{@render children()}</div>
-					{/key}
-				</main>
+		<div class="flex min-w-0 flex-1 flex-col">
+			<div class="flex min-h-0 flex-1">
+				<div bind:this={scroller} class="flex min-w-0 flex-1 app-scroll flex-col">
+					<MobileHeader user={data.user} accountUrl={data.accountUrl} />
+					<TopBar user={data.user} accountUrl={data.accountUrl} />
+					<main class="flex-1">
+						{#key page.url.pathname}
+							<div class="animate-fade">{@render children()}</div>
+						{/key}
+					</main>
+				</div>
+
+				<Queue />
 			</div>
 
-			<Queue />
+			<PlayerDock user={data.user} />
 		</div>
-
-		<PlayerDock user={data.user} />
 
 		<Modal
 			open={createPlaylistModal.open}

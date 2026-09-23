@@ -21,7 +21,7 @@ public static class UserEndpoints
         group.MapGet("/", GetUsers)
             .WithName("GetUsers")
             .WithSummary("Get Paginated Users.")
-            .Produces<PaginatedResponse<UserApplicationResponse>>();
+            .Produces<PaginatedResponse<UserSummaryResponse>>();
 
         group.MapGet("/{id}", GetUserById)
             .WithName("GetUserById")
@@ -50,6 +50,19 @@ public static class UserEndpoints
             .WithName("GetUserProfile")
             .WithSummary("Get A User'S Public Profile, Including Follower Counts.")
             .Produces<UserProfileResponse>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/followers", GetFollowers)
+            .WithName("GetUserFollowers")
+            .WithSummary("Get The Users Following A User. Visible To The User And To Mutual Followers.")
+            .Produces<PaginatedResponse<UserSummaryResponse>>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id}/following", GetFollowing)
+            .WithName("GetUserFollowing")
+            .WithSummary("Get The Users A User Follows.")
+            .Produces<PaginatedResponse<UserSummaryResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/is-following", IsFollowing)
@@ -88,12 +101,13 @@ public static class UserEndpoints
 
     private static async Task<IResult> GetUsers(
         IMediator mediator,
+        CurrentUser currentUser,
         CancellationToken cancellationToken,
         string? usernameSearch,
         int pageNumber = 1,
         int pageSize = 10)
     {
-        var result = await mediator.Send(new GetUsersQuery(pageNumber, pageSize, usernameSearch), cancellationToken);
+        var result = await mediator.Send(new GetUsersQuery(pageNumber, pageSize, usernameSearch, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -133,10 +147,35 @@ public static class UserEndpoints
 
     private static async Task<IResult> GetUserProfile(
         IMediator mediator,
+        CurrentUser currentUser,
         long id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetUserProfileQuery(id), cancellationToken);
+        var result = await mediator.Send(new GetUserProfileQuery(id, currentUser.Id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetFollowers(
+        IMediator mediator,
+        CurrentUser currentUser,
+        long id,
+        CancellationToken cancellationToken,
+        int pageNumber = 1,
+        int pageSize = 20)
+    {
+        var result = await mediator.Send(new GetUserFollowersQuery(currentUser.Id, id, pageNumber, pageSize), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> GetFollowing(
+        IMediator mediator,
+        CurrentUser currentUser,
+        long id,
+        CancellationToken cancellationToken,
+        int pageNumber = 1,
+        int pageSize = 20)
+    {
+        var result = await mediator.Send(new GetUserFollowingQuery(currentUser.Id, id, pageNumber, pageSize), cancellationToken);
         return result.ToHttpResult();
     }
 

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
+	import { pop } from '$lib/utils/transitions';
+
 	interface Props {
 		class?: string;
 		style?: string;
@@ -12,9 +14,8 @@
 </script>
 
 <div
-	class="glass-panel animate-pop rounded-panel p-1.5 {border
-		? 'border border-hairline'
-		: ''} {klass}"
+	transition:pop|global
+	class="glass-panel rounded-panel p-1.5 {border ? 'border border-hairline' : ''} {klass}"
 	{style}
 >
 	{@render children()}
