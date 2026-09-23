@@ -63,7 +63,7 @@ Every animation follows one scale of three durations and one easing curve, all d
 
 Entrances and movement always use `--mf-ease` (`ease-snappy` in Tailwind, `expoOut` in Svelte transitions), which feels immediate because most of the motion happens at the start. Color transitions keep the Tailwind default curve. Overlays must feel instant: the modal backdrop uses `transition:fade={{ duration: 200 }}` and the panel uses a local `pop` transition (opacity + scale + translateY, `expoOut`, 200ms) mirroring `animate-pop`'s keyframes — both directives so the modal fades and pops on close too, not just on open, and the whole thing settles in 200ms. Staggered lists use `--i` with 40ms steps capped at ten items.
 
-The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in `+layout.svelte` (600ms), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
+The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in `+layout.svelte` (a random 2 to 4 seconds per song change), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
 
 ## Auth
 

@@ -74,7 +74,7 @@
 		if (dh > 180) dh -= 360;
 		else if (dh < -180) dh += 360;
 		const start = performance.now();
-		const duration = 600;
+		const duration = 2000 + Math.random() * 2000;
 		const tick = (now: number) => {
 			const t = Math.min(1, (now - start) / duration);
 			const eased = 1 - Math.pow(1 - t, 3);
