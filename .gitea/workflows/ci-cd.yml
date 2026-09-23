@@ -81,6 +81,7 @@ jobs:
       - name: Pull latest master
         run: |
           set -euo pipefail
+          git config --global --add safe.directory "$DEPLOY_PATH"
           cd "$DEPLOY_PATH"
           git fetch origin master
           git reset --hard origin/master
@@ -91,26 +92,24 @@ jobs:
           cd "$DEPLOY_PATH"
           $COMPOSE up -d wait-for-postgres keys-init migrate
 
-      # zitadel-init/seaweedfs-init verify themselves through the PUBLIC
-      # auth./s3. URLs (see deploy/compose.yml), so they only succeed once a
-      # real domain is registered and nginx is serving it (see the TODO
-      # below and deploy/README.md). Tolerated for now so a red step here
-      # doesn't block the rest of the deploy; drop the `|| true` once that's
-      # in place, so a real regression here fails the job again.
+      # Both jobs verify themselves through the public auth./s3. URLs, served
+      # by the shared edge nginx (Infrastructure's edge/), and are idempotent.
       - name: Create OIDC app and S3 bucket
         run: |
+          set -euo pipefail
           cd "$DEPLOY_PATH"
-          $COMPOSE up -d seaweedfs-init zitadel-init || echo "expected to fail until the production domain + nginx edge exist"
+          $COMPOSE up -d seaweedfs-init zitadel-init
+          for job in musify-seaweedfs-init musify-zitadel-init; do
+            code=$(docker wait "$job")
+            if [ "$code" != "0" ]; then
+              docker logs "$job"
+              echo "$job exited with $code"
+              exit 1
+            fi
+          done
 
       - name: Build and start apps
         run: |
           set -euo pipefail
           cd "$DEPLOY_PATH"
           $COMPOSE --profile apps up -d --build api worker gateway web-player
-
-      # TODO once a domain is registered and pointed at this server: merge
-      # Musify's vhosts (deploy/nginx/templates) into the existing
-      # gitea-nginx config instead of running the `nginx` service from
-      # compose.prod.yml, since gitea-nginx already owns host ports 80/443
-      # for gitea.ikerdemo.cat. See "Continuous deployment" in
-      # deploy/README.md.

@@ -28,5 +28,4 @@ Thumbs.db
 # Deploy secrets and runtime state
 deploy/keys/
 deploy/secrets/
-deploy/nginx/certs/
 deploy/zitadel/.output/
