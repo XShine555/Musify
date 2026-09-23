@@ -22,10 +22,10 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 	const g = (l1: number, c1: number, a1: number, l2: number, c2: number, a2: number) =>
 		`linear-gradient(90deg, oklch(${l1} ${c1} ${H} / ${a1}), oklch(${l2} ${c2} ${H} / ${a2}))`;
 	const gActive = light
-		? g(0.82, 0.05, 0.55, 0.87, 0.035, 0.36)
+		? g(0.86, 0.04, 0.45, 0.9, 0.03, 0.28)
 		: g(0.46, 0.06, 0.34, 0.4, 0.045, 0.22);
 	const gHover = light
-		? g(0.86, 0.035, 0.38, 0.9, 0.025, 0.24)
+		? g(0.9, 0.03, 0.34, 0.93, 0.02, 0.2)
 		: g(0.42, 0.045, 0.26, 0.38, 0.035, 0.17);
 	const glow = (l: number, c: number, a: number) => `oklch(${l} ${c} ${H} / ${a})`;
 	// Fixed danger hue so error dialogs read red whatever the theme hue is.
