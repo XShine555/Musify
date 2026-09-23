@@ -90,7 +90,7 @@
 		<div
 			bind:this={panel}
 			transition:pop={{ duration: 200 }}
-			class="glass-panel max-h-[85dvh] w-full overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
+			class="glass-panel max-h-[85dvh] w-full glow-drift overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}

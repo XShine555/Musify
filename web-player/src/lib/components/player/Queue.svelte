@@ -31,7 +31,7 @@
 
 		{#if player.current.id}
 			<p class="mb-3 text-eyebrow text-fg-2">Reproduciendo</p>
-			<div class="mb-6 rounded-control surface-active p-2.5">
+			<div class="mb-6 surface-active rounded-control p-2.5">
 				<MediaIdentity
 					trackId={player.current.id}
 					title={player.current.title}

@@ -225,14 +225,24 @@
 }
 @utility surface-active {
 	background-image: var(--mf-g-active);
+	background-size: 180% 100%;
+	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility surface-active-hover {
 	background-image: var(--mf-g-hover);
+	background-size: 180% 100%;
+	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility hero-surface {
 	background-image: var(--mf-hero-bg);
+	background-size: 180% 100%;
+	animation: gradient-drift 18s ease-in-out infinite alternate;
 }
 @utility spotlight-surface {
+	background-size:
+		180% 100%,
+		100% 100%;
+	animation: gradient-drift 18s ease-in-out infinite alternate;
 	background-image:
 		var(--mf-spotlight-bg),
 		linear-gradient(
@@ -241,6 +251,10 @@
 			color-mix(in oklch, var(--mf-scrim) 22%, transparent) 61%,
 			transparent 92.5%
 		);
+}
+@utility glow-drift {
+	background-size: 180% 100%;
+	animation: gradient-drift 18s ease-in-out infinite alternate;
 }
 @utility field-control {
 	@apply w-full rounded-control bg-surface py-3 text-sm text-fg transition placeholder:text-fg-2 focus:bg-surface-2 focus:outline-none;
@@ -341,6 +355,15 @@ button:disabled {
 	}
 }
 
+@keyframes gradient-drift {
+	from {
+		background-position: 0% 50%;
+	}
+	to {
+		background-position: 100% 50%;
+	}
+}
+
 @keyframes sheen {
 	from {
 		background-position: 200% 0;
@@ -380,6 +403,7 @@ button:disabled {
 	*::before,
 	*::after {
 		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
 		animation-delay: 0ms !important;
 		transition-duration: 0.001ms !important;
 		scroll-behavior: auto !important;

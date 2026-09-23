@@ -134,7 +134,7 @@
 </svelte:head>
 
 <Page>
-	<div class="relative overflow-hidden rounded-panel-lg hero-surface px-6 py-8 sm:px-9 sm:py-8.5">
+	<div class="relative hero-surface overflow-hidden rounded-panel-lg px-6 py-8 sm:px-9 sm:py-8.5">
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
@@ -209,7 +209,7 @@
 		{#if spotlight}
 			<section>
 				<div
-					class="grid grid-cols-1 overflow-hidden rounded-panel-lg spotlight-surface lg:grid-cols-2"
+					class="grid spotlight-surface grid-cols-1 overflow-hidden rounded-panel-lg lg:grid-cols-2"
 				>
 					<div class="flex flex-col justify-center p-8 sm:p-9">
 						<div
