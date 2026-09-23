@@ -224,22 +224,22 @@
 }
 @utility surface-active {
 	background-image: var(--mf-g-active);
-	background-size: 180% 100%;
+	background-size: 125% 100%;
 	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility surface-active-hover {
 	background-image: var(--mf-g-hover);
-	background-size: 180% 100%;
+	background-size: 125% 100%;
 	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility hero-surface {
 	background-image: var(--mf-hero-bg);
-	background-size: 180% 100%;
+	background-size: 125% 100%;
 	animation: gradient-drift 18s ease-in-out infinite alternate;
 }
 @utility spotlight-surface {
 	background-size:
-		180% 100%,
+		125% 100%,
 		100% 100%;
 	animation: gradient-drift 18s ease-in-out infinite alternate;
 	background-image:
@@ -252,7 +252,7 @@
 		);
 }
 @utility glow-drift {
-	background-size: 180% 100%;
+	background-size: 125% 100%;
 	animation: gradient-drift 18s ease-in-out infinite alternate;
 }
 @utility field-control {
