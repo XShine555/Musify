@@ -3,8 +3,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import IconButton from '../primitives/IconButton.svelte';
 	import { fade } from 'svelte/transition';
-	import { expoOut } from 'svelte/easing';
-	import type { TransitionConfig } from 'svelte/transition';
+	import { pop } from '$lib/utils/transitions';
 
 	interface Props {
 		open: boolean;
@@ -46,15 +45,6 @@
 				'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 			)
 		);
-	}
-
-	function pop(node: Element, { duration = 200 }: { duration?: number } = {}): TransitionConfig {
-		return {
-			duration,
-			easing: expoOut,
-			css: (t) =>
-				`opacity: ${t}; transform: scale(${0.98 + 0.02 * t}) translateY(${0.25 * (1 - t)}rem);`
-		};
 	}
 
 	function onWindowKeydown(event: KeyboardEvent) {
