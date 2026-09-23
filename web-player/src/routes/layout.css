@@ -191,6 +191,22 @@
 		transparent 62%
 	);
 }
+@utility queue-shell {
+	display: flex;
+	justify-content: flex-end;
+	flex-shrink: 0;
+	overflow: hidden;
+	width: 0;
+	visibility: hidden;
+	transition:
+		width var(--mf-motion-slow) ease-in-out,
+		visibility var(--mf-motion-slow);
+
+	&[data-open] {
+		width: var(--mf-queue-w);
+		visibility: visible;
+	}
+}
 @utility app-main {
 	--mf-dock-h: 0px;
 	padding-bottom: calc(var(--mf-nav-h) + var(--mf-safe-b) + var(--mf-dock-h));

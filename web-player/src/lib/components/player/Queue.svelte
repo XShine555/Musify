@@ -6,8 +6,6 @@
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { fmtTime } from '$lib/utils/format';
 	import X from '@lucide/svelte/icons/x';
-	import { fly } from 'svelte/transition';
-	import { expoOut } from 'svelte/easing';
 
 	const upcoming = $derived.by(() => {
 		const idx = player.tracks.findIndex((t) => t.id === player.currentId);
@@ -15,10 +13,13 @@
 	});
 </script>
 
-{#if queuePanel.open}
+<div
+	class="queue-shell max-sm:hidden"
+	data-open={queuePanel.open ? '' : undefined}
+	inert={!queuePanel.open}
+>
 	<aside
-		transition:fly={{ x: 24, duration: 200, easing: expoOut }}
-		class="hidden shrink-0 flex-col border-l border-hairline px-4 pt-5 sm:flex"
+		class="flex shrink-0 flex-col border-l border-hairline px-4 pt-5"
 		style="width:var(--mf-queue-w); padding-bottom:calc(var(--mf-player-h) + 2rem)"
 	>
 		<div class="mb-5 flex items-center justify-between">
@@ -77,4 +78,4 @@
 			{/each}
 		</div>
 	</aside>
-{/if}
+</div>
