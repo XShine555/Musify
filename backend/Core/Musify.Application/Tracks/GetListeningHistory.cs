@@ -17,7 +17,7 @@ namespace Musify.Application.Tracks
         {
             var recentTrackIds = await database.ListeningHistories
                 .AsNoTracking()
-                .Where(l => l.UserId == query.UserId)
+                .Where(l => l.UserId == query.UserId && l.IsCounted)
                 .GroupBy(l => l.TrackId)
                 .OrderByDescending(g => g.Max(l => l.ListenedAt))
                 .Select(g => g.Key)
@@ -29,7 +29,7 @@ namespace Musify.Application.Tracks
                 .Include(t => t.Owner)
                 .Include(t => t.Tags)
                 .Where(t => recentTrackIds.Contains(t.Id))
-                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count })
+                .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count(l => l.IsCounted) })
                 .ToDictionaryAsync(t => t.Id, cancellationToken);
 
             return recentTrackIds

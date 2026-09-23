@@ -1,4 +1,5 @@
 using Mediator;
+using Musify.Domain.ValueObjects;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Shared;
@@ -19,8 +20,9 @@ public static class TrackEndpoints
 
         group.MapGet("/", GetTracks)
             .WithName("GetTracks")
-            .WithSummary("Get Paginated Tracks, Optionally Filtered By Name.")
-            .Produces<TracksSearchResponse>();
+            .WithSummary("Get Paginated Tracks, Optionally Filtered By Name And Genre.")
+            .Produces<TracksSearchResponse>()
+            .ProducesValidationProblem();
 
         group.MapGet("/{id}", GetTrackById)
             .WithName("GetTrackById")
@@ -38,6 +40,14 @@ public static class TrackEndpoints
             .WithName("GetTrackStream")
             .WithSummary("Get A Streaming Manifest URL And Ticket For A Track. Works Anonymously When The Playback Configuration Allows It.")
             .Produces<TrackStreamResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPut("/listens/{listenId}/progress", RecordListeningProgress)
+            .WithName("RecordListeningProgress")
+            .WithSummary("Report The Total Seconds Actually Played For A Listen Started By The Stream Endpoint.")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -84,10 +94,25 @@ public static class TrackEndpoints
         IMediator mediator,
         CancellationToken cancellationToken,
         string? name,
+        string? genre,
         int pageNumber = 1,
         int pageSize = 10)
     {
-        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize), cancellationToken);
+        Genre? parsedGenre = null;
+        if (!string.IsNullOrWhiteSpace(genre))
+        {
+            if (!Enum.TryParse<Genre>(genre, ignoreCase: true, out var value) || !Enum.IsDefined(value))
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    [nameof(genre)] = [$"'{genre}' is not a valid genre."]
+                });
+            }
+
+            parsedGenre = value;
+        }
+
+        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize, parsedGenre), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -125,6 +150,19 @@ public static class TrackEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.Id), cancellationToken);
+        return result.ToHttpResult();
+    }
+
+    private static async Task<IResult> RecordListeningProgress(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid listenId,
+        RecordListeningProgressRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new RecordListeningProgressCommand(currentUser.RequiredId, listenId, request.PlayedSeconds),
+            cancellationToken);
         return result.ToHttpResult();
     }
 

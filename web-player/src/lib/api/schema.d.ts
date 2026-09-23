@@ -177,6 +177,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/genres": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get The Genres That Have At Least One Track, Most Populated First. Works Anonymously. */
+        get: operations["GetGenres"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/genres/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Every Genre A Track Can Be Tagged With, Including The Genres It Cannot Be Combined With. Works Anonymously. */
+        get: operations["GetAvailableGenres"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/likes": {
         parameters: {
             query?: never;
@@ -391,7 +425,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Paginated Tracks, Optionally Filtered By Name. */
+        /** Get Paginated Tracks, Optionally Filtered By Name And Genre. */
         get: operations["GetTracks"];
         put?: never;
         /** Create A New Track. */
@@ -446,6 +480,23 @@ export interface paths {
         /** Get A Streaming Manifest URL And Ticket For A Track. Works Anonymously When The Playback Configuration Allows It. */
         get: operations["GetTrackStream"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tracks/listens/{listenId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Report The Total Seconds Actually Played For A Listen Started By The Stream Endpoint. */
+        put: operations["RecordListeningProgress"];
         post?: never;
         delete?: never;
         options?: never;
@@ -730,6 +781,10 @@ export interface components {
             hasPreviousPage: boolean;
             hasNextPage: boolean;
         };
+        AvailableGenreResponse: {
+            genre: components["schemas"]["Genre"];
+            incompatibleWith: components["schemas"]["Genre"][];
+        };
         CreateAlbumRequest: {
             title: string;
             description: null | string;
@@ -764,6 +819,11 @@ export interface components {
         };
         /** @enum {unknown} */
         Genre: "Pop" | "Rock" | "HipHop" | "RnB" | "Jazz" | "Blues" | "Classical" | "Electronic" | "House" | "Techno" | "Trance" | "Dubstep" | "DrumAndBass" | "Metal" | "Punk" | "Reggae" | "Reggaeton" | "Country" | "Folk" | "Indie" | "KPop" | "Latin" | "Soul" | "Funk" | "Ambient" | "Lofi";
+        GenreResponse: {
+            genre: components["schemas"]["Genre"];
+            /** Format: int32 */
+            trackCount: number | string;
+        };
         HttpValidationProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -854,6 +914,19 @@ export interface components {
             hasNextPage: boolean;
             hasPreviousPage: boolean;
         };
+        PaginatedResponseOfUserApplicationResponse: {
+            items: components["schemas"]["UserApplicationResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
         PlaybackPublicConfigResponse: {
             allowAnonymousListening: boolean;
             /** Format: int32 */
@@ -889,6 +962,10 @@ export interface components {
         PlaylistVisibility: "Private" | "Public";
         /** @enum {unknown} */
         ProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed";
+        RecordListeningProgressRequest: {
+            /** Format: double */
+            playedSeconds: number | string;
+        };
         RequestAlbumPictureUploadRequest: {
             fileType: string;
             contentType: string;
@@ -954,6 +1031,8 @@ export interface components {
             ticket: string;
             /** Format: int32 */
             expiresInSeconds: number | string;
+            /** Format: uuid */
+            listenId?: null | string;
         };
         TrackUploadUrlsResponse: {
             /** Format: uuid */
@@ -1475,6 +1554,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaybackPublicConfigResponse"];
+                };
+            };
+        };
+    };
+    GetGenres: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenreResponse"][];
+                };
+            };
+        };
+    };
+    GetAvailableGenres: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailableGenreResponse"][];
                 };
             };
         };
@@ -2013,6 +2132,7 @@ export interface operations {
         parameters: {
             query?: {
                 name?: string;
+                genre?: string;
                 pageNumber?: number | string;
                 pageSize?: number | string;
             };
@@ -2029,6 +2149,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TracksSearchResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
                 };
             };
         };
@@ -2164,6 +2293,44 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TrackStreamResponse"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RecordListeningProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordListeningProgressRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

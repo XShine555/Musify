@@ -74,6 +74,7 @@ namespace Musify.Infrastructure.Services
 
             serviceDescriptors.AddHangfireServer();
             serviceDescriptors.AddScoped<DailyMixGenerationJob>();
+            serviceDescriptors.AddScoped<ListeningHistoryCleanupJob>();
 
             return serviceDescriptors;
         }

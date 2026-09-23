@@ -17,13 +17,13 @@
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
-	import { searchHref } from '$lib/state/navigation.svelte';
+	import { genreHref } from '$lib/state/navigation.svelte';
 	import { createTrackMenu } from '$lib/state/menus.svelte';
 	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';
 	import { appendUnique } from '$lib/data/collections';
-	import { genreTiles } from '$lib/data/genres';
+	import { genreInfo, genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,
 		showGroup,
@@ -59,7 +59,7 @@
 	$effect(() => {
 		trackMenu.close();
 		albumMenu = null;
-		sfilter = 'Todo';
+		sfilter = data.genre ? 'Canciones' : 'Todo';
 		localItems = data.tracks.items.map((item) => item.track);
 		localPage = Number(data.tracks.pageNumber);
 		hasMore = data.tracks.hasNextPage;
@@ -73,6 +73,9 @@
 	);
 
 	const items = $derived(songRows.map((row) => row.track));
+
+	const tiles = $derived(genreTiles(data.genres));
+	const activeGenre = $derived(data.genre ? genreInfo(data.genre) : null);
 
 	const albums = $derived(data.albums);
 	const users = $derived(data.users);
@@ -170,6 +173,7 @@
 				pageSize: String(EXPLORE_PAGE_SIZE)
 			});
 			if (data.query) params.set('name', data.query);
+			if (data.genre) params.set('genre', data.genre);
 			const res = await fetch(`/api/tracks?${params}`);
 			if (!res.ok) throw new Error(String(res.status));
 			const next = (await res.json()) as typeof data.tracks;
@@ -189,7 +193,9 @@
 </script>
 
 <svelte:head>
-	<title>{data.query ? `Buscar «${data.query}»` : 'Descubrir'}</title>
+	<title
+		>{activeGenre ? activeGenre.label : data.query ? `Buscar «${data.query}»` : 'Descubrir'}</title
+	>
 	<meta
 		name="description"
 		content="Busca canciones, álbumes y personas, o descubre por género en Musify."
@@ -197,7 +203,9 @@
 </svelte:head>
 
 <Page>
-	{#if !data.query}
+	{#if activeGenre}
+		<PageHeader eyebrow="Género" title={activeGenre.label} description={activeGenre.tagline} />
+	{:else if !data.query}
 		<PageHeader
 			title="Descubrir"
 			description="Encuentra tu próxima canción favorita explorando por género."
@@ -301,31 +309,34 @@
 				por playlist.
 			</p>
 			<div class="mt-5.5 flex flex-wrap justify-center gap-2">
-				{#each genreTiles.slice(0, 4) as genre (genre.query)}
-					<Chip href={searchHref(genre.query)}>{genre.label}</Chip>
+				{#each tiles.slice(0, 4) as tile (tile.genre)}
+					<Chip href={genreHref(tile.genre)}>{tile.label}</Chip>
 				{/each}
 			</div>
 		</div>
 	{/if}
 
-	{#if !data.query}
+	{#if !data.query && !data.genre}
 		<div class="grid-wide">
-			{#each genreTiles as genre, i (genre.query)}
+			{#each tiles as tile, i (tile.genre)}
 				<a
-					href={searchHref(genre.query)}
+					href={genreHref(tile.genre)}
 					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-panel p-4 transition-[filter] genre-tile hover:brightness-110"
-					style="--i:{i}; --tile-hue:{genre.hue}"
+					style="--i:{i}; --tile-hue:{tile.hue}"
 				>
 					<div class="text-on-art">
-						{genre.label}
+						{tile.label}
 					</div>
-					<div class="text-xs text-on-art-2">{genre.tagline}</div>
+					<div class="text-xs text-on-art-2">{tile.tagline}</div>
 				</a>
 			{/each}
 		</div>
+		{#if tiles.length === 0}
+			<EmptyState icon={Music} description="Todavía no hay géneros. Sube música para empezar." />
+		{/if}
 	{/if}
 
-	{#if data.query && !nothingFound}
+	{#if (data.query || data.genre) && !nothingFound}
 		<div class="mt-9 flex flex-col gap-9">
 			{#if showGroup(sfilter, 'Canciones')}
 				<div>
@@ -366,7 +377,9 @@
 					{:else}
 						<EmptyState
 							icon={Music}
-							description="No hay canciones que coincidan con «{data.query}»."
+							description={activeGenre
+								? 'Todavía no hay canciones de este género.'
+								: `No hay canciones que coincidan con «${data.query}».`}
 						/>
 					{/if}
 				</div>

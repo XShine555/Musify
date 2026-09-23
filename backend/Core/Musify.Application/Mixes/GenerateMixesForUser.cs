@@ -38,7 +38,7 @@ namespace Musify.Application.Mixes
 
             var historyTrackIds = await database.ListeningHistories
                 .AsNoTracking()
-                .Where(history => history.UserId == userId)
+                .Where(history => history.UserId == userId && history.IsCounted)
                 .Select(history => history.TrackId)
                 .Distinct()
                 .ToListAsync(cancellationToken);

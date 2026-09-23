@@ -72,5 +72,21 @@ namespace Musify.Application.Tests.Mixes
                 .ToListAsync(TestContext.Current.CancellationToken);
             Assert.All(discoveryItems, item => Assert.Equal(unheardTrack.Id, item.TrackId));
         }
+
+        [Fact]
+        public async Task Handle_TrackWithOnlyUncountedListens_IsTreatedAsUnheard()
+        {
+            var user = TestEntities.User();
+            var skipped = TestEntities.Track(user, "Only skipped");
+            await SeedAsync(
+                user, skipped,
+                new UserHasTrack { UserId = user.Id, TrackId = skipped.Id },
+                TestEntities.ListeningHistory(user.Id, skipped.Id, playedSeconds: 3, isCounted: false));
+
+            await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
+
+            var mixes = await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken);
+            Assert.Contains(mixes, mix => mix.Title == "Descubrimiento");
+        }
     }
 }
