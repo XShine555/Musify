@@ -46,31 +46,12 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 
 	const tracks = unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.');
 
-	const userItems = usersRes?.data?.items ?? [];
-	const followedIds = user
-		? await Promise.all(
-				userItems
-					.filter((u) => u.id !== user.sub)
-					.map((u) =>
-						api
-							.GET('/users/{id}/is-following', { params: { path: { id: u.id } } })
-							.then((res) => (res.data ? u.id : null))
-							.catch(() => null)
-					)
-			)
-		: [];
-	const followed = new Set(followedIds);
-
 	return {
 		query,
 		tracks,
 		albums: (albumsRes?.data?.items ?? []).map((item) => item.album),
-		users: userItems.map((u) => ({
-			...u,
-			isSelf: user?.sub === u.id,
-			isFollowing: followed.has(u.id)
-		})),
-		canFollow: !!user,
+		users: usersRes?.data?.items ?? [],
+		viewerId: user?.sub ?? null,
 		playlists: playlistsRes?.data?.items ?? []
 	};
 };

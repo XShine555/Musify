@@ -5,7 +5,7 @@
 		title: string;
 		eyebrow?: string;
 		description?: string;
-		meta?: string;
+		meta?: string | Snippet;
 		cover?: Snippet;
 		actions?: Snippet;
 		align?: 'center' | 'end';
@@ -45,8 +45,10 @@
 			{#if description}
 				<p class="mt-3 max-w-2xl text-body text-fg-2">{description}</p>
 			{/if}
-			{#if meta}
+			{#if typeof meta === 'string'}
 				<p class="mt-3 text-sm text-fg-2">{meta}</p>
+			{:else if meta}
+				<p class="mt-3 text-sm text-fg-2">{@render meta()}</p>
 			{/if}
 		</div>
 		{#if actions && !cover}

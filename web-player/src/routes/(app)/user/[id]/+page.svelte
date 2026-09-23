@@ -22,18 +22,27 @@
 </svelte:head>
 
 {#snippet followAction()}
-	<FollowButton following={data.isFollowing} invalidateAll />
+	<FollowButton following={profile.isFollowing} invalidateAll />
+{/snippet}
+
+{#snippet followStats()}
+	{@const followers = plural(Number(profile.followersCount), 'seguidor', 'seguidores')}
+	{#if data.isOwnProfile || profile.canViewFollowers}
+		<a href="/user/{profile.id}/followers" class="transition-colors hover:text-fg">{followers}</a>
+	{:else}
+		<span>{followers}</span>
+	{/if}
+	·
+	<a href="/user/{profile.id}/following" class="transition-colors hover:text-fg">
+		{profile.followingCount} siguiendo
+	</a>
 {/snippet}
 
 <Page>
 	<PageHeader
 		eyebrow="Perfil"
 		title={profile.name}
-		meta="{plural(
-			Number(profile.followersCount),
-			'seguidor',
-			'seguidores'
-		)} · {profile.followingCount} siguiendo"
+		meta={followStats}
 		align="center"
 		actions={canFollow ? followAction : undefined}
 	>

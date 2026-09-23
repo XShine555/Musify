@@ -7,7 +7,7 @@ using Musify.Application.Serialization;
 
 namespace Musify.Application.Users
 {
-    public record GetUserProfileQuery(long UserId) : IQuery<ErrorOr<UserProfileResponse>>;
+    public record GetUserProfileQuery(long UserId, long? ViewerId = null) : IQuery<ErrorOr<UserProfileResponse>>;
 
     public record UserProfileResponse(
         [property: JsonConverter(typeof(LongAsStringConverter))] long Id,
@@ -17,7 +17,9 @@ namespace Musify.Application.Users
         string? ProfilePictureUrl,
         DateTime CreatedAt,
         int FollowersCount,
-        int FollowingCount);
+        int FollowingCount,
+        bool IsFollowing,
+        bool CanViewFollowers);
 
     public class GetUserProfileQueryHandler(IDatabase database)
         : IQueryHandler<GetUserProfileQuery, ErrorOr<UserProfileResponse>>
@@ -49,6 +51,14 @@ namespace Musify.Application.Users
                 .AsNoTracking()
                 .CountAsync(f => f.FollowerId == request.UserId, cancellationToken);
 
+            var isFollowing = request.ViewerId is { } viewerId && viewerId != request.UserId &&
+                await database.UserFollows
+                    .AsNoTracking()
+                    .AnyAsync(f => f.FollowerId == viewerId && f.FollowedId == request.UserId, cancellationToken);
+
+            var canViewFollowers = await FollowVisibility.CanViewFollowersAsync(
+                database, request.ViewerId, request.UserId, cancellationToken);
+
             return new UserProfileResponse(
                 user.Id,
                 user.Name,
@@ -57,7 +67,9 @@ namespace Musify.Application.Users
                 user.ProfilePictureUrl,
                 user.CreatedAt,
                 followersCount,
-                followingCount);
+                followingCount,
+                isFollowing,
+                canViewFollowers);
         }
     }
 }

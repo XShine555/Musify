@@ -42,7 +42,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
   - `media/` for music domain display components (Artwork, TrackList, MediaCard, PlayButton, and so on).
   - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
   - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading). This is different from `components/layout/` above, which is the global app chrome.
-- Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`.
+- Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
 
 ## Styles
 

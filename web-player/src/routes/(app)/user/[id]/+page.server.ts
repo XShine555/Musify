@@ -39,15 +39,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 
 	const isOwnProfile = viewer !== null && viewer.sub === params.id;
 
-	const isFollowing =
-		viewer && !isOwnProfile
-			? await api
-					.GET('/users/{id}/is-following', { params: { path: { id: params.id } } })
-					.then((res) => res.data ?? false)
-					.catch(() => false)
-			: false;
-
-	return { profile, playlists, isOwnProfile, isFollowing, isAnonymous: viewer === null };
+	return { profile, playlists, isOwnProfile, isAnonymous: viewer === null };
 };
 
 export const actions: Actions = {

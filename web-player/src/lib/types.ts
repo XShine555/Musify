@@ -4,3 +4,5 @@ export interface SessionUser {
 	email: string;
 	picture: string;
 }
+
+export type FollowList = 'followers' | 'following';
