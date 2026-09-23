@@ -86,11 +86,23 @@ jobs:
           git fetch origin master
           git reset --hard origin/master
 
-      - name: Migrate database, generate keys
+      - name: Generate stream-ticket keys
         run: |
           set -euo pipefail
           cd "$DEPLOY_PATH"
-          $COMPOSE up -d wait-for-postgres keys-init migrate
+          $COMPOSE run --rm --no-deps keys-init
+
+      # The migrations are baked into the migrator image, so it is rebuilt on
+      # every deploy (plain `up` would reuse the stale image and re-apply the
+      # old migrations). `run --rm` starts wait-for-postgres, blocks until the
+      # migration finishes and propagates its exit code, so a failed migration
+      # aborts the deploy before the new API is started against an old schema.
+      - name: Migrate database
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          $COMPOSE build migrate
+          $COMPOSE run --rm migrate
 
       # Both jobs verify themselves through the public auth./s3. URLs, served
       # by the shared edge nginx (Infrastructure's edge/), and are idempotent.
