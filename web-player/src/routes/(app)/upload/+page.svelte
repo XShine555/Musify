@@ -14,12 +14,14 @@
 	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
-	import { TRACK_GENRES, areCompatible, type TrackGenre } from '$lib/data/trackGenres';
+	import { genreOptions } from '$lib/data/genres';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';
 
 	const MAX_TITLE = 100;
+
+	let { data } = $props();
 
 	let title = $state('');
 	let audioName = $state('');
@@ -31,7 +33,7 @@
 	let acceptedTerms = $state(false);
 	let errorMsg = $state('');
 	let errorDetail = $state('');
-	let tags = $state<TrackGenre[]>([]);
+	let tags = $state<string[]>([]);
 	let publishedTitle = $state('');
 	let audioInput = $state<HTMLInputElement>();
 
@@ -40,6 +42,15 @@
 		{ key: 'process', label: 'Procesar', hint: 'Transcodificado para streaming.' },
 		{ key: 'publish', label: 'Publicar', hint: 'Disponible en el catálogo.' }
 	];
+
+	const options = $derived(genreOptions(data.genres));
+	const blocked = $derived(
+		new Set(
+			options
+				.filter((option) => tags.includes(option.genre))
+				.flatMap((option) => option.incompatibleWith)
+		)
+	);
 
 	const busy = $derived(status === 'uploading');
 
@@ -85,12 +96,8 @@
 		pickAudio(file);
 	}
 
-	function toggleTag(tag: TrackGenre) {
+	function toggleTag(tag: string) {
 		tags = tags.includes(tag) ? tags.filter((current) => current !== tag) : [...tags, tag];
-	}
-
-	function tagBlocked(tag: TrackGenre) {
-		return !tags.includes(tag) && tags.some((current) => !areCompatible(current, tag));
 	}
 
 	function reset() {
@@ -254,13 +261,13 @@
 
 			<Field label="Géneros">
 				<div class="flex flex-wrap gap-2">
-					{#each TRACK_GENRES as genre (genre.value)}
+					{#each options as option (option.genre)}
 						<Chip
-							selected={tags.includes(genre.value)}
-							disabled={tagBlocked(genre.value)}
-							onclick={() => toggleTag(genre.value)}
+							selected={tags.includes(option.genre)}
+							disabled={blocked.has(option.genre)}
+							onclick={() => toggleTag(option.genre)}
 						>
-							{genre.label}
+							{option.label}
 						</Chip>
 					{/each}
 				</div>

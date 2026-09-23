@@ -7,12 +7,18 @@ import {
 	unwrapOrFail
 } from '$lib/server/api';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
-import { findConflict, genreLabel, isTrackGenre, type TrackGenre } from '$lib/data/trackGenres';
+import { findConflict, genreInfo } from '$lib/data/genres';
+import type { components } from '$lib/api/schema';
+
+type Genre = components['schemas']['Genre'];
 
 const MAX_TITLE = 100;
 
-export const load: PageServerLoad = ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	requireUser(locals, url);
+	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const { data } = await api.GET('/genres/available');
+	return { genres: data ?? [] };
 };
 
 export const actions: Actions = {
@@ -39,20 +45,23 @@ export const actions: Actions = {
 		if (rawTags.length === 0) {
 			return fail(400, { message: 'Elige al menos un género.' });
 		}
-		if (!rawTags.every(isTrackGenre)) {
+		const api = createApiClient({ fetch, accessToken });
+		const { data: available } = await api.GET('/genres/available');
+		const options = available ?? [];
+		const known = new Set<string>(options.map((option) => option.genre));
+		if (!rawTags.every((tag) => known.has(tag))) {
 			return fail(400, { message: 'Alguno de los géneros no es válido.' });
 		}
-		const tags: TrackGenre[] = [...new Set(rawTags)];
-		const conflict = findConflict(tags);
+		const tags = [...new Set(rawTags)] as Genre[];
+		const conflict = findConflict(tags, options);
 		if (conflict) {
 			return fail(400, {
-				message: `Los géneros ${genreLabel(conflict[0])} y ${genreLabel(conflict[1])} no se pueden combinar.`
+				message: `Los géneros ${genreInfo(conflict[0]).label} y ${genreInfo(conflict[1]).label} no se pueden combinar.`
 			});
 		}
 
 		const audioContentType = contentTypeOf(audio, AUDIO_TYPES);
 		const pictureContentType = contentTypeOf(cover, IMAGE_TYPES);
-		const api = createApiClient({ fetch, accessToken });
 
 		const urlsResult = await api.POST('/tracks/upload-urls', {
 			body: {

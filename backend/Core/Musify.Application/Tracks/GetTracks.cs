@@ -5,10 +5,11 @@ using Musify.Application.Tracks.Responses;
 using X.PagedList;
 using X.PagedList.EF;
 using Musify.Application.Contracts;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks
 {
-    public record GetTracksQuery(string? Name, int PageNumber, int PageSize)
+    public record GetTracksQuery(string? Name, int PageNumber, int PageSize, Genre? Genre = null)
         : IQuery<ErrorOr<TracksSearchResponse>>;
 
     public class GetTracksQueryHandler(IDatabase database)
@@ -27,6 +28,9 @@ namespace Musify.Application.Tracks
                 var normalizedName = request.Name.Trim().ToUpperInvariant();
                 tracksQuery = tracksQuery.Where(t => t.Track.NormalizedTitle.Contains(normalizedName));
             }
+
+            if (request.Genre is { } genre)
+                tracksQuery = tracksQuery.Where(t => t.Track.Tags.Any(tag => tag.Tag == genre));
 
             var totalCount = await tracksQuery.CountAsync(cancellationToken);
 

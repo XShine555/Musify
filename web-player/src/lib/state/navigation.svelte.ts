@@ -68,6 +68,10 @@ export function searchHref(query: string): string {
 	return query ? `/explore?q=${encodeURIComponent(query)}` : '/explore';
 }
 
+export function genreHref(genre: string): string {
+	return `/explore?genre=${encodeURIComponent(genre)}`;
+}
+
 export interface AppNavLink {
 	href: string;
 	label: string;
