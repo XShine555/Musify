@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   backend-tests:
-    name: Backend tests (.NET)
+    name: BackEnd
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -35,7 +35,7 @@ jobs:
         run: dotnet test Musify.slnx --no-build -c Release
 
   web-player-checks:
-    name: web-player (check + lint)
+    name: WebPlayer
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -52,10 +52,10 @@ jobs:
 
       - run: npm ci
 
-      - name: Type-check (svelte-check)
+      - name: Type-check
         run: npm run check
 
-      - name: Lint (prettier + eslint + design tokens)
+      - name: Lint
         run: npm run lint
 
   # Runs on the production host itself, through the existing self-hosted
@@ -69,7 +69,7 @@ jobs:
   # deploy reuses it instead of a fresh checkout, since .env.prod is
   # untracked and only lives there.
   deploy:
-    name: Deploy to production
+    name: Deploy
     needs: [backend-tests, web-player-checks]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: [production]
@@ -97,7 +97,7 @@ jobs:
       # below and deploy/README.md). Tolerated for now so a red step here
       # doesn't block the rest of the deploy; drop the `|| true` once that's
       # in place, so a real regression here fails the job again.
-      - name: Create OIDC app + S3 bucket (pending public domain)
+      - name: Create OIDC app and S3 bucket
         run: |
           cd "$DEPLOY_PATH"
           $COMPOSE up -d seaweedfs-init zitadel-init || echo "expected to fail until the production domain + nginx edge exist"
