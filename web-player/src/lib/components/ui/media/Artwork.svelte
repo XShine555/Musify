@@ -125,7 +125,7 @@
 			</svg>
 		</div>
 	{:else if fallback === 'gradient'}
-		<div class="h-full w-full bg-[image:var(--mf-cover-grad)]"></div>
+		<div class="h-full w-full bg-(image:--mf-cover-grad)"></div>
 	{:else}
 		<div class="h-full w-full bg-surface"></div>
 	{/if}
