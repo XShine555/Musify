@@ -403,7 +403,7 @@
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, users) as u (u.id)}
 							<li>
-								<UserRow user={u} canFollow={data.viewerId !== null && data.viewerId !== u.id} />
+								<UserRow user={u} />
 							</li>
 						{/each}
 					</ul>

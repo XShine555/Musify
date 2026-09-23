@@ -84,7 +84,7 @@
 		<ul class="flex flex-col gap-1">
 			{#each items as user (user.id)}
 				<li>
-					<UserRow {user} canFollow={data.viewerId !== null && data.viewerId !== user.id} />
+					<UserRow {user} />
 				</li>
 			{/each}
 		</ul>
