@@ -6,4 +6,5 @@ public record CreateTrackRequest(
     string Title,
     Guid PictureIntentId,
     Guid AudioIntentId,
-    IReadOnlyCollection<Genre> Tags);
+    IReadOnlyCollection<Genre> Tags,
+    bool IsExplicit = false);

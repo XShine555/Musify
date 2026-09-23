@@ -61,6 +61,7 @@
 					title={player.current.title}
 					artist={player.current.artist || '—'}
 					ownerUserId={player.current.ownerUserId}
+					explicit={player.current.explicit}
 					active
 				/>
 			</div>
@@ -123,6 +124,7 @@
 						title={track.title}
 						subtitle={track.artist || '—'}
 						subtitleHref={track.ownerUserId}
+						explicit={track.explicit}
 						trackId={track.id}
 						class="p-2"
 					>

@@ -195,6 +195,7 @@
 							title={item.title}
 							subtitle={item.artist}
 							subtitleHref={item.ownerUserId}
+							explicit={item.explicit}
 							trackId={item.id}
 							class="animate-enter"
 							style="--i:{i}"
@@ -252,6 +253,7 @@
 								title={track.title}
 								subtitle={track.artist}
 								subtitleHref={track.ownerUserId}
+								explicit={track.isExplicit}
 							>
 								{#snippet leading()}
 									<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"

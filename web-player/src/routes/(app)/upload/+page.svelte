@@ -13,6 +13,7 @@
 	import Input from '$lib/components/ui/primitives/Input.svelte';
 	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
 	import { TRACK_GENRES, areCompatible, type TrackGenre } from '$lib/data/trackGenres';
 
@@ -29,6 +30,7 @@
 	let dragging = $state(false);
 	let status = $state<Status>('idle');
 	let acceptedTerms = $state(false);
+	let isExplicit = $state(false);
 	let errorMsg = $state('');
 	let errorDetail = $state('');
 	let tags = $state<TrackGenre[]>([]);
@@ -101,6 +103,7 @@
 		coverResetToken += 1;
 		status = 'idle';
 		acceptedTerms = false;
+		isExplicit = false;
 		errorMsg = '';
 		errorDetail = '';
 		tags = [];
@@ -277,6 +280,13 @@
 								<span class="shrink-0 tabular-nums">{tags.length} elegidos</span>
 							{/snippet}
 						</Field>
+
+						<Checkbox bind:checked={isExplicit} name="isExplicit">
+							<span class="inline-flex items-center gap-2">
+								Contenido explícito
+								<ExplicitBadge />
+							</span>
+						</Checkbox>
 					</div>
 				</div>
 			</Surface>

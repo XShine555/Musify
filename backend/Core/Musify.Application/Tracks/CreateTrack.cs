@@ -18,7 +18,8 @@ namespace Musify.Application.Tracks
         string Title,
         Guid PictureIntentId,
         Guid AudioIntentId,
-        IReadOnlyCollection<Genre> Tags)
+        IReadOnlyCollection<Genre> Tags,
+        bool IsExplicit = false)
         : ICommand<ErrorOr<TrackApplicationResponse>>;
 
     public class CreateTrackCommandHandler(
@@ -83,6 +84,7 @@ namespace Musify.Application.Tracks
                 NormalizedTitle = request.Title.ToUpperInvariant(),
                 OwnerUserId = user.Id,
                 Owner = user,
+                IsExplicit = request.IsExplicit,
                 Pictures = new TrackPictures
                 {
                     OriginalName = pictureIntent.ObjectName,
