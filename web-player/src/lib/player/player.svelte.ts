@@ -119,6 +119,7 @@ class PlayerState {
 	playing = $state(false);
 	progress = $state(0);
 	volume = $state(browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100);
+	muted = $state(browser ? localStorage.getItem('player.muted') === 'true' : false);
 	loading = $state(false);
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
@@ -148,6 +149,7 @@ class PlayerState {
 		const audio = new Audio();
 		audio.preload = 'auto';
 		audio.volume = this.volume / 100;
+		audio.muted = this.muted;
 		audio.addEventListener('durationchange', () => this.#syncDuration(audio.duration));
 		audio.addEventListener('loadedmetadata', () => this.#syncDuration(audio.duration));
 		audio.addEventListener('play', () => {
@@ -401,6 +403,18 @@ class PlayerState {
 		else audio.pause();
 	}
 
+	toggleMute() {
+		this.#applyMuted(!this.muted);
+		if (!this.muted && this.volume === 0) this.setVolume(50);
+	}
+
+	#applyMuted(value: boolean) {
+		this.muted = value;
+		const audio = this.#audioEl();
+		if (audio) audio.muted = value;
+		if (browser) localStorage.setItem('player.muted', String(value));
+	}
+
 	next() {
 		if (this.tracks.length === 0) return;
 		const idx = this.#index();
@@ -459,6 +473,7 @@ class PlayerState {
 
 	setVolume(value: number) {
 		this.volume = Math.min(100, Math.max(0, Math.round(value)));
+		if (this.muted && this.volume > 0) this.#applyMuted(false);
 		const audio = this.#audioEl();
 		if (audio) {
 			audio.volume = this.volume / 100;

@@ -6,7 +6,9 @@
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/player/queuePanel.svelte';
 	import { fmtTime } from '$lib/utils/format';
+	import Volume1 from '@lucide/svelte/icons/volume-1';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import VolumeX from '@lucide/svelte/icons/volume-x';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 
 	function seek(value: number) {
@@ -48,9 +50,22 @@
 		</div>
 	</div>
 	<div class="hidden w-(--mf-player-side-w) shrink-0 items-center justify-end gap-3.5 sm:flex">
-		<Volume2 class="size-icon-sm shrink-0 text-fg-2" strokeWidth={1.8} />
+		<IconButton
+			label={player.muted ? 'Activar sonido' : 'Silenciar'}
+			tone="plain"
+			size="xs"
+			onclick={() => player.toggleMute()}
+		>
+			{#if player.muted || player.volume === 0}
+				<VolumeX class="size-icon-sm" strokeWidth={1.8} />
+			{:else if player.volume < 50}
+				<Volume1 class="size-icon-sm" strokeWidth={1.8} />
+			{:else}
+				<Volume2 class="size-icon-sm" strokeWidth={1.8} />
+			{/if}
+		</IconButton>
 		<Slider
-			value={player.volume}
+			value={player.muted ? 0 : player.volume}
 			max={100}
 			label="Volumen"
 			oninput={(value) => player.setVolume(value)}
