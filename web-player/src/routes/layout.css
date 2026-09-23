@@ -251,17 +251,23 @@
 	animation: gradient-drift 14s ease-in-out infinite alternate;
 }
 @utility hero-surface {
-	background-image: var(--mf-hero-bg);
-	background-size: 125% 100%;
-	animation: gradient-drift 18s ease-in-out infinite alternate;
+	background-image: linear-gradient(
+		var(--gd-angle),
+		var(--mf-hero-c1),
+		var(--mf-hero-c2) calc(60% + var(--gd-shift)),
+		var(--mf-hero-c3)
+	);
+	animation: gradient-sway 18s ease-in-out infinite alternate;
 }
 @utility spotlight-surface {
-	background-size:
-		125% 100%,
-		100% 100%;
-	animation: gradient-drift 18s ease-in-out infinite alternate;
+	animation: gradient-sway 18s ease-in-out infinite alternate;
 	background-image:
-		var(--mf-spotlight-bg),
+		linear-gradient(
+			var(--gd-angle),
+			var(--mf-spotlight-c1),
+			var(--mf-spotlight-c2) calc(55% + var(--gd-shift)),
+			var(--mf-spotlight-c3)
+		),
 		linear-gradient(
 			to right,
 			transparent 50%,
@@ -369,6 +375,29 @@ button:disabled {
 	}
 	100% {
 		transform: translate3d(3%, -1%, 0) scale(1.02);
+	}
+}
+
+@property --gd-angle {
+	syntax: '<angle>';
+	inherits: false;
+	initial-value: 120deg;
+}
+
+@property --gd-shift {
+	syntax: '<percentage>';
+	inherits: false;
+	initial-value: 0%;
+}
+
+@keyframes gradient-sway {
+	from {
+		--gd-angle: 110deg;
+		--gd-shift: -8%;
+	}
+	to {
+		--gd-angle: 132deg;
+		--gd-shift: 12%;
 	}
 }
 

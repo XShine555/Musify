@@ -53,18 +53,18 @@ export function buildThemeTokens(hue: number, mode: 'dark' | 'light' = 'dark'): 
 			? `linear-gradient(90deg, oklch(0.5 0.1 ${H}), oklch(0.68 0.11 ${r(h + 18, 1)}), oklch(0.5 0.1 ${H}))`
 			: `linear-gradient(90deg, oklch(0.66 0.11 ${H}), oklch(0.84 0.09 ${r(h + 18, 1)}), oklch(0.66 0.11 ${H}))`,
 		'--mf-hero-tint': light ? `oklch(0.8 0.05 ${H})` : `oklch(0.3 0.04 ${H})`,
-		'--mf-hero-bg': light
-			? `linear-gradient(120deg, ${glow(0.9, 0.04, 0.6)}, ${glow(0.93, 0.03, 0.52)} 60%)`
-			: `linear-gradient(120deg, ${glow(0.24, 0.04, 0.55)}, ${glow(0.14, 0.02, 0.35)} 60%, ${glow(0.12, 0.015, 0.25)})`,
+		'--mf-hero-c1': light ? glow(0.9, 0.04, 0.6) : glow(0.24, 0.04, 0.55),
+		'--mf-hero-c2': light ? glow(0.96, 0.02, 0.4) : glow(0.14, 0.02, 0.35),
+		'--mf-hero-c3': light ? glow(0.96, 0.02, 0.4) : glow(0.12, 0.015, 0.25),
 		'--mf-modal-glow': light
 			? `linear-gradient(135deg, ${glow(0.88, 0.05, 0.5)} 0%, ${glow(0.93, 0.03, 0.2)} 40%, transparent 75%)`
 			: `linear-gradient(135deg, ${glow(0.3, 0.045, 0.4)} 0%, ${glow(0.2, 0.03, 0.15)} 35%, transparent 70%)`,
 		'--mf-modal-glow-danger': light
 			? `linear-gradient(135deg, ${dangerGlow(0.86, 0.07, 0.55)} 0%, ${dangerGlow(0.92, 0.04, 0.22)} 40%, transparent 75%)`
 			: `linear-gradient(135deg, ${dangerGlow(0.34, 0.1, 0.45)} 0%, ${dangerGlow(0.22, 0.06, 0.18)} 35%, transparent 70%)`,
-		'--mf-spotlight-bg': light
-			? `linear-gradient(120deg, ${glow(0.9, 0.04, 0.55)}, ${glow(0.93, 0.03, 0.47)} 55%)`
-			: `linear-gradient(120deg, ${glow(0.22, 0.04, 0.5)}, ${glow(0.13, 0.02, 0.3)} 55%, ${glow(0.11, 0.015, 0.2)})`,
+		'--mf-spotlight-c1': light ? glow(0.9, 0.04, 0.55) : glow(0.22, 0.04, 0.5),
+		'--mf-spotlight-c2': light ? glow(0.96, 0.02, 0.35) : glow(0.13, 0.02, 0.3),
+		'--mf-spotlight-c3': light ? glow(0.96, 0.02, 0.35) : glow(0.11, 0.015, 0.2),
 		'--mf-cover-grad': light
 			? `linear-gradient(150deg, oklch(0.84 0.03 ${H}), oklch(0.74 0.02 ${H}))`
 			: `linear-gradient(150deg, oklch(0.34 0.03 ${H}), oklch(0.18 0.015 ${H}))`
