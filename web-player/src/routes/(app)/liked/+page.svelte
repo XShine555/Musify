@@ -39,7 +39,7 @@
 			<div
 				class="grid size-cover-hero shrink-0 place-items-center rounded-art-lg bg-[image:var(--mf-liked-grad)] sm:size-cover-hero-sm"
 			>
-				<Heart class="size-icon-xl text-on-art/90" fill="currentColor" strokeWidth={0} />
+				<Heart class="size-icon-xl text-on-art/90" fill="currentColor" />
 			</div>
 		{/snippet}
 		{#snippet actions()}

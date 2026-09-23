@@ -30,7 +30,7 @@
 				? 'text-fg'
 				: 'text-fg-2'}"
 		>
-			<link.icon class="size-4" strokeWidth={1.6} />
+			<link.icon class="size-4" />
 			<span class="text-xs font-medium">{link.label}</span>
 		</a>
 	{/each}

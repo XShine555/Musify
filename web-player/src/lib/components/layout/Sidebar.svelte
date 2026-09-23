@@ -48,7 +48,7 @@
 					? 'bg-surface-2 text-fg'
 					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
 			>
-				<link.icon class="size-icon-md shrink-0" strokeWidth={1.5} />
+				<link.icon class="size-icon-md shrink-0" />
 				<span class="flex-1 truncate">{link.label}</span>
 				{#if link.count}
 					<span class="text-xs text-fg-2 tabular-nums">{link.count}</span>
@@ -68,7 +68,7 @@
 					size="xs"
 					onclick={() => createPlaylistModal.show()}
 				>
-					<Plus class="size-icon-sm text-fg-2" strokeWidth={1.25} />
+					<Plus class="size-icon-sm text-fg-2" />
 				</IconButton>
 			{/if}
 		</div>
@@ -93,7 +93,7 @@
 					onclick={() => createPlaylistModal.show()}
 					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg-2"
 				>
-					<Plus class="size-3.5" strokeWidth={1.8} />
+					<Plus class="size-3.5" />
 					Crear tu primera lista
 				</button>
 			{/each}

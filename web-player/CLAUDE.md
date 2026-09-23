@@ -55,7 +55,7 @@ The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utili
 - **Colors:** always use `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never a literal hex or `rgba()` inside a `.svelte` file; those literals only belong in `theme.css`/`tokens.ts` as the source of truth.
 - **Inline `style="…"` and arbitrary `-[…]` values:** only the ones whitelisted in `scripts/check-tokens.mjs` (the stagger variable `--i`, tile hue, menu position, progress width, `text-[clamp(…)]`, `leading-[…]` on login's display type, `grid-cols-[auto_1fr]`, `max-h-[85dvh]`, `my-`/`py-[Ndvh]` for vertical centering, `transition-[filter]` on genre tiles, and `bg-[image:var(--mf-*)]`). Everything else should become a token.
 - Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `SegmentedControl`, `CoverForm`.
-- Known and accepted gap (documented in `scripts/check-tokens.mjs`): icon `strokeWidth={n}` isn't unified yet. There are 13 different values spread across almost every component, and migrating them to `stroke-thin/regular/bold` recipes safely would require visually confirming that `lucide-svelte` actually respects `stroke-width` through CSS, so that was left out of the last pass.
+- **Icon stroke:** one global rule (`svg.lucide { stroke-width: 1.25 }` in `layout.css`) sets the stroke for every icon. Never pass `strokeWidth` to an icon, since any CSS rule overrides the SVG attribute and it would do nothing. For a different stroke on one icon, use a Tailwind `stroke-*` utility.
 
 ## Motion
 

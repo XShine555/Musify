@@ -68,6 +68,6 @@
 			class="h-full w-full object-cover"
 		/>
 	{:else}
-		<Icon class="size-icon-xl {gradient ? 'text-on-art/70' : 'text-fg-2'}" strokeWidth={1.3} />
+		<Icon class="size-icon-xl {gradient ? 'text-on-art/70' : 'text-fg-2'}" />
 	{/if}
 </label>

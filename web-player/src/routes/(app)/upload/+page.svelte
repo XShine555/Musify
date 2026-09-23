@@ -130,7 +130,7 @@
 								: 'bg-accent-btn text-accent-soft'}"
 						>
 							{#if stepStates[i] === 'done'}
-								<Check class="size-3.5" strokeWidth={2.5} />
+								<Check class="size-3.5" />
 							{:else}
 								{i + 1}
 							{/if}
@@ -146,7 +146,7 @@
 	{#if status === 'done'}
 		<Surface padding="lg" class="mt-10 bg-accent-tint text-center">
 			<span class="mx-auto grid size-14 place-items-center rounded-full bg-accent-soft text-ink">
-				<Check class="size-7" strokeWidth={2.5} />
+				<Check class="size-7" />
 			</span>
 			<h2 class="mt-6 font-display text-2xl font-semibold tracking-display text-fg">¡Subida!</h2>
 			<p class="mt-3 text-sm text-fg-2">
@@ -207,9 +207,9 @@
 					aria-label="Seleccionar archivo de audio"
 				/>
 				{#if audioName === ''}
-					<Headphones class="size-9 text-fg-2 sm:size-10" strokeWidth={1.4} />
+					<Headphones class="size-9 text-fg-2 sm:size-10" />
 				{:else}
-					<Music class="size-9 text-accent-soft sm:size-10" strokeWidth={1.4} />
+					<Music class="size-9 text-accent-soft sm:size-10" />
 				{/if}
 				{#if audioName === ''}
 					<p class="mt-4 text-sm font-medium text-fg">

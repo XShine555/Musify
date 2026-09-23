@@ -57,11 +57,11 @@
 			onclick={() => player.toggleMute()}
 		>
 			{#if player.muted || player.volume === 0}
-				<VolumeX class="size-icon-sm" strokeWidth={1.8} />
+				<VolumeX class="size-icon-sm" />
 			{:else if player.volume < 50}
-				<Volume1 class="size-icon-sm" strokeWidth={1.8} />
+				<Volume1 class="size-icon-sm" />
 			{:else}
-				<Volume2 class="size-icon-sm" strokeWidth={1.8} />
+				<Volume2 class="size-icon-sm" />
 			{/if}
 		</IconButton>
 		<Slider
@@ -78,7 +78,7 @@
 			pressed={queuePanel.open}
 			onclick={() => queuePanel.toggle()}
 		>
-			<ListMusic class="size-icon-sm" strokeWidth={1.8} />
+			<ListMusic class="size-icon-sm" />
 		</IconButton>
 	</div>
 </div>

@@ -24,7 +24,7 @@
 >
 	{#if tone === 'danger'}
 		<span class="mb-4 grid size-10 place-items-center rounded-full bg-danger/12 text-danger-fg">
-			<CircleAlert class="size-icon-md" strokeWidth={2} />
+			<CircleAlert class="size-icon-md" />
 		</span>
 	{/if}
 	<h2 class="text-display-3 text-fg">{title}</h2>

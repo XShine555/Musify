@@ -56,11 +56,11 @@
 		<IconButton
 			label={isLiked ? 'Quitar de Me gusta' : 'Añadir a Me gusta'}
 			tone="plain"
-			size="xs"
+			size="md"
 			pressed={isLiked}
 			onclick={toggleLike}
 		>
-			<Heart class="size-icon-md" fill={isLiked ? 'currentColor' : 'none'} strokeWidth={1.25} />
+			<Heart class="size-icon-md" fill={isLiked ? 'currentColor' : 'none'} />
 		</IconButton>
 	{/if}
 </div>

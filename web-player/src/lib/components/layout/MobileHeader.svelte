@@ -44,7 +44,7 @@
 		</AccountMenu>
 	{:else}
 		<IconButton href="/auth/login" reload label="Iniciar sesión" shape="round" size="md">
-			<LogIn class="size-icon-lg" strokeWidth={2} />
+			<LogIn class="size-icon-lg" />
 		</IconButton>
 	{/if}
 </header>
