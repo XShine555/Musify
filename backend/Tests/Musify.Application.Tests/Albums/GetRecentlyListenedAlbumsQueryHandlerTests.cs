@@ -57,5 +57,25 @@ namespace Musify.Application.Tests.Albums
             Assert.False(result.IsError);
             Assert.Equal(2, result.Value.Count);
         }
+
+        [Fact]
+        public async Task Handle_UncountedListens_AreIgnored()
+        {
+            var owner = TestEntities.User();
+            var countedAlbum = TestEntities.Album(owner.Id, "Counted album");
+            var skippedAlbum = TestEntities.Album(owner.Id, "Skipped album");
+            var countedTrack = TestEntities.Track(owner, "In counted");
+            var skippedTrack = TestEntities.Track(owner, "In skipped");
+            await SeedAsync(
+                owner, countedAlbum, skippedAlbum, countedTrack, skippedTrack,
+                new AlbumHasTrack { AlbumId = countedAlbum.Id, TrackId = countedTrack.Id, TrackNumber = 1 },
+                new AlbumHasTrack { AlbumId = skippedAlbum.Id, TrackId = skippedTrack.Id, TrackNumber = 1 },
+                TestEntities.ListeningHistory(owner.Id, countedTrack.Id, DateTime.UtcNow.AddDays(-1), playedSeconds: 120),
+                TestEntities.ListeningHistory(owner.Id, skippedTrack.Id, DateTime.UtcNow, playedSeconds: 1, isCounted: false));
+
+            var result = await CreateHandler().Handle(new GetRecentlyListenedAlbumsQuery(owner.Id, Limit: 10), TestContext.Current.CancellationToken);
+
+            Assert.Equal(["Counted album"], result.Value.Select(album => album.Title));
+        }
     }
 }

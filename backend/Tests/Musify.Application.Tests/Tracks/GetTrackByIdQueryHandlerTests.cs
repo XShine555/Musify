@@ -33,5 +33,21 @@ namespace Musify.Application.Tests.Tracks
 
             Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
         }
+
+        [Fact]
+        public async Task Handle_ListensCount_OnlyCountsCountedListens()
+        {
+            var owner = TestEntities.User();
+            var track = TestEntities.Track(owner);
+            await SeedAsync(
+                owner, track,
+                TestEntities.ListeningHistory(owner.Id, track.Id, playedSeconds: 100),
+                TestEntities.ListeningHistory(owner.Id, track.Id, playedSeconds: 100),
+                TestEntities.ListeningHistory(owner.Id, track.Id, playedSeconds: 1, isCounted: false));
+
+            var result = await CreateHandler().Handle(new GetTrackByIdQuery(track.Id), TestContext.Current.CancellationToken);
+
+            Assert.Equal(2, result.Value.ListensCount);
+        }
     }
 }
