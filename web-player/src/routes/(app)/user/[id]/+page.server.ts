@@ -1,10 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
-import {
-	createApiClient,
-	optionalUser,
-	requireAccessTokenAction,
-	unwrapOrError
-} from '$lib/server/api';
+import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
+import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
 
 const PROFILE_PLAYLISTS_PAGE_SIZE = 50;
 
@@ -55,21 +51,6 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 };
 
 export const actions: Actions = {
-	follow: async ({ params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const api = createApiClient({ fetch, accessToken });
-		await api.POST('/users/{id}/follow', { params: { path: { id: params.id } } });
-		return { following: true };
-	},
-
-	unfollow: async ({ params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const api = createApiClient({ fetch, accessToken });
-		await api.DELETE('/users/{id}/follow', { params: { path: { id: params.id } } });
-		return { following: false };
-	}
+	follow: followUserAction,
+	unfollow: unfollowUserAction
 };

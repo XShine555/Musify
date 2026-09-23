@@ -10,6 +10,7 @@
 	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import Avatar from '$lib/components/ui/media/Avatar.svelte';
+	import FollowButton from '$lib/components/ui/media/FollowButton.svelte';
 	import PlayButton from '$lib/components/ui/media/PlayButton.svelte';
 	import EqBars from '$lib/components/ui/media/EqBars.svelte';
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';
@@ -400,12 +401,15 @@
 					<SectionHeading title="Usuarios" count={counts.Usuarios} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, users) as u (u.id)}
-							<li>
-								<ListRow title={u.name} href="/user/{u.id}" size="lg">
+							<li class="flex items-center gap-3">
+								<ListRow title={u.name} href="/user/{u.id}" size="lg" class="min-w-0 flex-1">
 									{#snippet art()}
 										<Avatar name={u.name} src={u.profilePictureUrl} size="md" />
 									{/snippet}
 								</ListRow>
+								{#if data.canFollow && !u.isSelf}
+									<FollowButton following={u.isFollowing} userId={u.id} class="shrink-0" />
+								{/if}
 							</li>
 						{/each}
 					</ul>
