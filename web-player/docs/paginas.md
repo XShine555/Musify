@@ -9,12 +9,12 @@ Status legend: ✅ done · 🟡 partial / mockup · ⬜ pending.
 ## Home (app) `/` 🟡
 
 - **Hero**: a greeting plus "Your music. No limits." with a color wash taken from the current track's hue.
-- **Quick access, meaning recently played** (`player.recentlyPlayed`, client side for now). Empty state with an icon and an "Explore" CTA.
+- **Quick access, meaning recently played** (`GET /users/{id}/listening-history` merged with `player.recentlyPlayed` via `mergeRecentlyPlayed`). Empty state with an icon and an "Explore" CTA.
 - **Your playlists**: mosaic cards for the user's playlists (sample data for now). Has an empty state.
+- **Resume on load**: the root layout fetches `GET /users/{id}/last-listened-track` and hydrates the player (`player.hydrate`) with it, paused, so the player bar isn't empty on a fresh session. Only applies when nothing is already loaded (won't override an in-progress session).
 
 ### Pending backend work (ASP.NET) for Home
 
-- **Recently played**: track plays per user (a history table with `userId`, `trackId`, `playedAt`) and expose `GET /me/recently-played?limit=` (or `/users/{id}/recently-played`), returning tracks ordered by `playedAt` descending, with no duplicates. The frontend would load this in a `load` function and pass it to the store instead of using `recentlyPlayed`.
 - **Playlists by last listen**: add `lastPlayedAt` to the playlist (the schema currently only has `createdAt`/`updatedAt`) and allow sorting `GET /playlists/users/{userId}` by that field (for example `?sort=lastPlayed`), to show "your most recently played" playlists.
 - Tracks will need an **artist** and a **color/hue** (or a real cover to extract one from) for the artwork and the dynamic accent. Right now `TrackApplicationResponse` carries neither artist nor color.
 

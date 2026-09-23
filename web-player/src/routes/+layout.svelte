@@ -30,15 +30,19 @@
 		if (data.likedTracks?.length) liked.hydrate(data.likedTracks);
 	});
 
+	$effect(() => {
+		if (data.lastPlayedTrack) player.hydrate(data.lastPlayedTrack);
+	});
+
 	const isAuthPage = $derived(page.url.pathname === '/auth');
 	const hasTrack = $derived(player.currentId !== null);
 
 	const initialThemeCss = `:root{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'dark'))}}:root[data-theme='light']{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'light'))}}`;
 
-	let hadTrack = false;
+	let wasPlaying = false;
 	$effect(() => {
-		if (hasTrack && !hadTrack) queuePanel.show();
-		hadTrack = hasTrack;
+		if (player.playing && !wasPlaying) queuePanel.show();
+		wasPlaying = player.playing;
 	});
 
 	function isTypingTarget(target: EventTarget | null): boolean {

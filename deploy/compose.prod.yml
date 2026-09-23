@@ -33,7 +33,11 @@ services:
     environment:
       # The entrypoint renders /etc/nginx/templates/*.template with envsubst.
       # The filter keeps it from eating nginx's own $host / $remote_addr.
-      MUSIFY_ROOT_DOMAIN: ${ROOT_DOMAIN}
+      MUSIFY_WEB_DOMAIN: ${WEB_DOMAIN}
+      MUSIFY_API_DOMAIN: ${API_DOMAIN}
+      MUSIFY_STREAM_DOMAIN: ${STREAM_DOMAIN}
+      MUSIFY_AUTH_DOMAIN: ${AUTH_DOMAIN}
+      MUSIFY_S3_DOMAIN: ${S3_DOMAIN}
       MUSIFY_MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-1024m}
       NGINX_ENVSUBST_FILTER: ^MUSIFY_
     ports:

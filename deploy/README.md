@@ -125,14 +125,19 @@ cp deploy/.env.prod.example deploy/.env.prod
 
 Fill it in:
 
-1. Replace every `example.com` with your domain and every `CHANGE_ME` with a
-   random value (`openssl rand -hex 24`). `chmod 600 deploy/.env.prod`.
+1. Replace every `*.example.com` with your actual domains and every
+   `CHANGE_ME` with a random value (`openssl rand -hex 24`). Each of
+   `WEB_DOMAIN`/`API_DOMAIN`/`STREAM_DOMAIN`/`AUTH_DOMAIN`/`S3_DOMAIN` is
+   independent — they don't need to share a root domain (e.g.
+   `musify.example.com` + `musifyapi.example.com`, or sibling subdomains of
+   a domain whose DNS provider doesn't allow multi-level subdomains).
+   `chmod 600 deploy/.env.prod`.
 2. Drop **`deploy/nginx/certs/origin.pem` and `origin.key`**, the origin
    certificate nginx serves. The stack assumes Cloudflare in *Full (strict)*
    mode in front of it, so a Cloudflare Origin Certificate is enough; any
    certificate valid for the five hostnames works.
-3. Point `example.com`, `www`, `api`, `auth`, `stream` and `s3` at the server,
-   proxied and TLS-terminated the same way.
+3. Point the five `*_DOMAIN` values at the server, proxied and
+   TLS-terminated the same way.
 
 Then:
 
@@ -149,6 +154,60 @@ an update once the stack already exists).
 
 Only nginx publishes ports (80/443). Every other Musify service, and all of
 Infrastructure's, is reachable only on the internal `infra-net` network.
+
+### Continuous deployment
+
+`.gitea/workflows/ci-cd.yml` runs the backend and web-player checks on every
+push/PR, and on a successful push to `master` deploys automatically. The
+deploy job runs on `gitea-runner`, the existing self-hosted Gitea Actions
+runner on the production host itself (`gitea.ikerdemo.cat`, in
+`~/gitea/docker-compose.yml`), which also carries a `production:host`
+label registered directly in `~/gitea/runner-data/.runner` (act_runner
+reads `labels` from that file on every start, not from
+`GITEA_RUNNER_LABELS`, once a runner is already registered). Running in
+native mode means the label's steps execute inside the runner container
+itself rather than spinning up a fresh one — that container has
+`/var/run/docker.sock` mounted, so `docker`/`docker compose` there still
+control the host's real Docker daemon (sibling containers, "Docker outside
+of Docker"). Its compose service also bind-mounts `/home/ubuntu/deploys`
+into itself at the *same* path, which matters because compose's own
+relative bind mounts (`./keys`, `./nginx/...`) are resolved by the host
+daemon against that literal path — mounting it anywhere else would silently
+bind the wrong (empty) directory.
+
+`DEPLOY_PATH` (hardcoded in the workflow as `/home/ubuntu/deploys/musify`)
+is a persistent clone on that host, reused instead of a fresh checkout each
+run since `deploy/.env.prod` is untracked and only lives there.
+`/home/ubuntu/deploys/SharedServices` is the sibling clone of the
+`Infrastructure`/`SharedServices` repo, already running (`infra-net`
+created); its `.env.prod` shares the Postgres/RabbitMQ/S3 credentials with
+Musify's own `deploy/.env.prod` by design (see that repo's README).
+
+**Pending DNS on the registered domains:** `deploy/.env.prod`'s five
+`*_DOMAIN` values are set (`musify.ikerdemo.cat`, `musifyapi.ikerdemo.cat`,
+`musifystream.ikerdemo.cat`, `auth.ikerdemo.cat`, `s3.ikerdemo.cat` —
+siblings, not `api.musify.ikerdemo.cat`, because the DNS provider here
+doesn't allow multi-level subdomains), but no DNS record points any of them
+at the server yet, so:
+
+- `zitadel-init` and `seaweedfs-init` (they verify themselves through the
+  public `auth.`/`s3.` URLs) fail every deploy until those two resolve and
+  are actually reachable — the workflow tolerates this on purpose, see its
+  comments. Until then, `api`/`worker` build and start but can't do
+  anything OIDC- or storage-dependent (`AUTH_CLIENT_ID`/`WEB_CLIENT_ID`/
+  `WEB_CLIENT_SECRET` in `.env.prod` stay blank); `gateway`/`web-player`
+  are unaffected.
+- The `nginx` service from `compose.prod.yml` is intentionally **not**
+  brought up by the deploy job: it would try to publish host ports 80/443,
+  which `gitea-nginx` already owns for `gitea.ikerdemo.cat` (certbot). Once
+  the five DNS records above exist, merge Musify's vhosts
+  (`deploy/nginx/templates`) into `~/gitea/nginx/conf.d` instead — same
+  nginx, additional `server_name` blocks proxying to Musify's containers
+  over `infra-net` — rather than running a second nginx that would conflict
+  on those ports. That also needs a certificate valid for the 5 hostnames
+  (the existing setup uses certbot/Let's Encrypt, not the Cloudflare Origin
+  cert `compose.prod.yml`'s nginx assumes — reconcile whichever way when
+  that's set up).
 
 ---
 

@@ -39,6 +39,22 @@ async function fetchLikedTracks(fetchFn: typeof fetch, accessToken: string | nul
 	}
 }
 
+async function fetchLastPlayedTrack(
+	fetchFn: typeof fetch,
+	accessToken: string | null,
+	userId: string
+) {
+	try {
+		const api = createApiClient({ fetch: fetchFn, accessToken: accessToken ?? undefined });
+		const { data } = await api.GET('/users/{id}/last-listened-track', {
+			params: { path: { id: userId } }
+		});
+		return data ?? null;
+	} catch {
+		return null;
+	}
+}
+
 export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 	const allowAnonymousListening = await getAllowAnonymousListening(fetch);
 
@@ -56,13 +72,15 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 			allowAnonymousListening,
 			sidebarPlaylists: [],
 			likedTracks: [],
+			lastPlayedTrack: null,
 			accountUrl
 		};
 	}
 
-	const [sidebarPlaylists, likedTracks] = await Promise.all([
+	const [sidebarPlaylists, likedTracks, lastPlayedTrack] = await Promise.all([
 		fetchSidebarPlaylists(fetch, locals.accessToken, locals.user.sub),
-		fetchLikedTracks(fetch, locals.accessToken)
+		fetchLikedTracks(fetch, locals.accessToken),
+		fetchLastPlayedTrack(fetch, locals.accessToken, locals.user.sub)
 	]);
 
 	return {
@@ -70,6 +88,7 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 		allowAnonymousListening,
 		sidebarPlaylists,
 		likedTracks,
+		lastPlayedTrack,
 		accountUrl
 	};
 };

@@ -315,6 +315,15 @@ class PlayerState {
 		return `${url}${sep}t=${encodeURIComponent(ticket)}`;
 	}
 
+	hydrate(item: ApiTrackLike) {
+		if (this.currentId !== null || this.tracks.length > 0) return;
+		const track = toTrack(toQueueItem(item));
+		this.tracks = [track];
+		this.currentId = track.id;
+		this.#applyAccent(track.id);
+		this.#syncMediaSessionMetadata(track);
+	}
+
 	playlistTracks(ids: (string | number)[]): PlayerTrack[] {
 		return ids
 			.map((id) => this.tracks.find((t) => t.id === id))
@@ -384,6 +393,10 @@ class PlayerState {
 	toggle() {
 		const audio = this.#audioEl();
 		if (!audio || this.currentId === null) return;
+		if (!audio.src) {
+			this.#loadCurrent();
+			return;
+		}
 		if (audio.paused) audio.play().catch(() => {});
 		else audio.pause();
 	}
