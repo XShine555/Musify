@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Tests.TestSupport;
 using Xunit;
@@ -43,6 +44,11 @@ namespace Musify.Infrastructure.Tests.Persistence
             Assert.Equal(originalCreatedAt, user.CreatedAt);
             Assert.True(user.UpdatedAt > originalCreatedAt,
                 $"original-created-at={originalCreatedAt:O}, final-updated-at={user.UpdatedAt:O}");
+
+            await using var reader = fixture.CreateDatabase();
+            var stored = await reader.Users.SingleAsync(u => u.Id == user.Id, TestContext.Current.CancellationToken);
+            Assert.True(stored.UpdatedAt > stored.CreatedAt,
+                $"stored-created-at={stored.CreatedAt:O}, stored-updated-at={stored.UpdatedAt:O}");
         }
     }
 }

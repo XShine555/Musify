@@ -37,7 +37,7 @@ namespace Musify.Infrastructure.Persistence
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    entry.Entity.UpdatedAt = now;
+                    entry.Property(nameof(IAuditable.UpdatedAt)).CurrentValue = now;
                 }
             }
         }
