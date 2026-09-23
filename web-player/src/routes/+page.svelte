@@ -138,7 +138,7 @@
 		<div
 			class="relative flex flex-col items-start gap-7 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
 		>
-			<div class="animate-enter max-w-hero min-w-65">
+			<div class="animate-enter max-w-hero min-w-65 dark:shadow-accent">
 				<h1
 					class="font-display text-3xl leading-tight font-medium tracking-tight text-pretty text-fg sm:text-4xl"
 				>
