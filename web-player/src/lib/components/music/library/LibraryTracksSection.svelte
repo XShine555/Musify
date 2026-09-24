@@ -105,7 +105,7 @@
 		description="Sube la primera y aparecerá aquí lista para reproducir."
 	>
 		{#snippet actions()}
-			<Button href="/upload">
+			<Button href="/library/uploads">
 				<Upload class="size-icon-sm" />
 				Sube la primera
 			</Button>

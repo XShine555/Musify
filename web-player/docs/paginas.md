@@ -12,7 +12,11 @@ src/routes/
     +page.svelte                  /                      Home
     explore/                      /explore               Search and genre discovery
     liked/                        /liked                 Liked songs
-    library/                      /library               Your uploaded songs
+    library/                      /library               Manage music: your songs
+      albums/                     /library/albums        Your albums (grid)
+        new/                      /library/albums/new    Create an album
+        [id]/                     /library/albums/:id    Edit an album
+      uploads/                    /library/uploads       Upload queue
     upload/                       /upload                Upload a song
     albums/                       /albums                Your albums
       [id]/                       /albums/:id            Album detail
@@ -32,7 +36,7 @@ Global chrome on every app page: sidebar (desktop) or tab bar (mobile), top bar 
 - **Home `/`**: a greeting, weekly listening stats, "continue listening" (recently played merged with the in-session history), the featured playlist with its first tracks (play and shuffle load the full list on demand), the user's mixes and playlists. Anonymous visitors are redirected to `/explore`.
 - **Explore `/explore`**: genre tiles when there is no query, otherwise search results grouped by songs, albums, users and playlists with filter chips and counts taken from the API totals. Songs paginate with infinite scroll. Track and album context menus offer play next, add to queue and add to playlist.
 - **Liked `/liked`**: the songs the user liked, newest first, with unlike per row.
-- **Library `/library`**: the songs the user uploaded, with a confirmed delete.
+- **Library `/library`, `/library/albums`, `/library/uploads`**: the manage-music area, one route per section behind shared tabs. Songs lists the user's uploads with a confirmed delete; Albums lists the user's albums and edits them at `/library/albums/new` and `/library/albums/:id`; Uploads is the upload queue.
 - **Upload `/upload`**: audio, cover, title, genres (incompatible genres are blocked) and explicit flag. The server reserves presigned URLs, uploads both files and creates the track; processing happens asynchronously in the backend.
 - **Albums `/albums`, `/albums/:id`**: list and create albums. The owner can edit, delete and add or remove tracks from their library.
 - **Playlists `/playlists`, `/playlists/:id`**: list and create playlists. The owner can edit, delete and remove tracks; everyone else gets a read only view.

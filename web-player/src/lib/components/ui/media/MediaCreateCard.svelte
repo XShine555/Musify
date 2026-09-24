@@ -4,16 +4,15 @@
 	interface Props {
 		title: string;
 		subtitle?: string | null;
-		onclick: () => void;
+		href: string;
 		index?: number;
 	}
 
-	let { title, subtitle, onclick, index = 0 }: Props = $props();
+	let { title, subtitle, href, index = 0 }: Props = $props();
 </script>
 
-<button
-	type="button"
-	{onclick}
+<a
+	{href}
 	class="group animate-enter min-w-0 rounded-panel p-2.5 text-left focus-ring transition-colors hover:bg-hover"
 	style="--i:{index}"
 >
@@ -26,4 +25,4 @@
 	{#if subtitle}
 		<div class="mt-0.5 truncate text-xs text-fg-2">{subtitle}</div>
 	{/if}
-</button>
+</a>

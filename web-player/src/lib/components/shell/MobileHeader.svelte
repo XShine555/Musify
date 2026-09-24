@@ -27,7 +27,7 @@
 		<AccountMenu {user} {accountUrl} width="md">
 			{#snippet extraItems({ close })}
 				<MenuItem icon={Folder} label="Canciones subidas" href="/library" onclick={close} />
-				<MenuItem icon={Upload} label="Subir música" href="/upload" onclick={close} />
+				<MenuItem icon={Upload} label="Subir música" href="/library/uploads" onclick={close} />
 			{/snippet}
 		</AccountMenu>
 	{:else}
