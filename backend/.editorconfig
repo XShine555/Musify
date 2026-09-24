@@ -33,27 +33,36 @@ csharp_style_prefer_primary_constructors = true:suggestion
 csharp_style_expression_bodied_methods = when_on_single_line:suggestion
 dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
 
+# Naming. Roslyn applies the first matching rule in file order, so the specific rules come first.
+# Private fields are _camelCase whatever their modifiers (static, readonly, const).
 dotnet_naming_rule.private_fields.symbols = private_fields
-dotnet_naming_rule.private_fields.style = camel_case
+dotnet_naming_rule.private_fields.style = underscore_camel_case
 dotnet_naming_rule.private_fields.severity = warning
 dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
-dotnet_naming_symbols.private_fields.required_modifiers =
-dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
 
-dotnet_naming_rule.private_static_readonly.symbols = private_static_readonly
-dotnet_naming_rule.private_static_readonly.style = pascal_case
-dotnet_naming_rule.private_static_readonly.severity = warning
-dotnet_naming_symbols.private_static_readonly.applicable_kinds = field
-dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private
-dotnet_naming_symbols.private_static_readonly.required_modifiers = static, readonly
-
-dotnet_naming_rule.private_constants.symbols = private_constants
-dotnet_naming_rule.private_constants.style = pascal_case
-dotnet_naming_rule.private_constants.severity = warning
-dotnet_naming_symbols.private_constants.applicable_kinds = field
-dotnet_naming_symbols.private_constants.required_modifiers = const
+# Non-private fields (constants, static readonly, etc.) are PascalCase.
+dotnet_naming_rule.other_fields.symbols = other_fields
+dotnet_naming_rule.other_fields.style = pascal_case
+dotnet_naming_rule.other_fields.severity = warning
+dotnet_naming_symbols.other_fields.applicable_kinds = field
+dotnet_naming_symbols.other_fields.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
 dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_rule.interfaces.symbols = interfaces
+dotnet_naming_rule.interfaces.style = interface_style
+dotnet_naming_rule.interfaces.severity = warning
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.interface_style.capitalization = pascal_case
+dotnet_naming_style.interface_style.required_prefix = I
+
+dotnet_naming_rule.types_and_members.symbols = types_and_members
+dotnet_naming_rule.types_and_members.style = pascal_case
+dotnet_naming_rule.types_and_members.severity = warning
+dotnet_naming_symbols.types_and_members.applicable_kinds = class, struct, enum, delegate, property, method, event
+dotnet_naming_symbols.types_and_members.applicable_accessibilities = *
 
 # CA1848/CA1873 would turn every log call into a [LoggerMessage] source-generated method; CA1716 flags the
 # EF-style IDatabase.Set<T>() and the Musify.Application.Shared namespace, whose names are deliberate.

@@ -20,7 +20,7 @@ dotnet format Musify.slnx --verify-no-changes
 ## Style
 
 - Block-scoped namespaces (`namespace X { }`; file-scoped `namespace X;` is not allowed), usings outside the namespace and sorted (`.editorconfig` enforces it).
-- Private fields camelCase without underscore, constants and `static readonly` fields PascalCase, explicit accessibility.
+- Private fields are `_camelCase` whatever their modifiers (including `static readonly` and `const`); non-private constants and static fields, types, methods and properties are PascalCase; interfaces start with `I`; explicit accessibility. Enforced by `.editorconfig` (IDE1006).
 - `ArgumentNullException.ThrowIfNull(x)` without `nameof`.
 - Use `PlayList` (not `Playlist`) in code; configuration POCOs end in `Configuration`; injected services are named after their type (`storageService`).
 - User-facing strings are in English (the web-player owns translation).
