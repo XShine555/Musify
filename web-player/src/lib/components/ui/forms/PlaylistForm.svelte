@@ -2,13 +2,12 @@
 	import { untrack } from 'svelte';
 	import Music from '@lucide/svelte/icons/music';
 	import CoverForm from './CoverForm.svelte';
-	import Field from '../primitives/Field.svelte';
-	import Input from '../primitives/Input.svelte';
-	import Textarea from '../primitives/Textarea.svelte';
-	import SegmentedControl from '../primitives/SegmentedControl.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Input from '$lib/components/ui/primitives/Input.svelte';
+	import Textarea from '$lib/components/ui/primitives/Textarea.svelte';
+	import SegmentedControl from '$lib/components/ui/primitives/SegmentedControl.svelte';
 
-	const NAME_MAX_LENGTH = 60;
-	const DESCRIPTION_MAX_LENGTH = 300;
+	import { LIMITS } from '$lib/validation';
 
 	interface Props {
 		action: string;
@@ -61,12 +60,12 @@
 		<input type="hidden" name="visibility" value={visibility} />
 		<Field label="Nombre" for="playlist-name">
 			{#snippet hint()}
-				<span class="ml-auto tabular-nums">{name.length}/{NAME_MAX_LENGTH}</span>
+				<span class="ml-auto tabular-nums">{name.length}/{LIMITS.playlistName}</span>
 			{/snippet}
 			<Input
 				id="playlist-name"
 				name="name"
-				maxlength={NAME_MAX_LENGTH}
+				maxlength={LIMITS.playlistName}
 				required
 				bind:value={name}
 				placeholder={namePlaceholder}
@@ -77,7 +76,7 @@
 			<Textarea
 				id="playlist-description"
 				name="description"
-				maxlength={DESCRIPTION_MAX_LENGTH}
+				maxlength={LIMITS.playlistDescription}
 				bind:value={description}
 				placeholder="Para qué sirve esta playlist, cuándo la escuchas…"
 				class="flex-1"

@@ -2,22 +2,24 @@
 	import Upload from '@lucide/svelte/icons/upload';
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
-	import { player, toQueueItems } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
-	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
+	import TrackList from '$lib/components/music/TrackList.svelte';
 
 	let { data } = $props();
 
 	const items = $derived(data.tracks.items);
-	const total = $derived(Number(data.tracks.totalItemCount));
-	const listTracks = $derived(items.map((track) => ({ ...track, uploadedAt: track.createdAt })));
+	const total = $derived(data.tracks.totalItemCount);
+
+	let deleting = $state<(typeof items)[number] | null>(null);
 
 	function togglePlay(index: number) {
-		player.playOrToggle(toQueueItems(items), index);
+		player.playOrToggle(items, index);
 	}
 </script>
 
@@ -34,7 +36,7 @@
 		{#snippet actions()}
 			{#if items.length > 0}
 				<Button href="/upload">
-					<Upload class="size-4" />
+					<Upload class="size-icon-sm" />
 					Subir canción
 				</Button>
 			{/if}
@@ -43,10 +45,14 @@
 
 	{#if items.length > 0}
 		<TrackList
-			tracks={listTracks}
+			tracks={items}
 			columns={['uploaded', 'plays']}
 			onPlay={togglePlay}
-			rowAction={{ action: '?/deleteTrack', icon: X, label: 'Borrar canción' }}
+			rowAction={{
+				onclick: (track) => (deleting = items.find((item) => item.id === track.id) ?? null),
+				icon: X,
+				label: 'Borrar canción'
+			}}
 		/>
 	{:else}
 		<EmptyState
@@ -56,10 +62,20 @@
 		>
 			{#snippet actions()}
 				<Button href="/upload">
-					<Upload class="size-4" />
+					<Upload class="size-icon-sm" />
 					Sube la primera
 				</Button>
 			{/snippet}
 		</EmptyState>
 	{/if}
 </Page>
+
+<ConfirmDialog
+	open={deleting !== null}
+	onClose={() => (deleting = null)}
+	title="¿Borrar «{deleting?.title ?? ''}»?"
+	description="Esta acción no se puede deshacer, la canción se eliminará de tu biblioteca, de tus álbumes y de las playlists donde esté."
+	confirmLabel="Borrar"
+	action="?/deleteTrack"
+	fields={{ trackId: deleting?.id ?? '' }}
+/>

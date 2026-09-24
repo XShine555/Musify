@@ -94,6 +94,14 @@ public static class PlayListEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{playlistId}/albums/{albumId}", AddAlbumToPlayList)
+            .WithName("AddAlbumToPlayList")
+            .WithSummary("Add All The Tracks Of An Album To One Of Your PlayLists, Skipping Those Already In It.")
+            .RequireAuthorization()
+            .Produces<AddAlbumToPlayListResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapDelete("/{playlistId}/tracks/{trackId}", RemoveTrackFromPlayList)
             .WithName("RemoveTrackFromPlayList")
             .WithSummary("Remove A Track From A PlayList.")
@@ -232,6 +240,20 @@ public static class PlayListEndpoints
 
         var trackResult = await mediator.Send(new GetTrackByIdQuery(request.TrackId), cancellationToken);
         return trackResult.ToCreatedResult(track => $"/tracks/{track.Id}");
+    }
+
+    private static async Task<IResult> AddAlbumToPlayList(
+        IMediator mediator,
+        CurrentUser currentUser,
+        Guid playlistId,
+        Guid albumId,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new AddAlbumToPlayListCommand(currentUser.RequiredId, playlistId, albumId),
+            cancellationToken);
+
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> RemoveTrackFromPlayList(

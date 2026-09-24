@@ -3,9 +3,9 @@
 	import { enhance } from '$app/forms';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ImageDropzone from './ImageDropzone.svelte';
-	import Button from '../primitives/Button.svelte';
-	import Field from '../primitives/Field.svelte';
-	import Alert from '../primitives/Alert.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
 
 	interface Props {
 		action: string;
@@ -81,10 +81,8 @@
 	<div class="flex items-center justify-between gap-4">
 		{#if helperText}
 			<p class="text-sm text-fg-2">{helperText}</p>
-		{:else}
-			<span></span>
 		{/if}
-		<div class="flex shrink-0 items-center gap-3">
+		<div class="ml-auto flex shrink-0 items-center gap-3">
 			<Button type="button" variant="secondary" onclick={onCancel}>Cancelar</Button>
 			<Button type="submit" disabled={submitting || !canSubmit}>
 				{submitting ? submittingLabel : submitLabel}

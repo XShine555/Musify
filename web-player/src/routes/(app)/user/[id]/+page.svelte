@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { playlistCover } from '$lib/utils/hrefs';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
@@ -26,7 +27,7 @@
 {/snippet}
 
 {#snippet followStats()}
-	{@const followers = plural(Number(profile.followersCount), 'seguidor', 'seguidores')}
+	{@const followers = plural(data.followersCount, 'seguidor', 'seguidores')}
 	{#if data.isOwnProfile || profile.canViewFollowers}
 		<a href="/user/{profile.id}/followers" class="transition-colors hover:text-fg">{followers}</a>
 	{:else}
@@ -60,11 +61,9 @@
 					<MediaCard
 						href="/playlists/{playlist.id}"
 						title={playlist.name}
-						subtitle={playlistMeta(Number(playlist.trackCount))}
+						subtitle={playlistMeta(playlist.trackCount)}
 						trackIds={playlist.coverTrackIds}
-						src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
-							playlist.updatedAt
-						)}"
+						src={playlistCover(playlist, 'large')}
 						index={i}
 					/>
 				{/each}

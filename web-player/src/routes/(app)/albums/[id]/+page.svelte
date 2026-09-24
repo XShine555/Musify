@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import { albumCover } from '$lib/utils/hrefs';
+	import { player } from '$lib/player/player.svelte';
+	import PlayAllButton from '$lib/components/music/PlayAllButton.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -12,7 +14,7 @@
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
-	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import TrackList from '$lib/components/music/TrackList.svelte';
 	import { albumMeta } from '$lib/utils/format';
 
 	let { data, form } = $props();
@@ -25,18 +27,12 @@
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
 
-	const isCurrentQueue = $derived(isQueueCurrent(tracks));
-
-	function playAll() {
-		playAllOrToggle(toQueueItems(tracks));
-	}
-
 	function playTrackFrom(index: number) {
-		player.playOrToggle(toQueueItems(tracks), index);
+		player.playOrToggle(tracks, index);
 	}
 
 	function playLibraryFrom(index: number) {
-		player.playOrToggle(toQueueItems(library), index);
+		player.playOrToggle(library, index);
 	}
 </script>
 
@@ -55,14 +51,11 @@
 		eyebrow="Álbum"
 		title={album.title}
 		description={album.description ?? undefined}
-		meta={albumMeta(
-			album.releaseYear === null ? undefined : Number(album.releaseYear),
-			tracks.length
-		)}
+		meta={albumMeta(album.releaseYear, tracks.length)}
 	>
 		{#snippet cover()}
 			<Artwork
-				src="/api/albums/{album.id}/cover?size=large"
+				src={albumCover(album.id, 'large')}
 				trackIds={tracks.map((track) => track.id)}
 				size="hero"
 				alt={album.title}
@@ -70,13 +63,7 @@
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
-				{#if isCurrentQueue && player.playing}
-					Pausar
-				{:else}
-					Reproducir
-				{/if}
-			</Button>
+			<PlayAllButton items={tracks} />
 			{#if isOwner}
 				<Button size="sm" variant="secondary" onclick={() => (editing = true)}>Editar</Button>
 				<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
@@ -118,8 +105,8 @@
 		action="?/edit"
 		initialTitle={album.title}
 		initialDescription={album.description ?? ''}
-		initialReleaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
-		coverFallbackUrl="/api/albums/{album.id}/cover?size=medium"
+		initialReleaseYear={album.releaseYear ?? undefined}
+		coverFallbackUrl={albumCover(album.id, 'medium')}
 		formMessage={form?.message}
 		submitLabel="Guardar"
 		submittingLabel="Guardando…"

@@ -1,13 +1,14 @@
-import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
+import type { PageServerLoad } from './$types';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { optionalUser } from '$lib/server/guards';
+import { toPage } from '$lib/server/mappers';
 import { fetchFollowList } from '$lib/server/follows';
-import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
 import { FOLLOW_LIST_PAGE_SIZE } from '$lib/config';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const viewer = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [profileRes, listRes] = await Promise.all([
 		api.GET('/users/{id}/profile', { params: { path: { id: params.id } } }),
@@ -20,13 +21,10 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	return {
 		list: params.list,
 		profile,
-		users: forbidden ? null : unwrapOrError(listRes, 'No se pudo cargar la lista.'),
+		users: forbidden
+			? null
+			: toPage(unwrapOrError(listRes, 'No se pudo cargar la lista.'), (item) => item),
 		forbidden,
 		viewerId: viewer?.sub ?? null
 	};
-};
-
-export const actions: Actions = {
-	follow: followUserAction,
-	unfollow: unfollowUserAction
 };

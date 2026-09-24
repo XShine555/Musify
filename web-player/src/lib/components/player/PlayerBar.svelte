@@ -4,7 +4,7 @@
 	import Slider from '$lib/components/ui/primitives/Slider.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { player } from '$lib/player/player.svelte';
-	import { queuePanel } from '$lib/player/queuePanel.svelte';
+	import { queuePanel } from '$lib/state/panels.svelte';
 	import { fmtTime } from '$lib/utils/format';
 	import Volume1 from '@lucide/svelte/icons/volume-1';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
@@ -12,12 +12,12 @@
 	import ListMusic from '@lucide/svelte/icons/list-music';
 
 	function seek(value: number) {
-		if (player.current.duration > 0) player.seekFraction(value / player.current.duration);
+		if (player.duration > 0) player.seekFraction(value / player.duration);
 	}
 </script>
 
 <div
-	class="animate-enter pointer-events-auto flex items-center gap-icon-md px-4 py-3 glass-bar sm:hidden"
+	class="animate-enter pointer-events-auto flex items-center gap-4.5 px-4 py-3 glass-bar sm:hidden"
 >
 	<div class="min-w-0 flex-1">
 		<TrackInfo compact />
@@ -39,20 +39,20 @@
 			</span>
 			<Slider
 				value={player.progress}
-				max={player.current.duration}
+				max={player.duration}
 				label="Barra de progreso"
 				oninput={seek}
 				variant="seek"
 			/>
 			<span class="min-w-8 text-xs text-fg-2 tabular-nums">
-				{fmtTime(player.current.duration)}
+				{fmtTime(player.duration)}
 			</span>
 		</div>
 	</div>
-	<div class="hidden w-(--mf-player-side-w) shrink-0 items-center justify-end gap-3.5 sm:flex">
+	<div class="flex w-(--mf-player-side-w) shrink-0 items-center justify-end gap-3.5">
 		<IconButton
 			label={player.muted ? 'Activar sonido' : 'Silenciar'}
-			tone="plain"
+			plain
 			size="xs"
 			onclick={() => player.toggleMute()}
 		>
@@ -73,7 +73,7 @@
 		/>
 		<IconButton
 			label="Cola de reproducción"
-			tone="plain"
+			plain
 			size="xs"
 			pressed={queuePanel.open}
 			onclick={() => queuePanel.toggle()}

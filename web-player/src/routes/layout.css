@@ -57,6 +57,8 @@
 	--spacing-icon-md: 1.125rem;
 	--spacing-icon-lg: 1.25rem;
 	--spacing-icon-xl: 2.25rem;
+	--spacing-icon-2xl: 1.75rem;
+	--spacing-icon-3xl: 2.5rem;
 	--spacing-section: 2.875rem;
 
 	--container-prose-sm: 26rem;
@@ -82,12 +84,8 @@
 	}
 }
 
-@utility media-grid {
-	grid-template-columns: repeat(auto-fill, minmax(var(--mf-grid-min-mobile), 1fr));
-
-	@media (width >= 40rem) {
-		grid-template-columns: repeat(auto-fill, minmax(var(--mf-grid-min), 1fr));
-	}
+@utility focus-ring {
+	@apply focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none;
 }
 
 @utility track-grid {
@@ -116,10 +114,6 @@
 @utility text-body {
 	@apply text-sm leading-body;
 }
-@utility text-count {
-	@apply text-xs tabular-nums;
-}
-
 @utility btn-transition {
 	transition-property:
 		color, background-color, border-color, outline-color, opacity, box-shadow, filter;

@@ -1,149 +1,54 @@
 import { browser } from '$app/environment';
-import { DEFAULT_ACCENT } from '$lib/theme/color';
-import { extractAccent, type Accent } from '$lib/theme/palette';
-import { shuffle } from '$lib/data/collections';
 import { dialog } from '$lib/state/dialog.svelte';
+import type { Track } from '$lib/types';
+import { readStorage, writeStorage } from '$lib/utils/storage';
 import { ListenTracker } from './listenTracker';
-
-export interface PlayerTrack {
-	id: string | number;
-	title: string;
-	artist: string;
-	duration: number;
-	explicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
-}
-
-export interface Playlist {
-	id: string | number;
-	name: string;
-	trackIds: (string | number)[];
-}
-
-export interface QueueItem {
-	id: string | number;
-	title: string;
-	artist?: string;
-	duration?: number | string;
-	explicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
-}
-
-export interface ApiTrackLike {
-	id: string | number;
-	title: string;
-	artist?: string | null;
-	duration?: number | string;
-	isExplicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
-}
-
-export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
-	return tracks.map((track) => ({
-		id: track.id,
-		title: track.title,
-		artist: track.artist ?? undefined,
-		duration: track.duration,
-		explicit: track.isExplicit,
-		ownerUserId: track.ownerUserId,
-		listensCount: track.listensCount
-	}));
-}
-
-export function toQueueItem(track: ApiTrackLike): QueueItem {
-	return toQueueItems([track])[0];
-}
-
-export function trackFromQueueItem(item: QueueItem): ApiTrackLike {
-	return {
-		id: item.id,
-		title: item.title,
-		artist: item.artist,
-		duration: item.duration,
-		isExplicit: item.explicit,
-		ownerUserId: item.ownerUserId,
-		listensCount: item.listensCount
-	};
-}
-
-export function isQueueCurrent(items: { id: string | number }[]): boolean {
-	return items.some((item) => item.id === player.current.id);
-}
-
-export function playAllOrToggle(items: QueueItem[]) {
-	if (items.length === 0) return;
-	if (isQueueCurrent(items)) player.toggle();
-	else player.playQueue(items, 0);
-}
-
-export function playShuffled(items: QueueItem[]) {
-	if (items.length === 0) return;
-	player.playQueue(shuffle(items), 0);
-}
-
-async function readErrorMessage(res: Response): Promise<string> {
-	try {
-		const body = (await res.json()) as { message?: string };
-		return body?.message || `Error ${res.status}`;
-	} catch {
-		return `Error ${res.status}`;
-	}
-}
+import { mediaSession } from './mediaSession';
+import { ProgressClock } from './progressClock';
+import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
+import { resolveStream } from './stream';
 
 const RECENT_LIMIT = 15;
+const DEFAULT_VOLUME = 100;
+const VOLUME_KEY = 'musify.player.volume';
+const MUTED_KEY = 'musify.player.muted';
 
-const EMPTY: PlayerTrack = {
-	id: '',
-	title: '',
-	artist: '',
-	duration: 0
-};
+function clampVolume(value: number): number {
+	return Math.min(100, Math.max(0, Math.round(value)));
+}
 
-function toTrack(item: QueueItem): PlayerTrack {
-	return {
-		id: item.id,
-		title: item.title,
-		artist: item.artist ?? '',
-		duration: Number(item.duration) || 0,
-		explicit: item.explicit,
-		ownerUserId: item.ownerUserId,
-		listensCount: item.listensCount
-	};
+function loadVolume(): number {
+	const stored = readStorage(VOLUME_KEY);
+	if (stored === null || stored.trim() === '') return DEFAULT_VOLUME;
+	const parsed = Number(stored);
+	return Number.isFinite(parsed) ? clampVolume(parsed) : DEFAULT_VOLUME;
 }
 
 class PlayerState {
-	tracks = $state<PlayerTrack[]>([]);
-	currentId = $state<string | number | null>(null);
+	tracks = $state<Track[]>([]);
+	currentId = $state<string | null>(null);
 	playing = $state(false);
 	progress = $state(0);
-	volume = $state(browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100);
-	muted = $state(browser ? localStorage.getItem('player.muted') === 'true' : false);
+	volume = $state(browser ? loadVolume() : DEFAULT_VOLUME);
+	muted = $state(browser ? readStorage(MUTED_KEY) === 'true' : false);
 	loading = $state(false);
-	recentlyPlayed = $state<PlayerTrack[]>([]);
-	playlists = $state<Playlist[]>([]);
+	recentlyPlayed = $state<Track[]>([]);
 	shuffle = $state(false);
 	repeat = $state(false);
 
-	accentColor = $state<string | null>(null);
-
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
-	#accentCache = new Map<string, Accent>();
-	#rafId: number | null = null;
 	#listen = new ListenTracker();
-
-	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? EMPTY);
-	accent = $derived(this.accentColor ?? DEFAULT_ACCENT);
-	progressPercent = $derived(
-		this.current.duration > 0 ? Math.min(100, (this.progress / this.current.duration) * 100) : 0
+	#clock = new ProgressClock(
+		() => this.#audio,
+		(value) => (this.progress = value)
 	);
 
-	get isPlaying() {
-		return this.playing;
-	}
+	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? null);
+	duration = $derived(this.current?.duration ?? 0);
+	progressPercent = $derived(
+		this.duration > 0 ? Math.min(100, (this.progress / this.duration) * 100) : 0
+	);
 
 	#audioEl(): HTMLAudioElement | null {
 		if (!browser) return null;
@@ -162,18 +67,18 @@ class PlayerState {
 		audio.addEventListener('play', () => {
 			this.#listen.resync(audio.currentTime);
 			this.playing = true;
-			this.#startProgressLoop();
-			this.#syncMediaSessionPlaybackState();
+			this.#clock.start();
+			mediaSession.setPlaying(true);
 		});
 		audio.addEventListener('pause', () => {
 			this.#listen.interrupt();
 			this.#listen.flush();
 			this.playing = false;
-			this.#stopProgressLoop();
-			this.#syncMediaSessionPlaybackState();
+			this.#clock.stop();
+			mediaSession.setPlaying(false);
 		});
 		audio.addEventListener('ended', () => {
-			this.#stopProgressLoop();
+			this.#clock.stop();
 			this.#listen.tick(audio.currentTime);
 			this.#listen.begin(null);
 			if (this.repeat) {
@@ -182,10 +87,14 @@ class PlayerState {
 				audio.play().catch(() => {});
 				return;
 			}
+			if (!this.shuffle && isLastIndex(this.tracks.length, this.#index())) {
+				this.#stopAtEnd(audio);
+				return;
+			}
 			this.next();
 		});
 		audio.addEventListener('error', () => {
-			this.#stopProgressLoop();
+			this.#clock.stop();
 			this.loading = false;
 			this.playing = false;
 			this.#fail();
@@ -195,61 +104,20 @@ class PlayerState {
 			if (document.visibilityState === 'hidden') this.#listen.flush();
 		});
 		window.addEventListener('pagehide', () => this.#listen.flush());
-		this.#setupMediaSession(audio);
+		mediaSession.setup({
+			play: () => audio.play().catch(() => {}),
+			pause: () => audio.pause(),
+			previous: () => this.previous(),
+			next: () => this.next()
+		});
 		return audio;
 	}
 
-	#setupMediaSession(audio: HTMLAudioElement) {
-		if (!('mediaSession' in navigator)) return;
-		navigator.mediaSession.setActionHandler('play', () => audio.play().catch(() => {}));
-		navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-		navigator.mediaSession.setActionHandler('previoustrack', () => this.previous());
-		navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
-	}
-
-	#syncMediaSessionPlaybackState() {
-		if (!browser || !('mediaSession' in navigator)) return;
-		navigator.mediaSession.playbackState = this.playing ? 'playing' : 'paused';
-	}
-
-	#syncMediaSessionMetadata(track: PlayerTrack) {
-		if (!browser || !('mediaSession' in navigator)) return;
-		if (!track.id) {
-			navigator.mediaSession.metadata = null;
-			return;
-		}
-		navigator.mediaSession.metadata = new MediaMetadata({
-			title: track.title,
-			artist: track.artist,
-			artwork: [{ src: `/api/tracks/${track.id}/cover?size=small`, sizes: '256x256' }]
-		});
-	}
-
-	#clockTime = 0;
-	#clockStamp = 0;
-
-	#tickProgress = (now: number) => {
-		const audio = this.#audio;
-		if (!audio) return;
-		if (audio.currentTime !== this.#clockTime) {
-			this.#clockTime = audio.currentTime;
-			this.#clockStamp = now;
-		}
-		const elapsed = Math.min(0.25, (now - this.#clockStamp) / 1000);
-		const smooth = this.#clockTime + (audio.paused ? 0 : elapsed * audio.playbackRate);
-		this.progress = Math.min(smooth, Number.isFinite(audio.duration) ? audio.duration : smooth);
-		this.#rafId = requestAnimationFrame(this.#tickProgress);
-	};
-
-	#startProgressLoop() {
-		if (this.#rafId !== null) return;
-		this.#rafId = requestAnimationFrame(this.#tickProgress);
-	}
-
-	#stopProgressLoop() {
-		if (this.#rafId === null) return;
-		cancelAnimationFrame(this.#rafId);
-		this.#rafId = null;
+	#stopAtEnd(audio: HTMLAudioElement) {
+		audio.currentTime = 0;
+		this.progress = 0;
+		this.playing = false;
+		mediaSession.setPlaying(false);
 	}
 
 	#syncDuration(value: number) {
@@ -262,29 +130,15 @@ class PlayerState {
 		return this.tracks.findIndex((t) => t.id === this.currentId);
 	}
 
-	#pushRecent(track: PlayerTrack) {
-		if (!track.id) return;
+	#pushRecent(track: Track) {
 		this.recentlyPlayed = [track, ...this.recentlyPlayed.filter((t) => t.id !== track.id)].slice(
 			0,
 			RECENT_LIMIT
 		);
 	}
 
-	async #applyAccent(id: string | number) {
-		const key = String(id);
-		const cached = this.#accentCache.get(key);
-		if (cached) {
-			this.accentColor = cached.accent;
-			return;
-		}
-		const result = await extractAccent(`/api/tracks/${id}/cover?size=small`);
-		if (this.currentId !== id) return;
-		if (result) {
-			this.#accentCache.set(key, result);
-			this.accentColor = result.accent;
-		} else {
-			this.accentColor = null;
-		}
+	#announce(track: Track) {
+		mediaSession.setTrack(track);
 	}
 
 	async #loadCurrent() {
@@ -292,32 +146,27 @@ class PlayerState {
 		if (!audio || this.currentId === null) return;
 		const id = this.currentId;
 		const track = this.tracks.find((t) => t.id === id);
-		this.#applyAccent(id);
-		if (track) this.#syncMediaSessionMetadata(track);
+		if (track) this.#announce(track);
 		this.#listen.begin(null);
 		const token = ++this.#loadToken;
 		this.loading = true;
 		this.progress = 0;
 		try {
-			const { src, listenId } = await this.#resolveLocalSrc(String(id));
+			const { src, listenId } = await resolveStream(id);
 			if (token !== this.#loadToken) return;
 			audio.src = src;
 			audio.volume = this.volume / 100;
 			this.#listen.begin(listenId);
 			await audio.play();
 			this.loading = false;
-			this.#pushRecent(this.current);
-		} catch (exception) {
-			console.error('playback failed', exception);
+			if (track) this.#pushRecent(track);
+		} catch (err) {
+			console.error('playback failed', err);
 			if (token !== this.#loadToken) return;
 			this.loading = false;
 			this.playing = false;
-			if (exception instanceof DOMException && exception.name === 'AbortError') return;
-			this.#fail(
-				exception instanceof Error && !(exception instanceof DOMException)
-					? exception.message
-					: undefined
-			);
+			if (err instanceof DOMException && err.name === 'AbortError') return;
+			this.#fail(err instanceof Error && !(err instanceof DOMException) ? err.message : undefined);
 		}
 	}
 
@@ -329,109 +178,54 @@ class PlayerState {
 		);
 	}
 
-	async #resolveLocalSrc(id: string): Promise<{ src: string; listenId: string | null }> {
-		const res = await fetch(`/api/tracks/${id}/stream`);
-		if (!res.ok) throw new Error(await readErrorMessage(res));
-		const { manifestUrl, ticket, listenId } = (await res.json()) as {
-			manifestUrl: string;
-			ticket: string;
-			listenId?: string | null;
-		};
-		return { src: this.#withTicket(manifestUrl, ticket), listenId: listenId ?? null };
-	}
-
 	async #beginRepeatListen() {
 		const id = this.currentId;
 		if (id === null) return;
 		try {
-			const res = await fetch(`/api/tracks/${id}/stream`);
-			if (!res.ok) return;
-			const { listenId } = (await res.json()) as { listenId?: string | null };
-			if (this.currentId === id) this.#listen.begin(listenId ?? null);
+			const { listenId } = await resolveStream(id);
+			if (this.currentId === id) this.#listen.begin(listenId);
 		} catch {
 			return;
 		}
 	}
 
-	#withTicket(url: string, ticket: string): string {
-		if (!ticket) return url;
-		const sep = url.includes('?') ? '&' : '?';
-		return `${url}${sep}t=${encodeURIComponent(ticket)}`;
-	}
-
-	hydrate(item: ApiTrackLike) {
+	hydrate(track: Track) {
 		if (this.currentId !== null || this.tracks.length > 0) return;
-		const track = toTrack(toQueueItem(item));
 		this.tracks = [track];
 		this.currentId = track.id;
-		this.#applyAccent(track.id);
-		this.#syncMediaSessionMetadata(track);
+		this.#announce(track);
 	}
 
-	playlistTracks(ids: (string | number)[]): PlayerTrack[] {
-		return ids
-			.map((id) => this.tracks.find((t) => t.id === id))
-			.filter((t): t is PlayerTrack => Boolean(t));
-	}
-
-	playQueue(list: QueueItem[], startIndex = 0) {
+	playQueue(list: Track[], startIndex = 0) {
 		if (list.length === 0) return;
-		this.tracks = list.map(toTrack);
+		this.tracks = [...list];
 		const start = this.tracks[startIndex] ?? this.tracks[0];
 		this.currentId = start.id;
 		this.#loadCurrent();
 	}
 
-	playOrToggle(list: QueueItem[], index: number) {
+	playOrToggle(list: Track[], index: number) {
 		if (index < 0 || index >= list.length) return;
 		if (this.currentId === list[index].id) this.toggle();
 		else this.playQueue(list, index);
 	}
 
-	playNextItem(item: QueueItem) {
-		this.playNext([item]);
-	}
-
-	playNext(items: QueueItem[]) {
+	playNext(items: Track[]) {
 		if (items.length === 0) return;
 		if (this.currentId === null) {
 			this.playQueue(items, 0);
 			return;
 		}
-		const tracks = [...this.tracks];
-		tracks.splice(this.#index() + 1, 0, ...items.map(toTrack));
-		this.tracks = tracks;
+		this.tracks = insertNext(this.tracks, this.#index(), items);
 	}
 
-	appendToQueue(items: QueueItem[]) {
+	appendToQueue(items: Track[]) {
 		if (items.length === 0) return;
 		if (this.currentId === null) {
 			this.playQueue(items, 0);
 			return;
 		}
-		this.tracks = [...this.tracks, ...items.map(toTrack)];
-	}
-
-	playTrack(id: string | number) {
-		if (this.currentId === id) {
-			this.toggle();
-			return;
-		}
-		const known =
-			this.tracks.find((t) => t.id === id) ?? this.recentlyPlayed.find((t) => t.id === id);
-		if (known && !this.tracks.some((t) => t.id === id)) {
-			this.tracks = [known];
-		}
-		if (!this.tracks.some((t) => t.id === id)) return;
-		this.currentId = id;
-		this.#loadCurrent();
-	}
-
-	playPlaylist(id: string | number) {
-		const playlist = this.playlists.find((p) => p.id === id);
-		if (!playlist) return;
-		const items = this.playlistTracks(playlist.trackIds);
-		if (items.length > 0) this.playQueue(items, 0);
+		this.tracks = append(this.tracks, items);
 	}
 
 	toggle() {
@@ -454,19 +248,13 @@ class PlayerState {
 		this.muted = value;
 		const audio = this.#audioEl();
 		if (audio) audio.muted = value;
-		if (browser) localStorage.setItem('player.muted', String(value));
+		if (browser) writeStorage(MUTED_KEY, String(value));
 	}
 
 	next() {
 		if (this.tracks.length === 0) return;
 		const idx = this.#index();
-		let nextIdx = (idx + 1) % this.tracks.length;
-		if (this.shuffle && this.tracks.length > 1) {
-			do {
-				nextIdx = Math.floor(Math.random() * this.tracks.length);
-			} while (nextIdx === idx);
-		}
-		this.currentId = this.tracks[nextIdx].id;
+		this.currentId = this.tracks[nextIndex(this.tracks.length, idx, this.shuffle)].id;
 		this.#loadCurrent();
 	}
 
@@ -490,17 +278,11 @@ class PlayerState {
 	}
 
 	moveQueueItem(from: number, insertAt: number) {
-		if (from < 0 || from >= this.tracks.length) return;
-		const target = insertAt > from ? insertAt - 1 : insertAt;
-		if (target === from) return;
-		const tracks = [...this.tracks];
-		const [item] = tracks.splice(from, 1);
-		tracks.splice(target, 0, item);
-		this.tracks = tracks;
+		this.tracks = move(this.tracks, from, insertAt);
 	}
 
 	clearUpcoming() {
-		this.tracks = this.currentId === null ? [] : [this.current];
+		this.tracks = this.current ? [this.current] : [];
 	}
 
 	previous() {
@@ -511,26 +293,24 @@ class PlayerState {
 			return;
 		}
 		const idx = this.#index();
-		this.currentId = this.tracks[(idx - 1 + this.tracks.length) % this.tracks.length].id;
+		this.currentId = this.tracks[previousIndex(this.tracks.length, idx)].id;
 		this.#loadCurrent();
 	}
 
 	seekFraction(fraction: number) {
 		const audio = this.#audioEl();
 		const clamped = Math.min(1, Math.max(0, fraction));
-		const target = clamped * this.current.duration;
+		const target = clamped * this.duration;
 		this.progress = target;
 		if (audio && Number.isFinite(audio.duration)) audio.currentTime = target;
 	}
 
 	setVolume(value: number) {
-		this.volume = Math.min(100, Math.max(0, Math.round(value)));
+		this.volume = Number.isFinite(value) ? clampVolume(value) : this.volume;
 		if (this.muted && this.volume > 0) this.#applyMuted(false);
 		const audio = this.#audioEl();
-		if (audio) {
-			audio.volume = this.volume / 100;
-			localStorage.setItem('player.volume', String(this.volume));
-		}
+		if (audio) audio.volume = this.volume / 100;
+		if (browser) writeStorage(VOLUME_KEY, String(this.volume));
 	}
 }
 

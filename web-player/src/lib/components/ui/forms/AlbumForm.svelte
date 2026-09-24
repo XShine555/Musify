@@ -2,10 +2,10 @@
 	import { untrack } from 'svelte';
 	import Disc3 from '@lucide/svelte/icons/disc-3';
 	import CoverForm from './CoverForm.svelte';
-	import Field from '../primitives/Field.svelte';
-	import Input from '../primitives/Input.svelte';
-	import Textarea from '../primitives/Textarea.svelte';
-	import { ALBUM_EARLIEST_YEAR } from '$lib/config';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Input from '$lib/components/ui/primitives/Input.svelte';
+	import Textarea from '$lib/components/ui/primitives/Textarea.svelte';
+	import { ALBUM_EARLIEST_YEAR, LIMITS } from '$lib/validation';
 
 	interface Props {
 		action: string;
@@ -58,10 +58,13 @@
 >
 	{#snippet fields()}
 		<Field label="Título" for="album-title">
+			{#snippet hint()}
+				<span class="ml-auto tabular-nums">{title.length}/{LIMITS.albumTitle}</span>
+			{/snippet}
 			<Input
 				id="album-title"
 				name="title"
-				maxlength={200}
+				maxlength={LIMITS.albumTitle}
 				required
 				bind:value={title}
 				placeholder={titlePlaceholder}
@@ -85,7 +88,7 @@
 			<Textarea
 				id="album-description"
 				name="description"
-				maxlength={256}
+				maxlength={LIMITS.albumDescription}
 				bind:value={description}
 				placeholder="¿De qué va este álbum?"
 			/>

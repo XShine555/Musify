@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Dialog from './Dialog.svelte';
-	import Button from '../primitives/Button.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import { dialog, type DialogAction, type DialogOptions } from '$lib/state/dialog.svelte';
 
 	// Keep the last dialog's content so the exit transition doesn't render an empty panel.

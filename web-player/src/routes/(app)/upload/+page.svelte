@@ -15,12 +15,12 @@
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
+	import { LIMITS } from '$lib/validation';
+	import { formatSize } from '$lib/utils/format';
 	import { genreOptions } from '$lib/data/genres';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';
-
-	const MAX_TITLE = 100;
 
 	let { data } = $props();
 
@@ -41,8 +41,7 @@
 
 	const steps = [
 		{ key: 'upload', label: 'Subir', hint: 'Portada y audio.' },
-		{ key: 'process', label: 'Procesar', hint: 'Transcodificado para streaming.' },
-		{ key: 'publish', label: 'Publicar', hint: 'Disponible en el catálogo.' }
+		{ key: 'done', label: 'Listo', hint: 'Se procesa y aparece en tu biblioteca.' }
 	];
 
 	const options = $derived(genreOptions(data.genres));
@@ -61,19 +60,13 @@
 	);
 
 	const stepStates = $derived.by<StepState[]>(() => {
-		if (status === 'done') return ['done', 'done', 'done'];
-		if (status === 'uploading') return ['active', 'idle', 'idle'];
-		return ['idle', 'idle', 'idle'];
+		if (status === 'done') return ['done', 'done'];
+		if (status === 'uploading') return ['active', 'idle'];
+		return ['idle', 'idle'];
 	});
 
 	function stepClass(s: StepState) {
 		return s === 'idle' ? '' : 'bg-accent-tint';
-	}
-
-	function formatSize(bytes: number) {
-		if (bytes === 0) return '';
-		const mb = bytes / (1024 * 1024);
-		return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 	}
 
 	function pickAudio(file: File) {
@@ -128,7 +121,7 @@
 		description="Añade una canción con su portada y título. Nosotros la procesamos para streaming."
 	/>
 
-	<ol class="grid gap-3 sm:grid-cols-3 sm:gap-4">
+	<ol class="grid gap-3 sm:grid-cols-2 sm:gap-4">
 		{#each steps as step, i (step.key)}
 			<li>
 				<Surface padding="sm" class={stepClass(stepStates[i])}>
@@ -140,7 +133,7 @@
 								: 'bg-accent-btn text-accent-soft'}"
 						>
 							{#if stepStates[i] === 'done'}
-								<Check class="size-3.5" />
+								<Check class="size-icon-xs" />
 							{:else}
 								{i + 1}
 							{/if}
@@ -156,7 +149,7 @@
 	{#if status === 'done'}
 		<Surface padding="lg" class="mt-10 bg-accent-tint text-center">
 			<span class="mx-auto grid size-14 place-items-center rounded-full bg-accent-soft text-ink">
-				<Check class="size-7" />
+				<Check class="size-icon-2xl" />
 			</span>
 			<h2 class="mt-6 font-display text-2xl font-semibold tracking-display text-fg">¡Subida!</h2>
 			<p class="mt-3 text-sm text-fg-2">
@@ -217,9 +210,9 @@
 					aria-label="Seleccionar archivo de audio"
 				/>
 				{#if audioName === ''}
-					<Headphones class="size-9 text-fg-2 sm:size-10" />
+					<Headphones class="size-icon-xl text-fg-2 sm:size-icon-3xl" />
 				{:else}
-					<Music class="size-9 text-accent-soft sm:size-10" />
+					<Music class="size-icon-xl text-accent-soft sm:size-icon-3xl" />
 				{/if}
 				{#if audioName === ''}
 					<p class="mt-4 text-sm font-medium text-fg">
@@ -256,12 +249,12 @@
 								id="title"
 								name="title"
 								bind:value={title}
-								maxlength={MAX_TITLE}
+								maxlength={LIMITS.trackTitle}
 								placeholder="Nombre de la canción"
 							/>
 							{#snippet hint()}
 								<p>Se usa como nombre público de la pista en el catálogo.</p>
-								<span class="shrink-0 tabular-nums">{title.length}/{MAX_TITLE}</span>
+								<span class="shrink-0 tabular-nums">{title.length}/{LIMITS.trackTitle}</span>
 							{/snippet}
 						</Field>
 
@@ -299,14 +292,9 @@
 			</Surface>
 
 			<Checkbox bind:checked={acceptedTerms}>
-				Acepto los
-				<a
-					href="/terms"
-					class="text-accent-soft underline underline-offset-2 transition hover:brightness-110"
-				>
-					términos y condiciones
-				</a>
-				al subir {title.trim() !== '' ? `«${title}»` : 'esta canción'}.
+				Acepto los términos y condiciones al subir {title.trim() !== ''
+					? `«${title}»`
+					: 'esta canción'}.
 			</Checkbox>
 
 			{#if status === 'uploading'}

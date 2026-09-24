@@ -1,19 +1,11 @@
 <script lang="ts">
 	interface Props {
-		size?: number;
-		barWidth?: number;
 		paused?: boolean;
 		overlay?: boolean;
 		class?: string;
 	}
 
-	let {
-		size = 13,
-		barWidth = 2,
-		paused = false,
-		overlay = false,
-		class: klass = ''
-	}: Props = $props();
+	let { paused = false, overlay = false, class: klass = '' }: Props = $props();
 
 	const delays = [0, 0.3, 0.6];
 </script>
@@ -30,11 +22,11 @@
 		{/each}
 	</div>
 {:else}
-	<div class="flex items-end justify-center gap-0.5 {klass}" style="height:{size}px">
+	<div class="flex h-3.5 items-end justify-center gap-0.5 {klass}">
 		{#each delays as delay (delay)}
 			<span
-				class="rounded-full bg-accent"
-				style="width:{barWidth}px; height:100%; animation:equalize .9s ease-in-out {delay}s infinite; animation-play-state:{paused
+				class="h-full w-0.5 rounded-full bg-accent"
+				style="animation:equalize .9s ease-in-out {delay}s infinite; animation-play-state:{paused
 					? 'paused'
 					: 'running'}"
 			></span>

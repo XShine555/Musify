@@ -1,25 +1,16 @@
 import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, requireUser, unwrapOrError } from '$lib/server/api';
-import { addTrackAction } from '$lib/server/playlistActions';
-import { PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
+import { toMix } from '$lib/server/mappers';
+import { addTrackAction } from '$lib/server/actions/playlist';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
-	const user = requireUser(locals, url);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	requireUser(locals, url);
+	const api = apiFor({ fetch, locals });
 
-	const [mixRes, playlistsRes] = await Promise.all([
-		api.GET('/mixes/{id}', { params: { path: { id: params.id } } }),
-		api.GET('/playlists/users/{userId}', {
-			params: {
-				path: { userId: user.sub },
-				query: { pageNumber: 1, pageSize: PLAYLIST_PICKER_PAGE_SIZE }
-			}
-		})
-	]);
+	const mixRes = await api.GET('/mixes/{id}', { params: { path: { id: params.id } } });
 
-	const mix = unwrapOrError(mixRes, 'Mezcla no encontrada.', 404);
-
-	return { mix, playlists: playlistsRes.data?.items ?? [] };
+	return { mix: toMix(unwrapOrError(mixRes, 'Mezcla no encontrada.', 404)) };
 };
 
 export const actions: Actions = {

@@ -1,12 +1,7 @@
 <script lang="ts">
 	import Shuffle from '@lucide/svelte/icons/shuffle';
-	import {
-		player,
-		isQueueCurrent,
-		playAllOrToggle,
-		playShuffled,
-		toQueueItem
-	} from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
+	import { playShuffled } from '$lib/player/actions';
 	import { fmtTime, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
@@ -14,37 +9,23 @@
 	import Alert from '$lib/components/ui/primitives/Alert.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
-	import TrackList from '$lib/components/ui/media/TrackList.svelte';
-	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
-	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import { mixItemTrack } from '$lib/data/mixes';
+	import TrackList from '$lib/components/music/TrackList.svelte';
+	import TrackContextMenu from '$lib/components/music/TrackContextMenu.svelte';
+	import { createMenu } from '$lib/state/menu.svelte';
+	import type { Track } from '$lib/types';
+	import PlayAllButton from '$lib/components/music/PlayAllButton.svelte';
 
 	let { data, form } = $props();
 
 	const mix = $derived(data.mix);
-	const items = $derived(mix.items);
-	const tracks = $derived(items.map(mixItemTrack));
-	const queue = $derived(tracks.map(toQueueItem));
-	const listTracks = $derived(
-		items.map((item) => ({
-			id: item.trackId,
-			title: item.title,
-			artist: item.artist,
-			duration: item.durationSeconds,
-			listensCount: item.listensCount
-		}))
-	);
+	const tracks = $derived(mix.tracks);
 
-	const totalSeconds = $derived(
-		items.reduce((total, item) => total + Number(item.durationSeconds), 0)
-	);
-	const isCurrentQueue = $derived(isQueueCurrent(queue));
+	const totalSeconds = $derived(tracks.reduce((total, track) => total + track.duration, 0));
 
-	const trackMenu = createTrackMenu();
+	const trackMenu = createMenu<Track>();
 
 	function playFrom(index: number) {
-		player.playOrToggle(queue, index);
+		player.playOrToggle(tracks, index);
 	}
 </script>
 
@@ -60,31 +41,25 @@
 		eyebrow="Mezcla"
 		title={mix.title}
 		description={mix.subtitle ?? undefined}
-		meta="{plural(items.length, 'canción', 'canciones')} · {fmtTime(totalSeconds)}"
+		meta="{plural(tracks.length, 'canción', 'canciones')} · {fmtTime(totalSeconds)}"
 	>
 		{#snippet cover()}
 			<Artwork
-				trackIds={items.map((item) => item.trackId)}
+				trackIds={tracks.map((track) => track.id)}
 				size="hero"
 				alt={mix.title}
 				class="shrink-0"
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={() => playAllOrToggle(queue)} disabled={queue.length === 0}>
-				{#if isCurrentQueue && player.playing}
-					Pausar
-				{:else}
-					Reproducir
-				{/if}
-			</Button>
+			<PlayAllButton items={tracks} />
 			<Button
 				variant="secondary"
 				size="sm"
-				onclick={() => playShuffled(queue)}
-				disabled={queue.length === 0}
+				onclick={() => playShuffled(tracks)}
+				disabled={tracks.length === 0}
 			>
-				<Shuffle class="size-4" />
+				<Shuffle class="size-icon-sm" />
 				Aleatorio
 			</Button>
 		{/snippet}
@@ -95,27 +70,11 @@
 	{/if}
 
 	<TrackList
-		tracks={listTracks}
+		{tracks}
 		columns={['plays']}
 		onPlay={playFrom}
-		oncontextmenu={(e, _track, i) => trackMenu.open(e, tracks[i])}
+		oncontextmenu={(e, track) => trackMenu.open(e, track)}
 	/>
 </Page>
 
-{#if trackMenu.state}
-	<ContextMenu
-		x={trackMenu.state.x}
-		y={trackMenu.state.y}
-		openLeft={trackMenu.state.openLeft}
-		onClose={() => trackMenu.close()}
-		items={[
-			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: () => trackMenu.playNext() }
-		]}
-		playlistAction={{
-			action: '?/addTrack',
-			fields: { trackId: String(trackMenu.state.track.id) },
-			label: 'Añadir a una playlist'
-		}}
-		playlists={data.playlists}
-	/>
-{/if}
+<TrackContextMenu menu={trackMenu} playlists={data.userPlaylists} />

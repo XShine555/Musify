@@ -1,16 +1,15 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
-	import Button from '../primitives/Button.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	interface Props {
 		following: boolean;
-		userId?: string;
 		invalidateAll?: boolean;
 		class?: string;
 	}
 
-	let { following: initial, userId, invalidateAll = false, class: klass = '' }: Props = $props();
+	let { following: initial, invalidateAll = false, class: klass = '' }: Props = $props();
 
 	let following = $state(untrack(() => initial));
 	let submitting = $state(false);
@@ -30,9 +29,6 @@
 		};
 	}}
 >
-	{#if userId}
-		<input type="hidden" name="userId" value={userId} />
-	{/if}
 	<Button
 		type="submit"
 		size="sm"

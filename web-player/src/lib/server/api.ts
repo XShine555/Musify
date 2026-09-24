@@ -1,7 +1,6 @@
 import createClient from 'openapi-fetch';
-import { error, fail, redirect, type ActionFailure } from '@sveltejs/kit';
+import { error, fail, type ActionFailure, type RequestEvent } from '@sveltejs/kit';
 import type { paths } from '$lib/api/schema';
-import type { SessionUser } from '$lib/types';
 import { apiConfig } from '$lib/server/config';
 
 interface ApiClientOptions {
@@ -17,28 +16,10 @@ export function createApiClient({ fetch, accessToken }: ApiClientOptions) {
 	});
 }
 
-export function requireUser(locals: App.Locals, url: URL): SessionUser {
-	if (!locals.user)
-		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
-	return locals.user;
-}
+export type ApiClient = ReturnType<typeof createApiClient>;
 
-export function optionalUser(
-	locals: App.Locals,
-	url: URL,
-	allowAnonymousListening: boolean
-): SessionUser | null {
-	if (locals.user) return locals.user;
-	if (!allowAnonymousListening)
-		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
-	return null;
-}
-
-export function requireAccessTokenAction(
-	locals: App.Locals,
-	message = 'Inicia sesión.'
-): string | ActionFailure<{ message: string }> {
-	return locals.accessToken ?? fail(401, { message });
+export function apiFor({ fetch, locals }: Pick<RequestEvent, 'fetch' | 'locals'>): ApiClient {
+	return createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 }
 
 export function unwrapOrError<T>(
@@ -70,9 +51,18 @@ export function apiErrorDetail(error: unknown): string | undefined {
 	return undefined;
 }
 
-export function unwrapOrFail(
-	result: { error?: unknown },
-	message: string
-): ActionFailure<{ message: string; detail?: string }> | undefined {
+type Failure = ActionFailure<{ message: string; detail?: string }>;
+
+export function failOnError(result: { error?: unknown }, message: string): Failure | undefined {
 	return result.error ? fail(502, { message, detail: apiErrorDetail(result.error) }) : undefined;
+}
+
+export function requireData<T>(
+	result: { data?: T; error?: unknown },
+	message: string
+): { data: T; failure?: undefined } | { data?: undefined; failure: Failure } {
+	if (result.error || result.data === undefined) {
+		return { failure: fail(502, { message, detail: apiErrorDetail(result.error) }) };
+	}
+	return { data: result.data };
 }

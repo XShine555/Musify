@@ -12,10 +12,10 @@
 		variant?: 'row' | 'card';
 		title: string;
 		subtitle?: string | null;
-		subtitleHref?: string | number | null;
+		subtitleHref?: string | null;
 		explicit?: boolean;
-		trackId?: string | number;
-		trackIds?: (string | number)[];
+		trackId?: string;
+		trackIds?: string[];
 		coverSrc?: string | null;
 		art?: Snippet;
 		overlay?: Snippet;

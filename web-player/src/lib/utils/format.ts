@@ -22,18 +22,24 @@ export function plural(n: number, one: string, many: string): string {
 	return `${n} ${n === 1 ? one : many}`;
 }
 
-export function fmtPlays(count: number | string | undefined): string {
-	const value = Math.max(0, Math.floor(Number(count ?? 0)));
+export function fmtPlays(count: number): string {
+	const value = Math.max(0, Math.floor(count));
 	return plural(value, 'reproducción', 'reproducciones');
 }
 
-export function albumMeta(releaseYear?: number, trackCount?: number): string {
+export function albumMeta(releaseYear?: number | null, trackCount?: number): string {
 	return [
 		releaseYear ? String(releaseYear) : undefined,
 		trackCount === undefined ? undefined : plural(trackCount, 'canción', 'canciones')
 	]
 		.filter((part): part is string => !!part)
 		.join(' · ');
+}
+
+export function formatSize(bytes: number): string {
+	if (bytes === 0) return '';
+	const mb = bytes / (1024 * 1024);
+	return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 }
 
 export function playlistMeta(trackCount: number): string {

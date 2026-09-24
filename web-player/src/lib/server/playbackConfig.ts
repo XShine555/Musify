@@ -9,7 +9,8 @@ export async function getAllowAnonymousListening(fetchFn: typeof fetch): Promise
 
 	try {
 		const api = createApiClient({ fetch: fetchFn });
-		const { data } = await api.GET('/config/playback');
+		const { data, error } = await api.GET('/config/playback');
+		if (error !== undefined) return cached?.allowAnonymousListening ?? false;
 		const allowAnonymousListening = data?.allowAnonymousListening ?? false;
 
 		cached = { allowAnonymousListening, expiresAt: Date.now() + CACHE_TTL_MS };

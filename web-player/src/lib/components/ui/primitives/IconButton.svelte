@@ -6,7 +6,7 @@
 		type?: 'button' | 'submit';
 		size?: 'xs' | 'sm' | 'md' | 'lg';
 		shape?: 'square' | 'round';
-		tone?: 'muted' | 'subtle' | 'plain';
+		plain?: boolean;
 		pressed?: boolean;
 		surface?: boolean;
 		revealOnHover?: boolean;
@@ -22,7 +22,7 @@
 		type = 'button',
 		size = 'sm',
 		shape = 'square',
-		tone = 'muted',
+		plain = false,
 		pressed,
 		surface = false,
 		revealOnHover = false,
@@ -40,35 +40,28 @@
 		lg: 'size-10'
 	};
 
-	const TEXT: Record<'muted' | 'subtle' | 'plain', string> = {
-		muted: 'text-fg-2 hover:text-fg',
-		subtle: 'text-fg-2 hover:text-fg',
-		plain: 'text-fg-2 hover:text-fg'
-	};
-
 	const background = $derived(
-		surface ? 'bg-surface-2 hover:bg-surface-hover' : tone === 'plain' ? '' : 'hover:bg-hover'
+		surface ? 'bg-surface-2 hover:bg-surface-hover' : plain ? '' : 'hover:bg-hover'
 	);
 
 	const classes = $derived(
-		`grid place-items-center transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${SIZE[size]} ${shape === 'round' ? 'rounded-full' : 'rounded-control'} ${pressed ? 'text-accent' : TEXT[tone]} ${background} ${
+		`grid place-items-center transition focus-ring ${SIZE[size]} ${shape === 'round' ? 'rounded-full' : 'rounded-control'} ${pressed ? 'text-accent' : 'text-fg-2 hover:text-fg'} ${background} ${
 			revealOnHover ? 'sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100' : ''
 		} ${klass}`
 	);
 </script>
 
-{#if href}
-	<a
-		{href}
-		data-sveltekit-reload={reload ? '' : undefined}
-		aria-label={label}
-		title={label}
-		class={classes}
-	>
-		{@render children()}
-	</a>
-{:else}
-	<button {type} {onclick} aria-label={label} title={label} aria-pressed={pressed} class={classes}>
-		{@render children()}
-	</button>
-{/if}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:element
+	this={href ? 'a' : 'button'}
+	{href}
+	type={href ? undefined : type}
+	data-sveltekit-reload={href && reload ? '' : undefined}
+	aria-label={label}
+	aria-pressed={href ? undefined : pressed}
+	title={label}
+	{onclick}
+	class={classes}
+>
+	{@render children()}
+</svelte:element>

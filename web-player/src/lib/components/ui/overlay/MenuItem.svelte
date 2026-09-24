@@ -28,21 +28,17 @@
 	);
 </script>
 
-{#if href}
-	<a
-		{href}
-		{target}
-		rel={target === '_blank' ? 'noopener noreferrer' : undefined}
-		data-sveltekit-reload={reload ? '' : undefined}
-		{onclick}
-		class={classes}
-	>
-		<Icon class="size-icon-md shrink-0" />
-		{label}
-	</a>
-{:else}
-	<button {type} {onclick} class={classes}>
-		<Icon class="size-icon-md shrink-0" />
-		{label}
-	</button>
-{/if}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:element
+	this={href ? 'a' : 'button'}
+	{href}
+	{target}
+	rel={href && target === '_blank' ? 'noopener noreferrer' : undefined}
+	type={href ? undefined : type}
+	data-sveltekit-reload={href && reload ? '' : undefined}
+	{onclick}
+	class={classes}
+>
+	<Icon class="size-icon-md shrink-0" />
+	{label}
+</svelte:element>

@@ -8,7 +8,7 @@
 		title: string;
 		subtitle?: string | null;
 		src?: string | null;
-		trackIds?: (string | number)[];
+		trackIds?: string[];
 		onPlay?: (event: MouseEvent) => void;
 		art?: Snippet;
 		oncontextmenu?: (event: MouseEvent) => void;

@@ -1,7 +1,5 @@
-import type { createApiClient } from '$lib/server/api';
+import type { ApiClient } from '$lib/server/api';
 import type { FollowList } from '$lib/types';
-
-type ApiClient = ReturnType<typeof createApiClient>;
 
 export function fetchFollowList(
 	api: ApiClient,

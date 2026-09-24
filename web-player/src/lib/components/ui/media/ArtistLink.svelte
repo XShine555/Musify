@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
 		name?: string | null;
-		ownerUserId?: string | number | null;
+		ownerUserId?: string | null;
 		class?: string;
 	}
 
@@ -13,7 +13,7 @@
 		<a
 			href="/user/{ownerUserId}"
 			onclick={(e) => e.stopPropagation()}
-			class="block max-w-full truncate hover:text-fg-2 hover:underline {klass}"
+			class="block max-w-full truncate hover:underline {klass}"
 		>
 			{name}
 		</a>

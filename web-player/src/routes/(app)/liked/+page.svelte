@@ -1,25 +1,21 @@
 <script lang="ts">
 	import Heart from '@lucide/svelte/icons/heart';
 	import X from '@lucide/svelte/icons/x';
-	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
-	import { liked } from '$lib/player/liked.svelte';
+	import { player } from '$lib/player/player.svelte';
+	import PlayAllButton from '$lib/components/music/PlayAllButton.svelte';
+	import { liked } from '$lib/state/liked.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
-	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import TrackList from '$lib/components/music/TrackList.svelte';
 
 	const tracks = $derived(liked.list);
-	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.likedAt })));
-	const isCurrentQueue = $derived(isQueueCurrent(tracks));
+	const listTracks = $derived(tracks.map((track) => ({ ...track, date: track.likedAt })));
 
 	function playFrom(index: number) {
 		player.playOrToggle(tracks, index);
-	}
-
-	function playAll() {
-		playAllOrToggle(tracks);
 	}
 </script>
 
@@ -43,9 +39,7 @@
 			</div>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
-				{isCurrentQueue && player.playing ? 'Pausar' : 'Reproducir'}
-			</Button>
+			<PlayAllButton items={tracks} />
 		{/snippet}
 	</PageHeader>
 
@@ -55,7 +49,7 @@
 			columns={['added', 'plays']}
 			onPlay={playFrom}
 			rowAction={{
-				onclick: (track) => liked.toggle({ ...track, artist: track.artist ?? undefined }),
+				onclick: (track) => liked.toggle(track),
 				icon: X,
 				label: 'Quitar de Me gusta'
 			}}

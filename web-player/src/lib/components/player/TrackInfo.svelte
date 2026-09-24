@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
-	import { liked } from '$lib/player/liked.svelte';
+	import { liked } from '$lib/state/liked.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
 	import ArtistLink from '$lib/components/ui/media/ArtistLink.svelte';
@@ -13,27 +13,20 @@
 
 	let { compact = false }: Props = $props();
 
-	const isLiked = $derived(player.current.id !== '' && liked.isLiked(player.current.id));
+	const current = $derived(player.current);
+	const isLiked = $derived(current !== null && liked.isLiked(current.id));
 
 	function toggleLike() {
-		if (!player.current.id) return;
-		liked.toggle({
-			id: player.current.id,
-			title: player.current.title,
-			artist: player.current.artist,
-			explicit: player.current.explicit,
-			ownerUserId: player.current.ownerUserId,
-			duration: player.current.duration
-		});
+		if (current) liked.toggle(current);
 	}
 </script>
 
 <div class="flex min-w-0 items-center gap-2.5 md:gap-3">
-	{#if player.current.id}
+	{#if current}
 		<Artwork
-			trackIds={[player.current.id]}
+			trackIds={[current.id]}
 			size="sm"
-			alt={player.current.title}
+			alt={current.title}
 			class="shrink-0 md:size-cover-md"
 		/>
 	{:else}
@@ -41,21 +34,21 @@
 	{/if}
 	<div class="min-w-0">
 		<div class="flex min-w-0 items-center gap-1.5">
-			{#if player.current.explicit}
+			{#if current?.explicit}
 				<ExplicitBadge />
 			{/if}
-			<span class="truncate text-sm text-fg">{player.current.title}</span>
+			<span class="truncate text-sm text-fg">{current?.title ?? ''}</span>
 		</div>
 		<ArtistLink
-			name={player.current.artist || '—'}
-			ownerUserId={player.current.ownerUserId}
+			name={current?.artist || '—'}
+			ownerUserId={current?.ownerUserId}
 			class="mt-0.5 text-xs text-fg-2"
 		/>
 	</div>
 	{#if !compact}
 		<IconButton
 			label={isLiked ? 'Quitar de Me gusta' : 'Añadir a Me gusta'}
-			tone="plain"
+			plain
 			size="md"
 			pressed={isLiked}
 			onclick={toggleLike}

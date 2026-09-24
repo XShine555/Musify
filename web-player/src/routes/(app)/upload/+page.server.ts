@@ -1,59 +1,35 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import {
-	createApiClient,
-	requireAccessTokenAction,
-	requireUser,
-	unwrapOrFail
-} from '$lib/server/api';
+import { apiFor, requireData } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
+import { authedAction } from '$lib/server/actions/authedAction';
+import { parseTrackUploadForm } from '$lib/server/forms/trackUploadForm';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
 import { findConflict, genreInfo } from '$lib/data/genres';
 import type { components } from '$lib/api/schema';
 
 type Genre = components['schemas']['Genre'];
 
-const MAX_TITLE = 100;
-
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	requireUser(locals, url);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 	const { data } = await api.GET('/genres/available');
 	return { genres: data ?? [] };
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals, 'Inicia sesión para subir música.');
-		if (typeof accessToken !== 'string') return accessToken;
+	default: authedAction(async ({ api, form }) => {
+		const parsed = parseTrackUploadForm(form);
+		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
+		const { title, audio, cover, tags: rawTags, isExplicit } = parsed.body;
 
-		const form = await request.formData();
-		const title = String(form.get('title') ?? '').trim();
-		const audio = form.get('audio');
-		const cover = form.get('cover');
-		const rawTags = form.getAll('tags').map(String);
-		const isExplicit = form.get('isExplicit') === 'on';
-
-		if (title === '' || title.length > MAX_TITLE) {
-			return fail(400, { message: 'El título es obligatorio (máx. 100 caracteres).' });
-		}
-		if (!(audio instanceof File) || audio.size === 0) {
-			return fail(400, { message: 'Selecciona un archivo de audio.' });
-		}
-		if (!(cover instanceof File) || cover.size === 0) {
-			return fail(400, { message: 'Selecciona una portada.' });
-		}
-
-		if (rawTags.length === 0) {
-			return fail(400, { message: 'Elige al menos un género.' });
-		}
-		const api = createApiClient({ fetch, accessToken });
 		const { data: available } = await api.GET('/genres/available');
 		const options = available ?? [];
 		const known = new Set<string>(options.map((option) => option.genre));
 		if (!rawTags.every((tag) => known.has(tag))) {
 			return fail(400, { message: 'Alguno de los géneros no es válido.' });
 		}
-		const tags = [...new Set(rawTags)] as Genre[];
+		const tags = rawTags as Genre[];
 		const conflict = findConflict(tags, options);
 		if (conflict) {
 			return fail(400, {
@@ -75,9 +51,11 @@ export const actions: Actions = {
 			}
 		});
 
-		const urlsFailure = unwrapOrFail(urlsResult, 'No se pudieron reservar las URLs de subida.');
+		const { data: urls, failure: urlsFailure } = requireData(
+			urlsResult,
+			'No se pudieron reservar las URLs de subida.'
+		);
 		if (urlsFailure) return urlsFailure;
-		const urls = urlsResult.data!;
 
 		try {
 			const [audioBuffer, coverBuffer] = await Promise.all([
@@ -105,10 +83,12 @@ export const actions: Actions = {
 			}
 		});
 
-		const trackFailure = unwrapOrFail(trackResult, 'No se pudo crear la pista tras la subida.');
+		const { data: track, failure: trackFailure } = requireData(
+			trackResult,
+			'No se pudo crear la pista tras la subida.'
+		);
 		if (trackFailure) return trackFailure;
-		const track = trackResult.data!;
 
 		return { success: true, trackId: track.id, title: track.title };
-	}
+	}, 'Inicia sesión para subir música.')
 };

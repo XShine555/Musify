@@ -1,13 +1,14 @@
 import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
-import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
-
-const PROFILE_PLAYLISTS_PAGE_SIZE = 50;
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { optionalUser } from '$lib/server/guards';
+import { toCount, toPlaylist } from '$lib/server/mappers';
+import { PROFILE_PLAYLISTS_PAGE_SIZE } from '$lib/config';
+import { followUserAction, unfollowUserAction } from '$lib/server/actions/follow';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const viewer = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [profileRes, playlistsRes] = await Promise.all([
 		api.GET('/users/{id}/profile', { params: { path: { id: params.id } } }),
@@ -20,26 +21,17 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	]);
 
 	const profile = unwrapOrError(profileRes, 'Usuario no encontrado.', 404);
-	const playlistItems = playlistsRes.data?.items ?? [];
-
-	const tracksByPlaylist = await Promise.all(
-		playlistItems.map((playlist) =>
-			api
-				.GET('/playlists/{playlistId}/tracks', {
-					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 1 } }
-				})
-				.then((res) => Number(res.data?.totalItemCount ?? 0))
-		)
-	);
-
-	const playlists = playlistItems.map((playlist, i) => ({
-		...playlist,
-		trackCount: tracksByPlaylist[i]
-	}));
+	const playlists = (playlistsRes.data?.items ?? []).map(toPlaylist);
 
 	const isOwnProfile = viewer !== null && viewer.sub === params.id;
 
-	return { profile, playlists, isOwnProfile, isAnonymous: viewer === null };
+	return {
+		profile,
+		followersCount: toCount(profile.followersCount),
+		playlists,
+		isOwnProfile,
+		isAnonymous: viewer === null
+	};
 };
 
 export const actions: Actions = {

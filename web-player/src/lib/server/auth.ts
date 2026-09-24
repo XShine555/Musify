@@ -18,6 +18,13 @@ export interface Session extends SessionUser {
 	expiresAt: number;
 }
 
+export function safeReturnTo(value: string | null | undefined): string {
+	if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) {
+		return '/';
+	}
+	return value;
+}
+
 let configPromise: Promise<client.Configuration> | undefined;
 export function getOidcConfig(): Promise<client.Configuration> {
 	configPromise ??= (async () => {
@@ -29,9 +36,9 @@ export function getOidcConfig(): Promise<client.Configuration> {
 		return secret
 			? client.discovery(issuer, authConfig.clientId, secret, undefined, options)
 			: client.discovery(issuer, authConfig.clientId, undefined, client.None(), options);
-	})().catch((exception) => {
+	})().catch((err) => {
 		configPromise = undefined;
-		throw exception;
+		throw err;
 	});
 	return configPromise;
 }
@@ -44,7 +51,7 @@ function sessionKey(): Promise<Uint8Array> {
 	return keyPromise;
 }
 
-export function sessionCookieOptions(url: URL) {
+function sessionCookieOptions(url: URL) {
 	return {
 		httpOnly: true,
 		sameSite: 'lax' as const,
@@ -144,8 +151,8 @@ export async function refreshSession(session: Session): Promise<Session | null> 
 			idToken: tokens.id_token ?? session.idToken,
 			expiresAt: Math.floor(Date.now() / 1000) + (tokens.expires_in ?? 3600)
 		};
-	} catch (exception) {
-		console.error('Token refresh failed', exception);
+	} catch (err) {
+		console.error('Token refresh failed', err);
 		return null;
 	}
 }

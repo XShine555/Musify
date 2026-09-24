@@ -33,11 +33,7 @@
 			.join('')
 	);
 
-	let failed = $state(false);
-	$effect(() => {
-		src;
-		failed = false;
-	});
+	let failedSrc = $state<string | null>(null);
 </script>
 
 <div
@@ -45,13 +41,13 @@
 		size
 	]} {klass}"
 >
-	{#if src && !failed}
+	{#if src && failedSrc !== src}
 		<img
 			{src}
 			alt=""
 			loading="lazy"
 			decoding="async"
-			onerror={() => (failed = true)}
+			onerror={() => (failedSrc = src ?? null)}
 			class="absolute inset-0 h-full w-full object-cover"
 		/>
 	{:else}

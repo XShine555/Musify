@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { albumCover } from '$lib/utils/hrefs';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Disc from '@lucide/svelte/icons/disc-3';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -27,7 +28,7 @@
 		{#snippet actions()}
 			{#if items.length > 0}
 				<Button onclick={() => (creating = true)}>
-					<Plus class="size-4" />
+					<Plus class="size-icon-sm" />
 					Nuevo álbum
 				</Button>
 			{/if}
@@ -40,12 +41,9 @@
 				<MediaCard
 					href="/albums/{album.id}"
 					title={album.title}
-					subtitle={albumMeta(
-						album.releaseYear === null ? undefined : Number(album.releaseYear),
-						Number(album.trackCount)
-					)}
+					subtitle={albumMeta(album.releaseYear, album.trackCount)}
 					trackIds={album.coverTrackIds}
-					src="/api/albums/{album.id}/cover?size=large"
+					src={albumCover(album.id, 'large')}
 					index={i}
 				/>
 			{/each}

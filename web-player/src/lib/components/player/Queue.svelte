@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
-	import { queuePanel } from '$lib/player/queuePanel.svelte';
+	import { queuePanel } from '$lib/state/panels.svelte';
 	import MediaIdentity from '$lib/components/ui/media/MediaIdentity.svelte';
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
@@ -43,17 +43,16 @@
 	inert={!queuePanel.open}
 >
 	<aside
-		class="flex min-h-0 shrink-0 flex-col border-l border-hairline px-4 pt-5 pb-5"
-		style="width:var(--mf-queue-w)"
+		class="flex min-h-0 w-(--mf-queue-w) shrink-0 flex-col border-l border-hairline px-4 pt-5 pb-5"
 	>
 		<div class="mb-5 flex items-center justify-between">
 			<h2 class="font-display text-base font-medium tracking-tight text-fg">En cola</h2>
-			<IconButton label="Cerrar cola" tone="plain" size="xs" onclick={() => queuePanel.close()}>
+			<IconButton label="Cerrar cola" plain size="xs" onclick={() => queuePanel.close()}>
 				<X class="size-icon-md" />
 			</IconButton>
 		</div>
 
-		{#if player.current.id}
+		{#if player.current}
 			<p class="mb-3 text-eyebrow text-fg-2">Reproduciendo</p>
 			<div class="mb-6 surface-active rounded-control p-2.5">
 				<MediaIdentity

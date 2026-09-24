@@ -26,7 +26,7 @@
 			class="relative z-(--z-raised) flex-1 px-4 py-1.5 text-center text-xs font-medium transition-colors {value ===
 			option.value
 				? 'text-ink'
-				: 'text-fg-2 hover:text-fg-2'}"
+				: 'text-fg-2'}"
 		>
 			{option.label}
 		</button>

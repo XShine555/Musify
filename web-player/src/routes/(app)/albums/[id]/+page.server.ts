@@ -1,20 +1,18 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import {
-	createApiClient,
-	optionalUser,
-	requireAccessTokenAction,
-	unwrapOrError,
-	unwrapOrFail
-} from '$lib/server/api';
+import { apiFor, failOnError, unwrapOrError } from '$lib/server/api';
+import { optionalUser } from '$lib/server/guards';
+import { formFile, formString } from '$lib/server/forms/fields';
+import { authedAction } from '$lib/server/actions/authedAction';
+import { toAlbum, toTrack } from '$lib/server/mappers';
 import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
-import { parseAlbumForm } from '$lib/server/albumForm';
-import { uploadPresignedImage } from '$lib/server/upload';
+import { parseAlbumForm } from '$lib/server/forms/albumForm';
+import { uploadOptionalCover } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const user = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [albumRes, tracksRes, libraryRes] = await Promise.all([
 		api.GET('/albums/{id}', { params: { path: { id: params.id } } }),
@@ -34,11 +32,13 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 			: Promise.resolve(null)
 	]);
 
-	const album = unwrapOrError(albumRes, 'Álbum no encontrado.', 404);
+	const album = toAlbum(unwrapOrError(albumRes, 'Álbum no encontrado.', 404));
 
-	const tracks = tracksRes.data?.items ?? [];
+	const tracks = (tracksRes.data?.items ?? []).map(toTrack);
 	const inAlbum = new Set(tracks.map((track) => track.id));
-	const library = (libraryRes?.data?.items ?? []).filter((track) => !inAlbum.has(track.id));
+	const library = (libraryRes?.data?.items ?? [])
+		.filter((track) => !inAlbum.has(track.id))
+		.map(toTrack);
 
 	const isOwner = user !== null && String(album.ownerUserId) === user.sub;
 
@@ -46,59 +46,33 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 };
 
 export const actions: Actions = {
-	addTrack: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const trackId = String((await request.formData()).get('trackId') ?? '');
+	addTrack: authedAction(async ({ api, form, params }) => {
+		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const api = createApiClient({ fetch, accessToken });
 		const result = await api.POST('/albums/{albumId}/tracks/{trackId}', {
 			params: { path: { albumId: params.id, trackId } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo añadir la canción.');
-		if (failure) return failure;
-		return { added: true };
-	},
+		return failOnError(result, 'No se pudo añadir la canción.') ?? { added: true };
+	}),
 
-	removeTrack: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const trackId = String((await request.formData()).get('trackId') ?? '');
+	removeTrack: authedAction(async ({ api, form, params }) => {
+		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const api = createApiClient({ fetch, accessToken });
 		const result = await api.DELETE('/albums/{albumId}/tracks/{trackId}', {
 			params: { path: { albumId: params.id, trackId } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo quitar la canción.');
-		if (failure) return failure;
-		return { removed: true };
-	},
+		return failOnError(result, 'No se pudo quitar la canción.') ?? { removed: true };
+	}),
 
-	edit: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const form = await request.formData();
+	edit: authedAction(async ({ api, form, params }) => {
 		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
-		const api = createApiClient({ fetch, accessToken });
-
-		let newPictureIntentId: string | null = null;
-		const cover = form.get('cover');
-		if (cover instanceof File && cover.size > 0) {
-			const uploaded = await uploadPresignedImage(
-				(args) => api.POST('/albums/upload-picture', { body: args }),
-				cover
-			);
-			if ('failMessage' in uploaded) {
-				return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
-			}
-			newPictureIntentId = uploaded.intentId;
+		const cover = await uploadOptionalCover(api, '/albums/upload-picture', formFile(form, 'cover'));
+		if ('failMessage' in cover) {
+			return fail(502, { message: cover.failMessage, detail: cover.detail });
 		}
 
 		const result = await api.PUT('/albums/{albumId}', {
@@ -107,24 +81,18 @@ export const actions: Actions = {
 				newTitle: parsed.body.title,
 				newDescription: parsed.body.description,
 				newReleaseYear: parsed.body.releaseYear,
-				newPictureIntentId
+				newPictureIntentId: cover.intentId
 			}
 		});
-		const failure = unwrapOrFail(result, 'No se pudo actualizar el álbum.');
-		if (failure) return failure;
-		return { edited: true };
-	},
+		return failOnError(result, 'No se pudo actualizar el álbum.') ?? { edited: true };
+	}),
 
-	delete: async ({ params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const api = createApiClient({ fetch, accessToken });
+	delete: authedAction(async ({ api, params }) => {
 		const result = await api.DELETE('/albums/{albumId}', {
 			params: { path: { albumId: params.id } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo eliminar el álbum.');
+		const failure = failOnError(result, 'No se pudo eliminar el álbum.');
 		if (failure) return failure;
 		redirect(303, '/albums');
-	}
+	})
 };

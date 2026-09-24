@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
-	import IconButton from '../primitives/IconButton.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { fade } from 'svelte/transition';
 	import { pop } from '$lib/utils/transitions';
+	import { onEscape } from '$lib/actions/onEscape';
 
 	interface Props {
 		open: boolean;
@@ -48,12 +49,7 @@
 	}
 
 	function onWindowKeydown(event: KeyboardEvent) {
-		if (!open) return;
-		if (event.key === 'Escape') {
-			onClose();
-			return;
-		}
-		if (event.key !== 'Tab') return;
+		if (!open || event.key !== 'Tab') return;
 		const elements = focusableElements();
 		if (elements.length === 0) return;
 		const first = elements[0];
@@ -79,6 +75,7 @@
 	>
 		<div
 			bind:this={panel}
+			use:onEscape={onClose}
 			transition:pop={{ duration: 200 }}
 			class="glass-panel max-h-[85dvh] w-full glow-drift overflow-y-auto {maxWidth} rounded-panel p-5 outline-none sm:p-6 {panelClass}"
 			role="dialog"
@@ -99,7 +96,7 @@
 						</h2>
 					</div>
 					<IconButton label="Cerrar" onclick={onClose} class="shrink-0">
-						<X class="size-4" />
+						<X class="size-icon-sm" />
 					</IconButton>
 				</div>
 			{/if}
