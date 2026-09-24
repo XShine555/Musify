@@ -2,11 +2,11 @@ using Mediator;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Likes;
 using Musify.Api.Extensions;
-using Musify.Application.Likes;
+using Musify.Api.Filters;
 using Musify.Api.Models;
+using Musify.Application.Likes;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
-using Musify.Api.Filters;
 
 namespace Musify.Api.Endpoints;
 
@@ -21,13 +21,13 @@ public static class LikeEndpoints
         group.MapGet("/", GetLikedTracks)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetLikedTracks")
-            .WithSummary("Get The Current User'S Liked Tracks.")
+            .WithSummary("Get the current user's liked tracks")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
             .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/toggle", ToggleTrackLike)
             .WithName("ToggleTrackLike")
-            .WithSummary("Like Or Unlike A Track By Id.")
+            .WithSummary("Like or unlike a track by id")
             .Produces<bool>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);

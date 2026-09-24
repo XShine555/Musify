@@ -9,10 +9,10 @@ public sealed class CreatePlayListRequestValidator : AbstractValidator<CreatePla
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(50);
+            .MaximumLength(Limits.PlayListName);
 
         RuleFor(x => x.Description)
-            .MaximumLength(256);
+            .MaximumLength(Limits.Description);
 
         RuleFor(x => x.Visibility)
             .IsInEnum();

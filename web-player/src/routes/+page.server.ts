@@ -45,9 +45,9 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const spotlightPlaylist = playlistItems[0] ?? null;
 	const spotlightTracksPromise = spotlightPlaylist
 		? api
-				.GET('/playlists/{playlistId}/tracks', {
+				.GET('/playlists/{id}/tracks', {
 					params: {
-						path: { playlistId: spotlightPlaylist.id },
+						path: { id: spotlightPlaylist.id },
 						query: { pageNumber: 1, pageSize: HOME_SPOTLIGHT_TRACKS_LIMIT }
 					}
 				})

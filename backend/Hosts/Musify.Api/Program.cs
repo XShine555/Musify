@@ -5,7 +5,9 @@ using Musify.Api.Serialization;
 using Musify.Infrastructure.Observability;
 using Scalar.AspNetCore;
 
-var builder = WebApplication.CreateBuilder();
+const string DevCorsPolicy = "dev-cors";
+
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -14,17 +16,16 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new NullableLongAsStringConverter());
 });
 
-const string devCorsPolicy = "dev-cors";
-
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddObservability(builder.Configuration);
 
 builder.Services.AddProblemDetails();
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = false);
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddCors(options => options.AddPolicy(devCorsPolicy, policy =>
+    builder.Services.AddCors(options => options.AddPolicy(DevCorsPolicy, policy =>
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 }
 
@@ -34,7 +35,7 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(devCorsPolicy);
+    app.UseCors(DevCorsPolicy);
     app.MapOpenApi();
     app.MapScalarApiReference();
 }

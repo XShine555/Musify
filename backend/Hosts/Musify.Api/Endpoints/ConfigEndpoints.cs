@@ -13,16 +13,17 @@ public static class ConfigEndpoints
 
         group.MapGet("/playback", GetPlaybackPublicConfig)
             .WithName("GetPlaybackPublicConfig")
-            .WithSummary("Get The Public Playback Configuration (Whether Anonymous Listening Is Allowed). Works Anonymously.")
+            .WithSummary("Get the public playback configuration (whether anonymous listening is allowed). Works anonymously")
             .Produces<PlaybackPublicConfigResponse>();
 
         return app;
     }
 
-    private static async Task<PlaybackPublicConfigResponse> GetPlaybackPublicConfig(
+    private static async Task<IResult> GetPlaybackPublicConfig(
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        return await mediator.Send(new GetPlaybackPublicConfigQuery(), cancellationToken);
+        var result = await mediator.Send(new GetPlaybackPublicConfigQuery(), cancellationToken);
+        return Results.Ok(result);
     }
 }

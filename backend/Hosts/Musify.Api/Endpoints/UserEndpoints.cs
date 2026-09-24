@@ -1,13 +1,13 @@
 using Mediator;
 using Musify.Api.Authentication;
 using Musify.Api.Extensions;
+using Musify.Api.Filters;
 using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Users;
 using Musify.Application.Users.Responses;
-using Musify.Api.Filters;
 
 namespace Musify.Api.Endpoints;
 
@@ -21,75 +21,75 @@ public static class UserEndpoints
         group.MapGet("/", GetUsers)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetUsers")
-            .WithSummary("Get Paginated Users.")
+            .WithSummary("Get paginated users")
             .Produces<PaginatedResponse<UserSummaryResponse>>();
 
-        group.MapGet("/{id}", GetUserById)
+        group.MapGet("/{id:long}", GetUserById)
             .WithName("GetUserById")
-            .WithSummary("Get A User By Id.")
+            .WithSummary("Get a user by id")
             .Produces<UserApplicationResponse>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/listening-history", GetListeningHistory)
+        group.MapGet("/{id:long}/listening-history", GetListeningHistory)
             .WithName("GetListeningHistory")
-            .WithSummary("Get A User'S Listening History.")
+            .WithSummary("Get a user's listening history")
             .Produces<IEnumerable<TrackApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/listening-stats", GetListeningStats)
+        group.MapGet("/{id:long}/listening-stats", GetListeningStats)
             .WithName("GetListeningStats")
-            .WithSummary("Get A User'S Listening Stats For The Current Week And Streak.")
+            .WithSummary("Get a user's listening stats for the current week and streak")
             .RequireAuthorization()
             .Produces<ListeningStatsResponse>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);
 
-        group.MapGet("/{id}/last-listened-track", GetLastTrackListenedByUserId)
+        group.MapGet("/{id:long}/last-listened-track", GetLastTrackListenedByUserId)
             .WithName("GetLastTrackListenedByUserId")
-            .WithSummary("Get The Last Track A User Listened To.")
+            .WithSummary("Get the last track a user listened to")
             .Produces<TrackApplicationResponse>()
             .Produces(StatusCodes.Status204NoContent);
 
-        group.MapGet("/{id}/profile", GetUserProfile)
+        group.MapGet("/{id:long}/profile", GetUserProfile)
             .WithName("GetUserProfile")
-            .WithSummary("Get A User'S Public Profile, Including Follower Counts.")
+            .WithSummary("Get a user's public profile, including follower counts")
             .Produces<UserProfileResponse>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/followers", GetFollowers)
+        group.MapGet("/{id:long}/followers", GetFollowers)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetUserFollowers")
-            .WithSummary("Get The Users Following A User. Visible To The User And To Mutual Followers.")
+            .WithSummary("Get the users following a user. Visible to the user and to mutual followers")
             .Produces<PaginatedResponse<UserSummaryResponse>>()
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/following", GetFollowing)
+        group.MapGet("/{id:long}/following", GetFollowing)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetUserFollowing")
-            .WithSummary("Get The Users A User Follows.")
+            .WithSummary("Get the users a user follows")
             .Produces<PaginatedResponse<UserSummaryResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/is-following", IsFollowing)
+        group.MapGet("/{id:long}/is-following", IsFollowing)
             .WithName("IsFollowingUser")
-            .WithSummary("Check Whether The Current User Follows Another User.")
+            .WithSummary("Check whether the current user follows another user")
             .RequireAuthorization()
             .Produces<bool>()
             .Produces(StatusCodes.Status401Unauthorized);
 
-        group.MapPost("/{id}/follow", FollowUser)
+        group.MapPost("/{id:long}/follow", FollowUser)
             .WithName("FollowUser")
-            .WithSummary("Follow A User.")
+            .WithSummary("Follow a user")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesValidationProblem();
 
-        group.MapDelete("/{id}/follow", UnfollowUser)
+        group.MapDelete("/{id:long}/follow", UnfollowUser)
             .WithName("UnfollowUser")
-            .WithSummary("Unfollow A User.")
+            .WithSummary("Unfollow a user")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized);
@@ -117,12 +117,13 @@ public static class UserEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IEnumerable<TrackApplicationResponse>> GetListeningHistory(
+    private static async Task<IResult> GetListeningHistory(
         IMediator mediator,
         long id,
         CancellationToken cancellationToken)
     {
-        return await mediator.Send(new GetListeningHistoryQuery(id), cancellationToken);
+        var result = await mediator.Send(new GetListeningHistoryQuery(id), cancellationToken);
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetListeningStats(
@@ -132,9 +133,10 @@ public static class UserEndpoints
         CancellationToken cancellationToken)
     {
         if (currentUser.RequiredId != id)
-            return Results.StatusCode(StatusCodes.Status403Forbidden);
+            return Results.Problem(statusCode: StatusCodes.Status403Forbidden);
 
-        return Results.Ok(await mediator.Send(new GetListeningStatsQuery(id), cancellationToken));
+        var result = await mediator.Send(new GetListeningStatsQuery(id), cancellationToken);
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetLastTrackListenedByUserId(
@@ -178,13 +180,14 @@ public static class UserEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<bool> IsFollowing(
+    private static async Task<IResult> IsFollowing(
         IMediator mediator,
         CurrentUser currentUser,
         long id,
         CancellationToken cancellationToken)
     {
-        return await mediator.Send(new IsFollowingUserQuery(currentUser.RequiredId, id), cancellationToken);
+        var result = await mediator.Send(new IsFollowingUserQuery(currentUser.RequiredId, id), cancellationToken);
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> FollowUser(

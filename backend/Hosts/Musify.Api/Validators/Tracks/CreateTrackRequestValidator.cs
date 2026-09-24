@@ -10,7 +10,7 @@ public sealed class CreateTrackRequestValidator : AbstractValidator<CreateTrackR
     {
         RuleFor(x => x.Title)
             .NotEmpty()
-            .MaximumLength(200);
+            .MaximumLength(Limits.TrackTitle);
 
         RuleFor(x => x.PictureIntentId)
             .NotEmpty();

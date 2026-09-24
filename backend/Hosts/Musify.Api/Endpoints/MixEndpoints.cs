@@ -16,13 +16,13 @@ public static class MixEndpoints
 
         group.MapGet("/", GetMixes)
             .WithName("GetMixes")
-            .WithSummary("Get The Server-Generated Mixes Of The Current User.")
+            .WithSummary("Get the server-generated mixes of the current user")
             .Produces<IReadOnlyList<MixApplicationResponse>>()
             .Produces(StatusCodes.Status401Unauthorized);
 
-        group.MapGet("/{id}", GetMixById)
+        group.MapGet("/{id:guid}", GetMixById)
             .WithName("GetMixById")
-            .WithSummary("Get A Mix With All Of Its Songs.")
+            .WithSummary("Get a mix with all of its songs")
             .Produces<MixApplicationResponse>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);

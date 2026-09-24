@@ -4,12 +4,12 @@ using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
+using Musify.Api.Models;
 using Musify.Application.Contracts;
 using Musify.Application.Pictures;
 using Musify.Application.Pictures.Responses;
 using Musify.Application.PlayLists;
 using Musify.Application.PlayLists.Responses;
-using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 
@@ -22,34 +22,34 @@ public static class PlayListEndpoints
         var group = app.MapGroup("/playlists")
             .WithTags("PlayLists");
 
-        group.MapGet("/{id}", GetPlayListById)
+        group.MapGet("/{id:guid}", GetPlayListById)
             .WithName("GetPlayListById")
-            .WithSummary("Get A PlayList By Id.")
+            .WithSummary("Get a playlist by id")
             .Produces<PlayListApplicationResponse>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/users/{userId}", GetPlayListsByUserId)
+        group.MapGet("/users/{userId:long}", GetPlayListsByUserId)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetPlayListsByUserId")
-            .WithSummary("Get Paginated PlayLists For A User. Private PlayLists Are Only Returned To Their Owner.")
+            .WithSummary("Get paginated playlists for a user. Private playlists are only returned to their owner")
             .Produces<PaginatedResponse<PlayListApplicationResponse>>();
 
-        group.MapGet("/{playlistId}/tracks", GetPlayListTracks)
+        group.MapGet("/{id:guid}/tracks", GetPlayListTracks)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetPlayListTracks")
-            .WithSummary("Get Paginated Tracks Of A PlayList.")
+            .WithSummary("Get paginated tracks of a playlist")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/cover", GetPlayListCover)
+        group.MapGet("/{id:guid}/cover", GetPlayListCover)
             .WithName("GetPlayListCover")
-            .WithSummary("Get A PlayList Cover Image.")
+            .WithSummary("Get a playlist cover image")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", CreatePlayList)
             .WithName("CreatePlayList")
-            .WithSummary("Create A New PlayList.")
+            .WithSummary("Create a new playlist")
             .AddEndpointFilter<ValidationFilter<CreatePlayListRequest>>()
             .RequireAuthorization()
             .Produces<PlayListApplicationResponse>(StatusCodes.Status201Created)
@@ -57,9 +57,9 @@ public static class PlayListEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPut("/{playlistId}", UpdatePlayList)
+        group.MapPut("/{id:guid}", UpdatePlayList)
             .WithName("UpdatePlayList")
-            .WithSummary("Update An Existing PlayList.")
+            .WithSummary("Update an existing playlist")
             .AddEndpointFilter<ValidationFilter<UpdatePlayListRequest>>()
             .RequireAuthorization()
             .Produces<PlayListApplicationResponse>()
@@ -68,9 +68,9 @@ public static class PlayListEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapDelete("/{playlistId}", DeletePlayList)
+        group.MapDelete("/{id:guid}", DeletePlayList)
             .WithName("DeletePlayList")
-            .WithSummary("Delete A PlayList.")
+            .WithSummary("Delete a playlist")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -79,17 +79,17 @@ public static class PlayListEndpoints
 
         group.MapPost("/upload-picture", RequestPlayListPictureUpload)
             .WithName("RequestPlayListPictureUpload")
-            .WithSummary("Request A Pre-Signed URL To Upload A PlayList Picture.")
-            .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>()
+            .WithSummary("Request a pre-signed URL to upload a playlist picture")
+            .AddEndpointFilter<ValidationFilter<PictureUploadRequest>>()
             .RequireAuthorization()
             .Produces<PictureUploadResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/{id}/tracks", AddPlayListTracks)
+        group.MapPost("/{id:guid}/tracks", AddPlayListTracks)
             .WithName("AddPlayListTracks")
-            .WithSummary("Add Tracks To A PlayList, Skipping The Ones It Already Has.")
+            .WithSummary("Add tracks to a playlist, skipping the ones it already has")
             .AddEndpointFilter<ValidationFilter<AddTracksRequest>>()
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
@@ -99,9 +99,9 @@ public static class PlayListEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
-        group.MapDelete("/{playlistId}/tracks/{trackId}", RemoveTrackFromPlayList)
+        group.MapDelete("/{id:guid}/tracks/{trackId:guid}", RemoveTrackFromPlayList)
             .WithName("RemoveTrackFromPlayList")
-            .WithSummary("Remove A Track From A PlayList.")
+            .WithSummary("Remove a track from a playlist")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -136,11 +136,11 @@ public static class PlayListEndpoints
     private static async Task<IResult> GetPlayListTracks(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid playlistId,
+        Guid id,
         CancellationToken cancellationToken,
         [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetPlayListTracksQuery(playlistId, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
+        var result = await mediator.Send(new GetPlayListTracksQuery(id, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -171,12 +171,12 @@ public static class PlayListEndpoints
     private static async Task<IResult> UpdatePlayList(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid playlistId,
+        Guid id,
         UpdatePlayListRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new UpdatePlayListCommand(currentUser.RequiredId, playlistId, request.NewName, request.NewDescription, request.NewPictureIntentId, request.NewVisibility),
+            new UpdatePlayListCommand(currentUser.RequiredId, id, request.Name, request.Description, request.PictureIntentId, request.Visibility),
             cancellationToken);
 
         return result.ToHttpResult();
@@ -185,17 +185,17 @@ public static class PlayListEndpoints
     private static async Task<IResult> DeletePlayList(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid playlistId,
+        Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeletePlayListCommand(currentUser.RequiredId, playlistId), cancellationToken);
+        var result = await mediator.Send(new DeletePlayListCommand(currentUser.RequiredId, id), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> RequestPlayListPictureUpload(
         IMediator mediator,
         CurrentUser currentUser,
-        RequestPlayListPictureUploadRequest request,
+        PictureUploadRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
@@ -222,12 +222,12 @@ public static class PlayListEndpoints
     private static async Task<IResult> RemoveTrackFromPlayList(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid playlistId,
+        Guid id,
         Guid trackId,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new RemoveTrackFromPlayListCommand(currentUser.RequiredId, playlistId, trackId),
+            new RemoveTrackFromPlayListCommand(currentUser.RequiredId, id, trackId),
             cancellationToken);
 
         return result.ToHttpResult();

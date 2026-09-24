@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Albums;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Albums.Responses;
@@ -26,7 +27,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
 
         var response = await client.PostAsJsonAsync(
             "/albums/upload-picture",
-            new RequestAlbumPictureUploadRequest("webp", "image/webp"),
+            new PictureUploadRequest("webp", "image/webp"),
             TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
 

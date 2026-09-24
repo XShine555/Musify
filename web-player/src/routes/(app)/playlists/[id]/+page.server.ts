@@ -23,8 +23,8 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		fetchAllPages(
 			async (pageNumber, pageSize) =>
 				(
-					await api.GET('/playlists/{playlistId}/tracks', {
-						params: { path: { playlistId: params.id }, query: { pageNumber, pageSize } }
+					await api.GET('/playlists/{id}/tracks', {
+						params: { path: { id: params.id }, query: { pageNumber, pageSize } }
 					})
 				).data,
 			PLAYLIST_TRACKS_LIMIT
@@ -44,8 +44,8 @@ export const actions: Actions = {
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
 		const api = createApiClient({ fetch, accessToken });
-		const result = await api.DELETE('/playlists/{playlistId}/tracks/{trackId}', {
-			params: { path: { playlistId: params.id, trackId } }
+		const result = await api.DELETE('/playlists/{id}/tracks/{trackId}', {
+			params: { path: { id: params.id, trackId } }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo quitar la canción.');
 		if (failure) return failure;
@@ -78,9 +78,14 @@ export const actions: Actions = {
 			newPictureIntentId = result.intentId;
 		}
 
-		const result = await api.PUT('/playlists/{playlistId}', {
-			params: { path: { playlistId: params.id } },
-			body: { newName: name, newDescription: description, newPictureIntentId, newVisibility }
+		const result = await api.PUT('/playlists/{id}', {
+			params: { path: { id: params.id } },
+			body: {
+				name,
+				description,
+				pictureIntentId: newPictureIntentId,
+				visibility: newVisibility
+			}
 		});
 		const failure = unwrapOrFail(result, 'No se pudo actualizar la playlist.');
 		if (failure) return failure;
@@ -92,8 +97,8 @@ export const actions: Actions = {
 		if (typeof accessToken !== 'string') return accessToken;
 
 		const api = createApiClient({ fetch, accessToken });
-		const result = await api.DELETE('/playlists/{playlistId}', {
-			params: { path: { playlistId: params.id } }
+		const result = await api.DELETE('/playlists/{id}', {
+			params: { path: { id: params.id } }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo eliminar la playlist.');
 		if (failure) return failure;

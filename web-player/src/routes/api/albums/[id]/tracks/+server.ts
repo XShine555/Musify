@@ -5,9 +5,9 @@ import { ALBUM_TRACKS_PAGE_SIZE } from '$lib/config';
 
 export const GET: RequestHandler = async ({ params, locals, fetch }) => {
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
-	const result = await api.GET('/albums/{albumId}/tracks', {
+	const result = await api.GET('/albums/{id}/tracks', {
 		params: {
-			path: { albumId: params.id },
+			path: { id: params.id },
 			query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE }
 		}
 	});

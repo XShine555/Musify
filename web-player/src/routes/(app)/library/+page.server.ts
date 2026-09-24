@@ -28,8 +28,8 @@ export const actions: Actions = {
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
 		const api = createApiClient({ fetch, accessToken });
-		const result = await api.DELETE('/tracks/{trackId}', {
-			params: { path: { trackId } }
+		const result = await api.DELETE('/tracks/{id}', {
+			params: { path: { id: trackId } }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo borrar la canción.');
 		if (failure) return failure;

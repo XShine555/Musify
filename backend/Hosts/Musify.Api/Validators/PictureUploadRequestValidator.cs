@@ -1,12 +1,12 @@
 using FluentValidation;
-using Musify.Api.DataTransferObjects.Albums;
+using Musify.Api.DataTransferObjects;
 using Musify.Application.Configuration;
 
-namespace Musify.Api.Validators.Albums;
+namespace Musify.Api.Validators;
 
-public sealed class RequestAlbumPictureUploadRequestValidator : AbstractValidator<RequestAlbumPictureUploadRequest>
+public sealed class PictureUploadRequestValidator : AbstractValidator<PictureUploadRequest>
 {
-    public RequestAlbumPictureUploadRequestValidator(UploadIntentConfiguration uploadConfiguration)
+    public PictureUploadRequestValidator(UploadIntentConfiguration uploadConfiguration)
     {
         RuleFor(x => x.FileType)
             .MustBeFileType(Uploads.PictureFileTypes);

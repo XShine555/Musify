@@ -4,12 +4,12 @@ using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Albums;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
+using Musify.Api.Models;
 using Musify.Application.Albums;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
 using Musify.Application.Pictures;
 using Musify.Application.Pictures.Responses;
-using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 
@@ -27,46 +27,46 @@ public static class AlbumEndpoints
         group.MapGet("/", GetAlbums)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbums")
-            .WithSummary("Get Paginated Albums, Optionally Filtered By Title.")
+            .WithSummary("Get paginated albums, optionally filtered by title")
             .Produces<PaginatedResponse<AlbumApplicationResponse>>();
 
-        group.MapGet("/{id}", GetAlbumById)
+        group.MapGet("/{id:guid}", GetAlbumById)
             .WithName("GetAlbumById")
-            .WithSummary("Get An Album By Id.")
+            .WithSummary("Get an album by id")
             .Produces<AlbumApplicationResponse>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/users/{userId}", GetAlbumsByUserId)
+        group.MapGet("/users/{userId:long}", GetAlbumsByUserId)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbumsByUserId")
-            .WithSummary("Get Paginated Albums For A User.")
+            .WithSummary("Get paginated albums for a user")
             .Produces<PaginatedResponse<AlbumApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/recent", GetRecentlyListenedAlbums)
             .WithName("GetRecentlyListenedAlbums")
-            .WithSummary("Get The Albums The Current User Listened To Most Recently.")
+            .WithSummary("Get the albums the current user listened to most recently")
             .RequireAuthorization()
             .Produces<IReadOnlyList<AlbumApplicationResponse>>()
             .Produces(StatusCodes.Status401Unauthorized);
 
-        group.MapGet("/{albumId}/tracks", GetAlbumTracks)
+        group.MapGet("/{id:guid}/tracks", GetAlbumTracks)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbumTracks")
-            .WithSummary("Get The Tracks Of An Album Ordered By Track Number.")
+            .WithSummary("Get the tracks of an album ordered by track number")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/cover", GetAlbumCover)
+        group.MapGet("/{id:guid}/cover", GetAlbumCover)
             .WithName("GetAlbumCover")
-            .WithSummary("Get An Album Cover Image.")
+            .WithSummary("Get an album cover image")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/upload-picture", RequestAlbumPictureUpload)
             .WithName("RequestAlbumPictureUpload")
-            .WithSummary("Request A Pre-Signed URL To Upload An Album Picture.")
-            .AddEndpointFilter<ValidationFilter<RequestAlbumPictureUploadRequest>>()
+            .WithSummary("Request a pre-signed URL to upload an album picture")
+            .AddEndpointFilter<ValidationFilter<PictureUploadRequest>>()
             .RequireAuthorization()
             .Produces<PictureUploadResponse>()
             .ProducesValidationProblem()
@@ -75,7 +75,7 @@ public static class AlbumEndpoints
 
         group.MapPost("/", CreateAlbum)
             .WithName("CreateAlbum")
-            .WithSummary("Create A New Album.")
+            .WithSummary("Create a new album")
             .AddEndpointFilter<ValidationFilter<CreateAlbumRequest>>()
             .RequireAuthorization()
             .Produces<AlbumApplicationResponse>(StatusCodes.Status201Created)
@@ -83,9 +83,9 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPut("/{albumId}", UpdateAlbum)
+        group.MapPut("/{id:guid}", UpdateAlbum)
             .WithName("UpdateAlbum")
-            .WithSummary("Update An Album.")
+            .WithSummary("Update an album")
             .AddEndpointFilter<ValidationFilter<UpdateAlbumRequest>>()
             .RequireAuthorization()
             .Produces<AlbumApplicationResponse>()
@@ -94,18 +94,18 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapDelete("/{albumId}", DeleteAlbum)
+        group.MapDelete("/{id:guid}", DeleteAlbum)
             .WithName("DeleteAlbum")
-            .WithSummary("Delete An Album.")
+            .WithSummary("Delete an album")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/{id}/tracks", AddAlbumTracks)
+        group.MapPost("/{id:guid}/tracks", AddAlbumTracks)
             .WithName("AddAlbumTracks")
-            .WithSummary("Add Your Uploaded Tracks To An Album, Skipping The Ones It Already Has.")
+            .WithSummary("Add your uploaded tracks to an album, skipping the ones it already has")
             .AddEndpointFilter<ValidationFilter<AddTracksRequest>>()
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
@@ -115,9 +115,9 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
-        group.MapDelete("/{albumId}/tracks/{trackId}", RemoveTrackFromAlbum)
+        group.MapDelete("/{id:guid}/tracks/{trackId:guid}", RemoveTrackFromAlbum)
             .WithName("RemoveTrackFromAlbum")
-            .WithSummary("Remove A Track From An Album.")
+            .WithSummary("Remove a track from an album")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -176,11 +176,11 @@ public static class AlbumEndpoints
 
     private static async Task<IResult> GetAlbumTracks(
         IMediator mediator,
-        Guid albumId,
+        Guid id,
         CancellationToken cancellationToken,
         [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetAlbumTracksQuery(albumId, page.PageNumber, page.PageSize), cancellationToken);
+        var result = await mediator.Send(new GetAlbumTracksQuery(id, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -198,7 +198,7 @@ public static class AlbumEndpoints
     private static async Task<IResult> RequestAlbumPictureUpload(
         IMediator mediator,
         CurrentUser currentUser,
-        RequestAlbumPictureUploadRequest request,
+        PictureUploadRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
@@ -224,12 +224,12 @@ public static class AlbumEndpoints
     private static async Task<IResult> UpdateAlbum(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid albumId,
+        Guid id,
         UpdateAlbumRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new UpdateAlbumCommand(currentUser.RequiredId, albumId, request.NewTitle, request.NewDescription, request.NewReleaseYear, request.NewPictureIntentId),
+            new UpdateAlbumCommand(currentUser.RequiredId, id, request.Title, request.Description, request.ReleaseYear, request.PictureIntentId),
             cancellationToken);
 
         return result.ToHttpResult();
@@ -238,10 +238,10 @@ public static class AlbumEndpoints
     private static async Task<IResult> DeleteAlbum(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid albumId,
+        Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteAlbumCommand(currentUser.RequiredId, albumId), cancellationToken);
+        var result = await mediator.Send(new DeleteAlbumCommand(currentUser.RequiredId, id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -262,12 +262,12 @@ public static class AlbumEndpoints
     private static async Task<IResult> RemoveTrackFromAlbum(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid albumId,
+        Guid id,
         Guid trackId,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new RemoveTrackFromAlbumCommand(currentUser.RequiredId, albumId, trackId),
+            new RemoveTrackFromAlbumCommand(currentUser.RequiredId, id, trackId),
             cancellationToken);
 
         return result.ToHttpResult();

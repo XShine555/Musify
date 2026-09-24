@@ -9,9 +9,9 @@ namespace Musify.Api.OpenApi;
 public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> options)
     : IConfigureNamedOptions<OpenApiOptions>
 {
-    private const string SecuritySchemeId = "OAuth2";
+    internal const string SecuritySchemeId = "OAuth2";
 
-    private readonly AuthenticationConfiguration _configuration = options.Value;
+    private readonly AuthenticationConfiguration configuration = options.Value;
 
     public void Configure(string? name, OpenApiOptions options) => Configure(options);
 
@@ -28,9 +28,9 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
                 {
                     AuthorizationCode = new OpenApiOAuthFlow
                     {
-                        AuthorizationUrl = new Uri(_configuration.AuthorizationEndpoint),
-                        TokenUrl = new Uri(_configuration.TokenEndpoint),
-                        Scopes = _configuration.Scopes.ToDictionary(scope => scope, scope => scope),
+                        AuthorizationUrl = new Uri(configuration.AuthorizationEndpoint),
+                        TokenUrl = new Uri(configuration.TokenEndpoint),
+                        Scopes = configuration.Scopes.ToDictionary(scope => scope, scope => scope),
                     },
                 },
             };
@@ -57,6 +57,16 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
 
         options.AddOperationTransformer((operation, context, _) =>
         {
+            // Route parameters constrained with :long are user ids, which travel as strings like every other long.
+            foreach (var parameter in operation.Parameters?.OfType<OpenApiParameter>() ?? [])
+            {
+                if (parameter.Schema is OpenApiSchema { Type: JsonSchemaType.Integer, Format: "int64" } schema)
+                {
+                    schema.Type = JsonSchemaType.String;
+                    schema.Format = null;
+                }
+            }
+
             var requiresAuthorization = context.Description.ActionDescriptor.EndpointMetadata
                 .OfType<IAuthorizeData>()
                 .Any();
@@ -66,15 +76,13 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
                 .Any();
 
             if (!requiresAuthorization || allowsAnonymous)
-            {
                 return Task.CompletedTask;
-            }
 
             operation.Security ??= new List<OpenApiSecurityRequirement>();
             operation.Security.Add(new OpenApiSecurityRequirement
             {
                 [new OpenApiSecuritySchemeReference(SecuritySchemeId, context.Document)] =
-                    _configuration.Scopes.ToList(),
+                    configuration.Scopes.ToList(),
             });
 
             return Task.CompletedTask;

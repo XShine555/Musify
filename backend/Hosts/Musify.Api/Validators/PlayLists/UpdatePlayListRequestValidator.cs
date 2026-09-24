@@ -7,17 +7,17 @@ public sealed class UpdatePlayListRequestValidator : AbstractValidator<UpdatePla
 {
     public UpdatePlayListRequestValidator()
     {
-        RuleFor(x => x.NewName)
+        RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(50)
-            .When(x => x.NewName != null);
+            .MaximumLength(Limits.PlayListName)
+            .When(x => x.Name != null);
 
-        RuleFor(x => x.NewDescription)
-            .MaximumLength(256)
-            .When(x => x.NewDescription != null);
+        RuleFor(x => x.Description)
+            .MaximumLength(Limits.Description)
+            .When(x => x.Description != null);
 
-        RuleFor(x => x.NewVisibility)
+        RuleFor(x => x.Visibility)
             .IsInEnum()
-            .When(x => x.NewVisibility != null);
+            .When(x => x.Visibility != null);
     }
 }

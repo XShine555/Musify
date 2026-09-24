@@ -3,9 +3,9 @@ using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
+using Musify.Api.Models;
 using Musify.Application.Contracts;
 using Musify.Application.Pictures;
-using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
@@ -22,47 +22,47 @@ public static class TrackEndpoints
         group.MapGet("/", GetTracks)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetTracks")
-            .WithSummary("Get Paginated Tracks, Optionally Filtered By Name And Genre.")
+            .WithSummary("Get paginated tracks, optionally filtered by name and genre")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
             .ProducesValidationProblem();
 
-        group.MapGet("/{id}", GetTrackById)
+        group.MapGet("/{id:guid}", GetTrackById)
             .WithName("GetTrackById")
-            .WithSummary("Get A Track By Id.")
+            .WithSummary("Get a track by id")
             .Produces<TrackApplicationResponse>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/cover", GetTrackCover)
+        group.MapGet("/{id:guid}/cover", GetTrackCover)
             .WithName("GetTrackCover")
-            .WithSummary("Get A Track Cover Image.")
+            .WithSummary("Get a track cover image")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/{id}/stream", GetTrackStream)
+        group.MapGet("/{id:guid}/stream", GetTrackStream)
             .WithName("GetTrackStream")
-            .WithSummary("Get A Streaming Manifest URL And Ticket For A Track. Works Anonymously When The Playback Configuration Allows It.")
+            .WithSummary("Get a streaming manifest URL and ticket for a track. Works anonymously when the playback configuration allows it")
             .Produces<TrackStreamResponse>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPut("/listens/{listenId}/progress", RecordListeningProgress)
+        group.MapPut("/listens/{listenId:guid}/progress", RecordListeningProgress)
             .AddEndpointFilter<ValidationFilter<RecordListeningProgressRequest>>()
             .WithName("RecordListeningProgress")
-            .WithSummary("Report The Total Seconds Actually Played For A Listen Started By The Stream Endpoint.")
+            .WithSummary("Report the total seconds actually played for a listen started by the stream endpoint")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapGet("/users/{userId}", GetTracksByUserId)
+        group.MapGet("/users/{userId:long}", GetTracksByUserId)
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetTracksByUserId")
-            .WithSummary("Get Paginated Tracks For A User.")
+            .WithSummary("Get paginated tracks for a user")
             .Produces<PaginatedResponse<TrackApplicationResponse>>();
 
         group.MapPost("/", CreateTrack)
             .WithName("CreateTrack")
-            .WithSummary("Create A New Track.")
+            .WithSummary("Create a new track")
             .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>()
             .RequireAuthorization()
             .Produces<TrackApplicationResponse>(StatusCodes.Status201Created)
@@ -71,9 +71,9 @@ public static class TrackEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
-        group.MapDelete("/{trackId}", DeleteTrack)
+        group.MapDelete("/{id:guid}", DeleteTrack)
             .WithName("DeleteTrack")
-            .WithSummary("Delete A Track.")
+            .WithSummary("Delete a track")
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -83,7 +83,7 @@ public static class TrackEndpoints
 
         group.MapPost("/upload-urls", RequestTrackUploadUrls)
             .WithName("RequestTrackUploadUrls")
-            .WithSummary("Request Pre-Signed URLs To Upload Track Picture And Audio.")
+            .WithSummary("Request pre-signed URLs to upload track picture and audio")
             .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>()
             .RequireAuthorization()
             .Produces<TrackUploadUrlsResponse>()
@@ -176,10 +176,10 @@ public static class TrackEndpoints
     private static async Task<IResult> DeleteTrack(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid trackId,
+        Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new DeleteTrackCommand(currentUser.RequiredId, trackId), cancellationToken);
+        var result = await mediator.Send(new DeleteTrackCommand(currentUser.RequiredId, id), cancellationToken);
         return result.ToHttpResult();
     }
 

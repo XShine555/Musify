@@ -40,8 +40,8 @@ export async function addAlbumToPlaylistAction({ request, params, locals, fetch 
 	}
 
 	const api = createApiClient({ fetch, accessToken });
-	const { data: tracks, error: tracksErr } = await api.GET('/albums/{albumId}/tracks', {
-		params: { path: { albumId }, query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE } }
+	const { data: tracks, error: tracksErr } = await api.GET('/albums/{id}/tracks', {
+		params: { path: { id: albumId }, query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE } }
 	});
 
 	if (tracksErr || !tracks) {

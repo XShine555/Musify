@@ -26,8 +26,8 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 			fetchAllPages(
 				async (pageNumber, pageSize) =>
 					(
-						await api.GET('/playlists/{playlistId}/tracks', {
-							params: { path: { playlistId: playlist.id }, query: { pageNumber, pageSize } }
+						await api.GET('/playlists/{id}/tracks', {
+							params: { path: { id: playlist.id }, query: { pageNumber, pageSize } }
 						})
 					).data,
 				PLAYLIST_TRACKS_LIMIT

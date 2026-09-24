@@ -9,13 +9,13 @@ public sealed class CreateAlbumRequestValidator : AbstractValidator<CreateAlbumR
     {
         RuleFor(x => x.Title)
             .NotEmpty()
-            .MaximumLength(200);
+            .MaximumLength(Limits.AlbumTitle);
 
         RuleFor(x => x.Description)
-            .MaximumLength(256);
+            .MaximumLength(Limits.Description);
 
         RuleFor(x => x.ReleaseYear)
-            .InclusiveBetween(AlbumReleaseYear.Earliest, AlbumReleaseYear.Latest)
+            .InclusiveBetween(Limits.EarliestReleaseYear, Limits.LatestReleaseYear)
             .When(x => x.ReleaseYear.HasValue);
 
         RuleFor(x => x.PictureIntentId)

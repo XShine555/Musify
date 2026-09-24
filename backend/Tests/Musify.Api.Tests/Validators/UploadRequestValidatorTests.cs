@@ -1,6 +1,6 @@
-using Musify.Api.DataTransferObjects.Albums;
+using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Tracks;
-using Musify.Api.Validators.Albums;
+using Musify.Api.Validators;
 using Musify.Api.Validators.Tracks;
 using Musify.Application.Configuration;
 using Xunit;
@@ -14,9 +14,9 @@ public sealed class UploadRequestValidatorTests
     [Fact]
     public void PictureUpload_ValidRequest_Passes()
     {
-        var validator = new RequestAlbumPictureUploadRequestValidator(configuration);
+        var validator = new PictureUploadRequestValidator(configuration);
 
-        var result = validator.Validate(new RequestAlbumPictureUploadRequest("webp", "image/webp", 500));
+        var result = validator.Validate(new PictureUploadRequest("webp", "image/webp", 500));
 
         Assert.True(result.IsValid);
     }
@@ -30,9 +30,9 @@ public sealed class UploadRequestValidatorTests
     [InlineData("webp", "image/webp", 1_001L)]
     public void PictureUpload_InvalidRequest_Fails(string fileType, string contentType, long size)
     {
-        var validator = new RequestAlbumPictureUploadRequestValidator(configuration);
+        var validator = new PictureUploadRequestValidator(configuration);
 
-        var result = validator.Validate(new RequestAlbumPictureUploadRequest(fileType, contentType, size));
+        var result = validator.Validate(new PictureUploadRequest(fileType, contentType, size));
 
         Assert.False(result.IsValid);
     }

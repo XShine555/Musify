@@ -1,4 +1,5 @@
 using Musify.Api.DataTransferObjects.Albums;
+using Musify.Api.Validators;
 using Musify.Api.Validators.Albums;
 using Xunit;
 
@@ -44,7 +45,7 @@ public sealed class CreateAlbumRequestValidatorTests
     [Fact]
     public void Validate_ReleaseYearBeforeTheEarliestBoundary_Fails()
     {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Earliest - 1, Guid.NewGuid()));
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.EarliestReleaseYear - 1, Guid.NewGuid()));
 
         Assert.False(result.IsValid);
     }
@@ -52,7 +53,7 @@ public sealed class CreateAlbumRequestValidatorTests
     [Fact]
     public void Validate_ReleaseYearAtTheEarliestBoundary_Passes()
     {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Earliest, Guid.NewGuid()));
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.EarliestReleaseYear, Guid.NewGuid()));
 
         Assert.True(result.IsValid);
     }
@@ -60,7 +61,7 @@ public sealed class CreateAlbumRequestValidatorTests
     [Fact]
     public void Validate_ReleaseYearAtTheLatestBoundary_Passes()
     {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Latest, Guid.NewGuid()));
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.LatestReleaseYear, Guid.NewGuid()));
 
         Assert.True(result.IsValid);
     }
@@ -68,7 +69,7 @@ public sealed class CreateAlbumRequestValidatorTests
     [Fact]
     public void Validate_ReleaseYearPastTheLatestBoundary_Fails()
     {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, AlbumReleaseYear.Latest + 1, Guid.NewGuid()));
+        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.LatestReleaseYear + 1, Guid.NewGuid()));
 
         Assert.False(result.IsValid);
     }

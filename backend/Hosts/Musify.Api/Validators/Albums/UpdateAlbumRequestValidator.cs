@@ -7,15 +7,15 @@ public sealed class UpdateAlbumRequestValidator : AbstractValidator<UpdateAlbumR
 {
     public UpdateAlbumRequestValidator()
     {
-        RuleFor(x => x.NewTitle)
+        RuleFor(x => x.Title)
             .NotEmpty()
-            .MaximumLength(200);
+            .MaximumLength(Limits.AlbumTitle);
 
-        RuleFor(x => x.NewDescription)
-            .MaximumLength(256);
+        RuleFor(x => x.Description)
+            .MaximumLength(Limits.Description);
 
-        RuleFor(x => x.NewReleaseYear)
-            .InclusiveBetween(AlbumReleaseYear.Earliest, AlbumReleaseYear.Latest)
-            .When(x => x.NewReleaseYear.HasValue);
+        RuleFor(x => x.ReleaseYear)
+            .InclusiveBetween(Limits.EarliestReleaseYear, Limits.LatestReleaseYear)
+            .When(x => x.ReleaseYear.HasValue);
     }
 }

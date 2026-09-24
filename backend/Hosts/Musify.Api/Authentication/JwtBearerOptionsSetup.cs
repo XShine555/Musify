@@ -8,27 +8,25 @@ namespace Musify.Api.Authentication;
 public sealed class JwtBearerOptionsSetup(IOptions<AuthenticationConfiguration> options)
     : IConfigureNamedOptions<JwtBearerOptions>
 {
-    private readonly AuthenticationConfiguration _configuration = options.Value;
+    private readonly AuthenticationConfiguration configuration = options.Value;
 
     public void Configure(string? name, JwtBearerOptions options)
     {
         if (name != JwtBearerDefaults.AuthenticationScheme)
-        {
             return;
-        }
 
         Configure(options);
     }
 
     public void Configure(JwtBearerOptions options)
     {
-        options.MetadataAddress = _configuration.MetadataAddress;
-        options.RequireHttpsMetadata = _configuration.RequireHttpsMetadata;
-        options.Audience = _configuration.AudienceAddress;
+        options.MetadataAddress = configuration.MetadataAddress;
+        options.RequireHttpsMetadata = configuration.RequireHttpsMetadata;
+        options.Audience = configuration.AudienceAddress;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidIssuer = _configuration.IssuerAddress,
-            ValidAudience = _configuration.AudienceAddress,
+            ValidIssuer = configuration.IssuerAddress,
+            ValidAudience = configuration.AudienceAddress,
             RoleClaimType = ClaimTypes.Role,
             NameClaimType = ClaimTypes.Name,
         };

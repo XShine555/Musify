@@ -18,9 +18,9 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 
 	const [albumRes, tracksRes, libraryRes] = await Promise.all([
 		api.GET('/albums/{id}', { params: { path: { id: params.id } } }),
-		api.GET('/albums/{albumId}/tracks', {
+		api.GET('/albums/{id}/tracks', {
 			params: {
-				path: { albumId: params.id },
+				path: { id: params.id },
 				query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE }
 			}
 		}),
@@ -71,8 +71,8 @@ export const actions: Actions = {
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
 		const api = createApiClient({ fetch, accessToken });
-		const result = await api.DELETE('/albums/{albumId}/tracks/{trackId}', {
-			params: { path: { albumId: params.id, trackId } }
+		const result = await api.DELETE('/albums/{id}/tracks/{trackId}', {
+			params: { path: { id: params.id, trackId } }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo quitar la canción.');
 		if (failure) return failure;
@@ -102,13 +102,13 @@ export const actions: Actions = {
 			newPictureIntentId = uploaded.intentId;
 		}
 
-		const result = await api.PUT('/albums/{albumId}', {
-			params: { path: { albumId: params.id } },
+		const result = await api.PUT('/albums/{id}', {
+			params: { path: { id: params.id } },
 			body: {
-				newTitle: parsed.body.title,
-				newDescription: parsed.body.description,
-				newReleaseYear: parsed.body.releaseYear,
-				newPictureIntentId
+				title: parsed.body.title,
+				description: parsed.body.description,
+				releaseYear: parsed.body.releaseYear,
+				pictureIntentId: newPictureIntentId
 			}
 		});
 		const failure = unwrapOrFail(result, 'No se pudo actualizar el álbum.');
@@ -121,8 +121,8 @@ export const actions: Actions = {
 		if (typeof accessToken !== 'string') return accessToken;
 
 		const api = createApiClient({ fetch, accessToken });
-		const result = await api.DELETE('/albums/{albumId}', {
-			params: { path: { albumId: params.id } }
+		const result = await api.DELETE('/albums/{id}', {
+			params: { path: { id: params.id } }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo eliminar el álbum.');
 		if (failure) return failure;

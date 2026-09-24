@@ -3,7 +3,7 @@ using Musify.Domain.ValueObjects;
 namespace Musify.Api.DataTransferObjects.PlayLists;
 
 public record UpdatePlayListRequest(
-    string? NewName,
-    string? NewDescription,
-    Guid? NewPictureIntentId,
-    PlayListVisibility? NewVisibility = null);
+    string? Name,
+    string? Description,
+    Guid? PictureIntentId,
+    PlayListVisibility? Visibility = null);

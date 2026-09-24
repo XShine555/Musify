@@ -25,8 +25,8 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	const tracksByPlaylist = await Promise.all(
 		playlistItems.map((playlist) =>
 			api
-				.GET('/playlists/{playlistId}/tracks', {
-					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 1 } }
+				.GET('/playlists/{id}/tracks', {
+					params: { path: { id: playlist.id }, query: { pageNumber: 1, pageSize: 1 } }
 				})
 				.then((res) => Number(res.data?.totalItemCount ?? 0))
 		)
