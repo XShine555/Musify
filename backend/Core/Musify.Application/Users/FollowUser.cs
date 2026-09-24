@@ -38,7 +38,6 @@ namespace Musify.Application.Users
                 FollowedId = request.FollowedId
             }, cancellationToken);
 
-            // A concurrent double click can hit the unique index; already following is a successful no-op.
             var saved = await database.TrySaveChangesAsync(
                 AppErrors.Conflict("UserFollow.Duplicate", "Already following this user."), cancellationToken);
             if (saved.IsError)

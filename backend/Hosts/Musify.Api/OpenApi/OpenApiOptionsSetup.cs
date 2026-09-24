@@ -40,8 +40,6 @@ namespace Musify.Api.OpenApi
 
             options.AddSchemaTransformer((schema, context, _) =>
             {
-                // Every long the API returns is a user id, serialized as a string (JS loses precision above 2^53).
-                // Request DTOs only carry byte sizes, which may be sent as numbers or strings.
                 if (context.JsonPropertyInfo is { } property
                     && (property.PropertyType == typeof(long) || property.PropertyType == typeof(long?)))
                 {
@@ -57,7 +55,6 @@ namespace Musify.Api.OpenApi
 
             options.AddOperationTransformer((operation, context, _) =>
             {
-                // Route parameters constrained with :long are user ids, which travel as strings like every other long.
                 foreach (var parameter in operation.Parameters?.OfType<OpenApiParameter>() ?? [])
                 {
                     if (parameter.Schema is OpenApiSchema { Type: JsonSchemaType.Integer, Format: "int64" } schema)

@@ -16,7 +16,6 @@ using Xunit;
 
 namespace Musify.Infrastructure.Tests.MassTransit
 {
-    /// <summary>Runs the picture-update activities inside real routing slips on the MassTransit test harness.</summary>
     [Collection(InfrastructureCollection.Name)]
     public sealed class UpdatePicturesActivityTests(InfrastructureTestFixture fixture)
     {

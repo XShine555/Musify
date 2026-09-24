@@ -2,7 +2,6 @@ namespace Musify.Domain.ValueObjects
 {
     public enum Genre
     {
-        /// <summary>Unset value (the enum default); it is not a real genre and is never stored or offered to clients.</summary>
         None = 0,
         Pop = 1,
         Rock = 2,

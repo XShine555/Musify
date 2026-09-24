@@ -5,9 +5,6 @@ using Musify.Infrastructure.MassTransit.Sagas;
 
 namespace Musify.Infrastructure.Persistence
 {
-    /// <summary>
-    /// Entity model shared by <see cref="Database"/> and the in-memory test database, so both always agree.
-    /// </summary>
     public static class ModelConfiguration
     {
         public static void Apply(ModelBuilder modelBuilder)

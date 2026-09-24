@@ -8,7 +8,6 @@ using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.Activities.LifeCycle
 {
-    /// <summary>Sets the life-cycle status of an entity (removing, failed, ...). A missing entity is skipped.</summary>
     internal abstract class MarkLifeCycleActivity<TEntity>(IDatabase database, ILogger logger)
         : IExecuteActivity<MarkLifeCycleArguments>
         where TEntity : class, IHasLifeCycle
@@ -33,7 +32,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.LifeCycle
         }
     }
 
-    /// <summary>Deletes an entity row. A missing entity is skipped.</summary>
     internal abstract class DeleteEntityActivity<TEntity>(IDatabase database, ILogger logger)
         : IExecuteActivity<DeleteEntityArguments>
         where TEntity : class, IHasLifeCycle
@@ -58,8 +56,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.LifeCycle
         }
     }
 
-    // One concrete activity per entity keeps a separate queue for each of them:
-    // the endpoint name is the kebab-cased class name.
     internal sealed class MarkTrackLifeCycleActivity(IDatabase database, ILogger<MarkTrackLifeCycleActivity> logger)
         : MarkLifeCycleActivity<Track>(database, logger)
     {

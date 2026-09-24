@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Domain.ValueObjects
 {
-    /// <summary>The picture file names of an album or playlist. Resized names stay null until processing finishes.</summary>
     public class EntityPictures
     {
         [Required]

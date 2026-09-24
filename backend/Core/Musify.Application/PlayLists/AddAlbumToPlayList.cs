@@ -11,7 +11,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists
 {
-    /// <summary>Appends every track of an album to a playlist in album order, skipping the ones it already has.</summary>
     public record AddAlbumToPlayListCommand(long UserId, Guid PlayListId, Guid AlbumId)
         : ICommand<ErrorOr<AddAlbumToPlayListResponse>>;
 
@@ -54,7 +53,6 @@ namespace Musify.Application.PlayLists
             if (newTrackIds.Count == 0)
                 return new AddAlbumToPlayListResponse(0);
 
-            // Playlist positions are internal indexes, so they start at 0.
             var nextPosition = existingTrackIds.Count > 0
                ? await playListTracksQuery.MaxAsync(link => link.Position, cancellationToken) + 1
                 : 0;

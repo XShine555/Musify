@@ -8,10 +8,6 @@ using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
-    /// <summary>
-    /// Moves an uploaded album/playlist picture to its final key, consumes the upload intent and hands over to the picture workflow.
-    /// Creation faults mark the whole entity as failed; update faults only report the picture as failed.
-    /// </summary>
     public class PictureSourceRoutingSlipBuilder
     {
         public RoutingSlipBuilder Build(CreateAlbumResourcesEvent message, Guid? correlationId) =>

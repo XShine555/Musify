@@ -6,14 +6,12 @@ using Musify.Infrastructure.MassTransit.Consumers;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip
 {
-    /// <summary>Shared building blocks for every routing slip in the worker.</summary>
     internal static class RoutingSlips
     {
         public static Uri ExecuteUri(string endpointName) => new($"queue:{endpointName}_execute");
 
         public static Uri ConsumerUri(string queueName) => new($"queue:{queueName}");
 
-        /// <summary>A new slip that carries the correlation id and always cleans its temporary directory up.</summary>
         public static RoutingSlipBuilder Create(Guid? correlationId)
         {
             var builder = new RoutingSlipBuilder(NewId.NextGuid());
@@ -32,7 +30,6 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip
             return builder;
         }
 
-        /// <summary>Publishes a failure event for the subject when the slip faults.</summary>
         public static RoutingSlipBuilder TrackFaults(
             this RoutingSlipBuilder builder, Guid subjectId, string processKind)
         {

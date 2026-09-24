@@ -4,7 +4,6 @@ using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Jobs
 {
-    /// <summary>Registers every recurring Hangfire job when the host starts.</summary>
     public sealed class RecurringJobsRegistrar(
         IRecurringJobManager recurringJobManager,
         UploadIntentConfiguration uploadIntentConfiguration)
@@ -30,7 +29,6 @@ namespace Musify.Infrastructure.Jobs
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-        /// <summary>Hangfire cron has a one-minute resolution, so the interval is rounded up to whole minutes.</summary>
         internal static string EveryCron(int intervalSeconds)
         {
             var minutes = Math.Max(1, (int)Math.Ceiling(intervalSeconds / 60.0));

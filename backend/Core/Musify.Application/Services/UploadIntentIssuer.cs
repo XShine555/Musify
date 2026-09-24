@@ -24,7 +24,6 @@ namespace Musify.Application.Services
         string ContentType,
         string UploadUrl);
 
-    /// <summary>Issues pre-signed upload URLs and the upload intents that track them, checking the user quota first.</summary>
     public sealed class UploadIntentIssuer(
         IDatabase database,
         IStorageService storageService,

@@ -14,7 +14,6 @@ namespace Musify.Infrastructure.Tests.MassTransit
 
         private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-        // Track
 
         [Fact]
         public async Task Track_PictureAndAudioProcessed_CompletesTheSaga()
@@ -86,7 +85,6 @@ namespace Musify.Infrastructure.Tests.MassTransit
             Assert.False(await harness.Published.Any<TrackProcessingFailed>(Ct));
         }
 
-        // Album
 
         [Fact]
         public async Task Album_PictureProcessed_CompletesTheSaga()
@@ -137,7 +135,6 @@ namespace Musify.Infrastructure.Tests.MassTransit
             Assert.False(await harness.Published.Any<Fault<AlbumPictureProcessingFailed>>(Ct));
         }
 
-        // PlayList
 
         [Fact]
         public async Task PlayList_PictureProcessed_CompletesTheSaga()

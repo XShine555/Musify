@@ -7,7 +7,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Pictures
 {
-    /// <summary>What an album or playlist needs to switch to a freshly uploaded picture.</summary>
     public sealed record PreparedPicture(UploadIntent Intent, EntityPictures Pictures, string FinalKey, ImageSizes Sizes);
 
     public static class PictureSourceChange

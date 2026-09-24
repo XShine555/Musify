@@ -18,7 +18,6 @@ namespace Musify.Application.Shared
 
     public static class PaginationExtensions
     {
-        /// <summary>Counts and pages the same (already filtered, ordered and projected) query.</summary>
         public static async Task<PaginatedResponse<T>> ToPaginatedAsync<T>(
             this IQueryable<T> query, PageRequest page, CancellationToken cancellationToken)
         {

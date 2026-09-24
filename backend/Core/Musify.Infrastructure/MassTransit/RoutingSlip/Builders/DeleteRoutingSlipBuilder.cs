@@ -8,7 +8,6 @@ using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
-    /// <summary>Marks an entity as removing, deletes its files from the bucket and finally deletes its row.</summary>
     public class DeleteRoutingSlipBuilder(
         IDatabase database,
         TrackConfiguration trackConfiguration,
@@ -48,7 +47,6 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                         routes.BuildOriginalPicturePath(userId, track.Pictures.OriginalName));
                 }
 
-                // Unprocessed tracks still point at the shared preset pictures, which must never be deleted.
                 if (track.Pictures.IsProcessed)
                 {
                     builder.AddRemoveFile(ActivityNames.RemoveTrackSmallPicture, bucket, routes.BuildPicturePath(PictureSize.Small, track.Pictures.SmallName));

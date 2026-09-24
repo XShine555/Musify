@@ -30,7 +30,6 @@ namespace Musify.Application.PlayLists
 
             var playList = found.Value;
 
-            // This is a full replace of the plain fields; the picture has its own command.
             playList.Name = request.NewName.Trim();
             playList.NormalizedName = TextNormalizer.Normalize(request.NewName);
             playList.Description = string.IsNullOrWhiteSpace(request.NewDescription) ? null : request.NewDescription.Trim();

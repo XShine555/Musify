@@ -60,7 +60,6 @@ namespace Musify.Application.Pictures
                 _ => source.Medium
             };
 
-            // The resized files only exist once processing has finished; until then serve the original.
             var (name, key) = !string.IsNullOrEmpty(resizedName)
                 ? (resizedName, routes.BuildPicturePath(request.Size, resizedName))
                 : !string.IsNullOrEmpty(source.Original)

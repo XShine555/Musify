@@ -83,7 +83,6 @@ namespace Musify.Application.Configuration
 
     public static class PictureSizeParser
     {
-        /// <summary>Parses the <c>size</c> query value; anything unknown means <see cref="PictureSize.Medium"/>.</summary>
         public static PictureSize Parse(string? value) =>
             Enum.TryParse<PictureSize>(value, ignoreCase: true, out var size) && Enum.IsDefined(size)
                 ? size

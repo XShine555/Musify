@@ -13,7 +13,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks
 {
-    /// <summary>Starts a listen: records it for signed-in users and issues the stream ticket.</summary>
     public record StartListeningCommand(Guid TrackId, long? UserId)
         : ICommand<ErrorOr<TrackStreamResponse>>;
 

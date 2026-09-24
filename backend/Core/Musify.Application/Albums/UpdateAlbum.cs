@@ -30,7 +30,6 @@ namespace Musify.Application.Albums
             var album = found.Value;
             var title = request.Title.Trim();
 
-            // This is a full replace of the plain fields; the picture has its own command.
             album.Title = title;
             album.NormalizedTitle = TextNormalizer.Normalize(title);
             album.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();

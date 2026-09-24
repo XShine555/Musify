@@ -44,7 +44,6 @@ namespace Musify.Application.Likes
                 nowLiked = true;
             }
 
-            // A concurrent double click can hit the unique index; the outcome is already in place, so treat it as a no-op.
             var saved = await database.TrySaveChangesAsync(
                 AppErrors.Conflict("TrackLike.Duplicate", "Track is already liked."), cancellationToken);
             if (saved.IsError)

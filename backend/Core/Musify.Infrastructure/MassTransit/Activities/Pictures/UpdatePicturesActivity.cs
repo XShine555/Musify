@@ -12,7 +12,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 {
     internal sealed record PictureNames(string? Original, string? Small, string? Medium, string? Large);
 
-    /// <summary>Stores the processed picture names on the owner and reports it; compensation restores the previous names.</summary>
     internal abstract class UpdatePicturesActivity<TEntity>(
         IDatabase database,
         IPublishEndpoint publishEndpoint,
@@ -24,7 +23,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.Pictures
 
         protected abstract Task<TEntity?> FindAsync(Guid id, CancellationToken cancellationToken);
 
-        /// <summary>Reads the current names; throws when the entity has no pending picture.</summary>
         protected abstract PictureNames Read(TEntity entity);
 
         protected abstract void Write(TEntity entity, PictureNames names, bool succeeded);

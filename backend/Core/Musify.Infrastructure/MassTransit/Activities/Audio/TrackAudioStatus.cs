@@ -5,7 +5,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
-    /// <summary>Shared bookkeeping of the audio processing activities.</summary>
     internal static class TrackAudioStatus
     {
         public static async Task<Track> LoadAsync(IDatabase database, Guid trackId, CancellationToken cancellationToken) =>

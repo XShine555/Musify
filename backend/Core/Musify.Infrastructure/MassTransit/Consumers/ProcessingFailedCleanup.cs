@@ -7,7 +7,6 @@ namespace Musify.Infrastructure.MassTransit.Consumers
 {
     internal static class ProcessingFailedCleanup
     {
-        /// <summary>Removes whatever files were left behind and marks the entity as failed.</summary>
         public static Task ExecuteAsync(
             IBus bus,
             Guid subjectId,

@@ -9,7 +9,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists
 {
-    /// <summary>Appends tracks to a playlist in the given order, skipping the ones it already has.</summary>
     public record AddTracksToPlayListCommand(long UserId, Guid PlayListId, IReadOnlyList<Guid> TrackIds)
         : ICommand<ErrorOr<Success>>;
 
@@ -46,7 +45,6 @@ namespace Musify.Application.PlayLists
             if (toAdd.Count == 0)
                 return Result.Success;
 
-            // Playlist positions are internal indexes, so they start at 0.
             var playListTracksQuery = database.PlayListHasTracks
                 .Where(link => link.PlayListId == request.PlayListId);
 

@@ -4,7 +4,6 @@ using Musify.Application.Tracks.Responses;
 
 namespace Musify.Application.Services
 {
-    /// <summary>Builds the stream URL and signed ticket for a processed track. It never touches the database.</summary>
     public sealed class TrackStreamIssuer(
         IStreamTicketService ticketService,
         TrackConfiguration trackConfiguration,

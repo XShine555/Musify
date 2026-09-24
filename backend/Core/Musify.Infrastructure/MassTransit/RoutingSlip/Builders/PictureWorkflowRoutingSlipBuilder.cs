@@ -8,7 +8,6 @@ using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
 {
-    /// <summary>Downloads a picture, resizes it to the three sizes, uploads them and records the result on the owner.</summary>
     public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfiguration)
     {
         public RoutingSlipBuilder Build(UpdateTrackPictureEvent message, Guid? correlationId) =>

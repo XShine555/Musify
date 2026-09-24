@@ -2,7 +2,6 @@ namespace Musify.Application.Contracts
 {
     public interface IStorageService
     {
-        /// <summary>Opens an object for reading, or returns null when it does not exist.</summary>
         public Task<Stream?> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
         public Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);

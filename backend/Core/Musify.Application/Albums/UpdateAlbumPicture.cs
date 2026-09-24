@@ -13,7 +13,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums
 {
-    /// <summary>Replaces an album's picture with a previously uploaded image; the plain fields are untouched.</summary>
     public record UpdateAlbumPictureCommand(long UserId, Guid AlbumId, Guid PictureIntentId)
         : ICommand<ErrorOr<AlbumApplicationResponse>>;
 

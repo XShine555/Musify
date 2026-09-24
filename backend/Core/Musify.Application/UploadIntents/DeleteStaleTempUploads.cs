@@ -5,7 +5,6 @@ using Musify.Application.Contracts;
 
 namespace Musify.Application.UploadIntents
 {
-    /// <summary>Deletes temporary upload objects that nobody claimed within the retention window.</summary>
     public record DeleteStaleTempUploadsCommand : ICommand<int>;
 
     public class DeleteStaleTempUploadsCommandHandler(

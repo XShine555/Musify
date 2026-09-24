@@ -13,7 +13,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists
 {
-    /// <summary>Replaces a playlist's picture with a previously uploaded image; the plain fields are untouched.</summary>
     public record UpdatePlayListPictureCommand(long UserId, Guid PlayListId, Guid PictureIntentId)
         : ICommand<ErrorOr<PlayListApplicationResponse>>;
 

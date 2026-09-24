@@ -9,7 +9,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums
 {
-    /// <summary>Appends your own tracks to an album in the given order, skipping the ones it already has.</summary>
     public record AddTracksToAlbumCommand(long UserId, Guid AlbumId, IReadOnlyList<Guid> TrackIds)
         : ICommand<ErrorOr<Success>>;
 
@@ -50,7 +49,6 @@ namespace Musify.Application.Albums
             if (toAdd.Count == 0)
                 return Result.Success;
 
-            // Album track numbers are user-visible, so they start at 1.
             var nextTrackNumber = (await database.AlbumHasTracks
                 .Where(link => link.AlbumId == request.AlbumId)
                 .MaxAsync(link => (int?)link.TrackNumber, cancellationToken) ?? 0) + 1;

@@ -7,7 +7,6 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.UploadIntents
 {
-    /// <summary>Marks overdue upload intents as expired and deletes the ones expired for longer than the retention window.</summary>
     public record ExpireUploadIntentsCommand : ICommand<int>;
 
     public class ExpireUploadIntentsCommandHandler(
