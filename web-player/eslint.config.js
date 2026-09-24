@@ -49,6 +49,34 @@ export default ts.config(
 		}
 	},
 	{
+		files: ['src/lib/components/ui/**'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['../*'],
+							message: 'Use $lib/... instead of relative parent imports.'
+						},
+						{
+							group: [
+								'$lib/player/*',
+								'$lib/data/*',
+								'$lib/server/*',
+								'$lib/components/music/*',
+								'$lib/components/shell/*',
+								'$lib/components/player/*'
+							],
+							message:
+								'components/ui is the presentation layer: it cannot depend on app state, data or other component layers.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
 		ignores: ['build/', '.svelte-kit/', 'static/', 'src/lib/api/schema.d.ts']
 	}
 );

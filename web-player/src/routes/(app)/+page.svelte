@@ -16,8 +16,8 @@
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
-	import PlayAllButton from '$lib/components/ui/media/PlayAllButton.svelte';
-	import TrackContextMenu from '$lib/components/ui/overlay/TrackContextMenu.svelte';
+	import PlayAllButton from '$lib/components/music/PlayAllButton.svelte';
+	import TrackContextMenu from '$lib/components/music/TrackContextMenu.svelte';
 	import { createMenu } from '$lib/state/menu.svelte';
 	import { HOME_CONTINUE_LIMIT } from '$lib/config';
 

@@ -2,14 +2,14 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import X from '@lucide/svelte/icons/x';
 	import { player } from '$lib/player/player.svelte';
-	import PlayAllButton from '$lib/components/ui/media/PlayAllButton.svelte';
+	import PlayAllButton from '$lib/components/music/PlayAllButton.svelte';
 	import { liked } from '$lib/player/liked.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
-	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import TrackList from '$lib/components/music/TrackList.svelte';
 
 	const tracks = $derived(liked.list);
 	const listTracks = $derived(tracks.map((track) => ({ ...track, date: track.likedAt })));

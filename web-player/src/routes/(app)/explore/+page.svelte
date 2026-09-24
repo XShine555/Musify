@@ -20,8 +20,8 @@
 	import { genreHref, playlistCover } from '$lib/utils/hrefs';
 	import { createMenu } from '$lib/state/menu.svelte';
 	import { createPagedList } from '$lib/state/pagedList.svelte';
-	import TrackContextMenu from '$lib/components/ui/overlay/TrackContextMenu.svelte';
-	import AlbumContextMenu from '$lib/components/ui/overlay/AlbumContextMenu.svelte';
+	import TrackContextMenu from '$lib/components/music/TrackContextMenu.svelte';
+	import AlbumContextMenu from '$lib/components/music/AlbumContextMenu.svelte';
 	import { genreInfo, genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,

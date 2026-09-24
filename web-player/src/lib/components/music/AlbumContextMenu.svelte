@@ -5,7 +5,7 @@
 	import { fetchAlbumTracks } from '$lib/data/albums';
 	import type { Menu } from '$lib/state/menu.svelte';
 	import type { Playlist } from '$lib/types';
-	import ContextMenu from './ContextMenu.svelte';
+	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 
 	interface Props {
 		menu: Menu<string>;

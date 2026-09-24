@@ -25,8 +25,8 @@
 	import { player } from '$lib/player/player.svelte';
 	import { fmtTime, fmtDate } from '$lib/utils/format';
 	import { pressable } from '$lib/actions/pressable';
-	import MediaIdentity from './MediaIdentity.svelte';
-	import EqBars from './EqBars.svelte';
+	import MediaIdentity from '$lib/components/ui/media/MediaIdentity.svelte';
+	import EqBars from '$lib/components/ui/media/EqBars.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 
 	interface RowAction {

@@ -9,7 +9,7 @@
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
-	import TrackList from '$lib/components/ui/media/TrackList.svelte';
+	import TrackList from '$lib/components/music/TrackList.svelte';
 
 	let { data } = $props();
 

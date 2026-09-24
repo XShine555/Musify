@@ -3,7 +3,7 @@
 	import { player } from '$lib/player/player.svelte';
 	import type { Menu } from '$lib/state/menu.svelte';
 	import type { Playlist, Track } from '$lib/types';
-	import ContextMenu from './ContextMenu.svelte';
+	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 
 	interface Props {
 		menu: Menu<Track>;
