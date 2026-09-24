@@ -1,6 +1,6 @@
 <script lang="ts">
 	import PlayerBar from './PlayerBar.svelte';
-	import TabsBar from '../layout/TabsBar.svelte';
+	import TabsBar from '$lib/components/layout/TabsBar.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import type { SessionUser } from '$lib/types';
 

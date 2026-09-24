@@ -43,8 +43,7 @@
 	inert={!queuePanel.open}
 >
 	<aside
-		class="flex min-h-0 shrink-0 flex-col border-l border-hairline px-4 pt-5 pb-5"
-		style="width:var(--mf-queue-w)"
+		class="flex min-h-0 w-(--mf-queue-w) shrink-0 flex-col border-l border-hairline px-4 pt-5 pb-5"
 	>
 		<div class="mb-5 flex items-center justify-between">
 			<h2 class="font-display text-base font-medium tracking-tight text-fg">En cola</h2>

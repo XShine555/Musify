@@ -4,7 +4,7 @@
 	import { playlistCover } from '$lib/utils/hrefs';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import MediaIdentity from '../media/MediaIdentity.svelte';
+	import MediaIdentity from '$lib/components/ui/media/MediaIdentity.svelte';
 	import GlassMenu from './GlassMenu.svelte';
 	import MenuItem from './MenuItem.svelte';
 

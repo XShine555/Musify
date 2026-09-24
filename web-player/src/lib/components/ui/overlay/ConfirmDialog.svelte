@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Dialog from './Dialog.svelte';
-	import Button from '../primitives/Button.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	interface Props {
 		open: boolean;

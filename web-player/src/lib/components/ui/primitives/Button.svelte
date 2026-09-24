@@ -28,13 +28,13 @@
 		children
 	}: Props = $props();
 
-	const sizes = {
+	const SIZE = {
 		sm: 'rounded-control px-4 py-2 text-xs',
 		md: 'rounded-btn-sm px-4.5 py-2.5 text-control-sm',
 		lg: 'rounded-btn px-6 py-3.5 text-sm'
 	};
 
-	const variants = {
+	const VARIANT = {
 		primary: 'bg-cta-strong text-ink hover:bg-cta-strong-hover',
 		secondary: 'bg-btn text-fg hover:bg-btn-hover',
 		accent: 'surface-active text-accent-soft hover:surface-active-hover',
@@ -42,7 +42,7 @@
 	};
 
 	const classes = $derived(
-		`inline-flex items-center justify-center gap-2 font-medium btn-transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none disabled:opacity-40 ${sizes[size]} ${variants[variant]} ${klass}`
+		`inline-flex items-center justify-center gap-2 font-medium btn-transition focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-40 ${SIZE[size]} ${VARIANT[variant]} ${klass}`
 	);
 </script>
 
@@ -57,7 +57,7 @@
 	class={classes}
 >
 	{#if loading && !href}
-		<LoaderCircle class="size-4 animate-spin" />
+		<LoaderCircle class="size-icon-sm animate-spin" />
 	{/if}
 	{@render children()}
 </svelte:element>

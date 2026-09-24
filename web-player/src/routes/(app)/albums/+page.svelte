@@ -28,7 +28,7 @@
 		{#snippet actions()}
 			{#if items.length > 0}
 				<Button onclick={() => (creating = true)}>
-					<Plus class="size-4" />
+					<Plus class="size-icon-sm" />
 					Nuevo álbum
 				</Button>
 			{/if}

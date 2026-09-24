@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
-	import IconButton from '../primitives/IconButton.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import { fade } from 'svelte/transition';
 	import { pop } from '$lib/utils/transitions';
 	import { onEscape } from '$lib/actions/onEscape';
@@ -96,7 +96,7 @@
 						</h2>
 					</div>
 					<IconButton label="Cerrar" onclick={onClose} class="shrink-0">
-						<X class="size-4" />
+						<X class="size-icon-sm" />
 					</IconButton>
 				</div>
 			{/if}

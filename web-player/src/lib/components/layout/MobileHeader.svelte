@@ -3,10 +3,10 @@
 	import Upload from '@lucide/svelte/icons/upload';
 	import Folder from '@lucide/svelte/icons/folder';
 	import LogIn from '@lucide/svelte/icons/log-in';
-	import MenuItem from '../ui/overlay/MenuItem.svelte';
-	import AccountMenu from '../ui/overlay/AccountMenu.svelte';
-	import IconButton from '../ui/primitives/IconButton.svelte';
-	import Logo from '../ui/primitives/Logo.svelte';
+	import MenuItem from '$lib/components/ui/overlay/MenuItem.svelte';
+	import AccountMenu from '$lib/components/ui/overlay/AccountMenu.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
+	import Logo from '$lib/components/ui/primitives/Logo.svelte';
 
 	interface Props {
 		user: SessionUser | null;

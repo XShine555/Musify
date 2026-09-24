@@ -7,9 +7,9 @@
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import AccountMenu from '../ui/overlay/AccountMenu.svelte';
-	import IconButton from '../ui/primitives/IconButton.svelte';
-	import Button from '../ui/primitives/Button.svelte';
+	import AccountMenu from '$lib/components/ui/overlay/AccountMenu.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	interface Props {
 		user: SessionUser | null;
@@ -61,7 +61,7 @@
 		<label
 			class="flex h-9.5 w-full items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover"
 		>
-			<Search class="size-4 shrink-0 text-fg-2" />
+			<Search class="size-icon-sm shrink-0 text-fg-2" />
 			<input
 				type="text"
 				bind:this={searchInput}
@@ -77,7 +77,7 @@
 					aria-label="Borrar búsqueda"
 					class="grid size-5 shrink-0 place-items-center rounded-full text-fg-2 transition hover:text-fg"
 				>
-					<X class="size-3.5" />
+					<X class="size-icon-xs" />
 				</button>
 			{/if}
 		</label>

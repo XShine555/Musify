@@ -3,9 +3,9 @@
 	import { enhance } from '$app/forms';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ImageDropzone from './ImageDropzone.svelte';
-	import Button from '../primitives/Button.svelte';
-	import Field from '../primitives/Field.svelte';
-	import Alert from '../primitives/Alert.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Alert from '$lib/components/ui/primitives/Alert.svelte';
 
 	interface Props {
 		action: string;

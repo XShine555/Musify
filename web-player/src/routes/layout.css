@@ -82,6 +82,10 @@
 	}
 }
 
+@utility focus-ring {
+	@apply focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none;
+}
+
 @utility track-grid {
 	grid-template-columns: var(--mf-track-cols-mobile);
 

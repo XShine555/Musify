@@ -2,7 +2,7 @@
 	import { player } from '$lib/player/player.svelte';
 	import { isQueueCurrent, playAllOrToggle } from '$lib/player/actions';
 	import type { Track } from '$lib/types';
-	import Button from '../primitives/Button.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	interface Props {
 		items: Track[];

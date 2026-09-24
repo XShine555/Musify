@@ -59,7 +59,7 @@
 				onclick={() => playShuffled(tracks)}
 				disabled={tracks.length === 0}
 			>
-				<Shuffle class="size-4" />
+				<Shuffle class="size-icon-sm" />
 				Aleatorio
 			</Button>
 		{/snippet}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
-	import Button from '../primitives/Button.svelte';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 
 	interface Props {
 		following: boolean;

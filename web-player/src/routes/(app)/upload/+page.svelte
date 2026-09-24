@@ -133,7 +133,7 @@
 								: 'bg-accent-btn text-accent-soft'}"
 						>
 							{#if stepStates[i] === 'done'}
-								<Check class="size-3.5" />
+								<Check class="size-icon-xs" />
 							{:else}
 								{i + 1}
 							{/if}

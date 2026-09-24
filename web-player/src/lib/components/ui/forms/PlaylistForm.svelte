@@ -2,10 +2,10 @@
 	import { untrack } from 'svelte';
 	import Music from '@lucide/svelte/icons/music';
 	import CoverForm from './CoverForm.svelte';
-	import Field from '../primitives/Field.svelte';
-	import Input from '../primitives/Input.svelte';
-	import Textarea from '../primitives/Textarea.svelte';
-	import SegmentedControl from '../primitives/SegmentedControl.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Input from '$lib/components/ui/primitives/Input.svelte';
+	import Textarea from '$lib/components/ui/primitives/Textarea.svelte';
+	import SegmentedControl from '$lib/components/ui/primitives/SegmentedControl.svelte';
 
 	import { LIMITS } from '$lib/validation';
 

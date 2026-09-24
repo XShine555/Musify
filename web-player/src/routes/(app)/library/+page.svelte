@@ -36,7 +36,7 @@
 		{#snippet actions()}
 			{#if items.length > 0}
 				<Button href="/upload">
-					<Upload class="size-4" />
+					<Upload class="size-icon-sm" />
 					Subir canción
 				</Button>
 			{/if}
@@ -62,7 +62,7 @@
 		>
 			{#snippet actions()}
 				<Button href="/upload">
-					<Upload class="size-4" />
+					<Upload class="size-icon-sm" />
 					Sube la primera
 				</Button>
 			{/snippet}

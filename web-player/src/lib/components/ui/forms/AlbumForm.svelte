@@ -2,9 +2,9 @@
 	import { untrack } from 'svelte';
 	import Disc3 from '@lucide/svelte/icons/disc-3';
 	import CoverForm from './CoverForm.svelte';
-	import Field from '../primitives/Field.svelte';
-	import Input from '../primitives/Input.svelte';
-	import Textarea from '../primitives/Textarea.svelte';
+	import Field from '$lib/components/ui/primitives/Field.svelte';
+	import Input from '$lib/components/ui/primitives/Input.svelte';
+	import Textarea from '$lib/components/ui/primitives/Textarea.svelte';
 	import { ALBUM_EARLIEST_YEAR, LIMITS } from '$lib/validation';
 
 	interface Props {

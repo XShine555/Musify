@@ -5,8 +5,8 @@ const HISTORY_INDEX = 'sveltekit:history';
 const LABELS: [RegExp, string][] = [
 	[/^\/$/, 'Volver al inicio'],
 	[/^\/explore\/?$/, 'Volver a explorar'],
-	[/^\/playlists\/[^/]+/, 'Volver a la lista'],
-	[/^\/playlists\/?$/, 'Volver a tus listas'],
+	[/^\/playlists\/[^/]+/, 'Volver a la playlist'],
+	[/^\/playlists\/?$/, 'Volver a tus playlists'],
 	[/^\/albums\/[^/]+/, 'Volver al álbum'],
 	[/^\/albums\/?$/, 'Volver a tus álbumes'],
 	[/^\/library\/?$/, 'Volver a tus canciones'],

@@ -25,7 +25,7 @@
 				? 'text-fg'
 				: 'text-fg-2'}"
 		>
-			<link.icon class="size-4" />
+			<link.icon class="size-icon-sm" />
 			<span class="text-xs font-medium">{link.label}</span>
 		</a>
 	{/each}

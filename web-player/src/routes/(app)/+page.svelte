@@ -205,7 +205,7 @@
 		{/if}
 
 		<section>
-			<SectionHeading title="Mixes" subtitle="Generados a partir de lo que más repites" />
+			<SectionHeading title="Mezclas" subtitle="Generados a partir de lo que más repites" />
 			{#if data.mixes.length > 0}
 				<div class="grid-tiles">
 					{#each data.mixes as mix, i (mix.id)}
@@ -255,11 +255,11 @@
 			{:else}
 				<EmptyState
 					icon={ListMusic}
-					title="Todavía no tienes listas"
-					description="Crea tu primera lista y añádele canciones de tu biblioteca."
+					title="Todavía no tienes playlists"
+					description="Crea tu primera playlist y añádele canciones de tu biblioteca."
 				>
 					{#snippet actions()}
-						<Button href="/playlists">Crear lista</Button>
+						<Button href="/playlists">Crear playlist</Button>
 					{/snippet}
 				</EmptyState>
 			{/if}

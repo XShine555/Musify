@@ -19,18 +19,18 @@
 </script>
 
 <svelte:head>
-	<title>Mis listas</title>
-	<meta name="description" content="Mis listas en Musify." />
+	<title>Mis playlists</title>
+	<meta name="description" content="Mis playlists en Musify." />
 </svelte:head>
 
 <Page>
 	<PageHeader
-		title="Mis listas"
+		title="Mis playlists"
 		description={items.length > 0 ? summary : 'Crea y organiza tus colecciones.'}
 	>
 		{#snippet actions()}
 			{#if items.length > 0}
-				<Button onclick={() => createPlaylistModal.show()}>Crear nueva lista</Button>
+				<Button onclick={() => createPlaylistModal.show()}>Crear nueva playlist</Button>
 			{/if}
 		{/snippet}
 	</PageHeader>
@@ -51,11 +51,11 @@
 	{:else}
 		<EmptyState
 			icon={ListMusic}
-			title="Todavía no tienes listas"
+			title="Todavía no tienes playlists"
 			description="Crea la primera y añádele canciones de tu biblioteca."
 		>
 			{#snippet actions()}
-				<Button onclick={() => createPlaylistModal.show()}>Crear nueva lista</Button>
+				<Button onclick={() => createPlaylistModal.show()}>Crear nueva playlist</Button>
 			{/snippet}
 		</EmptyState>
 	{/if}

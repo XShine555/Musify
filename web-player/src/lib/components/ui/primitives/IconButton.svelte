@@ -45,7 +45,7 @@
 	);
 
 	const classes = $derived(
-		`grid place-items-center transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${SIZE[size]} ${shape === 'round' ? 'rounded-full' : 'rounded-control'} ${pressed ? 'text-accent' : 'text-fg-2 hover:text-fg'} ${background} ${
+		`grid place-items-center transition focus-ring ${SIZE[size]} ${shape === 'round' ? 'rounded-full' : 'rounded-control'} ${pressed ? 'text-accent' : 'text-fg-2 hover:text-fg'} ${background} ${
 			revealOnHover ? 'sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100' : ''
 		} ${klass}`
 	);

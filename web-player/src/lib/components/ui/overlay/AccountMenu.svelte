@@ -11,7 +11,7 @@
 	import { themeMode } from '$lib/theme/mode.svelte';
 	import { clickOutside } from '$lib/actions/clickOutside';
 	import { onEscape } from '$lib/actions/onEscape';
-	import Avatar from '../media/Avatar.svelte';
+	import Avatar from '$lib/components/ui/media/Avatar.svelte';
 
 	interface Props {
 		user: SessionUser;

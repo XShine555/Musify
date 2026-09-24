@@ -27,7 +27,7 @@
 	import { pressable } from '$lib/actions/pressable';
 	import MediaIdentity from './MediaIdentity.svelte';
 	import EqBars from './EqBars.svelte';
-	import IconButton from '../primitives/IconButton.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 
 	interface RowAction {
 		action?: string;
@@ -86,7 +86,7 @@
 		style="--mf-track-cols:{gridColumns}; --mf-track-cols-mobile:{gridColumnsMobile}"
 	>
 		{#if index}
-			<Hash size={16} />
+			<Hash class="size-icon-sm" />
 		{/if}
 		<span>Título</span>
 		{#each columns as column (column)}

@@ -5,10 +5,10 @@
 	import { liked } from '$lib/player/liked.svelte';
 	import { createPlaylistModal } from '$lib/state/panels.svelte';
 	import type { SessionUser } from '$lib/types';
-	import ListRow from '../ui/media/ListRow.svelte';
-	import IconButton from '../ui/primitives/IconButton.svelte';
+	import ListRow from '$lib/components/ui/media/ListRow.svelte';
+	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
-	import Logo from '../ui/primitives/Logo.svelte';
+	import Logo from '$lib/components/ui/primitives/Logo.svelte';
 
 	const SIDEBAR_PLAYLISTS_LIMIT = 8;
 
@@ -33,8 +33,7 @@
 </script>
 
 <aside
-	class="hidden min-h-0 shrink-0 flex-col border-r border-hairline p-5 lg:flex"
-	style="width:var(--mf-sidebar-w)"
+	class="hidden min-h-0 w-(--mf-sidebar-w) shrink-0 flex-col border-r border-hairline p-5 lg:flex"
 >
 	<a href="/" class="mb-4">
 		<Logo size="sm" />
@@ -75,7 +74,7 @@
 			{/if}
 		</div>
 
-		<div class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto pb-icon-md">
+		<div class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto pb-4.5">
 			{#each visiblePlaylists as playlist (playlist.id)}
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
 				<ListRow
@@ -93,8 +92,8 @@
 					onclick={() => createPlaylistModal.show()}
 					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-fg-2 transition-colors hover:bg-hover"
 				>
-					<Plus class="size-3.5" />
-					Crear tu primera lista
+					<Plus class="size-icon-xs" />
+					Crear tu primera playlist
 				</button>
 			{/each}
 		</div>
