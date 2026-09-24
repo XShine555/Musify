@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using Musify.Application.Serialization;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
@@ -10,6 +12,7 @@ namespace Musify.Application.PlayLists.Responses
         string? SmallImageKeyName,
         string? MediumImageKeyName,
         string? LargeImageKeyName,
+        [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
         PlaylistVisibility Visibility,
         DateTime CreatedAt,
         DateTime UpdatedAt,
@@ -28,6 +31,7 @@ namespace Musify.Application.PlayLists.Responses
                 playList.Pictures?.SmallName,
                 playList.Pictures?.MediumName,
                 playList.Pictures?.LargeName,
+                playList.UserId,
                 playList.Visibility,
                 playList.CreatedAt,
                 playList.UpdatedAt,
