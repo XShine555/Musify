@@ -44,7 +44,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
 - `src/lib/server/` is server only code (see below).
 - `src/lib/components/shell/` holds the app shell: Sidebar, TopBar, TabsBar, MobileHeader, AccountMenu, and `navLinks.ts`.
 - `src/lib/components/player/` holds the player UI: PlayerBar, PlayerDock, Queue, TrackInfo, TransportControls.
-- `src/lib/components/music/` holds the components that connect the UI to app state (the player, album data): TrackList, PlayAllButton, TrackContextMenu, AlbumContextMenu.
+- `src/lib/components/music/` holds the components that connect the UI to app state (the player, album data): TrackList, PlayAllButton, TrackContextMenu, AlbumContextMenu, GenrePicker, TrackStatusBadge. The `library/` subfolder holds the manage-music sections (tracks, albums editor, upload queue).
 - `src/lib/components/ui/` holds the design system, which is presentation only. ESLint forbids importing `$lib/player/*`, `$lib/data/*`, `$lib/server/*`, `components/music`, `components/shell` and `components/player` from it; it can use `$lib/state/*`, `$lib/utils/*`, `$lib/actions/*`, `$lib/theme/*` and `$lib/types`. It is split into five categories:
   - `primitives/` for generic controls with no music domain knowledge (Button, Input, Chip, Slider, and so on).
   - `overlay/` for anything that floats above the content (Modal, ContextMenu, GlassMenu, ConfirmDialog, and so on).
@@ -70,7 +70,7 @@ The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utili
 - **Spacing:** stick to the Tailwind scale in `.5` steps and avoid quarters like `.25`/`.75`, unless the semantic token calls for it (for example `mb-4.5` in `SectionHeading`).
 - **Colors:** always use `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never a literal hex or `rgba()` inside a `.svelte` file; those literals only belong in `theme.css`/`tokens.ts` as the source of truth.
 - **Inline `style="…"` and arbitrary `-[…]` values:** only the ones whitelisted in `scripts/check-tokens.mjs` (the stagger variable `--i`, tile hue, menu position, progress width, `text-[clamp(…)]`, `leading-[…]` on login's display type, `grid-cols-[auto_1fr]`, `max-h-[85dvh]`, `my-`/`py-[Ndvh]` for vertical centering, `transition-[filter]` on genre tiles, and `bg-[image:var(--mf-*)]`). Everything else should become a token.
-- Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `SegmentedControl`, `CoverForm`.
+- Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `ChipGroup`, `SegmentedControl`, `Tabs`, `SearchInput`, `StatusBadge`, `SelectionBar`, `DataGrid`, `FileDropzone`, `CoverForm`.
 - **Icon stroke:** one global rule (`svg.lucide { stroke-width: 1.5 }` in `layout.css`) sets the stroke for every icon. Never pass `strokeWidth` to an icon, since any CSS rule overrides the SVG attribute and it would do nothing. For a different stroke on one icon, use a Tailwind `stroke-*` utility.
 
 ## App shell
