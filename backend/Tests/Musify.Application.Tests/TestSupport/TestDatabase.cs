@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
@@ -77,6 +78,10 @@ public sealed class TestDatabase : DbContext, IDatabase
 
         modelBuilder.Entity<AlbumHasTrack>()
             .HasIndex(albumTrack => new { albumTrack.AlbumId, albumTrack.TrackId })
+            .IsUnique();
+
+        modelBuilder.Entity<PlayListHasTrack>()
+            .HasIndex(playListTrack => new { playListTrack.PlayListId, playListTrack.TrackId })
             .IsUnique();
 
         modelBuilder.Entity<Mix>()
@@ -162,6 +167,19 @@ public sealed class TestDatabase : DbContext, IDatabase
     {
         var transaction = await Database.BeginTransactionAsync(isolationLevel, cancellationToken);
         return new SqliteDatabaseTransaction(transaction);
+    }
+
+    public async Task<ErrorOr<Success>> TrySaveChangesAsync(Error onUniqueViolation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await SaveChangesAsync(cancellationToken);
+            return Result.Success;
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is SqliteException { SqliteErrorCode: 19 })
+        {
+            return onUniqueViolation;
+        }
     }
 
     public override async ValueTask DisposeAsync()

@@ -39,7 +39,7 @@ public sealed class DeletePlayListCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    public async Task Handle_NotOwner_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -48,6 +48,6 @@ public sealed class DeletePlayListCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new DeletePlayListCommand(stranger.Id, playList.Id), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 }

@@ -28,10 +28,10 @@ public static class ErrorOrHttpExtensions
         var error = errors[0];
         return error.Type switch
         {
-            ErrorType.NotFound => Results.NotFound(error.Description),
+            ErrorType.NotFound => Results.Problem(error.Description, statusCode: StatusCodes.Status404NotFound),
             ErrorType.Unauthorized => Results.Unauthorized(),
-            ErrorType.Forbidden => Results.StatusCode(StatusCodes.Status403Forbidden),
-            ErrorType.Conflict => Results.Conflict(error.Description),
+            ErrorType.Forbidden => Results.Problem(error.Description, statusCode: StatusCodes.Status403Forbidden),
+            ErrorType.Conflict => Results.Problem(error.Description, statusCode: StatusCodes.Status409Conflict),
             _ => Results.Problem(error.Description)
         };
     }

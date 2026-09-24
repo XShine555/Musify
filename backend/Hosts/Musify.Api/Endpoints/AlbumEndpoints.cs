@@ -6,6 +6,7 @@ using Musify.Api.Filters;
 using Musify.Application.Albums;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
+using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 
@@ -13,12 +14,15 @@ namespace Musify.Api.Endpoints;
 
 public static class AlbumEndpoints
 {
+    private const int MaxRecentAlbumsLimit = 50;
+
     public static IEndpointRouteBuilder MapAlbumEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/albums")
             .WithTags("Albums");
 
         group.MapGet("/", GetAlbums)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbums")
             .WithSummary("Get Paginated Albums, Optionally Filtered By Title.")
             .Produces<AlbumsSearchResponse>();
@@ -30,6 +34,7 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/users/{userId}", GetAlbumsByUserId)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbumsByUserId")
             .WithSummary("Get Paginated Albums For A User.")
             .Produces<PaginatedResponse<AlbumApplicationResponse>>()
@@ -43,6 +48,7 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapGet("/{albumId}/tracks", GetAlbumTracks)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbumTracks")
             .WithSummary("Get The Tracks Of An Album Ordered By Track Number.")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
@@ -82,6 +88,7 @@ public static class AlbumEndpoints
             .Produces<AlbumApplicationResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{albumId}", DeleteAlbum)
@@ -90,6 +97,7 @@ public static class AlbumEndpoints
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{albumId}/tracks/{trackId}", AddTrackToAlbum)
@@ -98,6 +106,7 @@ public static class AlbumEndpoints
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
@@ -107,6 +116,7 @@ public static class AlbumEndpoints
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
         return app;
@@ -116,10 +126,9 @@ public static class AlbumEndpoints
         IMediator mediator,
         CancellationToken cancellationToken,
         string? title,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetAlbumsQuery(title, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetAlbumsQuery(title, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -136,10 +145,9 @@ public static class AlbumEndpoints
         IMediator mediator,
         long userId,
         CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetAlbumsByUserIdQuery(userId, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetAlbumsByUserIdQuery(userId, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -149,6 +157,14 @@ public static class AlbumEndpoints
         CancellationToken cancellationToken,
         int limit = 12)
     {
+        if (limit is < 1 or > MaxRecentAlbumsLimit)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [nameof(limit)] = [$"'{nameof(limit)}' must be between 1 and {MaxRecentAlbumsLimit}."]
+            });
+        }
+
         var result = await mediator.Send(new GetRecentlyListenedAlbumsQuery(currentUser.RequiredId, limit), cancellationToken);
         return result.ToHttpResult();
     }
@@ -157,10 +173,9 @@ public static class AlbumEndpoints
         IMediator mediator,
         Guid albumId,
         CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 50)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetAlbumTracksQuery(albumId, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetAlbumTracksQuery(albumId, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -178,6 +193,9 @@ public static class AlbumEndpoints
 
         var location = result.Value;
         var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
+        if (stream == null)
+            return Results.NotFound();
+
         response.Headers.CacheControl = "public, max-age=31536000, immutable";
         return Results.Stream(stream, location.ContentType);
     }

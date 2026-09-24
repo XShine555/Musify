@@ -53,7 +53,7 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    public async Task Handle_NotOwner_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -62,7 +62,7 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(stranger.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 
     [Fact]
@@ -88,5 +88,19 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, track.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+    }
+
+    [Fact]
+    public async Task TrySaveChangesAsync_DuplicatePlayListTrack_MapsTheUniqueViolationToTheGivenError()
+    {
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id);
+        var track = TestEntities.Track(owner);
+        await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
+        Database.PlayListHasTracks.Add(new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 1 });
+
+        var result = await Database.TrySaveChangesAsync(Error.Conflict("Test.Duplicate", "duplicate"), TestContext.Current.CancellationToken);
+
+        Assert.Equal("Test.Duplicate", result.FirstError.Code);
     }
 }

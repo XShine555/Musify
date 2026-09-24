@@ -7,6 +7,8 @@ import {
 	unwrapOrError
 } from '$lib/server/api';
 import { uploadPresignedImage } from '$lib/server/upload';
+import { fetchAllPages } from '$lib/server/pagination';
+import { PLAYLIST_TRACKS_LIMIT } from '$lib/config';
 
 const MAX_NAME = 100;
 
@@ -21,11 +23,15 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 
 	const tracksByPlaylist = await Promise.all(
 		data.items.map((playlist) =>
-			api
-				.GET('/playlists/{playlistId}/tracks', {
-					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 500 } }
-				})
-				.then((res) => res.data?.items ?? [])
+			fetchAllPages(
+				async (pageNumber, pageSize) =>
+					(
+						await api.GET('/playlists/{playlistId}/tracks', {
+							params: { path: { playlistId: playlist.id }, query: { pageNumber, pageSize } }
+						})
+					).data,
+				PLAYLIST_TRACKS_LIMIT
+			)
 		)
 	);
 

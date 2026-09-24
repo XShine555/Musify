@@ -42,10 +42,19 @@ public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAs
         await service.UploadFileAsync(new MemoryStream(content), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
 
         await using var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+        Assert.NotNull(stream);
         using var reader = new StreamReader(stream, Encoding.UTF8);
         var readBack = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal("hello seaweedfs", readBack);
+    }
+
+    [Fact]
+    public async Task GetFileAsync_MissingObject_ReturnsNull()
+    {
+        var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, $"tests/{Guid.NewGuid():N}/missing.txt", TestContext.Current.CancellationToken);
+
+        Assert.Null(stream);
     }
 
     [Fact]

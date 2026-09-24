@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums;
 
@@ -16,7 +17,7 @@ public class GetAlbumByIdQueryHandler(IDatabase database)
     {
         var album = await database.Albums
             .AsNoTracking()
-            .Where(a => a.Id == request.Id)
+            .Where(a => a.Id == request.Id && a.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(a => new
             {
                 Album = a,

@@ -102,13 +102,27 @@ public sealed class GetListeningStatsQueryHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NoListenToday_StreakIsZero()
+    public async Task Handle_ListenedYesterdayButNotToday_StreakIsStillAlive()
     {
         var user = TestEntities.User();
         var track = TestEntities.Track(user);
         await SeedAsync(
             user, track,
             TestEntities.ListeningHistory(user.Id, track.Id, DateTime.UtcNow.AddDays(-1)));
+
+        var result = await CreateHandler().Handle(new GetListeningStatsQuery(user.Id), TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, result.StreakDays);
+    }
+
+    [Fact]
+    public async Task Handle_NoListenTodayOrYesterday_StreakIsZero()
+    {
+        var user = TestEntities.User();
+        var track = TestEntities.Track(user);
+        await SeedAsync(
+            user, track,
+            TestEntities.ListeningHistory(user.Id, track.Id, DateTime.UtcNow.AddDays(-2)));
 
         var result = await CreateHandler().Handle(new GetListeningStatsQuery(user.Id), TestContext.Current.CancellationToken);
 

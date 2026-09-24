@@ -1,16 +1,21 @@
 using ErrorOr;
 using Musify.Application.Albums;
+using Musify.Application.Contracts;
 using Musify.Application.Tests.TestSupport;
+using Musify.Domain.ValueObjects;
+using NSubstitute;
 using Xunit;
 
 namespace Musify.Application.Tests.Albums;
 
 public sealed class DeleteAlbumCommandHandlerTests : HandlerTestBase
 {
-    private DeleteAlbumCommandHandler CreateHandler() => new(Database, NoOpLogger<DeleteAlbumCommandHandler>());
+    private readonly IEventBus eventBus = Substitute.For<IEventBus>();
+
+    private DeleteAlbumCommandHandler CreateHandler() => new(Database, eventBus, NoOpLogger<DeleteAlbumCommandHandler>());
 
     [Fact]
-    public async Task Handle_Owner_RemovesAlbum()
+    public async Task Handle_Owner_MarksAlbumAsRemoving()
     {
         var owner = TestEntities.User();
         var album = TestEntities.Album(owner.Id);
@@ -19,7 +24,10 @@ public sealed class DeleteAlbumCommandHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(new DeleteAlbumCommand(owner.Id, album.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Null(await Database.Albums.FindAsync([album.Id], TestContext.Current.CancellationToken));
+        var stored = await Database.Albums.FindAsync([album.Id], TestContext.Current.CancellationToken);
+        Assert.NotNull(stored);
+        Assert.Equal(LifeCycleStatus.Removing, stored.LifeCycleStatus);
+        await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.DeleteAlbumEvent>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -31,7 +39,7 @@ public sealed class DeleteAlbumCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorizedAndKeepsAlbum()
+    public async Task Handle_NotOwner_ReturnsForbiddenAndKeepsAlbum()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -40,7 +48,7 @@ public sealed class DeleteAlbumCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new DeleteAlbumCommand(stranger.Id, album.Id), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
         Assert.NotNull(await Database.Albums.FindAsync([album.Id], TestContext.Current.CancellationToken));
     }
 }

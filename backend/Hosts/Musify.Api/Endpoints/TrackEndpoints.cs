@@ -4,6 +4,7 @@ using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
 using Musify.Application.Contracts;
+using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
@@ -19,6 +20,7 @@ public static class TrackEndpoints
             .WithTags("Tracks");
 
         group.MapGet("/", GetTracks)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetTracks")
             .WithSummary("Get Paginated Tracks, Optionally Filtered By Name And Genre.")
             .Produces<TracksSearchResponse>()
@@ -52,6 +54,7 @@ public static class TrackEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/users/{userId}", GetTracksByUserId)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetTracksByUserId")
             .WithSummary("Get Paginated Tracks For A User.")
             .Produces<PaginatedResponse<TrackApplicationResponse>>();
@@ -73,6 +76,7 @@ public static class TrackEndpoints
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
@@ -95,8 +99,7 @@ public static class TrackEndpoints
         CancellationToken cancellationToken,
         string? name,
         string? genre,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
         Genre? parsedGenre = null;
         if (!string.IsNullOrWhiteSpace(genre))
@@ -112,7 +115,7 @@ public static class TrackEndpoints
             parsedGenre = value;
         }
 
-        var result = await mediator.Send(new GetTracksQuery(name, pageNumber, pageSize, parsedGenre), cancellationToken);
+        var result = await mediator.Send(new GetTracksQuery(name, page.PageNumber, page.PageSize, parsedGenre), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -139,6 +142,9 @@ public static class TrackEndpoints
 
         var location = result.Value;
         var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
+        if (stream == null)
+            return Results.NotFound();
+
         response.Headers.CacheControl = "public, max-age=31536000, immutable";
         return Results.Stream(stream, location.ContentType);
     }
@@ -171,10 +177,9 @@ public static class TrackEndpoints
         long userId,
         CancellationToken cancellationToken,
         string? name,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetTracksByUserIdQuery(userId, name, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 

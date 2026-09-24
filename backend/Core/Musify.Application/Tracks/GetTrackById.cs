@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks;
 
@@ -17,7 +18,7 @@ public class GetTrackByIdQueryHandler(IDatabase database)
         var entity = await database.Tracks.AsNoTracking()
             .Include(t => t.Owner)
             .Include(t => t.Tags)
-            .Where(t => t.Id == request.TrackId)
+            .Where(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(t => new { Track = t, ListensCount = t.ListeningHistories.Count(l => l.IsCounted) })
             .SingleOrDefaultAsync(cancellationToken);
 

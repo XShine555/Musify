@@ -3,8 +3,10 @@ using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Likes;
 using Musify.Api.Extensions;
 using Musify.Application.Likes;
+using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
+using Musify.Api.Filters;
 
 namespace Musify.Api.Endpoints;
 
@@ -17,6 +19,7 @@ public static class LikeEndpoints
             .RequireAuthorization();
 
         group.MapGet("/", GetLikedTracks)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetLikedTracks")
             .WithSummary("Get The Current User'S Liked Tracks.")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
@@ -36,10 +39,9 @@ public static class LikeEndpoints
         IMediator mediator,
         CurrentUser currentUser,
         CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetLikedTracksQuery(currentUser.RequiredId, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetLikedTracksQuery(currentUser.RequiredId, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 

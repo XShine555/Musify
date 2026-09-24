@@ -1,3 +1,4 @@
+using ErrorOr;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -6,6 +7,7 @@ using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Sagas;
+using Npgsql;
 using AppIDatabase = Musify.Application.Contracts.IDatabase;
 
 namespace Musify.Infrastructure.Persistence;
@@ -82,9 +84,9 @@ public class Database(DatabaseConfiguration configuration)
             .OwnsOne(album => album.Pictures, pictures =>
             {
                 pictures.Property(p => p.OriginalName).HasColumnName("OriginalPictureName").HasMaxLength(64);
-                pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64);
-                pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64);
-                pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64);
+                pictures.Property(p => p.SmallName).HasColumnName("SmallPictureName").HasMaxLength(64).IsRequired(false);
+                pictures.Property(p => p.MediumName).HasColumnName("MediumPictureName").HasMaxLength(64).IsRequired(false);
+                pictures.Property(p => p.LargeName).HasColumnName("LargePictureName").HasMaxLength(64).IsRequired(false);
             });
         modelBuilder.Entity<Album>().Navigation(album => album.Pictures).IsRequired(false);
 
@@ -108,6 +110,10 @@ public class Database(DatabaseConfiguration configuration)
 
         modelBuilder.Entity<AlbumHasTrack>()
             .HasIndex(albumTrack => new { albumTrack.AlbumId, albumTrack.TrackId })
+            .IsUnique();
+
+        modelBuilder.Entity<PlayListHasTrack>()
+            .HasIndex(playListTrack => new { playListTrack.PlayListId, playListTrack.TrackId })
             .IsUnique();
 
         modelBuilder.Entity<Mix>()
@@ -203,6 +209,19 @@ public class Database(DatabaseConfiguration configuration)
     {
         var transaction = await Database.BeginTransactionAsync(isolationLevel, cancellationToken);
         return new DatabaseTransaction(transaction);
+    }
+
+    public async Task<ErrorOr<Success>> TrySaveChangesAsync(Error onUniqueViolation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await SaveChangesAsync(cancellationToken);
+            return Result.Success;
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            return onUniqueViolation;
+        }
     }
 
     private sealed class DatabaseTransaction(IDbContextTransaction inner) : IDatabaseTransaction

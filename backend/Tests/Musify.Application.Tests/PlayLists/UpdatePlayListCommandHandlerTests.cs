@@ -48,7 +48,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    public async Task Handle_NotOwner_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -59,7 +59,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_BlankNameAndDescription_LeavesThemUnchanged()
+    public async Task Handle_BlankName_LeavesItUnchangedAndBlankDescriptionClearsIt()
     {
         var owner = TestEntities.User();
         var playList = TestEntities.PlayList(owner.Id, "Original Name", "Original description");
@@ -105,7 +105,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
 
         Assert.False(result.IsError);
         Assert.Equal("Original Name", result.Value.Name);
-        Assert.Equal("Original description", result.Value.Description);
+        Assert.Null(result.Value.Description);
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Equal("new-cover.webp", result.Value.SmallImageKeyName);
+        Assert.Null(result.Value.SmallImageKeyName);
         var stored = await Database.PlayLists.FindAsync([playList.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
         Assert.Equal("new-cover.webp", stored.Pictures?.OriginalName);

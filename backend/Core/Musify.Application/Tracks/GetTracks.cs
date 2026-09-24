@@ -20,7 +20,7 @@ public class GetTracksQueryHandler(IDatabase database)
             .AsNoTracking()
             .Include(ut => ut.Track.Owner)
             .Include(ut => ut.Track.Tags)
-            .AsQueryable();
+            .Where(ut => ut.Track.LifeCycleStatus == LifeCycleStatus.Active);
 
         if (!string.IsNullOrEmpty(request.Name))
         {

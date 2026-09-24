@@ -95,7 +95,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     }
 
     [Fact]
-    public async Task DeleteAlbum_NotTheOwner_ReturnsUnauthorized()
+    public async Task DeleteAlbum_NotTheOwner_ReturnsForbidden()
     {
         var owner = await CreateUserAsync();
         var stranger = await CreateUserAsync();
@@ -106,7 +106,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
 
         var response = await fixture.CreateAuthenticatedClient(stranger).DeleteAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

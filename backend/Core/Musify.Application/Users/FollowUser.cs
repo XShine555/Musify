@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Users;
@@ -40,7 +41,11 @@ public class FollowUserCommandHandler(
             FollowedId = request.FollowedId
         }, cancellationToken);
 
-        await database.SaveChangesAsync(cancellationToken);
+        // A concurrent double click can hit the unique index; already following is a successful no-op.
+        var saved = await database.TrySaveChangesAsync(
+            AppErrors.Conflict("UserFollow.Duplicate", "Already following this user."), cancellationToken);
+        if (saved.IsError)
+            return Result.Success;
 
         logger.LogInformation("User {FollowerId} followed user {FollowedId}", request.FollowerId, request.FollowedId);
 

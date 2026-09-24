@@ -53,7 +53,7 @@ public class CreatePlayListCommandHandler(
         var playList = new PlayList
         {
             UserId = request.UserId,
-            Name = request.Name,
+            Name = request.Name.Trim(),
             NormalizedName = request.Name.Trim().ToUpperInvariant(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             Pictures = resolvedPictures.Pictures,
@@ -97,13 +97,7 @@ public class CreatePlayListCommandHandler(
         if (validation.IsError)
             return validation.Errors;
 
-        return new ResolvedPlayListPictures(new PlayListPictures
-        {
-            OriginalName = validation.Value.ObjectName,
-            SmallName = validation.Value.ObjectName,
-            MediumName = validation.Value.ObjectName,
-            LargeName = validation.Value.ObjectName
-        }, validation.Value);
+        return new ResolvedPlayListPictures(PlayListPictures.Pending(validation.Value.ObjectName), validation.Value);
     }
 
     private async Task<ErrorOr<Success>> PublishCreatePlayListEventAsync(

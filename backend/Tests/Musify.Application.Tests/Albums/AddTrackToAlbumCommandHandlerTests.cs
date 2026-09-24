@@ -39,7 +39,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    public async Task Handle_NotOwner_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -49,7 +49,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(stranger.Id, album.Id, track.Id), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_TrackOwnedByAnotherUser_ReturnsUnauthorized()
+    public async Task Handle_TrackOwnedByAnotherUser_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var otherOwner = TestEntities.User(2, "other");
@@ -75,7 +75,7 @@ public sealed class AddTrackToAlbumCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new AddTrackToAlbumCommand(owner.Id, album.Id, foreignTrack.Id), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 
     [Fact]

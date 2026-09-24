@@ -39,6 +39,9 @@ public class GetListeningStatsQueryHandler(IDatabase database)
         var listenedDateSet = listenedDates.ToHashSet();
         var streakDays = 0;
         var day = DateTime.UtcNow.Date;
+        if (!listenedDateSet.Contains(day))
+            day = day.AddDays(-1);
+
         while (listenedDateSet.Contains(day))
         {
             streakDays++;

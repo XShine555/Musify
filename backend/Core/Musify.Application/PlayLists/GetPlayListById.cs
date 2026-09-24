@@ -17,7 +17,7 @@ public class GetPlayListByIdQueryHandler(IDatabase database)
     {
         var entry = await database.PlayLists
             .AsNoTracking()
-            .Where(p => p.Id == request.Id)
+            .Where(p => p.Id == request.Id && p.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(p => new
             {
                 PlayList = p,

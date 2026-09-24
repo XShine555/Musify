@@ -33,7 +33,7 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    public async Task Handle_NotOwner_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -42,7 +42,7 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(stranger.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 
     [Fact]
@@ -55,5 +55,27 @@ public sealed class RemoveTrackFromPlayListCommandHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(owner.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+    }
+
+    [Fact]
+    public async Task Handle_TrackInTheMiddle_RenumbersTheRemainingTracks()
+    {
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id);
+        var first = TestEntities.Track(owner, "First");
+        var second = TestEntities.Track(owner, "Second");
+        var third = TestEntities.Track(owner, "Third");
+        await SeedAsync(
+            owner, playList, first, second, third,
+            new PlayListHasTrack { PlayListId = playList.Id, TrackId = first.Id, Position = 0 },
+            new PlayListHasTrack { PlayListId = playList.Id, TrackId = second.Id, Position = 1 },
+            new PlayListHasTrack { PlayListId = playList.Id, TrackId = third.Id, Position = 2 });
+
+        var result = await CreateHandler().Handle(new RemoveTrackFromPlayListCommand(owner.Id, playList.Id, second.Id), TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsError);
+        var remaining = Database.PlayListHasTracks.OrderBy(link => link.Position).ToList();
+        Assert.Equal([first.Id, third.Id], remaining.Select(link => link.TrackId));
+        Assert.Equal([0, 1], remaining.Select(link => link.Position));
     }
 }

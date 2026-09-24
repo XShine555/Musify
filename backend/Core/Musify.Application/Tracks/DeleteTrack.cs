@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Domain.ValueObjects;
 
@@ -31,7 +32,7 @@ public class DeleteTrackCommandHandler(
         if (track.OwnerUserId != request.UserId)
         {
             logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
-            return Error.Unauthorized();
+            return AppErrors.Forbidden("Track", request.TrackId);
         }
 
         if (track.Audio.IsInProgress)

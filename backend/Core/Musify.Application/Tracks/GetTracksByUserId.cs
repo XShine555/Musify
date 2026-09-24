@@ -6,6 +6,7 @@ using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using X.PagedList;
 using X.PagedList.EF;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks;
 
@@ -21,14 +22,11 @@ public class GetTracksByUserIdQueryHandler(IDatabase database)
 {
     public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse>>> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
     {
-        var pageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
-        var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
-
         var tracksQuery = database.UserHasTracks
             .AsNoTracking()
             .Include(ut => ut.Track.Owner)
             .Include(ut => ut.Track.Tags)
-            .Where(p => p.UserId == request.UserId);
+            .Where(p => p.UserId == request.UserId && p.Track.LifeCycleStatus == LifeCycleStatus.Active);
 
         if (!string.IsNullOrEmpty(request.Name))
         {
@@ -41,7 +39,7 @@ public class GetTracksByUserIdQueryHandler(IDatabase database)
         var pagedEntities = await tracksQuery
             .OrderBy(t => t.Track.CreatedAt)
             .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count(l => l.IsCounted) })
-            .ToPagedListAsync(pageNumber, pageSize, totalCount, cancellationToken);
+            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
         var pagedTracks = new StaticPagedList<TrackApplicationResponse>(
             pagedEntities.Select(x => TrackApplicationResponse.FromEntity(x.Track, x.ListensCount)),

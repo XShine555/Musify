@@ -26,6 +26,7 @@ public class GetPlayListsByUserIdQueryHandler(IDatabase database)
         var playListsQuery = database.PlayLists
             .AsNoTracking()
             .Where(p => p.UserId == request.UserId
+                && p.LifeCycleStatus == LifeCycleStatus.Active
                 && (p.Visibility == PlaylistVisibility.Public || p.UserId == request.ViewerId));
 
         if (!string.IsNullOrEmpty(request.Name))
@@ -38,7 +39,7 @@ public class GetPlayListsByUserIdQueryHandler(IDatabase database)
 
         var pagedEntities = await playListsQuery
             .OrderBy(p => p.CreatedAt)
-            .Where(p => p.LifeCycleStatus == LifeCycleStatus.Active)
+            .ThenBy(p => p.Id)
             .Select(p => new
             {
                 PlayList = p,

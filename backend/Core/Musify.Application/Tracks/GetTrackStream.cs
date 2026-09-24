@@ -6,6 +6,7 @@ using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks;
 
@@ -26,7 +27,7 @@ public class GetTrackStreamQueryHandler(
             return Error.Unauthorized(description: "Sign in to stream music, or ask an administrator to enable anonymous listening.");
 
         var track = await database.Tracks.AsNoTracking()
-            .Where(t => t.Id == request.TrackId)
+            .Where(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(t => new { t.Id, t.Audio })
             .SingleOrDefaultAsync(cancellationToken);
 

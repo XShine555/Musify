@@ -6,6 +6,7 @@ using Musify.Api.Filters;
 using Musify.Application.Contracts;
 using Musify.Application.PlayLists;
 using Musify.Application.PlayLists.Responses;
+using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
@@ -26,11 +27,13 @@ public static class PlayListEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/users/{userId}", GetPlayListsByUserId)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetPlayListsByUserId")
             .WithSummary("Get Paginated PlayLists For A User. Private PlayLists Are Only Returned To Their Owner.")
             .Produces<PaginatedResponse<PlayListApplicationResponse>>();
 
         group.MapGet("/{playlistId}/tracks", GetPlayListTracks)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetPlayListTracks")
             .WithSummary("Get Paginated Tracks Of A PlayList.")
             .Produces<PaginatedResponse<TrackApplicationResponse>>()
@@ -60,6 +63,7 @@ public static class PlayListEndpoints
             .Produces<PlayListApplicationResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{playlistId}", DeletePlayList)
@@ -68,6 +72,7 @@ public static class PlayListEndpoints
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/upload-picture", RequestPlayListPictureUpload)
@@ -86,6 +91,7 @@ public static class PlayListEndpoints
             .RequireAuthorization()
             .Produces<TrackApplicationResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict);
 
@@ -95,6 +101,7 @@ public static class PlayListEndpoints
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
         return app;
@@ -116,10 +123,9 @@ public static class PlayListEndpoints
         long userId,
         CancellationToken cancellationToken,
         string? name,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize, currentUser.Id), cancellationToken);
+        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -128,10 +134,9 @@ public static class PlayListEndpoints
         CurrentUser currentUser,
         Guid playlistId,
         CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetPlayListTracksQuery(playlistId, pageNumber, pageSize, currentUser.Id), cancellationToken);
+        var result = await mediator.Send(new GetPlayListTracksQuery(playlistId, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -149,6 +154,9 @@ public static class PlayListEndpoints
 
         var location = result.Value;
         var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
+        if (stream == null)
+            return Results.NotFound();
+
         response.Headers.CacheControl = "public, max-age=31536000, immutable";
         return Results.Stream(stream, location.ContentType);
     }

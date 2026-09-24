@@ -6,6 +6,7 @@ using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using X.PagedList;
 using X.PagedList.EF;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums;
 
@@ -25,7 +26,7 @@ public class GetAlbumsByUserIdQueryHandler(IDatabase database)
 
         var albumsQuery = database.Albums
             .AsNoTracking()
-            .Where(album => album.OwnerUserId == request.UserId);
+            .Where(album => album.OwnerUserId == request.UserId && album.LifeCycleStatus == LifeCycleStatus.Active);
 
         var totalCount = await albumsQuery.CountAsync(cancellationToken);
 

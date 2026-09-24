@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Albums;
 
@@ -20,16 +21,10 @@ public class RemoveTrackFromAlbumCommandHandler(
             .AsNoTracking()
             .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
         if (album == null)
-        {
-            logger.LogInformation("Album {AlbumId} not found", request.AlbumId);
-            return Error.NotFound();
-        }
+            return AppErrors.NotFound("Album", request.AlbumId);
 
         if (album.OwnerUserId != request.UserId)
-        {
-            logger.LogWarning("User {UserId} is not the owner of album {AlbumId}", request.UserId, request.AlbumId);
-            return Error.Unauthorized();
-        }
+            return AppErrors.Forbidden("Album", request.AlbumId);
 
         var albumTracks = await database.AlbumHasTracks
             .Where(albumTrack => albumTrack.AlbumId == request.AlbumId)

@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Albums;
@@ -21,48 +22,30 @@ public class AddTrackToAlbumCommandHandler(
             .AsNoTracking()
             .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
         if (album == null)
-        {
-            logger.LogInformation("Album {AlbumId} not found", request.AlbumId);
-            return Error.NotFound();
-        }
+            return AppErrors.NotFound("Album", request.AlbumId);
 
         if (album.OwnerUserId != request.UserId)
-        {
-            logger.LogWarning("User {UserId} is not the owner of album {AlbumId}", request.UserId, request.AlbumId);
-            return Error.Unauthorized();
-        }
+            return AppErrors.Forbidden("Album", request.AlbumId);
 
         var track = await database.Tracks
             .AsNoTracking()
             .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
         if (track == null)
-        {
-            logger.LogInformation("Track {TrackId} not found", request.TrackId);
-            return Error.NotFound(description: $"Track {request.TrackId} not found");
-        }
+            return AppErrors.NotFound("Track", request.TrackId);
 
         if (track.OwnerUserId != request.UserId)
-        {
-            logger.LogWarning("User {UserId} does not own track {TrackId}", request.UserId, request.TrackId);
-            return Error.Unauthorized();
-        }
+            return AppErrors.Forbidden("Track", request.TrackId);
 
         var alreadyAdded = await database.AlbumHasTracks
             .AsNoTracking()
             .AnyAsync(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.TrackId == request.TrackId, cancellationToken);
         if (alreadyAdded)
-        {
-            logger.LogInformation("Track {TrackId} already in album {AlbumId}", request.TrackId, request.AlbumId);
-            return Error.Conflict(description: "Track is already in the album.");
-        }
+            return AlreadyInAlbum;
 
-        var albumTracksQuery = database.AlbumHasTracks
-            .Where(albumTrack => albumTrack.AlbumId == request.AlbumId);
-
-        var hasTracks = await albumTracksQuery.AnyAsync(cancellationToken);
-        var nextTrackNumber = hasTracks
-            ? await albumTracksQuery.MaxAsync(albumTrack => albumTrack.TrackNumber, cancellationToken) + 1
-            : 1;
+        // Album track numbers are user-visible, so they start at 1.
+        var nextTrackNumber = (await database.AlbumHasTracks
+            .Where(albumTrack => albumTrack.AlbumId == request.AlbumId)
+            .MaxAsync(albumTrack => (int?)albumTrack.TrackNumber, cancellationToken) ?? 0) + 1;
 
         await database.AlbumHasTracks.AddAsync(new AlbumHasTrack
         {
@@ -71,11 +54,15 @@ public class AddTrackToAlbumCommandHandler(
             TrackNumber = nextTrackNumber
         }, cancellationToken);
 
-        await database.SaveChangesAsync(cancellationToken);
+        var saved = await database.TrySaveChangesAsync(AlreadyInAlbum, cancellationToken);
+        if (saved.IsError)
+            return saved;
 
         logger.LogInformation("Added track {TrackId} to album {AlbumId} as number {TrackNumber}",
             request.TrackId, request.AlbumId, nextTrackNumber);
 
-        return new Success();
+        return Result.Success;
     }
+
+    private static Error AlreadyInAlbum => AppErrors.Conflict("Album.TrackAlreadyAdded", "Track is already in the album.");
 }

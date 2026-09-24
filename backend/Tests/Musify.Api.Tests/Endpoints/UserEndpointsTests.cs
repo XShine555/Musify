@@ -38,7 +38,8 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
         {
             UserId = userId,
             TrackId = track.Id,
-            ListenedAt = listenedAt
+            ListenedAt = listenedAt,
+            IsCounted = true
         });
         await database.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
@@ -94,7 +95,7 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
     }
 
     [Fact]
-    public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNotFound()
+    public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNoContent()
     {
         var client = fixture.CreateAnonymousClient();
         var userId = Random.Shared.NextInt64(1, long.MaxValue);
@@ -102,6 +103,39 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
 
         var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("pageSize=0")]
+    [InlineData("pageSize=101")]
+    [InlineData("pageNumber=0")]
+    public async Task GetUsers_InvalidPaging_ReturnsBadRequest(string query)
+    {
+        var client = fixture.CreateAnonymousClient();
+
+        var response = await client.GetAsync($"/users?{query}", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetListeningStats_AnotherUser_ReturnsForbidden()
+    {
+        var userId = await fixture.SeedUserAsync();
+        var other = await fixture.SeedUserAsync();
+        var client = fixture.CreateAuthenticatedClient(userId);
+
+        var response = await client.GetAsync($"/users/{other}/listening-stats", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetListeningStats_Anonymous_ReturnsUnauthorized()
+    {
+        var response = await fixture.CreateAnonymousClient().GetAsync("/users/1/listening-stats", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

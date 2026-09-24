@@ -7,12 +7,11 @@ public class PlayListPictures
     [Required]
     public required string OriginalName { get; set; }
 
-    [Required]
-    public required string SmallName { get; set; }
+    public string? SmallName { get; set; }
 
-    [Required]
-    public required string MediumName { get; set; }
+    public string? MediumName { get; set; }
 
-    [Required]
-    public required string LargeName { get; set; }
+    public string? LargeName { get; set; }
+
+    public static PlayListPictures Pending(string originalName) => new() { OriginalName = originalName };
 }

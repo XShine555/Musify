@@ -16,7 +16,7 @@ public class GetGenresQueryHandler(IDatabase database)
     {
         var rows = await database.TrackTags
             .AsNoTracking()
-            .Where(tag => database.UserHasTracks.Any(userTrack => userTrack.TrackId == tag.TrackId))
+            .Where(tag => database.UserHasTracks.Any(userTrack => userTrack.TrackId == tag.TrackId && userTrack.Track.LifeCycleStatus == LifeCycleStatus.Active))
             .GroupBy(tag => tag.Tag)
             .Select(group => new { Genre = group.Key, TrackCount = group.Select(tag => tag.TrackId).Distinct().Count() })
             .ToListAsync(cancellationToken);

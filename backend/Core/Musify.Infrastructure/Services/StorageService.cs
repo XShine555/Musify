@@ -15,7 +15,7 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
     InfrastructureStorageConfiguration storageClientConfiguration)
     : IStorageService
 {
-    public async Task<Stream> GetFileAsync(string bucket, string key, CancellationToken cancellationToken)
+    public async Task<Stream?> GetFileAsync(string bucket, string key, CancellationToken cancellationToken)
     {
         var request = new GetObjectRequest
         {
@@ -28,6 +28,11 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
             var response = await amazonS3.GetObjectAsync(request, cancellationToken);
             logger.LogDebug("Retrieved file from S3 {Bucket}/{Key}", bucket, key);
             return response.ResponseStream;
+        }
+        catch (AmazonS3Exception exception) when (exception.ErrorCode == "NoSuchKey")
+        {
+            logger.LogDebug("File not found in S3 {Bucket}/{Key}", bucket, key);
+            return null;
         }
         catch (Exception exception)
         {

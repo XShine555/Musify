@@ -45,7 +45,7 @@ public class UpdateAlbumCommandHandler(
         if (album.OwnerUserId != request.UserId)
         {
             logger.LogWarning("Album {AlbumId} does not belong to user {UserId}", request.AlbumId, request.UserId);
-            return Error.Unauthorized();
+            return AppErrors.Forbidden("Album", request.AlbumId);
         }
 
         var title = request.Title.Trim();
@@ -67,13 +67,7 @@ public class UpdateAlbumCommandHandler(
                 return validation.Errors;
 
             pictureIntent = validation.Value;
-            album.Pictures = new AlbumPictures
-            {
-                OriginalName = pictureIntent.ObjectName,
-                SmallName = pictureIntent.ObjectName,
-                MediumName = pictureIntent.ObjectName,
-                LargeName = pictureIntent.ObjectName
-            };
+            album.Pictures = AlbumPictures.Pending(pictureIntent.ObjectName);
             finalPictureKey = albumConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
         }
 

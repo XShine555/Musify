@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
 using X.PagedList.EF;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums;
 
@@ -17,7 +18,7 @@ public class GetAlbumsQueryHandler(IDatabase database)
     {
         var albumsQuery = database.Albums
             .AsNoTracking()
-            .AsQueryable();
+            .Where(album => album.LifeCycleStatus == LifeCycleStatus.Active);
 
         if (!string.IsNullOrEmpty(request.Title))
         {

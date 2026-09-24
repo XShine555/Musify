@@ -22,6 +22,7 @@ public static partial class MassTransitDependencyInjection
         services.AddScoped<PictureWorkflowRoutingSlipBuilder>();
         services.AddScoped<DeleteTrackRoutingSlipBuilder>();
         services.AddScoped<DeletePlayListRoutingSlipBuilder>();
+        services.AddScoped<DeleteAlbumRoutingSlipBuilder>();
         services.AddScoped<CreateTrackRoutingSlipBuilder>();
         services.AddScoped<PlayListPictureSourceRoutingSlipBuilder>();
         services.AddScoped<AlbumPictureSourceRoutingSlipBuilder>();
@@ -35,6 +36,7 @@ public static partial class MassTransitDependencyInjection
         options.AddConsumer<UpdateTrackAudioConsumer>();
         options.AddConsumer<DeleteTrackConsumer>();
         options.AddConsumer<DeletePlayListConsumer>();
+        options.AddConsumer<DeleteAlbumConsumer>();
         options.AddConsumer<CreateTrackConsumer>();
         options.AddConsumer<CreatePlayListConsumer>();
         options.AddConsumer<UpdatePlayListPictureSourceConsumer>();
@@ -58,6 +60,8 @@ public static partial class MassTransitDependencyInjection
         options.AddExecuteActivity<MarkTrackAsFailedActivity, MarkTrackAsFailedArguments>();
         options.AddExecuteActivity<MarkPlayListAsFailedActivity, MarkPlayListAsFailedArguments>();
         options.AddExecuteActivity<MarkAlbumAsFailedActivity, MarkAlbumAsFailedArguments>();
+        options.AddExecuteActivity<MarkAlbumAsRemovingActivity, MarkAlbumAsRemovingArguments>();
+        options.AddExecuteActivity<DeleteAlbumFromDbActivity, DeleteAlbumFromDbArguments>();
         options.AddExecuteActivity<PublishAlbumPictureProcessingEventActivity, PublishAlbumPictureProcessingEventArguments>();
 
         options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();

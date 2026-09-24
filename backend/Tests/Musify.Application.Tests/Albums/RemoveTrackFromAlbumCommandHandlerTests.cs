@@ -46,7 +46,7 @@ public sealed class RemoveTrackFromAlbumCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    public async Task Handle_NotOwner_ReturnsForbidden()
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
@@ -55,7 +55,7 @@ public sealed class RemoveTrackFromAlbumCommandHandlerTests : HandlerTestBase
 
         var result = await CreateHandler().Handle(new RemoveTrackFromAlbumCommand(stranger.Id, album.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+        Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
 
     [Fact]

@@ -23,7 +23,8 @@ internal class DownloadFileFromBucketActivity(
             using var fileStream = await storageHandler.GetFileAsync(
                 executeContext.Arguments.Bucket,
                 executeContext.Arguments.Key,
-                executeContext.CancellationToken);
+                executeContext.CancellationToken)
+                ?? throw new FileNotFoundException($"Object {executeContext.Arguments.Bucket}/{executeContext.Arguments.Key} was not found.");
 
             var destinationDirectory = Path.GetDirectoryName(destinationPath);
             if (!string.IsNullOrWhiteSpace(destinationDirectory))

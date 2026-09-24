@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Domain.ValueObjects;
 
@@ -29,7 +30,7 @@ public class DeletePlayListCommandHandler(
         if (playList.UserId != request.UserId)
         {
             logger.LogWarning("Playlist {PlayListId} does not belong to user {UserId}", request.PlayListId, request.UserId);
-            return Error.Unauthorized();
+            return AppErrors.Forbidden("PlayList", request.PlayListId);
         }
 
         playList.LifeCycleStatus = LifeCycleStatus.Removing;

@@ -15,5 +15,9 @@ public sealed class UpdatePlayListRequestValidator : AbstractValidator<UpdatePla
         RuleFor(x => x.NewDescription)
             .MaximumLength(256)
             .When(x => x.NewDescription != null);
+
+        RuleFor(x => x.NewVisibility)
+            .IsInEnum()
+            .When(x => x.NewVisibility != null);
     }
 }

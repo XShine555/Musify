@@ -13,5 +13,8 @@ public sealed class CreatePlayListRequestValidator : AbstractValidator<CreatePla
 
         RuleFor(x => x.Description)
             .MaximumLength(256);
+
+        RuleFor(x => x.Visibility)
+            .IsInEnum();
     }
 }

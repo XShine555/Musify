@@ -417,9 +417,10 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlayListId");
-
                     b.HasIndex("TrackId");
+
+                    b.HasIndex("PlayListId", "TrackId")
+                        .IsUnique();
 
                     b.ToTable("PlayListHasTrack");
                 });
@@ -790,13 +791,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("LargeName")
-                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("LargePictureName");
 
                             b1.Property<string>("MediumName")
-                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("MediumPictureName");
@@ -808,7 +807,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasColumnName("OriginalPictureName");
 
                             b1.Property<string>("SmallName")
-                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("SmallPictureName");

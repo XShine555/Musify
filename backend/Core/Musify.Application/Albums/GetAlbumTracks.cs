@@ -6,6 +6,7 @@ using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using X.PagedList;
 using X.PagedList.EF;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums;
 
@@ -22,7 +23,7 @@ public class GetAlbumTracksQueryHandler(IDatabase database)
     {
         var albumExists = await database.Albums
             .AsNoTracking()
-            .AnyAsync(album => album.Id == request.AlbumId, cancellationToken);
+            .AnyAsync(album => album.Id == request.AlbumId && album.LifeCycleStatus == LifeCycleStatus.Active, cancellationToken);
         if (!albumExists)
             return Error.NotFound();
 
@@ -30,7 +31,7 @@ public class GetAlbumTracksQueryHandler(IDatabase database)
             .AsNoTracking()
             .Include(albumTrack => albumTrack.Track.Owner)
             .Include(albumTrack => albumTrack.Track.Tags)
-            .Where(albumTrack => albumTrack.AlbumId == request.AlbumId);
+            .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == LifeCycleStatus.Active);
 
         var totalCount = await tracksQuery.CountAsync(cancellationToken);
 

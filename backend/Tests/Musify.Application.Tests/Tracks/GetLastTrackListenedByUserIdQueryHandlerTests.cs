@@ -1,4 +1,3 @@
-using ErrorOr;
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
 using Xunit;
@@ -22,18 +21,18 @@ public sealed class GetLastTrackListenedByUserIdQueryHandlerTests : HandlerTestB
 
         var result = await CreateHandler().Handle(new GetLastTrackListenedByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
 
-        Assert.False(result.IsError);
-        Assert.Equal("Newer listen", result.Value.Title);
+        Assert.NotNull(result);
+        Assert.Equal("Newer listen", result.Title);
     }
 
     [Fact]
-    public async Task Handle_NoHistory_ReturnsNotFound()
+    public async Task Handle_NoHistory_ReturnsNull()
     {
         var owner = TestEntities.User();
         await SeedAsync(owner);
 
         var result = await CreateHandler().Handle(new GetLastTrackListenedByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+        Assert.Null(result);
     }
 }

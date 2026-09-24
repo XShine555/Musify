@@ -2,6 +2,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks;
 
@@ -28,11 +29,12 @@ public class GetListeningHistoryQueryHandler(
             .AsNoTracking()
             .Include(t => t.Owner)
             .Include(t => t.Tags)
-            .Where(t => recentTrackIds.Contains(t.Id))
+            .Where(t => recentTrackIds.Contains(t.Id) && t.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(t => new { t.Id, Track = t, ListensCount = t.ListeningHistories.Count(l => l.IsCounted) })
             .ToDictionaryAsync(t => t.Id, cancellationToken);
 
         return recentTrackIds
+            .Where(id => tracksById.ContainsKey(id))
             .Select(id => tracksById[id])
             .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.ListensCount));
     }

@@ -2,7 +2,7 @@ namespace Musify.Application.Contracts;
 
 public interface IStorageService
 {
-    public Task<Stream> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
+    public Task<Stream?> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
     public Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
 

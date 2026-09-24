@@ -3,7 +3,8 @@ import type { LayoutServerLoad } from './$types';
 import { getAllowAnonymousListening } from '$lib/server/playbackConfig';
 import { createApiClient } from '$lib/server/api';
 import { authConfig } from '$lib/server/config';
-import { LIKED_TRACKS_PAGE_SIZE } from '$lib/config';
+import { LIKED_TRACKS_LIMIT } from '$lib/config';
+import { fetchAllPages } from '$lib/server/pagination';
 
 const PUBLIC_PATHS = new Set(['/auth']);
 const SIDEBAR_PLAYLISTS_LIMIT = 8;
@@ -30,10 +31,11 @@ async function fetchSidebarPlaylists(
 async function fetchLikedTracks(fetchFn: typeof fetch, accessToken: string | null) {
 	try {
 		const api = createApiClient({ fetch: fetchFn, accessToken: accessToken ?? undefined });
-		const { data } = await api.GET('/likes', {
-			params: { query: { pageNumber: 1, pageSize: LIKED_TRACKS_PAGE_SIZE } }
-		});
-		return data?.items ?? [];
+		return await fetchAllPages(
+			async (pageNumber, pageSize) =>
+				(await api.GET('/likes', { params: { query: { pageNumber, pageSize } } })).data,
+			LIKED_TRACKS_LIMIT
+		);
 	} catch {
 		return [];
 	}

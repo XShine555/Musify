@@ -9,6 +9,8 @@ internal static class ActivityNames
     internal const string MarkPlayListAsFailed = "MarkPlayListAsFailed";
     internal const string DeletePlayListFromDb = "DeletePlayListFromDb";
     internal const string MarkAlbumAsFailed = "MarkAlbumAsFailed";
+    internal const string MarkAlbumAsRemoving = "MarkAlbumAsRemoving";
+    internal const string DeleteAlbumFromDb = "DeleteAlbumFromDb";
 
     internal const string GenerateAudioWorkflowPaths = "GenerateAudioWorkflowPaths";
     internal const string GeneratePictureWorkflowPaths = "GeneratePictureWorkflowPaths";
@@ -55,4 +57,7 @@ internal static class ActivityNames
     internal const string RemovePlayListLargePicture = "RemovePlayListLargePicture";
 
     internal const string RemoveAlbumOriginalPicture = "RemoveAlbumOriginalPicture";
+    internal const string RemoveAlbumSmallPicture = "RemoveAlbumSmallPicture";
+    internal const string RemoveAlbumMediumPicture = "RemoveAlbumMediumPicture";
+    internal const string RemoveAlbumLargePicture = "RemoveAlbumLargePicture";
 }

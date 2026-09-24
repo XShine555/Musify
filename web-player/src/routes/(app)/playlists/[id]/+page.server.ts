@@ -8,6 +8,8 @@ import {
 	unwrapOrFail
 } from '$lib/server/api';
 import { uploadPresignedImage } from '$lib/server/upload';
+import { fetchAllPages } from '$lib/server/pagination';
+import { PLAYLIST_TRACKS_LIMIT } from '$lib/config';
 
 const MAX_NAME = 100;
 
@@ -16,15 +18,20 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	optionalUser(locals, url, allowAnonymousListening);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
-	const [playlistRes, tracksRes] = await Promise.all([
+	const [playlistRes, tracks] = await Promise.all([
 		api.GET('/playlists/{id}', { params: { path: { id: params.id } } }),
-		api.GET('/playlists/{playlistId}/tracks', {
-			params: { path: { playlistId: params.id }, query: { pageNumber: 1, pageSize: 200 } }
-		})
+		fetchAllPages(
+			async (pageNumber, pageSize) =>
+				(
+					await api.GET('/playlists/{playlistId}/tracks', {
+						params: { path: { playlistId: params.id }, query: { pageNumber, pageSize } }
+					})
+				).data,
+			PLAYLIST_TRACKS_LIMIT
+		)
 	]);
 
 	const playlist = unwrapOrError(playlistRes, 'Playlist no encontrada.', 404);
-	const tracks = tracksRes.data?.items ?? [];
 
 	return { playlist, tracks };
 };

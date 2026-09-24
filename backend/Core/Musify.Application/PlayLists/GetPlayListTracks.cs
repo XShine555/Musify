@@ -26,6 +26,7 @@ public class GetPlayListTracksQueryHandler(IDatabase database)
             .AsNoTracking()
             .AnyAsync(
                 p => p.Id == request.PlayListId
+                    && p.LifeCycleStatus == LifeCycleStatus.Active
                     && (p.Visibility == PlaylistVisibility.Public || p.UserId == request.ViewerId),
                 cancellationToken);
         if (!playListExists)
@@ -35,7 +36,7 @@ public class GetPlayListTracksQueryHandler(IDatabase database)
             .AsNoTracking()
             .Include(plt => plt.Track.Owner)
             .Include(plt => plt.Track.Tags)
-            .Where(plt => plt.PlayListId == request.PlayListId);
+            .Where(plt => plt.PlayListId == request.PlayListId && plt.Track.LifeCycleStatus == LifeCycleStatus.Active);
 
         var totalCount = await tracksQuery.CountAsync(cancellationToken);
 

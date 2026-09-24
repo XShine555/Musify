@@ -44,18 +44,18 @@ public class UpdatePlayListCommandHandler(
         if (playListEntity.UserId != request.UserId)
         {
             logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-            return Error.Unauthorized();
+            return AppErrors.Forbidden("PlayList", request.PlayListId);
         }
 
         if (!string.IsNullOrWhiteSpace(request.NewName))
         {
-            playListEntity.Name = request.NewName;
+            playListEntity.Name = request.NewName.Trim();
             playListEntity.NormalizedName = request.NewName.Trim().ToUpperInvariant();
         }
 
-        if (!string.IsNullOrWhiteSpace(request.NewDescription))
+        if (request.NewDescription != null)
         {
-            playListEntity.Description = request.NewDescription;
+            playListEntity.Description = string.IsNullOrWhiteSpace(request.NewDescription) ? null : request.NewDescription.Trim();
         }
 
         if (request.NewVisibility.HasValue)
@@ -75,13 +75,7 @@ public class UpdatePlayListCommandHandler(
                 return validation.Errors;
 
             pictureIntent = validation.Value;
-            playListEntity.Pictures = new PlayListPictures
-            {
-                OriginalName = pictureIntent.ObjectName,
-                SmallName = pictureIntent.ObjectName,
-                MediumName = pictureIntent.ObjectName,
-                LargeName = pictureIntent.ObjectName
-            };
+            playListEntity.Pictures = PlayListPictures.Pending(pictureIntent.ObjectName);
             finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
         }
 

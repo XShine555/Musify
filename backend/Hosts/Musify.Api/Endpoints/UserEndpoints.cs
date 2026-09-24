@@ -1,11 +1,13 @@
 using Mediator;
 using Musify.Api.Authentication;
 using Musify.Api.Extensions;
+using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Users;
 using Musify.Application.Users.Responses;
+using Musify.Api.Filters;
 
 namespace Musify.Api.Endpoints;
 
@@ -17,6 +19,7 @@ public static class UserEndpoints
             .WithTags("Users");
 
         group.MapGet("/", GetUsers)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetUsers")
             .WithSummary("Get Paginated Users.")
             .Produces<PaginatedResponse<UserSummaryResponse>>();
@@ -45,7 +48,7 @@ public static class UserEndpoints
             .WithName("GetLastTrackListenedByUserId")
             .WithSummary("Get The Last Track A User Listened To.")
             .Produces<TrackApplicationResponse>()
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status204NoContent);
 
         group.MapGet("/{id}/profile", GetUserProfile)
             .WithName("GetUserProfile")
@@ -54,6 +57,7 @@ public static class UserEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/followers", GetFollowers)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetUserFollowers")
             .WithSummary("Get The Users Following A User. Visible To The User And To Mutual Followers.")
             .Produces<PaginatedResponse<UserSummaryResponse>>()
@@ -61,6 +65,7 @@ public static class UserEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/following", GetFollowing)
+            .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetUserFollowing")
             .WithSummary("Get The Users A User Follows.")
             .Produces<PaginatedResponse<UserSummaryResponse>>()
@@ -97,10 +102,9 @@ public static class UserEndpoints
         CurrentUser currentUser,
         CancellationToken cancellationToken,
         string? usernameSearch,
-        int pageNumber = 1,
-        int pageSize = 10)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetUsersQuery(pageNumber, pageSize, usernameSearch, currentUser.Id), cancellationToken);
+        var result = await mediator.Send(new GetUsersQuery(page.PageNumber, page.PageSize, usernameSearch, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -138,8 +142,8 @@ public static class UserEndpoints
         long id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetLastTrackListenedByUserIdQuery(id), cancellationToken);
-        return result.ToHttpResult();
+        var track = await mediator.Send(new GetLastTrackListenedByUserIdQuery(id), cancellationToken);
+        return track == null ? Results.NoContent() : Results.Ok(track);
     }
 
     private static async Task<IResult> GetUserProfile(
@@ -157,10 +161,9 @@ public static class UserEndpoints
         CurrentUser currentUser,
         long id,
         CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 20)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetUserFollowersQuery(currentUser.Id, id, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetUserFollowersQuery(currentUser.Id, id, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 
@@ -169,10 +172,9 @@ public static class UserEndpoints
         CurrentUser currentUser,
         long id,
         CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 20)
+        [AsParameters] PageQuery page)
     {
-        var result = await mediator.Send(new GetUserFollowingQuery(currentUser.Id, id, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetUserFollowingQuery(currentUser.Id, id, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
     }
 

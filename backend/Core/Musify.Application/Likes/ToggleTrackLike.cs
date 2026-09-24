@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Likes;
@@ -45,7 +46,11 @@ public class ToggleTrackLikeCommandHandler(
             nowLiked = true;
         }
 
-        await database.SaveChangesAsync(cancellationToken);
+        // A concurrent double click can hit the unique index; the outcome is already in place, so treat it as a no-op.
+        var saved = await database.TrySaveChangesAsync(
+            AppErrors.Conflict("TrackLike.Duplicate", "Track is already liked."), cancellationToken);
+        if (saved.IsError)
+            return true;
 
         logger.LogInformation("User {UserId} {Action} track {TrackId}",
             request.UserId, nowLiked ? "liked" : "unliked", request.TrackId);

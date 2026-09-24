@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Domain.Entities;
 
@@ -38,4 +39,6 @@ public interface IDatabase
     public Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+
+    public Task<ErrorOr<Success>> TrySaveChangesAsync(Error onUniqueViolation, CancellationToken cancellationToken);
 }

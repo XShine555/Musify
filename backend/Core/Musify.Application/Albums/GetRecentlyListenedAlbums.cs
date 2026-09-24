@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums;
 
@@ -38,7 +39,7 @@ public class GetRecentlyListenedAlbumsQueryHandler(IDatabase database)
 
         var albums = await database.Albums
             .AsNoTracking()
-            .Where(album => albumIds.Contains(album.Id))
+            .Where(album => albumIds.Contains(album.Id) && album.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(album => new
             {
                 Album = album,

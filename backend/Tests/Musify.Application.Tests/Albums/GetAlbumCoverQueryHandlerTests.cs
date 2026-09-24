@@ -34,4 +34,19 @@ public sealed class GetAlbumCoverQueryHandlerTests : HandlerTestBase
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
+
+    [Fact]
+    public async Task Handle_PicturesStillProcessing_FallsBackToTheOriginal()
+    {
+        var owner = TestEntities.User();
+        var album = TestEntities.Album(owner.Id, pictures: Musify.Domain.ValueObjects.AlbumPictures.Pending("original.png"));
+        await SeedAsync(owner, album);
+
+        var result = await CreateHandler().Handle(new GetAlbumCoverQuery(album.Id, "small"), TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsError);
+        Assert.Contains($"{owner.Id}", result.Value.Key);
+        Assert.EndsWith("original.png", result.Value.Key);
+        Assert.Equal("image/png", result.Value.ContentType);
+    }
 }

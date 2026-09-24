@@ -6,6 +6,7 @@ using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using X.PagedList;
 using X.PagedList.EF;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Likes;
 
@@ -24,7 +25,7 @@ public class GetLikedTracksQueryHandler(IDatabase database)
             .AsNoTracking()
             .Include(like => like.Track.Owner)
             .Include(like => like.Track.Tags)
-            .Where(like => like.UserId == request.UserId);
+            .Where(like => like.UserId == request.UserId && like.Track.LifeCycleStatus == LifeCycleStatus.Active);
 
         var totalCount = await likesQuery.CountAsync(cancellationToken);
 

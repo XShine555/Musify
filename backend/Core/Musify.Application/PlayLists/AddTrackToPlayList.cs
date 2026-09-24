@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists;
@@ -18,44 +19,30 @@ public class AddTrackToPlayListCommandHandler(
     public async ValueTask<ErrorOr<Success>> Handle(AddTrackToPlayListCommand request, CancellationToken cancellationToken)
     {
         var playList = await database.PlayLists
+            .AsNoTracking()
             .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
         if (playList == null)
-        {
-            logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
-            return Error.NotFound();
-        }
+            return AppErrors.NotFound("PlayList", request.PlayListId);
 
         if (playList.UserId != request.UserId)
-        {
-            logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-            return Error.Unauthorized();
-        }
+            return AppErrors.Forbidden("PlayList", request.PlayListId);
 
         var trackExists = await database.Tracks
             .AsNoTracking()
             .AnyAsync(t => t.Id == request.TrackId, cancellationToken);
         if (!trackExists)
-        {
-            logger.LogInformation("Track {TrackId} not found", request.TrackId);
-            return Error.NotFound(description: $"Track {request.TrackId} not found");
-        }
+            return AppErrors.NotFound("Track", request.TrackId);
 
         var alreadyAdded = await database.PlayListHasTracks
             .AsNoTracking()
             .AnyAsync(plt => plt.PlayListId == request.PlayListId && plt.TrackId == request.TrackId, cancellationToken);
         if (alreadyAdded)
-        {
-            logger.LogInformation("Track {TrackId} already in playlist {PlayListId}", request.TrackId, request.PlayListId);
-            return Error.Conflict(description: "Track is already in the playlist.");
-        }
+            return AlreadyInPlayList;
 
-        var playListTracksQuery = database.PlayListHasTracks
-            .Where(plt => plt.PlayListId == request.PlayListId);
-
-        var hasTracks = await playListTracksQuery.AnyAsync(cancellationToken);
-        var nextPosition = hasTracks
-            ? await playListTracksQuery.MaxAsync(plt => plt.Position, cancellationToken) + 1
-            : 0;
+        // Playlist positions are internal indexes, so they start at 0.
+        var nextPosition = (await database.PlayListHasTracks
+            .Where(plt => plt.PlayListId == request.PlayListId)
+            .MaxAsync(plt => (int?)plt.Position, cancellationToken) ?? -1) + 1;
 
         await database.PlayListHasTracks.AddAsync(new PlayListHasTrack
         {
@@ -64,11 +51,15 @@ public class AddTrackToPlayListCommandHandler(
             Position = nextPosition
         }, cancellationToken);
 
-        await database.SaveChangesAsync(cancellationToken);
+        var saved = await database.TrySaveChangesAsync(AlreadyInPlayList, cancellationToken);
+        if (saved.IsError)
+            return saved;
 
         logger.LogInformation("Added track {TrackId} to playlist {PlayListId} at position {Position}",
             request.TrackId, request.PlayListId, nextPosition);
 
-        return new Success();
+        return Result.Success;
     }
+
+    private static Error AlreadyInPlayList => AppErrors.Conflict("PlayList.TrackAlreadyAdded", "Track is already in the playlist.");
 }
