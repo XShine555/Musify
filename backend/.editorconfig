@@ -41,6 +41,13 @@ dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_symbols.private_fields.required_modifiers =
 dotnet_naming_style.camel_case.capitalization = camel_case
 
+dotnet_naming_rule.private_static_readonly.symbols = private_static_readonly
+dotnet_naming_rule.private_static_readonly.style = pascal_case
+dotnet_naming_rule.private_static_readonly.severity = warning
+dotnet_naming_symbols.private_static_readonly.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly.required_modifiers = static, readonly
+
 dotnet_naming_rule.private_constants.symbols = private_constants
 dotnet_naming_rule.private_constants.style = pascal_case
 dotnet_naming_rule.private_constants.severity = warning
@@ -48,18 +55,16 @@ dotnet_naming_symbols.private_constants.applicable_kinds = field
 dotnet_naming_symbols.private_constants.required_modifiers = const
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
-# Analyzer rules that would need behaviour or API changes; downgraded in P0, revisit in P15.
+# CA1848/CA1873 would turn every log call into a [LoggerMessage] source-generated method; CA1716 flags the
+# EF-style IDatabase.Set<T>() and the Musify.Application.Shared namespace, whose names are deliberate.
 dotnet_diagnostic.CA1848.severity = suggestion
 dotnet_diagnostic.CA1873.severity = suggestion
-dotnet_diagnostic.CA1305.severity = suggestion
-dotnet_diagnostic.CA1707.severity = suggestion
-dotnet_diagnostic.CA1859.severity = suggestion
 dotnet_diagnostic.CA1716.severity = suggestion
-dotnet_diagnostic.CA1000.severity = suggestion
-dotnet_diagnostic.CA1725.severity = suggestion
-dotnet_diagnostic.CA1816.severity = suggestion
+# The routing slip builders are stateless services resolved from DI; they stay instance members.
 dotnet_diagnostic.CA1822.severity = suggestion
-dotnet_diagnostic.CA1852.severity = suggestion
-dotnet_diagnostic.CA1068.severity = suggestion
-dotnet_diagnostic.CA1711.severity = suggestion
-dotnet_diagnostic.CA1861.severity = suggestion
+
+# Test names follow Method_Scenario_Expected.
+[Tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
+# xUnit collection fixtures are conventionally named ...Collection.
+dotnet_diagnostic.CA1711.severity = none

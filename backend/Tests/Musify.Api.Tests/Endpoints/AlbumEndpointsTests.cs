@@ -4,8 +4,8 @@ using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Albums;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Albums.Responses;
-using Musify.Application.Pictures.Responses;
 using Musify.Application.Contracts;
+using Musify.Application.Pictures.Responses;
 using NSubstitute;
 using Xunit;
 

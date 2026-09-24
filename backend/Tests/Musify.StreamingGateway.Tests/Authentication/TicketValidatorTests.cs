@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -36,7 +37,7 @@ public sealed class TicketValidatorTests : IDisposable
     {
         var claims = new Dictionary<string, object> { ["prefix"] = prefix };
         if (maxBytes != null)
-            claims["maxBytes"] = maxBytes.Value.ToString();
+            claims["maxBytes"] = maxBytes.Value.ToString(CultureInfo.InvariantCulture);
 
         var descriptor = new SecurityTokenDescriptor
         {

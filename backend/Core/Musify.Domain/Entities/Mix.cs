@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Musify.Domain.ValueObjects;
 using System.ComponentModel.DataAnnotations.Schema;
-
 using Musify.Domain.Abstractions;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Domain.Entities;
 

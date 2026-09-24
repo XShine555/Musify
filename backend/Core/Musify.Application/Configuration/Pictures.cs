@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using Musify.Application.Shared;
 
 namespace Musify.Application.Configuration;
@@ -41,10 +42,10 @@ public class PictureRoutes
     public string BuildPicturePath(PictureSize size, string pictureName) => StorageKey.Combine(FolderPath(size), pictureName);
 
     public string BuildOriginalPicturePath(long userId, string pictureName) =>
-        StorageKey.Combine(UploadsFolder, userId.ToString(), ParentFolder, OriginalPicturesFolder, pictureName);
+        StorageKey.Combine(UploadsFolder, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, OriginalPicturesFolder, pictureName);
 
     public string BuildTempPath(string tempRootPrefix, long userId, string objectName) =>
-        StorageKey.Combine(tempRootPrefix, userId.ToString(), ParentFolder, objectName);
+        StorageKey.Combine(tempRootPrefix, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, objectName);
 }
 
 public class PictureSizes

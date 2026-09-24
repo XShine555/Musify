@@ -12,7 +12,11 @@ public abstract class HandlerTestBase : IAsyncLifetime
 
     public async ValueTask InitializeAsync() => database = await TestDatabase.CreateAsync();
 
-    public ValueTask DisposeAsync() => database.DisposeAsync();
+    public ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        return database.DisposeAsync();
+    }
 
     protected static ILogger<T> NoOpLogger<T>() => NullLogger<T>.Instance;
 

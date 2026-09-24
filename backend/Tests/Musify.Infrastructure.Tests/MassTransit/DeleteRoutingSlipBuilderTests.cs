@@ -18,7 +18,10 @@ public sealed class DeleteRoutingSlipBuilderTests(InfrastructureTestFixture fixt
     {
         var album = await SeedAlbumAsync(new EntityPictures
         {
-            OriginalName = "original.webp", SmallName = "small.webp", MediumName = "medium.webp", LargeName = "large.webp"
+            OriginalName = "original.webp",
+            SmallName = "small.webp",
+            MediumName = "medium.webp",
+            LargeName = "large.webp"
         });
         await using var database = fixture.CreateDatabase();
 
@@ -116,7 +119,10 @@ public sealed class DeleteRoutingSlipBuilderTests(InfrastructureTestFixture fixt
         var track = await SeedTrackAsync(
             new TrackPictures
             {
-                OriginalName = "original.webp", SmallName = "s.webp", MediumName = "m.webp", LargeName = "l.webp",
+                OriginalName = "original.webp",
+                SmallName = "s.webp",
+                MediumName = "m.webp",
+                LargeName = "l.webp",
                 ProcessingStatus = ProcessingStatus.Completed
             },
             new TrackAudio { OriginalName = "audio.mp3", FolderName = "folder", TranscodeStatus = ProcessingStatus.Completed });

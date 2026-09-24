@@ -1,3 +1,4 @@
+using System.Globalization;
 using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,7 @@ public class StartListeningCommandHandler(
             listenId = listen.Id;
         }
 
-        logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId?.ToString() ?? "(anonymous)");
+        logger.LogInformation("Issued stream ticket for track {TrackId} to user {UserId}", request.TrackId, request.UserId?.ToString(CultureInfo.InvariantCulture) ?? "(anonymous)");
 
         return streamIssuer.Issue(track.Audio.FolderName, request.UserId, listenId);
     }

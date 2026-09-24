@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using Musify.Application.Shared;
 
 namespace Musify.Application.Configuration;
@@ -48,7 +49,7 @@ public class TrackRoutes : PictureRoutes
     public string PresetLargePicturePath => StorageKey.Combine(ParentFolder, PresetLargePicture);
 
     public string BuildOriginalAudioPath(long userId, string audioName) =>
-        StorageKey.Combine(UploadsFolder, userId.ToString(), ParentFolder, OriginalAudiosFolder, audioName);
+        StorageKey.Combine(UploadsFolder, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, OriginalAudiosFolder, audioName);
 
     public string BuildProcessedAudioPath(string folderName) =>
         StorageKey.Combine(ParentFolder, ProcessedAudiosFolder, folderName);

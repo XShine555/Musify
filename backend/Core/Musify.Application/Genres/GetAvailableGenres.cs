@@ -1,6 +1,6 @@
 using Mediator;
-using Musify.Domain.ValueObjects;
 using Musify.Application.Genres.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Genres;
 

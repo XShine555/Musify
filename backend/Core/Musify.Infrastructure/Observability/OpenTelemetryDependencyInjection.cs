@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Observability;
 

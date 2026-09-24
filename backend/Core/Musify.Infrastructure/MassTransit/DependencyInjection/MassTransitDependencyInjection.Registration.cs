@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.MassTransit.Activities.Albums;
 using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Activities.Files;
+using Musify.Infrastructure.MassTransit.Activities.LifeCycle;
 using Musify.Infrastructure.MassTransit.Activities.Pictures;
 using Musify.Infrastructure.MassTransit.Activities.PlayLists;
 using Musify.Infrastructure.MassTransit.Activities.Tracks;
@@ -11,7 +12,6 @@ using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
 using Musify.Infrastructure.MassTransit.Logs;
 using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
-using Musify.Infrastructure.MassTransit.Activities.LifeCycle;
 
 namespace Musify.Infrastructure.MassTransit;
 

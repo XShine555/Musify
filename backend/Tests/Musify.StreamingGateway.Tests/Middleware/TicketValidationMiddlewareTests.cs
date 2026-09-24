@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -39,7 +40,7 @@ public sealed class TicketValidationMiddlewareTests : IDisposable
     {
         var claims = new Dictionary<string, object> { ["prefix"] = prefix };
         if (maxBytes != null)
-            claims["maxBytes"] = maxBytes.Value.ToString();
+            claims["maxBytes"] = maxBytes.Value.ToString(CultureInfo.InvariantCulture);
 
         return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {

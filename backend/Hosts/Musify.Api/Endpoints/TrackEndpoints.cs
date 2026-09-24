@@ -97,10 +97,10 @@ public static class TrackEndpoints
 
     private static async Task<IResult> GetTracks(
         IMediator mediator,
-        CancellationToken cancellationToken,
         string? name,
         GenreParameter? genre,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetTracksQuery(name, page.PageNumber, page.PageSize, genre?.Value), cancellationToken);
         return Results.Ok(result);
@@ -152,9 +152,9 @@ public static class TrackEndpoints
     private static async Task<IResult> GetTracksByUserId(
         IMediator mediator,
         long userId,
-        CancellationToken cancellationToken,
         string? name,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();

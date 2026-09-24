@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Domain.ValueObjects;
-using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Activities.LifeCycle;
+using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 

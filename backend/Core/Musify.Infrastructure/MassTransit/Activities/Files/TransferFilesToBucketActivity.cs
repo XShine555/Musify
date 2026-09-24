@@ -20,25 +20,15 @@ internal class TransferFilesToBucketActivity(
         var destinationKey = executeContext.Arguments.DestinationKey;
         ArgumentNullException.ThrowIfNull(destinationKey);
 
-        try
-        {
-            var uploadedKeys = await storageService.TransferFilesAsync(
-                folderPath,
-                executeContext.Arguments.DestinationBucket,
-                destinationKey,
-                executeContext.CancellationToken);
+        var uploadedKeys = await storageService.TransferFilesAsync(
+            folderPath,
+            executeContext.Arguments.DestinationBucket,
+            destinationKey,
+            executeContext.CancellationToken);
 
-            return executeContext.Completed(new TransferFilesToBucketLog(
-                executeContext.Arguments.DestinationBucket,
-                uploadedKeys.ToArray()));
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to transfer files from {FolderPath} to {DestinationBucket}",
-                folderPath,
-                executeContext.Arguments.DestinationBucket);
-            throw;
-        }
+        return executeContext.Completed(new TransferFilesToBucketLog(
+            executeContext.Arguments.DestinationBucket,
+            uploadedKeys.ToArray()));
     }
 
     public async Task<CompensationResult> Compensate(CompensateContext<TransferFilesToBucketLog> compensateContext)

@@ -18,6 +18,8 @@ public sealed class InfrastructureTestFixture : IAsyncLifetime
     public const string S3SecretKey = "musify-test-secret";
     public const string S3Bucket = "musify-test-bucket";
 
+    private static readonly string[] S3Actions = ["Admin", "Read", "Write"];
+
     private readonly PostgreSqlContainer postgres = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("musify_test")
         .WithUsername("postgres")
@@ -83,7 +85,7 @@ public sealed class InfrastructureTestFixture : IAsyncLifetime
                 {
                     name = "musify-test",
                     credentials = new[] { new { accessKey = S3AccessKey, secretKey = S3SecretKey } },
-                    actions = new[] { "Admin", "Read", "Write" }
+                    actions = S3Actions
                 }
             }
         });

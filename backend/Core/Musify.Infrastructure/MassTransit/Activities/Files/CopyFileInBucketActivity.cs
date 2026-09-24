@@ -15,28 +15,16 @@ internal class CopyFileInBucketActivity(
 
     public async Task<ExecutionResult> Execute(ExecuteContext<CopyFileInBucketArguments> executeContext)
     {
-        try
-        {
-            await storageService.CopyFileAsync(
-                executeContext.Arguments.SourceBucket,
-                executeContext.Arguments.SourceKey,
-                executeContext.Arguments.DestinationBucket,
-                executeContext.Arguments.DestinationKey,
-                executeContext.CancellationToken);
+        await storageService.CopyFileAsync(
+            executeContext.Arguments.SourceBucket,
+            executeContext.Arguments.SourceKey,
+            executeContext.Arguments.DestinationBucket,
+            executeContext.Arguments.DestinationKey,
+            executeContext.CancellationToken);
 
-            return executeContext.Completed(new CopyFileInBucketLog(
-                executeContext.Arguments.DestinationBucket,
-                executeContext.Arguments.DestinationKey));
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to copy {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
-                executeContext.Arguments.SourceBucket,
-                executeContext.Arguments.SourceKey,
-                executeContext.Arguments.DestinationBucket,
-                executeContext.Arguments.DestinationKey);
-            throw;
-        }
+        return executeContext.Completed(new CopyFileInBucketLog(
+            executeContext.Arguments.DestinationBucket,
+            executeContext.Arguments.DestinationKey));
     }
 
     public async Task<CompensationResult> Compensate(CompensateContext<CopyFileInBucketLog> compensateContext)

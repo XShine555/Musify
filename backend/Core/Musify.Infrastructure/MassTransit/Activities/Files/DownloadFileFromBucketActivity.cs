@@ -18,33 +18,25 @@ internal class DownloadFileFromBucketActivity(
         var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
         ArgumentNullException.ThrowIfNull(destinationPath);
 
-        try
-        {
-            using var fileStream = await storageService.GetFileAsync(
-                executeContext.Arguments.Bucket,
-                executeContext.Arguments.Key,
-                executeContext.CancellationToken)
-                ?? throw new FileNotFoundException($"Object {executeContext.Arguments.Bucket}/{executeContext.Arguments.Key} was not found.");
+        using var fileStream = await storageService.GetFileAsync(
+            executeContext.Arguments.Bucket,
+            executeContext.Arguments.Key,
+            executeContext.CancellationToken)
+            ?? throw new FileNotFoundException($"Object {executeContext.Arguments.Bucket}/{executeContext.Arguments.Key} was not found.");
 
-            var destinationDirectory = Path.GetDirectoryName(destinationPath);
-            if (!string.IsNullOrWhiteSpace(destinationDirectory))
-                Directory.CreateDirectory(destinationDirectory);
+        var destinationDirectory = Path.GetDirectoryName(destinationPath);
+        if (!string.IsNullOrWhiteSpace(destinationDirectory))
+            Directory.CreateDirectory(destinationDirectory);
 
-            if (fileStream.CanSeek)
-                fileStream.Position = 0;
+        if (fileStream.CanSeek)
+            fileStream.Position = 0;
 
-            using var destinationStream = File.Create(destinationPath);
-            await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
-            return executeContext.Completed(new DownloadFileFromBucketLog(
-                executeContext.Arguments.Bucket,
-                executeContext.Arguments.Key,
-                destinationPath));
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to download file from bucket");
-            throw;
-        }
+        using var destinationStream = File.Create(destinationPath);
+        await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
+        return executeContext.Completed(new DownloadFileFromBucketLog(
+            executeContext.Arguments.Bucket,
+            executeContext.Arguments.Key,
+            destinationPath));
     }
 
     public Task<CompensationResult> Compensate(CompensateContext<DownloadFileFromBucketLog> compensateContext)

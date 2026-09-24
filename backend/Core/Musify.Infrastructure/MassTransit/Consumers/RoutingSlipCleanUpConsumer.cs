@@ -12,11 +12,11 @@ public class RoutingSlipCleanUpConsumer(
 {
     public const string QueueName = "routing-slip-clean-up";
 
-    public Task Consume(ConsumeContext<RoutingSlipCompleted> consumeContext)
-        => DeleteFolder(consumeContext.Message.Variables);
+    public Task Consume(ConsumeContext<RoutingSlipCompleted> context)
+        => DeleteFolder(context.Message.Variables);
 
-    public Task Consume(ConsumeContext<RoutingSlipFaulted> consumeContext)
-        => DeleteFolder(consumeContext.Message.Variables);
+    public Task Consume(ConsumeContext<RoutingSlipFaulted> context)
+        => DeleteFolder(context.Message.Variables);
 
     private Task DeleteFolder(IDictionary<string, object> variables)
     {

@@ -2,8 +2,8 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
-using Musify.Application.Users.Responses;
 using Musify.Application.Shared;
+using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Users;
 

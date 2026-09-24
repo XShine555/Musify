@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Musify.Domain.ValueObjects;
 
-#pragma warning disable CS8618
 public class TrackAudio
 {
     public string? OriginalName { get; set; }

@@ -1,8 +1,8 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
-using Musify.Domain.ValueObjects;
 using Musify.Application.Genres.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Genres;
 

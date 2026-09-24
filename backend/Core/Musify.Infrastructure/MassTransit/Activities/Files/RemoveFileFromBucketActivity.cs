@@ -34,12 +34,5 @@ internal class RemoveFileFromBucketActivity(
                 executeContext.Arguments.Bucket);
             return executeContext.Completed();
         }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to remove {Key} from bucket {Bucket}",
-                executeContext.Arguments.Key,
-                executeContext.Arguments.Bucket);
-            throw;
-        }
     }
 }

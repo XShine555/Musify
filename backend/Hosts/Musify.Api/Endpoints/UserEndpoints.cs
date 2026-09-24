@@ -100,9 +100,9 @@ public static class UserEndpoints
     private static async Task<IResult> GetUsers(
         IMediator mediator,
         CurrentUser currentUser,
-        CancellationToken cancellationToken,
         string? usernameSearch,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetUsersQuery(page.PageNumber, page.PageSize, usernameSearch, currentUser.Id), cancellationToken);
         return Results.Ok(result);
@@ -162,8 +162,8 @@ public static class UserEndpoints
         IMediator mediator,
         CurrentUser currentUser,
         long id,
-        CancellationToken cancellationToken,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetUserFollowersQuery(currentUser.Id, id, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
@@ -173,8 +173,8 @@ public static class UserEndpoints
         IMediator mediator,
         CurrentUser currentUser,
         long id,
-        CancellationToken cancellationToken,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetUserFollowingQuery(currentUser.Id, id, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();

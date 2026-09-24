@@ -21,22 +21,14 @@ internal class UploadFileToBucketActivity(IStorageService storageService,
             .Where(static s => !string.IsNullOrWhiteSpace(s))
             .Select(static s => s.Trim().Trim('/', '\\')));
 
-        try
-        {
-            await storageService.UploadFileAsync(
-                sourceFilePath,
-                executeContext.Arguments.DestinationBucket,
-                destinationKey,
-                executeContext.CancellationToken);
-            return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
-                executeContext.Arguments.DestinationBucket,
-                destinationKey));
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to upload file to bucket");
-            throw;
-        }
+        await storageService.UploadFileAsync(
+            sourceFilePath,
+            executeContext.Arguments.DestinationBucket,
+            destinationKey,
+            executeContext.CancellationToken);
+        return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
+            executeContext.Arguments.DestinationBucket,
+            destinationKey));
     }
 
     public async Task<CompensationResult> Compensate(CompensateContext<UploadFileToBucketLog> compensateContext)

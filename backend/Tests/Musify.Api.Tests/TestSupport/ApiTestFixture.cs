@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -64,7 +65,7 @@ public sealed class ApiTestFixture : WebApplicationFactory<Program>, IAsyncLifet
     public HttpClient CreateAuthenticatedClient(long userId, string userName = "test-user")
     {
         var client = CreateClient();
-        client.DefaultRequestHeaders.Add(FakeAuthenticationHandler.UserIdHeader, userId.ToString());
+        client.DefaultRequestHeaders.Add(FakeAuthenticationHandler.UserIdHeader, userId.ToString(CultureInfo.InvariantCulture));
         client.DefaultRequestHeaders.Add("X-Test-User-Name", userName);
         return client;
     }

@@ -129,9 +129,9 @@ public static class AlbumEndpoints
 
     private static async Task<IResult> GetAlbums(
         IMediator mediator,
-        CancellationToken cancellationToken,
         string? title,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetAlbumsQuery(title, page.PageNumber, page.PageSize), cancellationToken);
         return Results.Ok(result);
@@ -149,8 +149,8 @@ public static class AlbumEndpoints
     private static async Task<IResult> GetAlbumsByUserId(
         IMediator mediator,
         long userId,
-        CancellationToken cancellationToken,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetAlbumsByUserIdQuery(userId, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();
@@ -177,8 +177,8 @@ public static class AlbumEndpoints
     private static async Task<IResult> GetAlbumTracks(
         IMediator mediator,
         Guid id,
-        CancellationToken cancellationToken,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetAlbumTracksQuery(id, page.PageNumber, page.PageSize), cancellationToken);
         return result.ToHttpResult();

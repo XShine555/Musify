@@ -125,9 +125,9 @@ public static class PlayListEndpoints
         IMediator mediator,
         CurrentUser currentUser,
         long userId,
-        CancellationToken cancellationToken,
         string? name,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
         return Results.Ok(result);
@@ -137,8 +137,8 @@ public static class PlayListEndpoints
         IMediator mediator,
         CurrentUser currentUser,
         Guid id,
-        CancellationToken cancellationToken,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetPlayListTracksQuery(id, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
         return result.ToHttpResult();

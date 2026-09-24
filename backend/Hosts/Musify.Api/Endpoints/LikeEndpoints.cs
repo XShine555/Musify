@@ -38,8 +38,8 @@ public static class LikeEndpoints
     private static async Task<IResult> GetLikedTracks(
         IMediator mediator,
         CurrentUser currentUser,
-        CancellationToken cancellationToken,
-        [AsParameters] PageQuery page)
+        [AsParameters] PageQuery page,
+        CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetLikedTracksQuery(currentUser.RequiredId, page.PageNumber, page.PageSize), cancellationToken);
         return Results.Ok(result);

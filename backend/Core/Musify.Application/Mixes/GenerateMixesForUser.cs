@@ -79,7 +79,7 @@ public class GenerateMixesForUserCommandHandler(
     private static List<Guid> Shuffle(IEnumerable<Guid> trackIds) =>
         [.. trackIds.OrderBy(_ => Guid.NewGuid())];
 
-    private static List<Guid> Interleave(IReadOnlyList<Guid> first, IReadOnlyList<Guid> second)
+    private static List<Guid> Interleave(List<Guid> first, List<Guid> second)
     {
         var merged = new List<Guid>(first.Count + second.Count);
         for (var index = 0; index < Math.Max(first.Count, second.Count); index++)

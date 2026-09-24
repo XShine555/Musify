@@ -26,9 +26,9 @@ public sealed class JwtBearerEventsHandler(
         [property: JsonPropertyName("family_name")] string? FamilyName,
         [property: JsonPropertyName("picture")] string? Picture);
 
-    public override async Task TokenValidated(TokenValidatedContext tokenValidatedContext)
+    public override async Task TokenValidated(TokenValidatedContext context)
     {
-        var principal = tokenValidatedContext.Principal!;
+        var principal = context.Principal!;
 
         var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!long.TryParse(rawId, out var userId))
@@ -41,7 +41,7 @@ public sealed class JwtBearerEventsHandler(
         if (cache.TryGetValue(cacheKey, out _))
             return;
 
-        var userInfo = await FetchUserInfoAsync(tokenValidatedContext, tokenValidatedContext.HttpContext.RequestAborted);
+        var userInfo = await FetchUserInfoAsync(context, context.HttpContext.RequestAborted);
 
         var username = userInfo?.Name
             ?? userInfo?.PreferredUsername
@@ -65,7 +65,7 @@ public sealed class JwtBearerEventsHandler(
         {
             await mediator.Send(
                 new SyncUserCommand(userId, username, firstName, lastName, profilePictureUrl),
-                tokenValidatedContext.HttpContext.RequestAborted);
+                context.HttpContext.RequestAborted);
 
             cache.Set(cacheKey, true, UserSyncCacheTtl);
         }
@@ -76,9 +76,9 @@ public sealed class JwtBearerEventsHandler(
     }
 
     private async Task<UserInfoResponse?> FetchUserInfoAsync(
-        TokenValidatedContext tokenValidatedContext, CancellationToken cancellationToken)
+        TokenValidatedContext context, CancellationToken cancellationToken)
     {
-        var authorizationHeader = tokenValidatedContext.HttpContext.Request.Headers.Authorization.ToString();
+        var authorizationHeader = context.HttpContext.Request.Headers.Authorization.ToString();
         if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             return null;
 
@@ -88,7 +88,7 @@ public sealed class JwtBearerEventsHandler(
 
         try
         {
-            var userInfoEndpoint = await ResolveUserInfoEndpointAsync(tokenValidatedContext, cancellationToken);
+            var userInfoEndpoint = await ResolveUserInfoEndpointAsync(context, cancellationToken);
 
             var client = httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage(HttpMethod.Get, userInfoEndpoint)
@@ -113,9 +113,9 @@ public sealed class JwtBearerEventsHandler(
     }
 
     private async Task<string> ResolveUserInfoEndpointAsync(
-        TokenValidatedContext tokenValidatedContext, CancellationToken cancellationToken)
+        TokenValidatedContext context, CancellationToken cancellationToken)
     {
-        var configurationManager = tokenValidatedContext.Options.ConfigurationManager;
+        var configurationManager = context.Options.ConfigurationManager;
         if (configurationManager != null)
         {
             var configuration = await configurationManager.GetConfigurationAsync(cancellationToken);

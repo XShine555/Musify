@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
-using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Persistence;
 
