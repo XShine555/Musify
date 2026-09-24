@@ -5,12 +5,11 @@
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
-	import Alert from '$lib/components/ui/primitives/Alert.svelte';
 	import UserRow from '$lib/components/ui/media/UserRow.svelte';
 	import { appendUnique } from '$lib/data/collections';
 	import { plural } from '$lib/utils/format';
 
-	let { data, form } = $props();
+	let { data } = $props();
 
 	type ListUser = NonNullable<typeof data.users>['items'][number];
 
@@ -61,10 +60,6 @@
 				? plural(total, 'seguidor', 'seguidores')
 				: plural(total, 'usuario', 'usuarios')}
 	/>
-
-	{#if form?.message}
-		<Alert class="mb-4">{form.message}</Alert>
-	{/if}
 
 	{#if data.forbidden}
 		<EmptyState

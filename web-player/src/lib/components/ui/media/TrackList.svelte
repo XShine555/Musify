@@ -138,8 +138,6 @@
 					role="button"
 					tabindex="0"
 					use:pressable={() => onPlay(i)}
-					onclick={(event) => event.stopPropagation()}
-					onkeydown={(event) => event.stopPropagation()}
 					class="flex min-w-0 flex-1 text-left"
 				>
 					<MediaIdentity
@@ -173,13 +171,7 @@
 				</span>
 				{#if rowAction}
 					{#if rowAction.action}
-						<form
-							method="POST"
-							action={rowAction.action}
-							use:enhance={() =>
-								async ({ update }) =>
-									update()}
-						>
+						<form method="POST" action={rowAction.action} use:enhance>
 							<input type="hidden" name="trackId" value={track.id} />
 							<IconButton type="submit" label={rowAction.label} size="xs" revealOnHover>
 								<rowAction.icon class="size-icon-sm" />

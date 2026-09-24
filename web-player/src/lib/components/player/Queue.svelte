@@ -48,7 +48,7 @@
 	>
 		<div class="mb-5 flex items-center justify-between">
 			<h2 class="font-display text-base font-medium tracking-tight text-fg">En cola</h2>
-			<IconButton label="Cerrar cola" tone="plain" size="xs" onclick={() => queuePanel.close()}>
+			<IconButton label="Cerrar cola" plain size="xs" onclick={() => queuePanel.close()}>
 				<X class="size-icon-md" />
 			</IconButton>
 		</div>

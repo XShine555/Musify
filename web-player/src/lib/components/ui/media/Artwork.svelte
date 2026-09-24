@@ -9,7 +9,6 @@
 		size: Size;
 		shape?: 'auto' | 'round';
 		imageSize?: 'small' | 'medium' | 'large';
-		fallback?: 'music' | 'gradient' | 'none';
 		alt?: string;
 		class?: string;
 		children?: Snippet;
@@ -21,7 +20,6 @@
 		size,
 		shape = 'auto',
 		imageSize,
-		fallback = 'music',
 		alt = '',
 		class: klass = '',
 		children
@@ -116,7 +114,7 @@
 			onerror={() => (singleFailed = true)}
 			class="h-full w-full object-cover"
 		/>
-	{:else if fallback === 'music'}
+	{:else}
 		<div class="grid h-full w-full place-items-center bg-surface">
 			<svg viewBox="0 0 24 24" fill="currentColor" class="h-2/5 w-2/5 text-fg-2">
 				<path
@@ -124,10 +122,6 @@
 				/>
 			</svg>
 		</div>
-	{:else if fallback === 'gradient'}
-		<div class="h-full w-full bg-(image:--mf-cover-grad)"></div>
-	{:else}
-		<div class="h-full w-full bg-surface"></div>
 	{/if}
 	{@render children?.()}
 </div>

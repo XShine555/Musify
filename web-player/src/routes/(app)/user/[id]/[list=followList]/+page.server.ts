@@ -1,7 +1,6 @@
-import type { PageServerLoad, Actions } from './$types';
+import type { PageServerLoad } from './$types';
 import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
 import { fetchFollowList } from '$lib/server/follows';
-import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
 import { FOLLOW_LIST_PAGE_SIZE } from '$lib/config';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
@@ -24,9 +23,4 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		forbidden,
 		viewerId: viewer?.sub ?? null
 	};
-};
-
-export const actions: Actions = {
-	follow: followUserAction,
-	unfollow: unfollowUserAction
 };

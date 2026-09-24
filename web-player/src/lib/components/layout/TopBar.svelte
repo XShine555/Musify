@@ -54,14 +54,7 @@
 </script>
 
 <header class="hidden items-center gap-3.5 px-6.5 pt-4 pb-3 sm:flex">
-	<IconButton
-		label="Atrás"
-		shape="round"
-		tone="subtle"
-		surface
-		size="xs"
-		onclick={() => history.back()}
-	>
+	<IconButton label="Atrás" shape="round" surface size="xs" onclick={() => history.back()}>
 		<ChevronLeft class="size-icon-sm" />
 	</IconButton>
 
@@ -91,9 +84,7 @@
 		</label>
 	</form>
 
-	<div class="flex-1"></div>
-
-	<div class="shrink-0">
+	<div class="ml-auto shrink-0">
 		{#if user}
 			<AccountMenu {user} {accountUrl}>
 				{#snippet trigger({ toggle, open })}

@@ -18,7 +18,6 @@
 		class?: string;
 		art?: Snippet;
 		overlay?: Snippet;
-		badge?: Snippet;
 	}
 
 	let {
@@ -34,8 +33,7 @@
 		titleClass = '',
 		class: klass = '',
 		art,
-		overlay,
-		badge
+		overlay
 	}: Props = $props();
 </script>
 
@@ -61,7 +59,6 @@
 			<span class="min-w-0 truncate text-sm {active ? 'text-accent-soft' : 'text-fg'} {titleClass}"
 				>{title}</span
 			>
-			{@render badge?.()}
 		</div>
 		<ArtistLink name={artist} {ownerUserId} class="mt-0.5 text-xs text-fg-2" />
 	</div>

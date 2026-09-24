@@ -21,7 +21,7 @@ export function createTrackMenu() {
 		},
 		playNext() {
 			if (!state) return;
-			player.playNextItem(toQueueItem(state.track));
+			player.playNext([toQueueItem(state.track)]);
 			state = null;
 		}
 	};

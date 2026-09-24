@@ -55,7 +55,7 @@
 	{#if !compact}
 		<IconButton
 			label={isLiked ? 'Quitar de Me gusta' : 'Añadir a Me gusta'}
-			tone="plain"
+			plain
 			size="md"
 			pressed={isLiked}
 			onclick={toggleLike}

@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { DEFAULT_ACCENT } from '$lib/theme/color';
-import { extractAccent, type Accent } from '$lib/theme/palette';
+import { extractAccent } from '$lib/theme/palette';
 import { shuffle } from '$lib/data/collections';
 import { dialog } from '$lib/state/dialog.svelte';
 import { ListenTracker } from './listenTracker';
@@ -15,12 +15,6 @@ export interface PlayerTrack {
 	explicit?: boolean;
 	ownerUserId?: string | number | null;
 	listensCount?: number | string;
-}
-
-export interface Playlist {
-	id: string | number;
-	name: string;
-	trackIds: (string | number)[];
 }
 
 export interface QueueItem {
@@ -139,7 +133,6 @@ class PlayerState {
 	muted = $state(browser ? readStorage(MUTED_KEY) === 'true' : false);
 	loading = $state(false);
 	recentlyPlayed = $state<PlayerTrack[]>([]);
-	playlists = $state<Playlist[]>([]);
 	shuffle = $state(false);
 	repeat = $state(false);
 
@@ -147,7 +140,7 @@ class PlayerState {
 
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
-	#accentCache = new Map<string, Accent>();
+	#accentCache = new Map<string, string>();
 	#rafId: number | null = null;
 	#listen = new ListenTracker();
 
@@ -156,10 +149,6 @@ class PlayerState {
 	progressPercent = $derived(
 		this.current.duration > 0 ? Math.min(100, (this.progress / this.current.duration) * 100) : 0
 	);
-
-	get isPlaying() {
-		return this.playing;
-	}
 
 	#audioEl(): HTMLAudioElement | null {
 		if (!browser) return null;
@@ -301,14 +290,14 @@ class PlayerState {
 		const key = String(id);
 		const cached = this.#accentCache.get(key);
 		if (cached) {
-			this.accentColor = cached.accent;
+			this.accentColor = cached;
 			return;
 		}
 		const result = await extractAccent(`/api/tracks/${id}/cover?size=small`);
 		if (this.currentId !== id) return;
 		if (result) {
 			this.#accentCache.set(key, result);
-			this.accentColor = result.accent;
+			this.accentColor = result;
 		} else {
 			this.accentColor = null;
 		}
@@ -395,12 +384,6 @@ class PlayerState {
 		this.#syncMediaSessionMetadata(track);
 	}
 
-	playlistTracks(ids: (string | number)[]): PlayerTrack[] {
-		return ids
-			.map((id) => this.tracks.find((t) => t.id === id))
-			.filter((t): t is PlayerTrack => Boolean(t));
-	}
-
 	playQueue(list: QueueItem[], startIndex = 0) {
 		if (list.length === 0) return;
 		this.tracks = list.map(toTrack);
@@ -413,10 +396,6 @@ class PlayerState {
 		if (index < 0 || index >= list.length) return;
 		if (this.currentId === list[index].id) this.toggle();
 		else this.playQueue(list, index);
-	}
-
-	playNextItem(item: QueueItem) {
-		this.playNext([item]);
 	}
 
 	playNext(items: QueueItem[]) {
@@ -450,13 +429,6 @@ class PlayerState {
 		if (!this.tracks.some((t) => t.id === id)) return;
 		this.currentId = id;
 		this.#loadCurrent();
-	}
-
-	playPlaylist(id: string | number) {
-		const playlist = this.playlists.find((p) => p.id === id);
-		if (!playlist) return;
-		const items = this.playlistTracks(playlist.trackIds);
-		if (items.length > 0) this.playQueue(items, 0);
 	}
 
 	toggle() {

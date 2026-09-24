@@ -61,9 +61,7 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
 	}
 
-	const accountUrl = authConfig.issuer
-		? `${authConfig.issuer.replace(/\/+$/, '')}/ui/console`
-		: null;
+	const accountUrl = `${authConfig.issuer.replace(/\/+$/, '')}/ui/console`;
 
 	if (!locals.user) {
 		return {

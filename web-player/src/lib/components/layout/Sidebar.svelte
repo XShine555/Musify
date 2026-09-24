@@ -69,7 +69,7 @@
 			{#if visiblePlaylists.length > 0}
 				<IconButton
 					label="Crear playlist"
-					tone="plain"
+					plain
 					size="xs"
 					onclick={() => createPlaylistModal.show()}
 				>
@@ -96,7 +96,7 @@
 				<button
 					type="button"
 					onclick={() => createPlaylistModal.show()}
-					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-fg-2 transition-colors hover:bg-hover hover:text-fg-2"
+					class="flex items-center gap-2 rounded-control px-3 py-2 text-xs text-fg-2 transition-colors hover:bg-hover"
 				>
 					<Plus class="size-3.5" />
 					Crear tu primera lista

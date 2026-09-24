@@ -1,11 +1,6 @@
 import { browser } from '$app/environment';
 import { ACCENT_LIGHTNESS } from './color';
 
-export interface Accent {
-	accent: string;
-	gradient: string;
-}
-
 function srgbToLinear(channel: number): number {
 	const c = channel / 255;
 	return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -45,7 +40,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 
 const BUCKETS = 36;
 
-export async function extractAccent(url: string): Promise<Accent | null> {
+export async function extractAccent(url: string): Promise<string | null> {
 	if (!browser) return null;
 
 	let img: HTMLImageElement;
@@ -104,11 +99,6 @@ export async function extractAccent(url: string): Promise<Accent | null> {
 
 	const h = hue.toFixed(1);
 	const c = chroma.toFixed(3);
-	const c2 = (chroma * 0.85).toFixed(3);
-	const h2 = ((hue + 25) % 360).toFixed(1);
 
-	return {
-		accent: `oklch(${ACCENT_LIGHTNESS}% ${c} ${h})`,
-		gradient: `linear-gradient(135deg, oklch(74% ${c} ${h}), oklch(56% ${c2} ${h2}))`
-	};
+	return `oklch(${ACCENT_LIGHTNESS}% ${c} ${h})`;
 }

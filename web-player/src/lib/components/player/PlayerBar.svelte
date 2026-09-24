@@ -49,10 +49,10 @@
 			</span>
 		</div>
 	</div>
-	<div class="hidden w-(--mf-player-side-w) shrink-0 items-center justify-end gap-3.5 sm:flex">
+	<div class="flex w-(--mf-player-side-w) shrink-0 items-center justify-end gap-3.5">
 		<IconButton
 			label={player.muted ? 'Activar sonido' : 'Silenciar'}
-			tone="plain"
+			plain
 			size="xs"
 			onclick={() => player.toggleMute()}
 		>
@@ -73,7 +73,7 @@
 		/>
 		<IconButton
 			label="Cola de reproducción"
-			tone="plain"
+			plain
 			size="xs"
 			pressed={queuePanel.open}
 			onclick={() => queuePanel.toggle()}

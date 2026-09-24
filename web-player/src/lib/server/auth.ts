@@ -51,7 +51,7 @@ function sessionKey(): Promise<Uint8Array> {
 	return keyPromise;
 }
 
-export function sessionCookieOptions(url: URL) {
+function sessionCookieOptions(url: URL) {
 	return {
 		httpOnly: true,
 		sameSite: 'lax' as const,

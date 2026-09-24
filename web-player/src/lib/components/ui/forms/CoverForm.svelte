@@ -81,10 +81,8 @@
 	<div class="flex items-center justify-between gap-4">
 		{#if helperText}
 			<p class="text-sm text-fg-2">{helperText}</p>
-		{:else}
-			<span></span>
 		{/if}
-		<div class="flex shrink-0 items-center gap-3">
+		<div class="ml-auto flex shrink-0 items-center gap-3">
 			<Button type="button" variant="secondary" onclick={onCancel}>Cancelar</Button>
 			<Button type="submit" disabled={submitting || !canSubmit}>
 				{submitting ? submittingLabel : submitLabel}
