@@ -25,6 +25,8 @@ namespace Musify.Application.PlayLists
                 .Select(p => new
                 {
                     PlayList = p,
+                    TrackCount = p.PlayListTracks.Count,
+                    DurationSeconds = p.PlayListTracks.Sum(plt => (double?)plt.Track.DurationSeconds) ?? 0,
                     CoverTrackIds = p.PlayListTracks
                         .OrderBy(plt => plt.Position)
                         .Take(PlayListApplicationResponse.CoverTrackCount)
@@ -34,7 +36,7 @@ namespace Musify.Application.PlayLists
                 .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
             var pagedPlayLists = new StaticPagedList<PlayListApplicationResponse>(
-                pagedEntities.Select(entry => PlayListApplicationResponse.FromEntity(entry.PlayList, entry.CoverTrackIds)),
+                pagedEntities.Select(entry => PlayListApplicationResponse.FromEntity(entry.PlayList, entry.TrackCount, entry.DurationSeconds, entry.CoverTrackIds)),
                 pagedEntities.PageNumber, pagedEntities.PageSize, pagedEntities.TotalItemCount);
 
             return PaginatedResponse<PlayListApplicationResponse>.FromPagedList(pagedPlayLists);

@@ -112,7 +112,22 @@ namespace Musify.Application.PlayLists
                 .ToListAsync(cancellationToken);
 
             logger.LogInformation("Updated playlist {PlayListId}", playListEntity.Id);
-            return PlayListApplicationResponse.FromEntity(playListEntity, coverTrackIds);
+            var totals = await database.PlayListHasTracks
+                .AsNoTracking()
+                .Where(plt => plt.PlayListId == playListEntity.Id)
+                .GroupBy(plt => plt.PlayListId)
+                .Select(group => new
+                {
+                    TrackCount = group.Count(),
+                    DurationSeconds = group.Sum(plt => plt.Track.DurationSeconds)
+                })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return PlayListApplicationResponse.FromEntity(
+                playListEntity,
+                totals?.TrackCount ?? 0,
+                totals?.DurationSeconds ?? 0,
+                coverTrackIds);
         }
 
         private async Task<ErrorOr<Success>> PublishUpdatePlayListPictureSourceEventAsync(

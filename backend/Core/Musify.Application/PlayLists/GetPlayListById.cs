@@ -21,6 +21,8 @@ namespace Musify.Application.PlayLists
                 .Select(p => new
                 {
                     PlayList = p,
+                    TrackCount = p.PlayListTracks.Count,
+                    DurationSeconds = p.PlayListTracks.Sum(plt => (double?)plt.Track.DurationSeconds) ?? 0,
                     CoverTrackIds = p.PlayListTracks
                         .OrderBy(plt => plt.Position)
                         .Take(PlayListApplicationResponse.CoverTrackCount)
@@ -36,7 +38,7 @@ namespace Musify.Application.PlayLists
                 && entry.PlayList.UserId != request.RequestingUserId)
                 return Error.NotFound();
 
-            return PlayListApplicationResponse.FromEntity(entry.PlayList, entry.CoverTrackIds);
+            return PlayListApplicationResponse.FromEntity(entry.PlayList, entry.TrackCount, entry.DurationSeconds, entry.CoverTrackIds);
         }
     }
 }

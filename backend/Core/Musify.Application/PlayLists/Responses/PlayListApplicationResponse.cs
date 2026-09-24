@@ -14,6 +14,8 @@ namespace Musify.Application.PlayLists.Responses
         string? LargeImageKeyName,
         [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
         PlaylistVisibility Visibility,
+        int TrackCount,
+        double DurationSeconds,
         DateTime CreatedAt,
         DateTime UpdatedAt,
         IReadOnlyList<Guid> CoverTrackIds)
@@ -22,6 +24,8 @@ namespace Musify.Application.PlayLists.Responses
 
         public static PlayListApplicationResponse FromEntity(
             PlayList playList,
+            int trackCount = 0,
+            double durationSeconds = 0,
             IReadOnlyList<Guid>? coverTrackIds = null)
         {
             return new PlayListApplicationResponse(
@@ -33,6 +37,8 @@ namespace Musify.Application.PlayLists.Responses
                 playList.Pictures?.LargeName,
                 playList.UserId,
                 playList.Visibility,
+                trackCount,
+                durationSeconds,
                 playList.CreatedAt,
                 playList.UpdatedAt,
                 coverTrackIds ?? []);
