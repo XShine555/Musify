@@ -3,9 +3,9 @@
 	import type { LayoutData } from './$types';
 	import PlayerDock from '$lib/components/player/PlayerDock.svelte';
 	import Queue from '$lib/components/player/Queue.svelte';
-	import Sidebar from '$lib/components/layout/Sidebar.svelte';
-	import TopBar from '$lib/components/layout/TopBar.svelte';
-	import MobileHeader from '$lib/components/layout/MobileHeader.svelte';
+	import Sidebar from '$lib/components/shell/Sidebar.svelte';
+	import TopBar from '$lib/components/shell/TopBar.svelte';
+	import MobileHeader from '$lib/components/shell/MobileHeader.svelte';
 	import Modal from '$lib/components/ui/overlay/Modal.svelte';
 	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';

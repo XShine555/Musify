@@ -4,7 +4,7 @@
 	import Folder from '@lucide/svelte/icons/folder';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import MenuItem from '$lib/components/ui/overlay/MenuItem.svelte';
-	import AccountMenu from '$lib/components/ui/overlay/AccountMenu.svelte';
+	import AccountMenu from '$lib/components/shell/AccountMenu.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import Logo from '$lib/components/ui/primitives/Logo.svelte';
 

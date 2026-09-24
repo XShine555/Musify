@@ -6,8 +6,8 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
-	import MenuItem from './MenuItem.svelte';
-	import GlassMenu from './GlassMenu.svelte';
+	import MenuItem from '$lib/components/ui/overlay/MenuItem.svelte';
+	import GlassMenu from '$lib/components/ui/overlay/GlassMenu.svelte';
 	import { themeMode } from '$lib/theme/mode.svelte';
 	import { clickOutside } from '$lib/actions/clickOutside';
 	import { onEscape } from '$lib/actions/onEscape';

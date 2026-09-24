@@ -7,7 +7,7 @@
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import AccountMenu from '$lib/components/ui/overlay/AccountMenu.svelte';
+	import AccountMenu from '$lib/components/shell/AccountMenu.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 
