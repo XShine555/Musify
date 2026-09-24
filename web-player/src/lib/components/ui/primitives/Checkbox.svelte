@@ -5,11 +5,12 @@
 	interface Props {
 		checked?: boolean;
 		name?: string;
+		label?: string;
 		class?: string;
-		children: Snippet;
+		children?: Snippet;
 	}
 
-	let { checked = $bindable(false), name, class: klass = '', children }: Props = $props();
+	let { checked = $bindable(false), name, label, class: klass = '', children }: Props = $props();
 </script>
 
 <label class="flex items-center gap-3 text-sm text-fg-2 {klass}">
@@ -17,6 +18,7 @@
 		<input
 			type="checkbox"
 			{name}
+			aria-label={label}
 			bind:checked
 			class="peer size-5 cursor-pointer appearance-none rounded-tag border border-line bg-surface transition checked:border-accent-soft checked:bg-accent-soft focus-visible:border-accent/60 focus-visible:outline-none"
 		/>
@@ -24,5 +26,7 @@
 			class="pointer-events-none absolute size-icon-xs text-ink opacity-0 transition peer-checked:opacity-100"
 		/>
 	</span>
-	<span class="cursor-pointer">{@render children()}</span>
+	{#if children}
+		<span class="cursor-pointer">{@render children()}</span>
+	{/if}
 </label>

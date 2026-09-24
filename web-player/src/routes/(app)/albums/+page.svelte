@@ -36,7 +36,7 @@
 	</PageHeader>
 
 	{#if items.length > 0}
-		<div class="grid-cards">
+		<div class="grid-cards-lg">
 			{#each items as album, i (album.id)}
 				<MediaCard
 					href="/albums/{album.id}"

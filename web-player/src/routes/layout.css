@@ -271,6 +271,16 @@
 }
 
 @layer base {
+	input[type='number'] {
+		appearance: textfield;
+	}
+
+	input[type='number']::-webkit-inner-spin-button,
+	input[type='number']::-webkit-outer-spin-button {
+		appearance: none;
+		margin: 0;
+	}
+
 	svg.lucide {
 		stroke-width: 1.5;
 	}

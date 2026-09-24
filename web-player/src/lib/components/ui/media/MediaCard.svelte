@@ -9,6 +9,7 @@
 		subtitle?: string | null;
 		src?: string | null;
 		trackIds?: string[];
+		onclick?: (event: MouseEvent) => void;
 		onPlay?: (event: MouseEvent) => void;
 		art?: Snippet;
 		oncontextmenu?: (event: MouseEvent) => void;
@@ -21,6 +22,7 @@
 		subtitle,
 		src,
 		trackIds = [],
+		onclick,
 		onPlay,
 		art,
 		oncontextmenu,
@@ -28,18 +30,18 @@
 	}: Props = $props();
 </script>
 
-<a {href} class="group animate-enter min-w-0 text-left" style="--i:{index}" {oncontextmenu}>
+<a
+	{href}
+	{onclick}
+	class="group animate-enter min-w-0 rounded-panel p-2.5 text-left transition-colors hover:bg-hover"
+	style="--i:{index}"
+	{oncontextmenu}
+>
 	<div class="relative">
 		{#if art}
 			{@render art()}
 		{:else}
-			<Artwork
-				{src}
-				{trackIds}
-				size="fill"
-				alt={title}
-				class="rounded-art transition duration-300 ease-snappy group-hover:scale-105"
-			/>
+			<Artwork {src} {trackIds} size="fill" alt={title} class="rounded-art" />
 		{/if}
 		{#if onPlay}
 			<div

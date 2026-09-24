@@ -11,9 +11,11 @@
 		placeholder?: string;
 		maxlength?: number;
 		required?: boolean;
+		disabled?: boolean;
 		autocomplete?: 'on' | 'off';
 		icon?: LucideIcon;
 		oninput?: (event: Event) => void;
+		onkeydown?: (event: KeyboardEvent) => void;
 		class?: string;
 	}
 
@@ -27,9 +29,11 @@
 		placeholder,
 		maxlength,
 		required = false,
+		disabled = false,
 		autocomplete = 'off',
 		icon: Icon,
 		oninput,
+		onkeydown,
 		class: klass = ''
 	}: Props = $props();
 </script>
@@ -49,8 +53,10 @@
 		{placeholder}
 		{maxlength}
 		{required}
+		{disabled}
 		{autocomplete}
 		{oninput}
+		{onkeydown}
 		bind:value
 		class="field-control {Icon ? 'pr-4 pl-11' : 'px-4'} {klass}"
 	/>

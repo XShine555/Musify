@@ -28,6 +28,7 @@
 	type={href ? undefined : 'button'}
 	disabled={href ? undefined : disabled}
 	onclick={href ? undefined : onclick}
+	aria-pressed={href ? undefined : selected}
 	class={classes}
 >
 	{@render children()}

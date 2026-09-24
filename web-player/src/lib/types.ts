@@ -17,6 +17,15 @@ export interface Track {
 	listensCount: number;
 }
 
+export type TrackStatus = 'Pending' | 'Processing' | 'Completed' | 'Failed';
+
+export interface LibraryTrack extends Track {
+	date: string;
+	status: TrackStatus;
+	genres: string[];
+	albumTitle: string | null;
+}
+
 export interface LikedTrack extends Track {
 	likedAt: number;
 }

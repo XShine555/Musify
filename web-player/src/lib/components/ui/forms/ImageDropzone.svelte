@@ -8,7 +8,7 @@
 		required?: boolean;
 		icon?: LucideIcon;
 		gradient?: boolean;
-		size?: 'default' | 'hero';
+		size?: 'default' | 'hero' | 'fill';
 		onselect?: (file: File) => void;
 		class?: string;
 	}
@@ -24,9 +24,10 @@
 		class: klass = ''
 	}: Props = $props();
 
-	const SIZE: Record<'default' | 'hero', string> = {
+	const SIZE: Record<'default' | 'hero' | 'fill', string> = {
 		default: 'size-40 sm:size-52 rounded-control',
-		hero: 'size-cover-hero rounded-art-lg'
+		hero: 'size-cover-hero rounded-art-lg',
+		fill: 'aspect-square w-full rounded-art-lg'
 	};
 
 	let preview = $state('');

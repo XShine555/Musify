@@ -1,5 +1,14 @@
 import type { components } from '$lib/api/schema';
-import type { Album, LikedTrack, ListeningStats, Mix, Paged, Playlist, Track } from '$lib/types';
+import type {
+	Album,
+	LibraryTrack,
+	LikedTrack,
+	ListeningStats,
+	Mix,
+	Paged,
+	Playlist,
+	Track
+} from '$lib/types';
 
 type TrackDto = components['schemas']['TrackApplicationResponse'];
 type AlbumDto = components['schemas']['AlbumApplicationResponse'];
@@ -28,6 +37,15 @@ export function toTrack(dto: TrackDto): Track {
 
 export function toDatedTrack(dto: TrackDto): Track & { date: string } {
 	return { ...toTrack(dto), date: dto.createdAt };
+}
+
+export function toLibraryTrack(dto: TrackDto, albumTitle: string | null): LibraryTrack {
+	return {
+		...toDatedTrack(dto),
+		status: dto.audioStatus,
+		genres: dto.tags,
+		albumTitle
+	};
 }
 
 export function toLikedTrack(dto: TrackDto): LikedTrack {

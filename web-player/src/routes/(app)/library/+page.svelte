@@ -1,81 +1,82 @@
+<script lang="ts" module>
+	const SECTIONS = [
+		{ value: 'tracks', label: 'Canciones' },
+		{ value: 'albums', label: 'Álbumes' },
+		{ value: 'uploads', label: 'Subidas' }
+	] as const;
+
+	type Section = (typeof SECTIONS)[number]['value'];
+</script>
+
 <script lang="ts">
-	import Upload from '@lucide/svelte/icons/upload';
-	import X from '@lucide/svelte/icons/x';
-	import Music from '@lucide/svelte/icons/music';
-	import { player } from '$lib/player/player.svelte';
+	import { page } from '$app/state';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
-	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
-	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
-	import TrackList from '$lib/components/music/TrackList.svelte';
+	import LibraryTracksSection from '$lib/components/music/library/LibraryTracksSection.svelte';
+	import LibraryAlbumsSection from '$lib/components/music/library/LibraryAlbumsSection.svelte';
+	import LibraryUploadsSection from '$lib/components/music/library/LibraryUploadsSection.svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	const items = $derived(data.tracks.items);
 	const total = $derived(data.tracks.totalItemCount);
 
-	let deleting = $state<(typeof items)[number] | null>(null);
+	let section = $state<Section>(
+		SECTIONS.find((option) => option.value === page.url.searchParams.get('section'))?.value ??
+			'tracks'
+	);
+	let resetKey = $state(0);
 
-	function togglePlay(index: number) {
-		player.playOrToggle(items, index);
+	function selectSection(value: Section) {
+		if (value === section) resetKey += 1;
+		section = value;
 	}
 </script>
 
 <svelte:head>
-	<title>Tus canciones subidas</title>
+	<title>Gestionar música</title>
 	<meta name="description" content="Todas tus canciones subidas a Musify." />
 </svelte:head>
 
 <Page>
 	<PageHeader
-		title="Tus canciones subidas"
-		description="{plural(total, 'canción', 'canciones')} subida{total === 1 ? '' : 's'}."
-	>
-		{#snippet actions()}
-			{#if items.length > 0}
-				<Button href="/upload">
-					<Upload class="size-icon-sm" />
-					Subir canción
-				</Button>
-			{/if}
-		{/snippet}
-	</PageHeader>
+		title="Gestionar música"
+		description="{plural(total, 'canción', 'canciones')} subida{total === 1
+			? ''
+			: 's'}. Puedes borrarlas o reproducirlas desde aquí."
+	/>
 
-	{#if items.length > 0}
-		<TrackList
+	<div class="flex gap-2">
+		{#each SECTIONS as option (option.value)}
+			<Button
+				variant={section === option.value ? 'primary' : 'secondary'}
+				onclick={() => selectSection(option.value)}
+				size="sm"
+			>
+				{option.label}
+			</Button>
+		{/each}
+	</div>
+
+	{#if section === 'tracks'}
+		<LibraryTracksSection
 			tracks={items}
-			columns={['uploaded', 'plays']}
-			onPlay={togglePlay}
-			rowAction={{
-				onclick: (track) => (deleting = items.find((item) => item.id === track.id) ?? null),
-				icon: X,
-				label: 'Borrar canción'
-			}}
+			errorMessage={form?.action === 'deleteTracks' ? form.message : undefined}
 		/>
+	{:else if section === 'albums'}
+		{#key resetKey}
+			<LibraryAlbumsSection
+				albums={data.albums.items}
+				tracks={items}
+				albumTrackIds={data.albumTrackIds}
+				formMessage={form?.action === 'saveAlbum' || form?.action === 'deleteAlbum'
+					? form.message
+					: undefined}
+			/>
+		{/key}
 	{:else}
-		<EmptyState
-			icon={Music}
-			title="Todavía no tienes canciones"
-			description="Sube la primera y aparecerá aquí lista para reproducir."
-		>
-			{#snippet actions()}
-				<Button href="/upload">
-					<Upload class="size-icon-sm" />
-					Sube la primera
-				</Button>
-			{/snippet}
-		</EmptyState>
+		<LibraryUploadsSection genres={data.genres} />
 	{/if}
 </Page>
-
-<ConfirmDialog
-	open={deleting !== null}
-	onClose={() => (deleting = null)}
-	title="¿Borrar «{deleting?.title ?? ''}»?"
-	description="Esta acción no se puede deshacer, la canción se eliminará de tu biblioteca, de tus álbumes y de las playlists donde esté."
-	confirmLabel="Borrar"
-	action="?/deleteTrack"
-	fields={{ trackId: deleting?.id ?? '' }}
-/>
