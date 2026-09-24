@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { onEscape } from '$lib/actions/onEscape';
 	import { playlistCover } from '$lib/utils/hrefs';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -18,17 +19,12 @@
 	}
 
 	let { x, y, openLeft, onClose, items, playlistAction, playlists = [] }: Props = $props();
-
-	function onWindowKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') onClose();
-	}
 </script>
-
-<svelte:window onkeydown={onWindowKeydown} />
 
 <div
 	class="fixed inset-0 z-(--z-backdrop)"
 	role="presentation"
+	use:onEscape={onClose}
 	onclick={onClose}
 	oncontextmenu={(e) => {
 		e.preventDefault();

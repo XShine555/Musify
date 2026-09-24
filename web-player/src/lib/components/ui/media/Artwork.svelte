@@ -62,19 +62,10 @@
 	const resolvedImageSize = $derived(imageSize ?? AUTO_IMAGE_SIZE[size]);
 	const radius = $derived(shape === 'round' ? 'rounded-full' : RADIUS[size]);
 
-	let srcFailed = $state(false);
-	$effect(() => {
-		src;
-		srcFailed = false;
-	});
+	let failedSrc = $state<string | null>(null);
+	let failedSingle = $state<string | null>(null);
 
-	let singleFailed = $state(false);
-	$effect(() => {
-		trackIds[0];
-		singleFailed = false;
-	});
-
-	const showSrc = $derived(!!src && !srcFailed);
+	const showSrc = $derived(!!src && failedSrc !== src);
 	const showMosaic = $derived(!showSrc && trackIds.length >= 4);
 	const singleId = $derived(!showSrc && !showMosaic && trackIds.length > 0 ? trackIds[0] : null);
 </script>
@@ -87,7 +78,7 @@
 			loading="lazy"
 			decoding="async"
 			fetchpriority="low"
-			onerror={() => (srcFailed = true)}
+			onerror={() => (failedSrc = src ?? null)}
 			class="h-full w-full object-cover"
 		/>
 	{:else if showMosaic}
@@ -104,14 +95,14 @@
 				/>
 			{/each}
 		</div>
-	{:else if singleId !== null && !singleFailed}
+	{:else if singleId !== null && failedSingle !== singleId}
 		<img
 			src={trackCover(singleId, resolvedImageSize)}
 			{alt}
 			loading="lazy"
 			decoding="async"
 			fetchpriority="low"
-			onerror={() => (singleFailed = true)}
+			onerror={() => (failedSingle = singleId)}
 			class="h-full w-full object-cover"
 		/>
 	{:else}

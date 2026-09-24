@@ -46,15 +46,18 @@
 	);
 </script>
 
-{#if href}
-	<a {href} data-sveltekit-reload={reload ? '' : undefined} class={classes}>
-		{@render children()}
-	</a>
-{:else}
-	<button {type} disabled={disabled || loading} {onclick} class={classes}>
-		{#if loading}
-			<LoaderCircle class="size-4 animate-spin" />
-		{/if}
-		{@render children()}
-	</button>
-{/if}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:element
+	this={href ? 'a' : 'button'}
+	{href}
+	type={href ? undefined : type}
+	disabled={href ? undefined : disabled || loading}
+	data-sveltekit-reload={href && reload ? '' : undefined}
+	{onclick}
+	class={classes}
+>
+	{#if loading && !href}
+		<LoaderCircle class="size-4 animate-spin" />
+	{/if}
+	{@render children()}
+</svelte:element>

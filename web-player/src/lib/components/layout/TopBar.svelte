@@ -8,7 +8,6 @@
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import AccountMenu from '../ui/overlay/AccountMenu.svelte';
-	import Avatar from '../ui/media/Avatar.svelte';
 	import IconButton from '../ui/primitives/IconButton.svelte';
 	import Button from '../ui/primitives/Button.svelte';
 
@@ -86,24 +85,7 @@
 
 	<div class="ml-auto shrink-0">
 		{#if user}
-			<AccountMenu {user} {accountUrl}>
-				{#snippet trigger({ toggle, open })}
-					<button
-						type="button"
-						onclick={toggle}
-						aria-label="Tu cuenta"
-						aria-expanded={open}
-						class="block shrink-0 rounded-full transition active:scale-95"
-					>
-						<Avatar
-							name={user.name}
-							src={user.picture}
-							size="sm"
-							class="border border-line-strong opacity-90"
-						/>
-					</button>
-				{/snippet}
-			</AccountMenu>
+			<AccountMenu {user} {accountUrl} />
 		{:else}
 			<Button href="/auth/login" reload variant="accent" size="sm" class="shrink-0"
 				>Iniciar sesión</Button

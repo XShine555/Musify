@@ -10,16 +10,17 @@
 	import GlassMenu from './GlassMenu.svelte';
 	import { themeMode } from '$lib/theme/mode.svelte';
 	import { clickOutside } from '$lib/actions/clickOutside';
+	import { onEscape } from '$lib/actions/onEscape';
+	import Avatar from '../media/Avatar.svelte';
 
 	interface Props {
 		user: SessionUser;
 		accountUrl?: string | null;
 		width?: 'sm' | 'md';
 		extraItems?: Snippet<[{ close: () => void }]>;
-		trigger: Snippet<[{ toggle: () => void; open: boolean }]>;
 	}
 
-	let { user, accountUrl, width = 'sm', extraItems, trigger }: Props = $props();
+	let { user, accountUrl, width = 'sm', extraItems }: Props = $props();
 
 	const WIDTH: Record<'sm' | 'md', string> = { sm: 'w-52', md: 'w-56' };
 
@@ -32,16 +33,23 @@
 	function close() {
 		open = false;
 	}
-
-	function onWindowKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') close();
-	}
 </script>
 
-<svelte:window onkeydown={onWindowKeydown} />
-
-<div class="relative" use:clickOutside={close}>
-	{@render trigger({ toggle, open })}
+<div class="relative" use:clickOutside={close} use:onEscape={open ? close : undefined}>
+	<button
+		type="button"
+		onclick={toggle}
+		aria-label="Tu cuenta"
+		aria-expanded={open}
+		class="block shrink-0 rounded-full transition active:scale-95"
+	>
+		<Avatar
+			name={user.name}
+			src={user.picture}
+			size="sm"
+			class="border border-line-strong opacity-90"
+		/>
+	</button>
 
 	{#if open}
 		<GlassMenu

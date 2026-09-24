@@ -21,15 +21,17 @@
 	);
 </script>
 
-{#snippet content()}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:element
+	this={href ? 'a' : 'button'}
+	{href}
+	type={href ? undefined : 'button'}
+	disabled={href ? undefined : disabled}
+	onclick={href ? undefined : onclick}
+	class={classes}
+>
 	{@render children()}
 	{#if count !== undefined}
 		<span class="tabular-nums {selected ? 'opacity-55' : 'text-fg-2'}">{count}</span>
 	{/if}
-{/snippet}
-
-{#if href}
-	<a {href} class={classes}>{@render content()}</a>
-{:else}
-	<button type="button" {onclick} {disabled} class={classes}>{@render content()}</button>
-{/if}
+</svelte:element>

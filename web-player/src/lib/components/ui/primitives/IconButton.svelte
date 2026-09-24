@@ -51,18 +51,17 @@
 	);
 </script>
 
-{#if href}
-	<a
-		{href}
-		data-sveltekit-reload={reload ? '' : undefined}
-		aria-label={label}
-		title={label}
-		class={classes}
-	>
-		{@render children()}
-	</a>
-{:else}
-	<button {type} {onclick} aria-label={label} title={label} aria-pressed={pressed} class={classes}>
-		{@render children()}
-	</button>
-{/if}
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:element
+	this={href ? 'a' : 'button'}
+	{href}
+	type={href ? undefined : type}
+	data-sveltekit-reload={href && reload ? '' : undefined}
+	aria-label={label}
+	aria-pressed={href ? undefined : pressed}
+	title={label}
+	{onclick}
+	class={classes}
+>
+	{@render children()}
+</svelte:element>

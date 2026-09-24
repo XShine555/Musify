@@ -5,7 +5,6 @@
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import MenuItem from '../ui/overlay/MenuItem.svelte';
 	import AccountMenu from '../ui/overlay/AccountMenu.svelte';
-	import Avatar from '../ui/media/Avatar.svelte';
 	import IconButton from '../ui/primitives/IconButton.svelte';
 	import Logo from '../ui/primitives/Logo.svelte';
 
@@ -26,17 +25,6 @@
 
 	{#if user}
 		<AccountMenu {user} {accountUrl} width="md">
-			{#snippet trigger({ toggle, open })}
-				<button
-					type="button"
-					onclick={toggle}
-					aria-label="Tu cuenta"
-					aria-expanded={open}
-					class="flex items-center rounded-full"
-				>
-					<Avatar name={user.name} src={user.picture} size="sm" />
-				</button>
-			{/snippet}
 			{#snippet extraItems({ close })}
 				<MenuItem icon={Folder} label="Canciones subidas" href="/library" onclick={close} />
 				<MenuItem icon={Upload} label="Subir música" href="/upload" onclick={close} />
