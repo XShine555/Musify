@@ -51,6 +51,12 @@ export interface Mix {
 	tracks: Track[];
 }
 
+export interface ListeningStats {
+	tracksThisWeek: number;
+	secondsThisWeek: number;
+	streakDays: number;
+}
+
 export interface Paged<T> {
 	items: T[];
 	pageNumber: number;

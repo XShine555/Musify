@@ -33,7 +33,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
 
 ## Folder structure
 
-- `src/lib/types.ts` holds the domain types (`Track`, `Album`, `Playlist`, `Mix`, `Paged<T>`). Pages and the player only ever see these, never raw API DTOs.
+- `src/lib/types.ts` holds the domain types (`Track`, `Album`, `Playlist`, `Mix`, `ListeningStats`, `Paged<T>`). Pages and the player only ever see these, never raw API DTOs.
 - `src/lib/player/` is the player: `player.svelte.ts` (state and orchestration), `queue.ts` (pure queue operations), `stream.ts`, `mediaSession.ts`, `progressClock.ts`, `listenTracker.ts`, `recentlyPlayed.ts` (merges `player.recentlyPlayed` with the server history), and `actions.ts` (`playAllOrToggle`, `playShuffled`, `isQueueCurrent`).
 - `src/lib/state/` holds reactive rune state: `panels.svelte.ts` (queue panel, create playlist modal), `history.svelte.ts` (previous page for `BackLink`), `menu.svelte.ts` (`createMenu<T>()`), `pagedList.svelte.ts` (`createPagedList`), `dialog.svelte.ts`, `liked.svelte.ts` (the user's liked tracks), `toggle.svelte.ts` (`createToggle`), and `scroll.ts` (`restoreScroll`). Nothing in `state/` imports from `components/`.
 - `src/lib/theme/` holds the theme: `accent.svelte.ts` (accent hue per track and the hue fade), `mode.svelte.ts`, `palette.ts`, `tokens.ts`, and `color.ts` (`ACCENT_HUE`). The player never imports from `theme/`: `(app)/+layout.svelte` follows `player.currentId` and calls `accent.follow`.
@@ -51,7 +51,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
   - `media/` for stateless music display components that receive props (Artwork, MediaCard, ListRow, PlayButton, and so on).
   - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
   - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading).
-- The root `+layout.svelte` only holds the globals (fonts, theme, `DialogHost`). Everything the user sees after signing in lives under `src/routes/(app)/`, including Home (`(app)/+page.svelte`); `(app)/+layout.server.ts` guards the group and loads the shell data, and `(app)/+error.svelte` renders inside the shell. Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
+- The root `+layout.svelte` only holds the globals (fonts, theme, `DialogHost`). Everything the user sees after signing in lives under `src/routes/(app)/`, including Home (`(app)/+page.svelte`); `(app)/+layout.server.ts` guards the group and loads the shell data, and `(app)/+error.svelte` renders inside the shell. Unknown URLs hit the catch-all `(app)/[...rest]/` (it throws a 404) so they also get the shell (unknown `/api/...` URLs hit `api/[...rest]/`, a JSON 404); the root `+error.svelte` only covers errors outside the group or in the group layout load. Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
 
 ## Naming conventions and glossary
 

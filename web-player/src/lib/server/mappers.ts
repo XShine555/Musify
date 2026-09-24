@@ -1,5 +1,5 @@
 import type { components } from '$lib/api/schema';
-import type { Album, LikedTrack, Mix, Paged, Playlist, Track } from '$lib/types';
+import type { Album, LikedTrack, ListeningStats, Mix, Paged, Playlist, Track } from '$lib/types';
 
 type TrackDto = components['schemas']['TrackApplicationResponse'];
 type AlbumDto = components['schemas']['AlbumApplicationResponse'];
@@ -83,12 +83,6 @@ export function toPlaylist(dto: PlaylistDto): Playlist {
 }
 
 type ListeningStatsDto = components['schemas']['ListeningStatsResponse'];
-
-export interface ListeningStats {
-	tracksThisWeek: number;
-	secondsThisWeek: number;
-	streakDays: number;
-}
 
 export function toCount(value: number | string | null | undefined): number {
 	return Number(value ?? 0) || 0;
