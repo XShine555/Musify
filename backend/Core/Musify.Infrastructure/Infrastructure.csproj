@@ -43,6 +43,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Musify.Infrastructure.Tests" />
+    <!-- Lets NSubstitute (Castle DynamicProxy) mock generics over internal argument types. -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Persistence\Migrations\" />
   </ItemGroup>
 
