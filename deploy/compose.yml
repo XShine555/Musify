@@ -26,9 +26,10 @@
 # already do.
 x-backend-env: &backend-env
   Database__ConnectionString: "Host=${POSTGRES_HOST};Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-  MassTransit__Address: "rabbitmq://${RABBITMQ_HOST}:5672"
-  MassTransit__Username: ${RABBITMQ_DEFAULT_USER}
-  MassTransit__Password: ${RABBITMQ_DEFAULT_PASS}
+  # Musify's own vhost and user on the shared broker (the path is the vhost).
+  MassTransit__Address: "rabbitmq://${RABBITMQ_HOST}:5672/${RABBITMQ_VHOST}"
+  MassTransit__Username: ${RABBITMQ_USER}
+  MassTransit__Password: ${RABBITMQ_PASSWORD}
   # The public S3 URL, not the internal one: the same address is used to sign
   # the presigned upload/download URLs the browser has to be able to reach.
   InfrastructureStorage__Address: ${S3_PUBLIC_URL}
@@ -135,7 +136,7 @@ services:
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL}
       ZITADEL_DEV_MODE: ${ZITADEL_DEV_MODE:-false}
     volumes:
-      - ${ZITADEL_ADMIN_PAT_DIR}:/output:ro
+      - ${ZITADEL_PAT_DIR}:/output:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -163,13 +164,15 @@ services:
           fi
         }
 
-        echo "==> waiting for the Zitadel service-account PAT"
+        # Musify's own service account, owner of the Musify project only
+        # (created by Infrastructure's `provision`, see its README).
+        echo "==> waiting for Musify's Zitadel PAT"
         deadline=$$(( $$(date +%s) + 180 ))
-        while [ ! -f /output/admin-sa.pat ]; do
-          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "PAT not found under /output. Is Infrastructure's Zitadel running? Check 'docker logs infra-zitadel'." >&2; exit 1; }
+        while [ ! -s /output/zitadel.pat ]; do
+          [ "$$(date +%s)" -lt "$$deadline" ] || { echo "no zitadel.pat in ZITADEL_PAT_DIR. Is Infrastructure up, and does ZITADEL_PAT_DIR point at its zitadel/.output/musify? Check 'docker logs infra-provision'." >&2; exit 1; }
           sleep 3
         done
-        PAT=$$(tr -d '\r\n' </output/admin-sa.pat)
+        PAT=$$(tr -d '\r\n' </output/zitadel.pat)
         MGMT="$$PUBLIC_AUTH_URL/management/v1"
 
         echo "==> waiting for Zitadel to answer at $$PUBLIC_AUTH_URL"
@@ -190,13 +193,11 @@ services:
 
         echo "==> project"
         PROJECT_NAME=Musify
+        # Created by Infrastructure's `provision`: this account can't create
+        # projects, only manage this one.
         PROJECT_ID=$$(api_call POST /projects/_search "$$(name_query "$$PROJECT_NAME")" | jq -r --arg n "$$PROJECT_NAME" '.result // [] | map(select(.name==$$n)) | first | .id // empty')
-        if [ -z "$$PROJECT_ID" ]; then
-          PROJECT_ID=$$(api_call POST /projects "$$(printf '{"name":"%s"}' "$$PROJECT_NAME")" | jq -r '.id')
-          echo "  created (id $$PROJECT_ID)"
-        else
-          echo "  reused (id $$PROJECT_ID)"
-        fi
+        [ -n "$$PROJECT_ID" ] || { echo "Zitadel project $$PROJECT_NAME not found. Is musify in Infrastructure's x-projects?" >&2; exit 1; }
+        echo "  found (id $$PROJECT_ID)"
 
         find_app() { api_call POST "/projects/$$PROJECT_ID/apps/_search" "$$(name_query "$$1")" | jq -r --arg n "$$1" '.result // [] | map(select(.name==$$n)) | first | .id // empty'; }
 
