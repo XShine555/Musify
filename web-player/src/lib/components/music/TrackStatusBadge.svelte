@@ -13,4 +13,9 @@
 	const info = $derived(TRACK_STATUS[status]);
 </script>
 
-<StatusBadge label={info.label} tone={info.tone} class={klass} />
+<StatusBadge
+	label={info.label}
+	tone={info.tone}
+	pulse={status === 'Processing' || status === 'Pending'}
+	class={klass}
+/>

@@ -4,6 +4,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import type { LibraryTrack } from '$lib/types';
 	import { plural } from '$lib/utils/format';
+	import { transferBetweenLists } from '$lib/utils/transitions';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import TrackPickList from './TrackPickList.svelte';
 
@@ -13,6 +14,8 @@
 	}
 
 	let { tracks, memberIds }: Props = $props();
+
+	const [send, receive] = transferBetweenLists();
 
 	let currentIds = $state<string[]>(untrack(() => [...memberIds]));
 
@@ -43,13 +46,13 @@
 
 	{#if available.length > 0}
 		<h3 class="mt-6 mb-2 px-3 text-eyebrow text-fg-2">Añadir desde tu biblioteca</h3>
-		<TrackPickList tracks={available} icon={Plus} onPick={add} />
+		<TrackPickList tracks={available} icon={Plus} {send} {receive} onPick={add} />
 	{/if}
 
 	<div class="mt-6">
 		{#if inAlbum.length > 0}
 			<h3 class="mb-2 px-3 text-eyebrow text-fg-2">En este álbum</h3>
-			<TrackPickList tracks={inAlbum} icon={X} onPick={remove} />
+			<TrackPickList tracks={inAlbum} icon={X} {send} {receive} onPick={remove} />
 		{:else}
 			<EmptyState
 				title="Este álbum aún no tiene canciones"

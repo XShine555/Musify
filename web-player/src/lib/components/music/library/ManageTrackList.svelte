@@ -62,6 +62,7 @@
 	columns={COLUMNS}
 	rows={tracks}
 	rowKey={(track) => track.id}
+	stagger
 	rowClass={(track) => (player.currentId === track.id ? 'surface-active' : 'hover:bg-hover')}
 >
 	{#snippet head()}

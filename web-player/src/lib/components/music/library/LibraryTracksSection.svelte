@@ -1,4 +1,9 @@
+<script lang="ts" module>
+	const FADE = { duration: 200 };
+</script>
+
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	import Upload from '@lucide/svelte/icons/upload';
 	import Music from '@lucide/svelte/icons/music';
 	import SearchX from '@lucide/svelte/icons/search-x';
@@ -64,25 +69,32 @@
 {/if}
 
 {#if tracks.length > 0}
-	{#if selectedIds.length > 0}
-		<SelectionBar
-			class="mt-4"
-			label={plural(selectedIds.length, 'seleccionada', 'seleccionadas')}
-			onClear={() => (selectedIds = [])}
-		>
-			<Button size="sm" variant="danger" onclick={deleteSelected}>Borrar</Button>
-		</SelectionBar>
-	{:else}
-		<div class="mt-4 flex min-h-11 flex-wrap items-center gap-x-4 gap-y-3">
-			<SearchInput
-				bind:value={query}
-				placeholder="Filtrar por título o artista"
-				size="sm"
-				class="w-full sm:max-w-search sm:flex-1"
-			/>
-			<ChipGroup label="Filtrar por estado" options={filterOptions} bind:value={filter} />
-		</div>
-	{/if}
+	<div class="mt-4 grid">
+		{#if selectedIds.length > 0}
+			<div class="col-start-1 row-start-1" in:fade={FADE} out:fade={FADE}>
+				<SelectionBar
+					label={plural(selectedIds.length, 'seleccionada', 'seleccionadas')}
+					onClear={() => (selectedIds = [])}
+				>
+					<Button size="sm" variant="danger" onclick={deleteSelected}>Borrar</Button>
+				</SelectionBar>
+			</div>
+		{:else}
+			<div
+				class="col-start-1 row-start-1 flex min-h-11 flex-wrap items-center gap-x-4 gap-y-3"
+				in:fade={FADE}
+				out:fade={FADE}
+			>
+				<SearchInput
+					bind:value={query}
+					placeholder="Filtrar por título o artista"
+					size="sm"
+					class="w-full sm:max-w-search sm:flex-1"
+				/>
+				<ChipGroup label="Filtrar por estado" options={filterOptions} bind:value={filter} />
+			</div>
+		{/if}
+	</div>
 
 	{#if visible.length > 0}
 		<ManageTrackList

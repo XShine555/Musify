@@ -15,6 +15,7 @@ const ARBITRARY_WHITELIST = [
 	/^my-\[\d+d?vh\]$/, // +error.svelte: centrado vertical de página de error
 	/^py-\[\d+d?vh\]$/, // Explorar: centrado vertical de "sin resultados"
 	/^transition-\[filter\]$/, // Explorar: genre-tile hover
+	/^transition-\[transform,width\]$/, // Tabs: indicador deslizante
 	/^bg-\[image:var\(--mf-[\w-]+\)\]$/
 ];
 

@@ -4,6 +4,9 @@
 
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
+	import { flip } from 'svelte/animate';
+	import { expoOut } from 'svelte/easing';
+	import { collapse } from '$lib/utils/transitions';
 	import { gridColumns, type GridColumn } from '$lib/utils/gridColumns';
 
 	interface Props {
@@ -15,6 +18,7 @@
 		rowClass?: (row: T, index: number) => string;
 		oncontextmenu?: (event: MouseEvent, row: T, index: number) => void;
 		gap?: 'md' | 'lg';
+		stagger?: boolean;
 		class?: string;
 	}
 
@@ -27,6 +31,7 @@
 		rowClass,
 		oncontextmenu,
 		gap = 'md',
+		stagger = false,
 		class: klass = ''
 	}: Props = $props();
 
@@ -60,10 +65,12 @@
 		{#each rows as row, i (rowKey(row))}
 			<div
 				role="listitem"
+				animate:flip={{ duration: 200, easing: expoOut }}
+				out:collapse
 				class="group grid track-grid items-center gap-3 rounded-control py-3 pr-4 pl-2 transition-colors sm:pr-6 sm:pl-3 {GAP[
 					gap
-				]} {rowClass?.(row, i) ?? ''}"
-				{style}
+				]} {stagger ? 'animate-enter' : ''} {rowClass?.(row, i) ?? ''}"
+				style="{style}{stagger ? `; --i:${i}` : ''}"
 				oncontextmenu={oncontextmenu ? (event) => oncontextmenu(event, row, i) : undefined}
 			>
 				{#each columns as column (column.id)}

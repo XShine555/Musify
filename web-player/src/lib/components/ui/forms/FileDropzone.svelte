@@ -71,7 +71,7 @@
 	ondragleave={onLeave}
 	ondrop={onDrop}
 	class="flex min-h-dropzone flex-col items-center justify-center rounded-panel border border-dashed p-6 text-center transition sm:p-10 {dragging
-		? 'border-accent/60 bg-accent-tint'
+		? 'scale-101 border-accent/60 bg-accent-tint'
 		: 'border-line-strong bg-surface'} {klass}"
 >
 	<span class="grid size-14 place-items-center rounded-full bg-surface-2 text-fg-2">

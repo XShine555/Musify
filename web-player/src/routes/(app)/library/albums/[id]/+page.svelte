@@ -6,7 +6,7 @@
 	let { data, form } = $props();
 </script>
 
-<div class="mt-4">
+<div class="animate-enter mt-4">
 	{#key data.album.id}
 		<LibraryAlbumEditor
 			album={data.album}
