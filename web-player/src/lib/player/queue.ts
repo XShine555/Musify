@@ -1,11 +1,28 @@
-export function insertNext<T>(queue: T[], afterIndex: number, items: T[]): T[] {
-	const result = [...queue];
-	result.splice(afterIndex + 1, 0, ...items);
-	return result;
+interface Identified {
+	id: string | number;
 }
 
-export function append<T>(queue: T[], items: T[]): T[] {
-	return [...queue, ...items];
+export function insertNext<T extends Identified>(
+	queue: T[],
+	currentIndex: number,
+	items: T[]
+): T[] {
+	const currentId = queue[currentIndex]?.id;
+	const incoming = items.filter((item) => item.id !== currentId);
+	const moving = new Set(incoming.map((item) => item.id));
+	const rest = queue.filter((item) => !moving.has(item.id));
+	const anchor = currentId === undefined ? -1 : rest.findIndex((item) => item.id === currentId);
+	return [...rest.slice(0, anchor + 1), ...incoming, ...rest.slice(anchor + 1)];
+}
+
+export function append<T extends Identified>(queue: T[], items: T[]): T[] {
+	const present = new Set(queue.map((item) => item.id));
+	const added = items.filter((item) => {
+		if (present.has(item.id)) return false;
+		present.add(item.id);
+		return true;
+	});
+	return added.length > 0 ? [...queue, ...added] : queue;
 }
 
 export function move<T>(queue: T[], from: number, insertAt: number): T[] {
@@ -16,6 +33,10 @@ export function move<T>(queue: T[], from: number, insertAt: number): T[] {
 	const [item] = result.splice(from, 1);
 	result.splice(target, 0, item);
 	return result;
+}
+
+export function isLastIndex(length: number, index: number): boolean {
+	return index >= length - 1;
 }
 
 export function nextIndex(

@@ -66,7 +66,10 @@ class LikedStore {
 			});
 			if (!res.ok) throw new Error('Failed to toggle like');
 		} catch {
-			this.entries = before;
+			const reverted = { ...this.entries };
+			if (wasLiked) reverted[id] = before[id];
+			else delete reverted[id];
+			this.entries = reverted;
 		}
 	}
 }

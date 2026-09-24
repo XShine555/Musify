@@ -1,20 +1,38 @@
 import { describe, expect, it } from 'vitest';
-import { append, insertNext, move, nextIndex, previousIndex } from './queue';
+import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
+
+const t = (id: string) => ({ id });
+const ids = (queue: { id: string | number }[]) => queue.map((item) => item.id);
 
 describe('insertNext', () => {
-	it('inserts right after the given index without mutating', () => {
-		const queue = ['a', 'b', 'c'];
-		expect(insertNext(queue, 0, ['x', 'y'])).toEqual(['a', 'x', 'y', 'b', 'c']);
-		expect(queue).toEqual(['a', 'b', 'c']);
+	it('inserts right after the current track without mutating', () => {
+		const queue = ['a', 'b', 'c'].map(t);
+		expect(ids(insertNext(queue, 0, ['x', 'y'].map(t)))).toEqual(['a', 'x', 'y', 'b', 'c']);
+		expect(ids(queue)).toEqual(['a', 'b', 'c']);
 	});
-	it('inserts at the start when index is -1', () => {
-		expect(insertNext(['a'], -1, ['x'])).toEqual(['x', 'a']);
+	it('inserts at the start when there is no current track', () => {
+		expect(ids(insertNext([t('a')], -1, [t('x')]))).toEqual(['x', 'a']);
+	});
+	it('moves tracks already queued instead of duplicating them', () => {
+		const queue = ['a', 'b', 'c', 'd'].map(t);
+		expect(ids(insertNext(queue, 1, [t('d'), t('a')]))).toEqual(['b', 'd', 'a', 'c']);
+	});
+	it('ignores the current track', () => {
+		const queue = ['a', 'b'].map(t);
+		expect(ids(insertNext(queue, 0, [t('a')]))).toEqual(['a', 'b']);
 	});
 });
 
 describe('append', () => {
-	it('adds items at the end', () => {
-		expect(append(['a'], ['b', 'c'])).toEqual(['a', 'b', 'c']);
+	it('adds new items at the end', () => {
+		expect(ids(append([t('a')], ['b', 'c'].map(t)))).toEqual(['a', 'b', 'c']);
+	});
+	it('skips tracks already in the queue and repeated ones', () => {
+		expect(ids(append(['a', 'b'].map(t), ['b', 'c', 'c'].map(t)))).toEqual(['a', 'b', 'c']);
+	});
+	it('returns the same queue when nothing is added', () => {
+		const queue = [t('a')];
+		expect(append(queue, [t('a')])).toBe(queue);
 	});
 });
 
@@ -56,5 +74,12 @@ describe('previousIndex', () => {
 	it('steps back and wraps around', () => {
 		expect(previousIndex(3, 2)).toBe(1);
 		expect(previousIndex(3, 0)).toBe(2);
+	});
+});
+
+describe('isLastIndex', () => {
+	it('detects the end of the queue', () => {
+		expect(isLastIndex(3, 2)).toBe(true);
+		expect(isLastIndex(3, 1)).toBe(false);
 	});
 });

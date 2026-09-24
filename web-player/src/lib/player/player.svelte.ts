@@ -4,7 +4,8 @@ import { extractAccent, type Accent } from '$lib/theme/palette';
 import { shuffle } from '$lib/data/collections';
 import { dialog } from '$lib/state/dialog.svelte';
 import { ListenTracker } from './listenTracker';
-import { append, insertNext, move, nextIndex, previousIndex } from './queue';
+import { readStorage, writeStorage } from '$lib/utils/storage';
+import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
 
 export interface PlayerTrack {
 	id: string | number;
@@ -95,6 +96,20 @@ async function readErrorMessage(res: Response): Promise<string> {
 }
 
 const RECENT_LIMIT = 15;
+const DEFAULT_VOLUME = 100;
+const VOLUME_KEY = 'musify.player.volume';
+const MUTED_KEY = 'musify.player.muted';
+
+function clampVolume(value: number): number {
+	return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function loadVolume(): number {
+	const stored = readStorage(VOLUME_KEY);
+	if (stored === null || stored.trim() === '') return DEFAULT_VOLUME;
+	const parsed = Number(stored);
+	return Number.isFinite(parsed) ? clampVolume(parsed) : DEFAULT_VOLUME;
+}
 
 const EMPTY: PlayerTrack = {
 	id: '',
@@ -120,8 +135,8 @@ class PlayerState {
 	currentId = $state<string | number | null>(null);
 	playing = $state(false);
 	progress = $state(0);
-	volume = $state(browser ? Number(localStorage.getItem('player.volume') ?? 100) : 100);
-	muted = $state(browser ? localStorage.getItem('player.muted') === 'true' : false);
+	volume = $state(browser ? loadVolume() : DEFAULT_VOLUME);
+	muted = $state(browser ? readStorage(MUTED_KEY) === 'true' : false);
 	loading = $state(false);
 	recentlyPlayed = $state<PlayerTrack[]>([]);
 	playlists = $state<Playlist[]>([]);
@@ -183,6 +198,10 @@ class PlayerState {
 				audio.play().catch(() => {});
 				return;
 			}
+			if (!this.shuffle && isLastIndex(this.tracks.length, this.#index())) {
+				this.#stopAtEnd(audio);
+				return;
+			}
 			this.next();
 		});
 		audio.addEventListener('error', () => {
@@ -198,6 +217,13 @@ class PlayerState {
 		window.addEventListener('pagehide', () => this.#listen.flush());
 		this.#setupMediaSession(audio);
 		return audio;
+	}
+
+	#stopAtEnd(audio: HTMLAudioElement) {
+		audio.currentTime = 0;
+		this.progress = 0;
+		this.playing = false;
+		this.#syncMediaSessionPlaybackState();
 	}
 
 	#setupMediaSession(audio: HTMLAudioElement) {
@@ -453,7 +479,7 @@ class PlayerState {
 		this.muted = value;
 		const audio = this.#audioEl();
 		if (audio) audio.muted = value;
-		if (browser) localStorage.setItem('player.muted', String(value));
+		if (browser) writeStorage(MUTED_KEY, String(value));
 	}
 
 	next() {
@@ -511,13 +537,11 @@ class PlayerState {
 	}
 
 	setVolume(value: number) {
-		this.volume = Math.min(100, Math.max(0, Math.round(value)));
+		this.volume = Number.isFinite(value) ? clampVolume(value) : this.volume;
 		if (this.muted && this.volume > 0) this.#applyMuted(false);
 		const audio = this.#audioEl();
-		if (audio) {
-			audio.volume = this.volume / 100;
-			localStorage.setItem('player.volume', String(this.volume));
-		}
+		if (audio) audio.volume = this.volume / 100;
+		if (browser) writeStorage(VOLUME_KEY, String(this.volume));
 	}
 }
 

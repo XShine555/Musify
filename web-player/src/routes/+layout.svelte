@@ -41,10 +41,11 @@
 
 	const initialThemeCss = `:root{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'dark'))}}:root[data-theme='light']{${tokensToCss(buildThemeTokens(ACCENT_HUE, 'light'))}}`;
 
-	let wasPlaying = false;
+	let queueAutoOpened = false;
 	$effect(() => {
-		if (player.playing && !wasPlaying) queuePanel.show();
-		wasPlaying = player.playing;
+		if (!player.playing || queueAutoOpened) return;
+		queueAutoOpened = true;
+		queuePanel.show();
 	});
 
 	function isTypingTarget(target: EventTarget | null): boolean {
