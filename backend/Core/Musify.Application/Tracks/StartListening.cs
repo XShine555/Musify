@@ -30,6 +30,7 @@ namespace Musify.Application.Tracks
 
             var track = await database.Tracks.AsNoTracking()
                 .Where(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active)
+                .VisibleTo(request.UserId)
                 .Select(t => new { t.Id, t.Audio })
                 .SingleOrDefaultAsync(cancellationToken);
 

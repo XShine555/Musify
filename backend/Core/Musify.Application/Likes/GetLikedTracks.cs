@@ -20,7 +20,7 @@ namespace Musify.Application.Likes
         {
             return await database.TrackLikes
                 .AsNoTracking()
-                .Where(like => like.UserId == request.UserId && like.Track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(like => like.UserId == request.UserId && like.Track.LifeCycleStatus == LifeCycleStatus.Active && like.Track.IsPublished)
                 .OrderByDescending(like => like.CreatedAt)
                 .ThenBy(like => like.Id)
                 .Select(like => like.Track)

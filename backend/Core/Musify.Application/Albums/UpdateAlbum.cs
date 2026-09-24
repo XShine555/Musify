@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums
 {
@@ -13,7 +14,8 @@ namespace Musify.Application.Albums
         Guid AlbumId,
         string Title,
         string? Description,
-        int? ReleaseYear)
+        int? ReleaseYear,
+        AlbumType? Type = null)
         : ICommand<ErrorOr<AlbumApplicationResponse>>;
 
     public class UpdateAlbumCommandHandler(
@@ -34,6 +36,7 @@ namespace Musify.Application.Albums
             album.NormalizedTitle = TextNormalizer.Normalize(title);
             album.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
             album.ReleaseYear = request.ReleaseYear;
+            album.Type = request.Type ?? album.Type;
 
             await database.SaveChangesAsync(cancellationToken);
 

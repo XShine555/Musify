@@ -31,7 +31,8 @@ namespace Musify.Api.Tests.Endpoints
                 Title = trackTitle,
                 NormalizedTitle = trackTitle.ToUpperInvariant(),
                 OwnerUserId = owner.Id,
-                Owner = owner
+                Owner = owner,
+                IsPublished = true
             };
             database.Tracks.Add(track);
             database.ListeningHistories.Add(new ListeningHistory

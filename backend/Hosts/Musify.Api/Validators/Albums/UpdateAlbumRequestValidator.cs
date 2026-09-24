@@ -17,6 +17,10 @@ namespace Musify.Api.Validators.Albums
             RuleFor(x => x.ReleaseYear)
                 .InclusiveBetween(Limits.EarliestReleaseYear, Limits.LatestReleaseYear)
                 .When(x => x.ReleaseYear.HasValue);
+
+            RuleFor(x => x.Type)
+                .IsInEnum()
+                .When(x => x.Type.HasValue);
         }
     }
 }

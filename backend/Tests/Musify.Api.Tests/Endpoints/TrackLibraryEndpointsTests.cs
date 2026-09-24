@@ -19,7 +19,8 @@ namespace Musify.Api.Tests.Endpoints
         private async Task<Guid> SeedTrackAsync(
             long ownerId,
             string title,
-            ProcessingStatus status = ProcessingStatus.Completed)
+            ProcessingStatus status = ProcessingStatus.Completed,
+            bool isPublished = true)
         {
             using var scope = fixture.Services.CreateScope();
             var database = scope.ServiceProvider.GetRequiredService<Database>();
@@ -28,6 +29,7 @@ namespace Musify.Api.Tests.Endpoints
                 Title = title,
                 NormalizedTitle = title.ToUpperInvariant(),
                 OwnerUserId = ownerId,
+                IsPublished = isPublished,
                 Audio = new TrackAudio { TranscodeStatus = status, FolderName = status == ProcessingStatus.Completed ? "folder" : null }
             };
             database.Tracks.Add(track);

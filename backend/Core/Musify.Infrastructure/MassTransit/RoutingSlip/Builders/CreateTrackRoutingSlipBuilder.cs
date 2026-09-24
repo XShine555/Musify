@@ -11,11 +11,21 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
     {
         public RoutingSlipBuilder Build(CreateTrackResourcesEvent message, Guid? correlationId)
         {
-            var builder = RoutingSlips.Create(correlationId)
-                .AddStep(
+            var builder = RoutingSlips.Create(correlationId);
+
+            var hasPicture = message.PictureIntentId != null
+                && message.PictureSourceKey != null
+                && message.PictureDestinationKey != null;
+
+            if (hasPicture)
+            {
+                builder.AddStep(
                     ActivityNames.CopyPictureToFinal,
                     CopyFileInBucketActivity.ExecuteEndpointName,
-                    new CopyFileInBucketArguments(message.Bucket, message.PictureSourceKey, message.Bucket, message.PictureDestinationKey))
+                    new CopyFileInBucketArguments(message.Bucket, message.PictureSourceKey!, message.Bucket, message.PictureDestinationKey!));
+            }
+
+            builder
                 .AddStep(
                     ActivityNames.CopyAudioToFinal,
                     CopyFileInBucketActivity.ExecuteEndpointName,
@@ -23,21 +33,23 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                 .AddStep(
                     ActivityNames.ConsumeUploadIntents,
                     ConsumeUploadIntentsActivity.ExecuteEndpointName,
-                    new ConsumeUploadIntentsArguments([message.PictureIntentId, message.AudioIntentId]))
+                    new ConsumeUploadIntentsArguments(
+                        hasPicture ? [message.PictureIntentId!.Value, message.AudioIntentId] : [message.AudioIntentId]))
                 .AddStep(
                     ActivityNames.PublishTrackProcessingEvents,
                     PublishTrackProcessingEventsActivity.ExecuteEndpointName,
                     new PublishTrackProcessingEventsArguments(
                         message.TrackId,
                         message.Bucket,
-                        message.PictureDestinationKey,
+                        hasPicture ? message.PictureDestinationKey : null,
                         message.AudioDestinationKey,
                         message.AudioProcessedFolderKey,
                         message.Sizes))
                 .TrackFaults(message.TrackId, RoutingSlipVariableNames.ProcessKinds.TrackCreation);
 
             builder.AddVariable(RoutingSlipVariableNames.Workflow.Bucket, message.Bucket);
-            builder.AddVariable(RoutingSlipVariableNames.Workflow.PictureKey, message.PictureDestinationKey);
+            if (hasPicture)
+                builder.AddVariable(RoutingSlipVariableNames.Workflow.PictureKey, message.PictureDestinationKey!);
             builder.AddVariable(RoutingSlipVariableNames.Workflow.AudioKey, message.AudioDestinationKey);
 
             return builder;

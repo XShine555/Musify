@@ -59,7 +59,7 @@ namespace Musify.Api.Endpoints
             group.MapGet("/users/{userId:long}", GetTracksByUserId)
                 .AddEndpointFilter<ValidationFilter<PageQuery>>()
                 .WithName("GetTracksByUserId")
-                .WithSummary("Get paginated tracks for a user, optionally filtered by name and audio processing status. Each track lists the albums it belongs to")
+                .WithSummary("Get paginated tracks for a user, optionally filtered by name, audio processing status and published state. Each track lists the albums it belongs to. Only the owner sees unpublished tracks")
                 .Produces<PaginatedResponse<UserTrackApplicationResponse>>();
 
             group.MapGet("/users/{userId:long}/status-counts", GetTrackStatusCounts)
@@ -72,7 +72,7 @@ namespace Musify.Api.Endpoints
 
             group.MapPost("/", CreateTrack)
                 .WithName("CreateTrack")
-                .WithSummary("Create a new track")
+                .WithSummary("Create a new track, unpublished, from upload intents. The picture is optional")
                 .AddEndpointFilter<ValidationFilter<CreateTrackRequest>>()
                 .RequireAuthorization()
                 .Produces<TrackApplicationResponse>(StatusCodes.Status201Created)
@@ -101,9 +101,29 @@ namespace Musify.Api.Endpoints
                 .Produces(StatusCodes.Status401Unauthorized)
                 .Produces(StatusCodes.Status403Forbidden);
 
+            group.MapPut("/{id:guid}/published", SetTrackPublished)
+                .WithName("SetTrackPublished")
+                .WithSummary("Publish or unpublish one of your tracks. Only tracks with completed audio processing can be published")
+                .RequireAuthorization()
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status404NotFound);
+
+            group.MapPut("/published", SetTracksPublished)
+                .WithName("SetTracksPublished")
+                .WithSummary("Publish or unpublish several of your tracks at once. Missing tracks and tracks that cannot be published yet are returned as skipped")
+                .AddEndpointFilter<ValidationFilter<SetTracksPublishedRequest>>()
+                .RequireAuthorization()
+                .Produces<SetTracksPublishedResponse>()
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden);
+
             group.MapPost("/upload-urls", RequestTrackUploadUrls)
                 .WithName("RequestTrackUploadUrls")
-                .WithSummary("Request pre-signed URLs to upload track picture and audio")
+                .WithSummary("Request pre-signed URLs to upload the audio of one or many tracks and an optional picture shared by all of them")
                 .AddEndpointFilter<ValidationFilter<RequestTrackUploadUrlsRequest>>()
                 .RequireAuthorization()
                 .Produces<TrackUploadUrlsResponse>()
@@ -128,10 +148,11 @@ namespace Musify.Api.Endpoints
 
         private static async Task<IResult> GetTrackById(
             IMediator mediator,
+            CurrentUser currentUser,
             Guid id,
             CancellationToken cancellationToken)
         {
-            var result = await mediator.Send(new GetTrackByIdQuery(id), cancellationToken);
+            var result = await mediator.Send(new GetTrackByIdQuery(id, currentUser.Id), cancellationToken);
             return result.ToHttpResult();
         }
 
@@ -171,14 +192,39 @@ namespace Musify.Api.Endpoints
 
         private static async Task<IResult> GetTracksByUserId(
             IMediator mediator,
+            CurrentUser currentUser,
             long userId,
             string? name,
             [AsParameters] PageQuery page,
             CancellationToken cancellationToken,
-            ProcessingStatus[]? status = null)
+            ProcessingStatus[]? status = null,
+            bool? published = null)
         {
             var result = await mediator.Send(
-                new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize, status),
+                new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize, status, currentUser.Id, published),
+                cancellationToken);
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> SetTrackPublished(
+            IMediator mediator,
+            CurrentUser currentUser,
+            Guid id,
+            SetTrackPublishedRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new SetTrackPublishedCommand(currentUser.RequiredId, id, request.IsPublished), cancellationToken);
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> SetTracksPublished(
+            IMediator mediator,
+            CurrentUser currentUser,
+            SetTracksPublishedRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(
+                new SetTracksPublishedCommand(currentUser.RequiredId, request.TrackIds, request.IsPublished),
                 cancellationToken);
             return result.ToHttpResult();
         }
@@ -243,7 +289,8 @@ namespace Musify.Api.Endpoints
                     request.AudioFileType,
                     request.AudioContentType,
                     request.ExpectedPictureSizeBytes,
-                    request.ExpectedAudioSizeBytes),
+                    request.ExpectedAudioSizeBytes,
+                    request.Audios?.Select(audio => new AudioUploadSpec(audio.FileType, audio.ContentType, audio.ExpectedSizeBytes)).ToList()),
                 cancellationToken);
 
             return result.ToHttpResult();

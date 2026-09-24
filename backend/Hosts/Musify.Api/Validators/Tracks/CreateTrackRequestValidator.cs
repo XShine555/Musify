@@ -13,7 +13,8 @@ namespace Musify.Api.Validators.Tracks
                 .MaximumLength(Limits.TrackTitle);
 
             RuleFor(x => x.PictureIntentId)
-                .NotEmpty();
+                .NotEqual(Guid.Empty)
+                .When(x => x.PictureIntentId.HasValue);
 
             RuleFor(x => x.AudioIntentId)
                 .NotEmpty();

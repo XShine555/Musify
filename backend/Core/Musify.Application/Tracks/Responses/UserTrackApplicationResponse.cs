@@ -16,5 +16,6 @@ namespace Musify.Application.Tracks.Responses
         long OwnerUserId,
         IReadOnlyCollection<Genre> Tags,
         bool IsExplicit,
+        bool IsPublished,
         IReadOnlyList<TrackAlbumReference> Albums);
 }

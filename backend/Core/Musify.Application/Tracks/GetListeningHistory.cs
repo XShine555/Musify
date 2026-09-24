@@ -27,6 +27,7 @@ namespace Musify.Application.Tracks
             var tracksById = await database.Tracks
                 .AsNoTracking()
                 .Active()
+                .WherePublished()
                 .Where(t => recentTrackIds.Contains(t.Id))
                 .SelectResponse()
                 .ToDictionaryAsync(t => t.Id, cancellationToken);

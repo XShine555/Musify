@@ -114,6 +114,32 @@ namespace Musify.Infrastructure.Tests.MassTransit
         }
 
         [Fact]
+        public async Task BuildTrack_ProcessedWithoutOwnPicture_NeverRemovesThePresets()
+        {
+            var track = await SeedTrackAsync(
+                new TrackPictures
+                {
+                    SmallName = "PresetSmallPicture.webp",
+                    MediumName = "PresetMediumPicture.webp",
+                    LargeName = "PresetLargePicture.webp",
+                    ProcessingStatus = ProcessingStatus.Completed
+                },
+                new TrackAudio { OriginalName = "audio.mp3", FolderName = "folder", TranscodeStatus = ProcessingStatus.Completed });
+            await using var database = fixture.CreateDatabase();
+
+            var slip = (await CreateBuilder(database).BuildTrackAsync(track.Id, track.OwnerUserId, null, Ct)).Build();
+
+            Assert.Equal(
+                [
+                    ActivityNames.MarkTrackAsRemoving,
+                    ActivityNames.RemoveTrackOriginalAudio,
+                    ActivityNames.RemoveTrackProcessedAudio,
+                    ActivityNames.DeleteTrackFromDb,
+                ],
+                slip.Itinerary.Select(activity => activity.Name));
+        }
+
+        [Fact]
         public async Task BuildTrack_Processed_RemovesResizedPicturesAndProcessedAudio()
         {
             var track = await SeedTrackAsync(

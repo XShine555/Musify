@@ -9,6 +9,22 @@ namespace Musify.Application.Mixes
 
     internal static class MixItemMapper
     {
+        public static async Task<HashSet<Guid>> VisibleTrackIdsAsync(
+            IDatabase database,
+            IEnumerable<MixItem> items,
+            CancellationToken cancellationToken)
+        {
+            var trackIds = items.Select(item => item.TrackId).Distinct().ToList();
+
+            var visible = await database.Tracks
+                .AsNoTracking()
+                .Where(track => trackIds.Contains(track.Id) && track.LifeCycleStatus == LifeCycleStatus.Active && track.IsPublished)
+                .Select(track => track.Id)
+                .ToListAsync(cancellationToken);
+
+            return [.. visible];
+        }
+
         public static async Task<List<MixItemApplicationResponse>> ToResponsesAsync(
             IDatabase database,
             IReadOnlyList<MixItem> orderedItems,
@@ -19,7 +35,7 @@ namespace Musify.Application.Mixes
             var tracksById = await database.Tracks
                 .AsNoTracking()
                 .Include(track => track.Owner)
-                .Where(track => trackIds.Contains(track.Id) && track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(track => trackIds.Contains(track.Id) && track.LifeCycleStatus == LifeCycleStatus.Active && track.IsPublished)
                 .Select(track => new { Track = track, ListensCount = track.ListeningHistories.Count(l => l.IsCounted) })
                 .ToDictionaryAsync(x => x.Track.Id, cancellationToken);
 

@@ -16,7 +16,7 @@ namespace Musify.Application.Tracks
     public record CreateTrackCommand(
         long UserId,
         string Title,
-        Guid PictureIntentId,
+        Guid? PictureIntentId,
         Guid AudioIntentId,
         IReadOnlyCollection<Genre> Tags,
         bool IsExplicit = false)
@@ -45,20 +45,27 @@ namespace Musify.Application.Tracks
             if (request.PictureIntentId == request.AudioIntentId)
                 return Error.Validation(description: "Picture and audio must use different upload intents.");
 
-            var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-                request.PictureIntentId, request.UserId, UploadIntentPurpose.TrackPicture, cancellationToken);
-            if (pictureValidation.IsError)
-                return pictureValidation.Errors;
+            UploadIntent? pictureIntent = null;
+            if (request.PictureIntentId is { } pictureIntentId)
+            {
+                var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
+                    pictureIntentId, request.UserId, UploadIntentPurpose.TrackPicture, cancellationToken);
+                if (pictureValidation.IsError)
+                    return pictureValidation.Errors;
+
+                pictureIntent = pictureValidation.Value;
+            }
 
             var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
                 request.AudioIntentId, request.UserId, UploadIntentPurpose.TrackAudio, cancellationToken);
             if (audioValidation.IsError)
                 return audioValidation.Errors;
 
-            var pictureIntent = pictureValidation.Value;
             var audioIntent = audioValidation.Value;
 
-            var finalPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
+            var finalPictureKey = pictureIntent == null
+                ? null
+                : trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
             var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
             var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
 
@@ -71,11 +78,11 @@ namespace Musify.Application.Tracks
                 IsExplicit = request.IsExplicit,
                 Pictures = new TrackPictures
                 {
-                    OriginalName = pictureIntent.ObjectName,
+                    OriginalName = pictureIntent?.ObjectName,
                     SmallName = trackConfiguration.Routes.PresetSmallPicture,
                     MediumName = trackConfiguration.Routes.PresetMediumPicture,
                     LargeName = trackConfiguration.Routes.PresetLargePicture,
-                    ProcessingStatus = ProcessingStatus.Pending
+                    ProcessingStatus = pictureIntent == null ? ProcessingStatus.Completed : ProcessingStatus.Pending
                 },
                 Audio = new TrackAudio
                 {
@@ -94,10 +101,10 @@ namespace Musify.Application.Tracks
             await eventBus.PublishAsync(
                 new CreateTrackResourcesEvent(
                     trackEntity.Id,
-                    pictureIntent.Id,
+                    pictureIntent?.Id,
                     audioIntent.Id,
-                    pictureIntent.Bucket,
-                    pictureIntent.Key,
+                    audioIntent.Bucket,
+                    pictureIntent?.Key,
                     finalPictureKey,
                     audioIntent.Key,
                     finalAudioKey,

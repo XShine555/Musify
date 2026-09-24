@@ -224,6 +224,9 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -433,6 +436,9 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<bool>("IsExplicit")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
                     b.Property<int>("LifeCycleStatus")

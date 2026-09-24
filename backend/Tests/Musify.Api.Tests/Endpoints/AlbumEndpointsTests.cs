@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Albums;
 using Musify.Api.Tests.TestSupport;
@@ -14,6 +16,11 @@ namespace Musify.Api.Tests.Endpoints
     [Collection(ApiCollection.Name)]
     public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     {
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+        {
+            Converters = { new JsonStringEnumConverter() }
+        };
+
         private Task<long> CreateUserAsync() => fixture.SeedUserAsync();
 
         private async Task<Guid> CreatePictureIntentAsync(HttpClient client)
@@ -54,7 +61,7 @@ namespace Musify.Api.Tests.Endpoints
             var response = await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("My Album", "desc", 2024, pictureIntentId), TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            var body = await response.Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<AlbumApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
             Assert.NotNull(body);
             Assert.Equal("My Album", body.Title);
             Assert.Equal(userId, body.OwnerUserId);
@@ -89,7 +96,7 @@ namespace Musify.Api.Tests.Endpoints
             var client = fixture.CreateAuthenticatedClient(userId);
             var pictureIntentId = await CreatePictureIntentAsync(client);
             var created = await (await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("Findable", null, null, pictureIntentId), TestContext.Current.CancellationToken))
-                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
 
             var response = await fixture.CreateAnonymousClient().GetAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
 
@@ -104,7 +111,7 @@ namespace Musify.Api.Tests.Endpoints
             var ownerClient = fixture.CreateAuthenticatedClient(owner);
             var pictureIntentId = await CreatePictureIntentAsync(ownerClient);
             var created = await (await ownerClient.PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null, pictureIntentId), TestContext.Current.CancellationToken))
-                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
 
             var response = await fixture.CreateAuthenticatedClient(stranger).DeleteAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
 
@@ -119,7 +126,7 @@ namespace Musify.Api.Tests.Endpoints
             var ownerClient = fixture.CreateAuthenticatedClient(owner);
             var pictureIntentId = await CreatePictureIntentAsync(ownerClient);
             var created = await (await ownerClient.PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null, pictureIntentId), TestContext.Current.CancellationToken))
-                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
 
             var response = await fixture.CreateAuthenticatedClient(stranger).PutAsJsonAsync(
                 $"/albums/{created!.Id}/picture", new UpdateAlbumPictureRequest(Guid.NewGuid()), TestContext.Current.CancellationToken);
@@ -134,7 +141,7 @@ namespace Musify.Api.Tests.Endpoints
             var ownerClient = fixture.CreateAuthenticatedClient(owner);
             var pictureIntentId = await CreatePictureIntentAsync(ownerClient);
             var created = await (await ownerClient.PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null, pictureIntentId), TestContext.Current.CancellationToken))
-                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
 
             var response = await ownerClient.PutAsJsonAsync(
                 $"/albums/{created!.Id}/picture", new UpdateAlbumPictureRequest(Guid.Empty), TestContext.Current.CancellationToken);
@@ -149,7 +156,7 @@ namespace Musify.Api.Tests.Endpoints
             var client = fixture.CreateAuthenticatedClient(userId);
             var pictureIntentId = await CreatePictureIntentAsync(client);
             var created = await (await client.PostAsJsonAsync("/albums", new CreateAlbumRequest("Deletable", null, null, pictureIntentId), TestContext.Current.CancellationToken))
-                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
 
             var deleteResponse = await client.DeleteAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
             var getResponse = await fixture.CreateAnonymousClient().GetAsync($"/albums/{created.Id}", TestContext.Current.CancellationToken);

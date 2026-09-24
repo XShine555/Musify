@@ -34,6 +34,7 @@ namespace Musify.Api.Tests.Endpoints
                 NormalizedTitle = title.ToUpperInvariant(),
                 OwnerUserId = owner.Id,
                 Owner = owner,
+                IsPublished = true,
                 Tags = [new TrackTag { TrackId = Guid.Empty, Tag = genre }]
             };
             foreach (var tag in track.Tags)

@@ -15,7 +15,7 @@ namespace Musify.Application.Genres
         {
             var rows = await database.TrackTags
                 .AsNoTracking()
-                .Where(tag => tag.Track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(tag => tag.Track.LifeCycleStatus == LifeCycleStatus.Active && tag.Track.IsPublished)
                 .GroupBy(tag => tag.Tag)
                 .Select(group => new { Genre = group.Key, TrackCount = group.Select(tag => tag.TrackId).Distinct().Count() })
                 .ToListAsync(cancellationToken);

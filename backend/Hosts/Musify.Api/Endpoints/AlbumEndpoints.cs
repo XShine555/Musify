@@ -84,12 +84,13 @@ namespace Musify.Api.Endpoints
 
             group.MapPost("/", CreateAlbum)
                 .WithName("CreateAlbum")
-                .WithSummary("Create a new album")
+                .WithSummary("Create a new album, optionally with some of your tracks already in it")
                 .AddEndpointFilter<ValidationFilter<CreateAlbumRequest>>()
                 .RequireAuthorization()
                 .Produces<AlbumApplicationResponse>(StatusCodes.Status201Created)
                 .ProducesValidationProblem()
                 .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status404NotFound);
 
             group.MapPut("/{id:guid}", UpdateAlbum)
@@ -245,7 +246,8 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(
-                new CreateAlbumCommand(currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear, request.PictureIntentId),
+                new CreateAlbumCommand(
+                    currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear, request.PictureIntentId, request.Type, request.TrackIds),
                 cancellationToken);
 
             return result.ToCreatedResult(album => $"/albums/{album.Id}");
@@ -259,7 +261,7 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(
-                new UpdateAlbumCommand(currentUser.RequiredId, id, request.Title, request.Description, request.ReleaseYear),
+                new UpdateAlbumCommand(currentUser.RequiredId, id, request.Title, request.Description, request.ReleaseYear, request.Type),
                 cancellationToken);
 
             return result.ToHttpResult();

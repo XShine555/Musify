@@ -17,7 +17,8 @@ namespace Musify.Application.Tracks
         {
             var tracksQuery = database.Tracks
                 .AsNoTracking()
-                .Active();
+                .Active()
+                .WherePublished();
 
             if (!string.IsNullOrWhiteSpace(request.Name))
             {

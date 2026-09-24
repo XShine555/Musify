@@ -8,6 +8,12 @@ namespace Musify.Application.Tracks.Responses
         public static IQueryable<Track> Active(this IQueryable<Track> query) =>
             query.Where(track => track.LifeCycleStatus == LifeCycleStatus.Active);
 
+        public static IQueryable<Track> WherePublished(this IQueryable<Track> query) =>
+            query.Where(track => track.IsPublished);
+
+        public static IQueryable<Track> VisibleTo(this IQueryable<Track> query, long? viewerId) =>
+            query.Where(track => track.IsPublished || track.OwnerUserId == viewerId);
+
         public static IQueryable<TrackApplicationResponse> SelectResponse(this IQueryable<Track> query) =>
             query.Select(track => new TrackApplicationResponse(
                 track.Id,
@@ -20,7 +26,8 @@ namespace Musify.Application.Tracks.Responses
                 track.UpdatedAt,
                 track.OwnerUserId,
                 track.Tags.Select(tag => tag.Tag).ToList(),
-                track.IsExplicit));
+                track.IsExplicit,
+                track.IsPublished));
 
         public static IQueryable<UserTrackApplicationResponse> SelectUserResponse(this IQueryable<Track> query) =>
             query.Select(track => new UserTrackApplicationResponse(
@@ -35,6 +42,7 @@ namespace Musify.Application.Tracks.Responses
                 track.OwnerUserId,
                 track.Tags.Select(tag => tag.Tag).ToList(),
                 track.IsExplicit,
+                track.IsPublished,
                 track.AlbumTracks
                     .Where(albumTrack => albumTrack.Album.LifeCycleStatus == LifeCycleStatus.Active)
                     .OrderBy(albumTrack => albumTrack.AddedAt)

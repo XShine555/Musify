@@ -89,6 +89,43 @@ namespace Musify.Infrastructure.Tests.MassTransit
         }
 
         [Fact]
+        public void CreateTrack_WithPicture_CopiesBothFilesAndConsumesBothIntents()
+        {
+            var audioIntentId = Guid.NewGuid();
+            var message = new CreateTrackResourcesEvent(
+                SubjectId, IntentId, audioIntentId, "bucket", "picture-source", "picture-final", "audio-source", "audio-final", "audio-folder", Sizes);
+
+            var slip = new CreateTrackRoutingSlipBuilder().Build(message, CorrelationId).Build();
+
+            Assert.Equal(
+                [ActivityNames.CopyPictureToFinal, ActivityNames.CopyAudioToFinal, ActivityNames.ConsumeUploadIntents, ActivityNames.PublishTrackProcessingEvents],
+                slip.Itinerary.Select(activity => activity.Name));
+            Assert.Equal("picture-final", slip.Variables[RoutingSlipVariableNames.Workflow.PictureKey]);
+            var consume = new Dictionary<string, object>(slip.Itinerary[2].Arguments, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal([IntentId, audioIntentId], (IEnumerable<Guid>)consume["IntentIds"]);
+        }
+
+        [Fact]
+        public void CreateTrack_WithoutPicture_SkipsThePictureCopyAndOnlyConsumesTheAudioIntent()
+        {
+            var audioIntentId = Guid.NewGuid();
+            var message = new CreateTrackResourcesEvent(
+                SubjectId, null, audioIntentId, "bucket", null, null, "audio-source", "audio-final", "audio-folder", Sizes);
+
+            var slip = new CreateTrackRoutingSlipBuilder().Build(message, CorrelationId).Build();
+
+            Assert.Equal(
+                [ActivityNames.CopyAudioToFinal, ActivityNames.ConsumeUploadIntents, ActivityNames.PublishTrackProcessingEvents],
+                slip.Itinerary.Select(activity => activity.Name));
+            Assert.False(slip.Variables.ContainsKey(RoutingSlipVariableNames.Workflow.PictureKey));
+            Assert.Equal("audio-final", slip.Variables[RoutingSlipVariableNames.Workflow.AudioKey]);
+            var consume = new Dictionary<string, object>(slip.Itinerary[1].Arguments, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal([audioIntentId], (IEnumerable<Guid>)consume["IntentIds"]);
+            var publish = new Dictionary<string, object>(slip.Itinerary[2].Arguments, StringComparer.OrdinalIgnoreCase);
+            Assert.Null(publish["FinalPictureKey"]);
+        }
+
+        [Fact]
         public void AudioWorkflow_ChainsDownloadTranscodeTransferAndUpdate()
         {
             var configuration = new WorkerConfiguration();

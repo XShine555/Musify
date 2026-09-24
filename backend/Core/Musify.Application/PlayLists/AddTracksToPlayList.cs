@@ -27,7 +27,7 @@ namespace Musify.Application.PlayLists
 
             var existingIds = await database.Tracks
                 .AsNoTracking()
-                .Where(track => requestedIds.Contains(track.Id) && track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(track => requestedIds.Contains(track.Id) && track.LifeCycleStatus == LifeCycleStatus.Active && track.IsPublished)
                 .Select(track => track.Id)
                 .ToListAsync(cancellationToken);
 

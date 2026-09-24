@@ -34,7 +34,7 @@ namespace Musify.Application.PlayLists
 
             var albumTrackIds = await database.AlbumHasTracks
                 .AsNoTracking()
-                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && albumTrack.Track.IsPublished)
                 .OrderBy(albumTrack => albumTrack.TrackNumber)
                 .Select(albumTrack => albumTrack.TrackId)
                 .ToListAsync(cancellationToken);

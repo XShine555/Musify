@@ -20,6 +20,7 @@ namespace Musify.Application.Albums
             var ranked = await database.AlbumHasTracks
                 .AsNoTracking()
                 .Where(albumTrack => albumTrack.Album.LifeCycleStatus == Domain.ValueObjects.LifeCycleStatus.Active)
+                .Where(albumTrack => albumTrack.Track.LifeCycleStatus == Domain.ValueObjects.LifeCycleStatus.Active && albumTrack.Track.IsPublished)
                 .Join(
                     listens,
                     albumTrack => albumTrack.TrackId,

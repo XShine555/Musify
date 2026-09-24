@@ -15,7 +15,8 @@ namespace Musify.Application.Services
         PictureRoutes Routes,
         string FileType,
         string ContentType,
-        long? ExpectedSizeBytes);
+        long? ExpectedSizeBytes,
+        int? SharedKeyGroup = null);
 
     public sealed record IssuedUpload(
         Guid IntentId,
@@ -43,11 +44,15 @@ namespace Musify.Application.Services
             if (!userExists)
                 return AppErrors.NotFound("User", userId);
 
+            var sharedKeys = new Dictionary<int, string>();
             var planned = requests
                 .Select(request =>
                 {
                     var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
                     var key = request.Routes.BuildTempPath(uploadIntentConfiguration.TempRootPrefix, userId, objectName);
+                    if (request.SharedKeyGroup is { } group)
+                        key = sharedKeys.TryAdd(group, key) ? key : sharedKeys[group];
+
                     var size = request.ExpectedSizeBytes ?? DefaultSize(request.Purpose);
                     return (Request: request, ObjectName: objectName, Key: key, Size: size);
                 })

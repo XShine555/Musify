@@ -18,18 +18,23 @@ namespace Musify.Application.Tracks
                 .AsNoTracking()
                 .Active()
                 .Where(track => track.OwnerUserId == request.UserId)
-                .GroupBy(track => track.Audio.TranscodeStatus)
-                .Select(group => new { Status = group.Key, Count = group.Count() })
+                .GroupBy(track => new { track.Audio.TranscodeStatus, track.IsPublished })
+                .Select(group => new { group.Key.TranscodeStatus, group.Key.IsPublished, Count = group.Count() })
                 .ToListAsync(cancellationToken);
 
-            int CountOf(ProcessingStatus status) => counts.Where(c => c.Status == status).Sum(c => c.Count);
+            int CountOf(ProcessingStatus status) => counts.Where(c => c.TranscodeStatus == status).Sum(c => c.Count);
+
+            var published = counts.Where(c => c.IsPublished).Sum(c => c.Count);
+            var total = counts.Sum(c => c.Count);
 
             return new TrackStatusCountsResponse(
-                counts.Sum(c => c.Count),
+                total,
                 CountOf(ProcessingStatus.Pending),
                 CountOf(ProcessingStatus.Processing),
                 CountOf(ProcessingStatus.Completed),
-                CountOf(ProcessingStatus.Failed));
+                CountOf(ProcessingStatus.Failed),
+                published,
+                total - published);
         }
     }
 }

@@ -11,9 +11,9 @@ namespace Musify.Application.Tests.Tracks
 {
     public sealed class DeleteTracksCommandHandlerTests : HandlerTestBase
     {
-        private readonly IEventBus eventBus = Substitute.For<IEventBus>();
+        private readonly IEventBus _eventBus = Substitute.For<IEventBus>();
 
-        private DeleteTracksCommandHandler CreateHandler() => new(Database, eventBus, NoOpLogger<DeleteTracksCommandHandler>());
+        private DeleteTracksCommandHandler CreateHandler() => new(Database, _eventBus, NoOpLogger<DeleteTracksCommandHandler>());
 
         [Fact]
         public async Task Handle_OwnTracks_MarksAllAsRemovingAndPublishesOneEventEach()
@@ -29,7 +29,7 @@ namespace Musify.Application.Tests.Tracks
             Assert.Equal(2, result.Value.DeletedTrackIds.Count);
             Assert.Empty(result.Value.FailedTrackIds);
             Assert.All(Database.Tracks.ToList(), track => Assert.Equal(LifeCycleStatus.Removing, track.LifeCycleStatus));
-            await eventBus.Received(2).PublishAsync(Arg.Any<DeleteTrackEvent>(), Arg.Any<CancellationToken>());
+            await _eventBus.Received(2).PublishAsync(Arg.Any<DeleteTrackEvent>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace Musify.Application.Tests.Tracks
 
             Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
             Assert.All(Database.Tracks.ToList(), track => Assert.Equal(LifeCycleStatus.Active, track.LifeCycleStatus));
-            await eventBus.DidNotReceive().PublishAsync(Arg.Any<DeleteTrackEvent>(), Arg.Any<CancellationToken>());
+            await _eventBus.DidNotReceive().PublishAsync(Arg.Any<DeleteTrackEvent>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace Musify.Application.Tests.Tracks
             var result = await CreateHandler().Handle(new DeleteTracksCommand(owner.Id, [track.Id, track.Id]), TestContext.Current.CancellationToken);
 
             Assert.Single(result.Value.DeletedTrackIds);
-            await eventBus.Received(1).PublishAsync(Arg.Any<DeleteTrackEvent>(), Arg.Any<CancellationToken>());
+            await _eventBus.Received(1).PublishAsync(Arg.Any<DeleteTrackEvent>(), Arg.Any<CancellationToken>());
         }
     }
 }

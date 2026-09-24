@@ -47,7 +47,7 @@ namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
                         routes.BuildOriginalPicturePath(userId, track.Pictures.OriginalName));
                 }
 
-                if (track.Pictures.IsProcessed)
+                if (track.Pictures.IsProcessed && !string.IsNullOrEmpty(track.Pictures.OriginalName))
                 {
                     builder.AddRemoveFile(ActivityNames.RemoveTrackSmallPicture, bucket, routes.BuildPicturePath(PictureSize.Small, track.Pictures.SmallName));
                     builder.AddRemoveFile(ActivityNames.RemoveTrackMediumPicture, bucket, routes.BuildPicturePath(PictureSize.Medium, track.Pictures.MediumName));

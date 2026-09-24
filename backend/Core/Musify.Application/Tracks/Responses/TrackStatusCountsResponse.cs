@@ -5,5 +5,7 @@ namespace Musify.Application.Tracks.Responses
         int Pending,
         int Processing,
         int Completed,
-        int Failed);
+        int Failed,
+        int Published,
+        int Unpublished);
 }

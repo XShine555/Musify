@@ -16,13 +16,16 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
         {
             var arguments = executeContext.Arguments;
 
-            await publishEndpoint.Publish(
-                new UpdateTrackPictureEvent(
-                    arguments.TrackId,
-                    arguments.Bucket,
-                    arguments.FinalPictureKey,
-                    arguments.Sizes),
-                executeContext.CancellationToken);
+            if (arguments.FinalPictureKey != null)
+            {
+                await publishEndpoint.Publish(
+                    new UpdateTrackPictureEvent(
+                        arguments.TrackId,
+                        arguments.Bucket,
+                        arguments.FinalPictureKey,
+                        arguments.Sizes),
+                    executeContext.CancellationToken);
+            }
 
             await publishEndpoint.Publish(
                 new UpdateTrackAudioEvent(

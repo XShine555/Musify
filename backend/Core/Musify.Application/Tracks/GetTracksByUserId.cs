@@ -13,7 +13,9 @@ namespace Musify.Application.Tracks
         string? Name,
         int PageNumber,
         int PageSize,
-        IReadOnlyList<ProcessingStatus>? Statuses = null)
+        IReadOnlyList<ProcessingStatus>? Statuses = null,
+        long? ViewerId = null,
+        bool? IsPublished = null)
         : IQuery<ErrorOr<PaginatedResponse<UserTrackApplicationResponse>>>;
 
     public class GetTracksByUserIdQueryHandler(IDatabase database)
@@ -26,6 +28,9 @@ namespace Musify.Application.Tracks
                 .Active()
                 .Where(track => track.OwnerUserId == request.UserId);
 
+            if (request.ViewerId != request.UserId)
+                tracksQuery = tracksQuery.WherePublished();
+
             if (!string.IsNullOrWhiteSpace(request.Name))
             {
                 var normalizedName = TextNormalizer.Normalize(request.Name);
@@ -37,6 +42,9 @@ namespace Musify.Application.Tracks
                 var statusList = statuses.Distinct().ToList();
                 tracksQuery = tracksQuery.Where(track => statusList.Contains(track.Audio.TranscodeStatus));
             }
+
+            if (request.IsPublished is { } isPublished)
+                tracksQuery = tracksQuery.Where(track => track.IsPublished == isPublished);
 
             return await tracksQuery
                 .OrderByDescending(track => track.CreatedAt)
