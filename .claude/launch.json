@@ -15,6 +15,12 @@
 			"port": 5111
 		},
 		{
+			"name": "musify-worker",
+			"runtimeExecutable": "dotnet",
+			"runtimeArgs": ["run", "--project", "backend/Hosts/Musify.Worker"],
+			"port": 5112
+		},
+		{
 			"name": "musify-streaming-gateway",
 			"runtimeExecutable": "dotnet",
 			"runtimeArgs": ["run", "--project", "backend/Hosts/Musify.StreamingGateway"],
