@@ -2,40 +2,39 @@ using System.Collections.Concurrent;
 using ErrorOr;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Musify.Infrastructure.Services
+namespace Musify.Infrastructure.Services;
+
+public sealed class SingleFlightCache(IMemoryCache cache)
 {
-    public sealed class SingleFlightCache(IMemoryCache cache)
+    private readonly ConcurrentDictionary<string, object> inFlight = new();
+
+    public async Task<ErrorOr<TValue>> GetOrCreateAsync<TValue>(
+        string key,
+        TimeSpan duration,
+        Func<Task<ErrorOr<TValue>>> factory)
     {
-        private readonly ConcurrentDictionary<string, object> inFlight = new();
+        if (duration <= TimeSpan.Zero)
+            return await factory();
 
-        public async Task<ErrorOr<TValue>> GetOrCreateAsync<TValue>(
-            string key,
-            TimeSpan duration,
-            Func<Task<ErrorOr<TValue>>> factory)
+        if (cache.TryGetValue(key, out TValue? cached) && cached != null)
+            return cached;
+
+        var pending = (Lazy<Task<ErrorOr<TValue>>>)inFlight.GetOrAdd(
+            key,
+            _ => new Lazy<Task<ErrorOr<TValue>>>(factory));
+
+        try
         {
-            if (duration <= TimeSpan.Zero)
-                return await factory();
+            var result = await pending.Value;
 
-            if (cache.TryGetValue(key, out TValue? cached) && cached != null)
-                return cached;
+            if (!result.IsError)
+                cache.Set(key, result.Value, duration);
 
-            var pending = (Lazy<Task<ErrorOr<TValue>>>)inFlight.GetOrAdd(
-                key,
-                _ => new Lazy<Task<ErrorOr<TValue>>>(factory));
-
-            try
-            {
-                var result = await pending.Value;
-
-                if (!result.IsError)
-                    cache.Set(key, result.Value, duration);
-
-                return result;
-            }
-            finally
-            {
-                inFlight.TryRemove(key, out _);
-            }
+            return result;
+        }
+        finally
+        {
+            inFlight.TryRemove(key, out _);
         }
     }
 }

@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Musify.Application.Configuration
-{
-    public class MixConfiguration
-    {
-        public const string SectionName = "Mix";
+namespace Musify.Application.Configuration;
 
-        [Range(4, 100)]
-        public int ItemsPerMix { get; set; } = 12;
-    }
+public class MixConfiguration
+{
+    public const string SectionName = "Mix";
+
+    [Range(4, 100)]
+    public int ItemsPerMix { get; set; } = 12;
 }

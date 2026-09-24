@@ -1,11 +1,10 @@
 using Mediator;
-using Musify.Application.Likes;
-using Musify.Application.Shared;
-using Musify.Application.Tracks.Responses;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Likes;
 using Musify.Api.Extensions;
-using Musify.Api.Filters;
+using Musify.Application.Likes;
+using Musify.Application.Shared;
+using Musify.Application.Tracks.Responses;
 
 namespace Musify.Api.Endpoints;
 

@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using Musify.Infrastructure.Observability;
-using Scalar.AspNetCore;
 using Musify.Api.Endpoints;
 using Musify.Api.Extensions;
+using Musify.Infrastructure.Observability;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder();
 

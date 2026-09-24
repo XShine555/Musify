@@ -1,12 +1,12 @@
 using FluentValidation;
-using Musify.Infrastructure.MassTransit;
-using Musify.Infrastructure.Persistence;
-using Musify.Application;
-using Musify.Infrastructure.Services;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.OpenApi;
 using Musify.Api.Scalar;
+using Musify.Application;
+using Musify.Infrastructure.MassTransit;
+using Musify.Infrastructure.Persistence;
+using Musify.Infrastructure.Services;
 
 namespace Musify.Api.Extensions;
 

@@ -1,9 +1,8 @@
-namespace Musify.Domain.ValueObjects
+namespace Musify.Domain.ValueObjects;
+
+public enum UploadIntentStatus
 {
-    public enum UploadIntentStatus
-    {
-        Issued,
-        Consumed,
-        Expired,
-    }
+    Issued,
+    Consumed,
+    Expired,
 }

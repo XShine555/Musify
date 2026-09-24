@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Musify.Infrastructure.Configuration
-{
-    public class OpenTelemetryConfiguration
-    {
-        public const string SectionName = "OpenTelemetry";
+namespace Musify.Infrastructure.Configuration;
 
-        [Url]
-        [Required]
-        public required string OtlpEndpoint { get; set; }
-    }
+public class OpenTelemetryConfiguration
+{
+    public const string SectionName = "OpenTelemetry";
+
+    [Url]
+    [Required]
+    public required string OtlpEndpoint { get; set; }
 }

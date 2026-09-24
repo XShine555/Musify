@@ -1,4 +1,3 @@
-namespace Musify.Application.Events
-{
-    public record PlayListPictureProcessed(Guid PlayListId);
-}
+namespace Musify.Application.Events;
+
+public record PlayListPictureProcessed(Guid PlayListId);

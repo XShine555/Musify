@@ -2,104 +2,103 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Application.Configuration;
 using Musify.Application.Albums.Responses;
+using Musify.Application.Configuration;
+using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
-using Musify.Application.Contracts;
 
-namespace Musify.Application.Albums
+namespace Musify.Application.Albums;
+
+public record RequestAlbumPictureUploadCommand(
+    long UserId,
+    string FileType,
+    string ContentType,
+    long? ExpectedSizeBytes = null)
+    : ICommand<ErrorOr<AlbumPictureUploadResponse>>;
+
+public class RequestAlbumPictureUploadCommandHandler(
+    IDatabase database,
+    UploadIntentValidator uploadIntentValidator,
+    IStorageService storageService,
+    ILogger<RequestAlbumPictureUploadCommandHandler> logger,
+    ApplicationStorageConfiguration storageConfiguration,
+    AlbumConfiguration albumConfiguration,
+    UploadIntentConfiguration uploadIntentConfiguration)
+    : ICommandHandler<RequestAlbumPictureUploadCommand, ErrorOr<AlbumPictureUploadResponse>>
 {
-    public record RequestAlbumPictureUploadCommand(
-        long UserId,
-        string FileType,
-        string ContentType,
-        long? ExpectedSizeBytes = null)
-        : ICommand<ErrorOr<AlbumPictureUploadResponse>>;
-
-    public class RequestAlbumPictureUploadCommandHandler(
-        IDatabase database,
-        UploadIntentValidator uploadIntentValidator,
-        IStorageService storageService,
-        ILogger<RequestAlbumPictureUploadCommandHandler> logger,
-        ApplicationStorageConfiguration storageConfiguration,
-        AlbumConfiguration albumConfiguration,
-        UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<RequestAlbumPictureUploadCommand, ErrorOr<AlbumPictureUploadResponse>>
+    public async ValueTask<ErrorOr<AlbumPictureUploadResponse>> Handle(RequestAlbumPictureUploadCommand request, CancellationToken cancellationToken)
     {
-        public async ValueTask<ErrorOr<AlbumPictureUploadResponse>> Handle(RequestAlbumPictureUploadCommand request, CancellationToken cancellationToken)
+        var userExists = await database.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.Id == request.UserId, cancellationToken);
+        if (!userExists)
         {
-            var userExists = await database.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.Id == request.UserId, cancellationToken);
-            if (!userExists)
+            logger.LogWarning("User {UserId} not found", request.UserId);
+            return Error.NotFound(description: $"User {request.UserId} not found");
+        }
+
+        var effectiveSizeBytes = request.ExpectedSizeBytes
+            ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
+
+        var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
+
+        var tempKey = albumConfiguration.Routes.BuildTempPicturePath(
+            uploadIntentConfiguration.TemporalRootPrefix, request.UserId, objectName);
+
+        try
+        {
+            var uploadUrl = await storageService.GetUploadUrlAsync(
+                storageConfiguration.Bucket,
+                tempKey,
+                request.ContentType,
+                TimeSpan.FromSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds),
+                cancellationToken);
+
+            await using var transaction = await database.BeginTransactionAsync(
+                System.Data.IsolationLevel.Serializable, cancellationToken);
+
+            var quotaCheck = await uploadIntentValidator.CheckQuotaAsync(
+                uploadIntentConfiguration,
+                request.UserId, effectiveSizeBytes, 1, cancellationToken);
+            if (quotaCheck.IsError)
             {
-                logger.LogWarning("User {UserId} not found", request.UserId);
-                return Error.NotFound(description: $"User {request.UserId} not found");
+                logger.LogWarning("User {UserId} failed upload intent quota check", request.UserId);
+                return quotaCheck.Errors;
             }
 
-            var effectiveSizeBytes = request.ExpectedSizeBytes
-                ?? uploadIntentConfiguration.DefaultExpectedPictureSizeBytes;
-
-            var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
-
-            var tempKey = albumConfiguration.Routes.BuildTempPicturePath(
-                uploadIntentConfiguration.TemporalRootPrefix, request.UserId, objectName);
-
-            try
+            var intent = new UploadIntent
             {
-                var uploadUrl = await storageService.GetUploadUrlAsync(
-                    storageConfiguration.Bucket,
-                    tempKey,
-                    request.ContentType,
-                    TimeSpan.FromSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds),
-                    cancellationToken);
+                UserId = request.UserId,
+                Bucket = storageConfiguration.Bucket,
+                Key = tempKey,
+                ObjectName = objectName,
+                ContentType = request.ContentType,
+                ExpectedSizeBytes = effectiveSizeBytes,
+                Purpose = UploadIntentPurpose.AlbumPicture,
+                ExpiresAt = DateTime.UtcNow.AddSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds),
+            };
 
-                await using var transaction = await database.BeginTransactionAsync(
-                    System.Data.IsolationLevel.Serializable, cancellationToken);
+            await database.UploadIntents.AddAsync(intent, cancellationToken);
+            await database.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
-                var quotaCheck = await uploadIntentValidator.CheckQuotaAsync(
-                    uploadIntentConfiguration,
-                    request.UserId, effectiveSizeBytes, 1, cancellationToken);
-                if (quotaCheck.IsError)
-                {
-                    logger.LogWarning("User {UserId} failed upload intent quota check", request.UserId);
-                    return quotaCheck.Errors;
-                }
+            logger.LogInformation("Issued upload intent {IntentId} for user {UserId} (AlbumPicture, temp key: {Key})", intent.Id, request.UserId, tempKey);
 
-                var intent = new UploadIntent
-                {
-                    UserId = request.UserId,
-                    Bucket = storageConfiguration.Bucket,
-                    Key = tempKey,
-                    ObjectName = objectName,
-                    ContentType = request.ContentType,
-                    ExpectedSizeBytes = effectiveSizeBytes,
-                    Purpose = UploadIntentPurpose.AlbumPicture,
-                    ExpiresAt = DateTime.UtcNow.AddSeconds(uploadIntentConfiguration.UploadUrlExpiresInSeconds),
-                };
-
-                await database.UploadIntents.AddAsync(intent, cancellationToken);
-                await database.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-
-                logger.LogInformation("Issued upload intent {IntentId} for user {UserId} (AlbumPicture, temp key: {Key})", intent.Id, request.UserId, tempKey);
-
-                return new AlbumPictureUploadResponse(
-                    intent.Id,
-                    storageConfiguration.Bucket,
-                    tempKey,
-                    objectName,
-                    request.ContentType,
-                    uploadIntentConfiguration.UploadUrlExpiresInSeconds,
-                    uploadUrl);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to generate album picture upload URL for user {UserId}", request.UserId);
-                return Error.Failure(description: "Failed to generate upload URL");
-            }
+            return new AlbumPictureUploadResponse(
+                intent.Id,
+                storageConfiguration.Bucket,
+                tempKey,
+                objectName,
+                request.ContentType,
+                uploadIntentConfiguration.UploadUrlExpiresInSeconds,
+                uploadUrl);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to generate album picture upload URL for user {UserId}", request.UserId);
+            return Error.Failure(description: "Failed to generate upload URL");
         }
     }
 }

@@ -6,98 +6,97 @@ using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Pictures
+namespace Musify.Infrastructure.MassTransit.Activities.Pictures;
+
+internal class UpdateTrackPictureActivity(
+    IDatabase database,
+    IPublishEndpoint publishEndpoint,
+    ILogger<UpdateTrackPictureActivity> logger)
+    : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>
 {
-    internal class UpdateTrackPictureActivity(
-        IDatabase database,
-        IPublishEndpoint publishEndpoint,
-        ILogger<UpdateTrackPictureActivity> logger)
-        : IActivity<UpdateTrackPictureArguments, UpdateTrackPictureLog>
+    public const string ExecuteEndpointName = "update-track-picture";
+
+    public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackPictureArguments> executeContext)
     {
-        public const string ExecuteEndpointName = "update-track-picture";
+        var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariable);
+        ArgumentNullException.ThrowIfNull(smallResizedVariable, nameof(smallResizedVariable));
+        var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariable);
+        ArgumentNullException.ThrowIfNull(mediumResizedVariable, nameof(mediumResizedVariable));
+        var largeResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.LargePictureVariable);
+        ArgumentNullException.ThrowIfNull(largeResizedVariable, nameof(largeResizedVariable));
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackPictureArguments> executeContext)
+        try
         {
-            var smallResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.SmallPictureVariable);
-            ArgumentNullException.ThrowIfNull(smallResizedVariable, nameof(smallResizedVariable));
-            var mediumResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.MediumPictureVariable);
-            ArgumentNullException.ThrowIfNull(mediumResizedVariable, nameof(mediumResizedVariable));
-            var largeResizedVariable = executeContext.GetVariable<string>(executeContext.Arguments.LargePictureVariable);
-            ArgumentNullException.ThrowIfNull(largeResizedVariable, nameof(largeResizedVariable));
+            var track = await database.Tracks.FindAsync(
+                [executeContext.Arguments.TrackId],
+                cancellationToken: executeContext.CancellationToken);
 
-            try
+            if (track == null)
             {
-                var track = await database.Tracks.FindAsync(
-                    [executeContext.Arguments.TrackId],
-                    cancellationToken: executeContext.CancellationToken);
-
-                if (track == null)
-                {
-                    logger.LogWarning("Track {TrackId} not found",
-                        executeContext.Arguments.TrackId);
-                    throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
-                }
-
-                var log = new UpdateTrackPictureLog(
-                    track.Id,
-                    track.Pictures.OriginalName,
-                    track.Pictures.SmallName,
-                    track.Pictures.MediumName,
-                    track.Pictures.LargeName);
-
-                track.Pictures.OriginalName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
-                track.Pictures.SmallName = Path.GetFileName(smallResizedVariable);
-                track.Pictures.MediumName = Path.GetFileName(mediumResizedVariable);
-                track.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
-                track.Pictures.ProcessingStatus = ProcessingStatus.Completed;
-
-                database.Tracks.Update(track);
-                await database.SaveChangesAsync(executeContext.CancellationToken);
-
-                logger.LogInformation("Updated track {TrackId} pictures",
+                logger.LogWarning("Track {TrackId} not found",
                     executeContext.Arguments.TrackId);
-
-                await publishEndpoint.Publish(
-                    new TrackPictureProcessed(executeContext.Arguments.TrackId),
-                    executeContext.CancellationToken);
-
-                return executeContext.Completed();
+                throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found");
             }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to update track {TrackId} pictures",
-                    executeContext.Arguments.TrackId);
-                throw;
-            }
+
+            var log = new UpdateTrackPictureLog(
+                track.Id,
+                track.Pictures.OriginalName,
+                track.Pictures.SmallName,
+                track.Pictures.MediumName,
+                track.Pictures.LargeName);
+
+            track.Pictures.OriginalName = Path.GetFileName(executeContext.Arguments.OriginalPictureKey);
+            track.Pictures.SmallName = Path.GetFileName(smallResizedVariable);
+            track.Pictures.MediumName = Path.GetFileName(mediumResizedVariable);
+            track.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
+            track.Pictures.ProcessingStatus = ProcessingStatus.Completed;
+
+            database.Tracks.Update(track);
+            await database.SaveChangesAsync(executeContext.CancellationToken);
+
+            logger.LogInformation("Updated track {TrackId} pictures",
+                executeContext.Arguments.TrackId);
+
+            await publishEndpoint.Publish(
+                new TrackPictureProcessed(executeContext.Arguments.TrackId),
+                executeContext.CancellationToken);
+
+            return executeContext.Completed();
         }
-
-        public async Task<CompensationResult> Compensate(CompensateContext<UpdateTrackPictureLog> compensateContext)
+        catch (Exception exception)
         {
-            try
-            {
-                var track = await database.Tracks.FindAsync(
-                    [compensateContext.Log.TrackId],
-                    cancellationToken: compensateContext.CancellationToken);
+            logger.LogError(exception, "Failed to update track {TrackId} pictures",
+                executeContext.Arguments.TrackId);
+            throw;
+        }
+    }
 
-                if (track == null)
-                    return compensateContext.Compensated();
+    public async Task<CompensationResult> Compensate(CompensateContext<UpdateTrackPictureLog> compensateContext)
+    {
+        try
+        {
+            var track = await database.Tracks.FindAsync(
+                [compensateContext.Log.TrackId],
+                cancellationToken: compensateContext.CancellationToken);
 
-                track.Pictures.OriginalName = compensateContext.Log.PreviousOriginalPictureKey;
-                track.Pictures.SmallName = compensateContext.Log.PreviousSmallPictureKey;
-                track.Pictures.MediumName = compensateContext.Log.PreviousMediumPictureKey;
-                track.Pictures.LargeName = compensateContext.Log.PreviousLargePictureKey;
-                track.Pictures.ProcessingStatus = ProcessingStatus.Failed;
-
-                database.Tracks.Update(track);
-                await database.SaveChangesAsync(compensateContext.CancellationToken);
-
+            if (track == null)
                 return compensateContext.Compensated();
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to compensate track {TrackId} pictures", compensateContext.Log.TrackId);
-                return compensateContext.Failed(exception);
-            }
+
+            track.Pictures.OriginalName = compensateContext.Log.PreviousOriginalPictureKey;
+            track.Pictures.SmallName = compensateContext.Log.PreviousSmallPictureKey;
+            track.Pictures.MediumName = compensateContext.Log.PreviousMediumPictureKey;
+            track.Pictures.LargeName = compensateContext.Log.PreviousLargePictureKey;
+            track.Pictures.ProcessingStatus = ProcessingStatus.Failed;
+
+            database.Tracks.Update(track);
+            await database.SaveChangesAsync(compensateContext.CancellationToken);
+
+            return compensateContext.Compensated();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to compensate track {TrackId} pictures", compensateContext.Log.TrackId);
+            return compensateContext.Failed(exception);
         }
     }
 }

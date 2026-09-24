@@ -6,57 +6,56 @@ using Musify.Api.Filters;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Api.Tests.Filters
+namespace Musify.Api.Tests.Filters;
+
+public sealed class ValidationFilterTests
 {
-    public sealed class ValidationFilterTests
+    public sealed record Payload(string Name);
+
+    private static EndpointFilterInvocationContext CreateContext<T>(T argument) =>
+        EndpointFilterInvocationContext.Create(new DefaultHttpContext(), argument);
+
+    [Fact]
+    public async Task InvokeAsync_ValidPayload_CallsNext()
     {
-        public sealed record Payload(string Name);
+        var validator = Substitute.For<IValidator<Payload>>();
+        validator.ValidateAsync(Arg.Any<Payload>(), Arg.Any<CancellationToken>()).Returns(new ValidationResult());
+        var filter = new ValidationFilter<Payload>(validator);
+        var context = CreateContext(new Payload("ok"));
 
-        private static EndpointFilterInvocationContext CreateContext<T>(T argument) =>
-            EndpointFilterInvocationContext.Create(new DefaultHttpContext(), argument);
+        var result = await filter.InvokeAsync(context, _ => ValueTask.FromResult<object?>("next-called"));
 
-        [Fact]
-        public async Task InvokeAsync_ValidPayload_CallsNext()
-        {
-            var validator = Substitute.For<IValidator<Payload>>();
-            validator.ValidateAsync(Arg.Any<Payload>(), Arg.Any<CancellationToken>()).Returns(new ValidationResult());
-            var filter = new ValidationFilter<Payload>(validator);
-            var context = CreateContext(new Payload("ok"));
+        Assert.Equal("next-called", result);
+        await validator.Received(1).ValidateAsync(Arg.Is<Payload>(p => p.Name == "ok"), Arg.Any<CancellationToken>());
+    }
 
-            var result = await filter.InvokeAsync(context, _ => ValueTask.FromResult<object?>("next-called"));
+    [Fact]
+    public async Task InvokeAsync_InvalidPayload_ReturnsValidationProblemWithoutCallingNext()
+    {
+        var validator = Substitute.For<IValidator<Payload>>();
+        validator.ValidateAsync(Arg.Any<Payload>(), Arg.Any<CancellationToken>())
+            .Returns(new ValidationResult([new ValidationFailure("Name", "Name is required")]));
+        var filter = new ValidationFilter<Payload>(validator);
+        var context = CreateContext(new Payload(""));
+        var nextCalled = false;
 
-            Assert.Equal("next-called", result);
-            await validator.Received(1).ValidateAsync(Arg.Is<Payload>(p => p.Name == "ok"), Arg.Any<CancellationToken>());
-        }
+        var result = await filter.InvokeAsync(context, _ => { nextCalled = true; return ValueTask.FromResult<object?>(null); });
 
-        [Fact]
-        public async Task InvokeAsync_InvalidPayload_ReturnsValidationProblemWithoutCallingNext()
-        {
-            var validator = Substitute.For<IValidator<Payload>>();
-            validator.ValidateAsync(Arg.Any<Payload>(), Arg.Any<CancellationToken>())
-                .Returns(new ValidationResult([new ValidationFailure("Name", "Name is required")]));
-            var filter = new ValidationFilter<Payload>(validator);
-            var context = CreateContext(new Payload(""));
-            var nextCalled = false;
+        Assert.False(nextCalled);
+        var problem = Assert.IsType<ProblemHttpResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
+    }
 
-            var result = await filter.InvokeAsync(context, _ => { nextCalled = true; return ValueTask.FromResult<object?>(null); });
+    [Fact]
+    public async Task InvokeAsync_NoMatchingArgument_CallsNextWithoutValidating()
+    {
+        var validator = Substitute.For<IValidator<Payload>>();
+        var filter = new ValidationFilter<Payload>(validator);
+        var context = CreateContext(42);
 
-            Assert.False(nextCalled);
-            var problem = Assert.IsType<ProblemHttpResult>(result);
-            Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
-        }
+        var result = await filter.InvokeAsync(context, _ => ValueTask.FromResult<object?>("next-called"));
 
-        [Fact]
-        public async Task InvokeAsync_NoMatchingArgument_CallsNextWithoutValidating()
-        {
-            var validator = Substitute.For<IValidator<Payload>>();
-            var filter = new ValidationFilter<Payload>(validator);
-            var context = CreateContext(42);
-
-            var result = await filter.InvokeAsync(context, _ => ValueTask.FromResult<object?>("next-called"));
-
-            Assert.Equal("next-called", result);
-            await validator.DidNotReceiveWithAnyArgs().ValidateAsync(Arg.Any<Payload>(), Arg.Any<CancellationToken>());
-        }
+        Assert.Equal("next-called", result);
+        await validator.DidNotReceiveWithAnyArgs().ValidateAsync(Arg.Any<Payload>(), Arg.Any<CancellationToken>());
     }
 }

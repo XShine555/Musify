@@ -1,10 +1,9 @@
-﻿namespace Musify.Domain.ValueObjects
+namespace Musify.Domain.ValueObjects;
+
+public enum ProcessingStatus
 {
-    public enum ProcessingStatus
-    {
-        Pending = 0,
-        Processing = 1,
-        Completed = 2,
-        Failed = 3
-    }
+    Pending = 0,
+    Processing = 1,
+    Completed = 2,
+    Failed = 3
 }

@@ -3,159 +3,158 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Shared;
+using Musify.Application.Contracts;
 using Musify.Application.Events;
-using Musify.Application.Tracks.Responses;
 using Musify.Application.Services;
+using Musify.Application.Shared;
+using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
-using Musify.Application.Contracts;
 
-namespace Musify.Application.Tracks
+namespace Musify.Application.Tracks;
+
+public record CreateTrackCommand(
+    long UserId,
+    string Title,
+    Guid PictureIntentId,
+    Guid AudioIntentId,
+    IReadOnlyCollection<Genre> Tags,
+    bool IsExplicit = false)
+    : ICommand<ErrorOr<TrackApplicationResponse>>;
+
+public class CreateTrackCommandHandler(
+    IDatabase database,
+    IEventBus eventBus,
+    UploadIntentValidator uploadIntentValidator,
+    ILogger<CreateTrackCommandHandler> logger,
+    ApplicationStorageConfiguration storageConfiguration,
+    TrackConfiguration trackConfiguration,
+    UploadIntentConfiguration uploadIntentConfiguration)
+    : ICommandHandler<CreateTrackCommand, ErrorOr<TrackApplicationResponse>>
 {
-    public record CreateTrackCommand(
-        long UserId,
-        string Title,
-        Guid PictureIntentId,
-        Guid AudioIntentId,
-        IReadOnlyCollection<Genre> Tags,
-        bool IsExplicit = false)
-        : ICommand<ErrorOr<TrackApplicationResponse>>;
-
-    public class CreateTrackCommandHandler(
-        IDatabase database,
-        IEventBus eventBus,
-        UploadIntentValidator uploadIntentValidator,
-        ILogger<CreateTrackCommandHandler> logger,
-        ApplicationStorageConfiguration storageConfiguration,
-        TrackConfiguration trackConfiguration,
-        UploadIntentConfiguration uploadIntentConfiguration)
-        : ICommandHandler<CreateTrackCommand, ErrorOr<TrackApplicationResponse>>
+    public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
     {
-        public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
+        var user = await database.Users
+            .SingleOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+        if (user == null)
         {
-            var user = await database.Users
-                .SingleOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
-            if (user == null)
-            {
-                logger.LogWarning("User {UserId} not found", request.UserId);
-                return Error.NotFound(description: $"User {request.UserId} not found");
-            }
-
-            var distinctTags = request.Tags.Distinct().ToList();
-            if (distinctTags.Count == 0)
-            {
-                logger.LogWarning("Track {Title} was submitted without any tags", request.Title);
-                return Error.Validation(description: "At least one tag is required.");
-            }
-
-            var tagConflicts = GenreCompatibility.FindConflicts(distinctTags);
-            if (tagConflicts.Count > 0)
-            {
-                var conflict = tagConflicts.First();
-                logger.LogWarning(
-                    "Track {Title} was submitted with incompatible tags {First} and {Second}",
-                    request.Title, conflict.First, conflict.Second);
-                return Error.Validation(description: $"Tags '{conflict.First}' and '{conflict.Second}' are not compatible.");
-            }
-
-            var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-                uploadIntentConfiguration,
-                request.PictureIntentId, request.UserId, cancellationToken);
-            if (pictureValidation.IsError)
-                return pictureValidation.Errors;
-
-            var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-                uploadIntentConfiguration,
-                request.AudioIntentId, request.UserId, cancellationToken);
-            if (audioValidation.IsError)
-                return audioValidation.Errors;
-
-            var pictureIntent = pictureValidation.Value;
-            var audioIntent = audioValidation.Value;
-
-            var finalPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
-            var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
-            var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
-
-            var trackEntity = new Track
-            {
-                Title = request.Title,
-                NormalizedTitle = request.Title.ToUpperInvariant(),
-                OwnerUserId = user.Id,
-                Owner = user,
-                IsExplicit = request.IsExplicit,
-                Pictures = new TrackPictures
-                {
-                    OriginalName = pictureIntent.ObjectName,
-                    SmallName = trackConfiguration.Routes.PresetSmallPicture,
-                    MediumName = trackConfiguration.Routes.PresetMediumPicture,
-                    LargeName = trackConfiguration.Routes.PresetLargePicture,
-                    ProcessingStatus = ProcessingStatus.Pending
-                },
-                Audio = new TrackAudio
-                {
-                    OriginalName = audioIntent.ObjectName,
-                    TranscodeStatus = ProcessingStatus.Pending
-                }
-            };
-
-            trackEntity.Tags = distinctTags
-                .Select(tag => new TrackTag { TrackId = trackEntity.Id, Tag = tag })
-                .ToList();
-
-            await database.Tracks.AddAsync(trackEntity, cancellationToken);
-
-            await database.UserHasTracks.AddAsync(new UserHasTrack
-            {
-                UserId = request.UserId,
-                TrackId = trackEntity.Id
-            }, cancellationToken);
-
-            try
-            {
-                await eventBus.PublishAsync(
-                    new CreateTrackResourcesEvent(
-                        trackEntity.Id,
-                        pictureIntent.Id,
-                        audioIntent.Id,
-                        storageConfiguration.Bucket,
-                        pictureIntent.Key,
-                        finalPictureKey,
-                        audioIntent.Key,
-                        finalAudioKey,
-                        audioProcessedFolderKey,
-                        new ImageSize(
-                            trackConfiguration.Routes.SmallPicturesPath,
-                            trackConfiguration.PicturesSizes.SmallPictureWidth,
-                            trackConfiguration.PicturesSizes.SmallPictureHeight),
-                        new ImageSize(
-                            trackConfiguration.Routes.MediumPicturesPath,
-                            trackConfiguration.PicturesSizes.MediumPictureWidth,
-                            trackConfiguration.PicturesSizes.MediumPictureHeight),
-                        new ImageSize(
-                            trackConfiguration.Routes.LargePicturesPath,
-                            trackConfiguration.PicturesSizes.LargePictureWidth,
-                            trackConfiguration.PicturesSizes.LargePictureHeight)),
-                    cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to publish create track event for track {TrackId}", trackEntity.Id);
-                return Error.Failure(description: $"Failed to create track for {request.Title}");
-            }
-
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to save track {Title}", request.Title);
-                return Error.Failure(description: $"Failed to create track for {request.Title}");
-            }
-
-            return TrackApplicationResponse.FromEntity(trackEntity, listensCount: 0);
+            logger.LogWarning("User {UserId} not found", request.UserId);
+            return Error.NotFound(description: $"User {request.UserId} not found");
         }
+
+        var distinctTags = request.Tags.Distinct().ToList();
+        if (distinctTags.Count == 0)
+        {
+            logger.LogWarning("Track {Title} was submitted without any tags", request.Title);
+            return Error.Validation(description: "At least one tag is required.");
+        }
+
+        var tagConflicts = GenreCompatibility.FindConflicts(distinctTags);
+        if (tagConflicts.Count > 0)
+        {
+            var conflict = tagConflicts.First();
+            logger.LogWarning(
+                "Track {Title} was submitted with incompatible tags {First} and {Second}",
+                request.Title, conflict.First, conflict.Second);
+            return Error.Validation(description: $"Tags '{conflict.First}' and '{conflict.Second}' are not compatible.");
+        }
+
+        var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
+            uploadIntentConfiguration,
+            request.PictureIntentId, request.UserId, cancellationToken);
+        if (pictureValidation.IsError)
+            return pictureValidation.Errors;
+
+        var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
+            uploadIntentConfiguration,
+            request.AudioIntentId, request.UserId, cancellationToken);
+        if (audioValidation.IsError)
+            return audioValidation.Errors;
+
+        var pictureIntent = pictureValidation.Value;
+        var audioIntent = audioValidation.Value;
+
+        var finalPictureKey = trackConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
+        var finalAudioKey = trackConfiguration.Routes.BuildOriginalAudioPath(request.UserId, audioIntent.ObjectName);
+        var audioProcessedFolderKey = trackConfiguration.Routes.BuildProcessedAudioPath(Guid.NewGuid().ToString());
+
+        var trackEntity = new Track
+        {
+            Title = request.Title,
+            NormalizedTitle = request.Title.ToUpperInvariant(),
+            OwnerUserId = user.Id,
+            Owner = user,
+            IsExplicit = request.IsExplicit,
+            Pictures = new TrackPictures
+            {
+                OriginalName = pictureIntent.ObjectName,
+                SmallName = trackConfiguration.Routes.PresetSmallPicture,
+                MediumName = trackConfiguration.Routes.PresetMediumPicture,
+                LargeName = trackConfiguration.Routes.PresetLargePicture,
+                ProcessingStatus = ProcessingStatus.Pending
+            },
+            Audio = new TrackAudio
+            {
+                OriginalName = audioIntent.ObjectName,
+                TranscodeStatus = ProcessingStatus.Pending
+            }
+        };
+
+        trackEntity.Tags = distinctTags
+            .Select(tag => new TrackTag { TrackId = trackEntity.Id, Tag = tag })
+            .ToList();
+
+        await database.Tracks.AddAsync(trackEntity, cancellationToken);
+
+        await database.UserHasTracks.AddAsync(new UserHasTrack
+        {
+            UserId = request.UserId,
+            TrackId = trackEntity.Id
+        }, cancellationToken);
+
+        try
+        {
+            await eventBus.PublishAsync(
+                new CreateTrackResourcesEvent(
+                    trackEntity.Id,
+                    pictureIntent.Id,
+                    audioIntent.Id,
+                    storageConfiguration.Bucket,
+                    pictureIntent.Key,
+                    finalPictureKey,
+                    audioIntent.Key,
+                    finalAudioKey,
+                    audioProcessedFolderKey,
+                    new ImageSize(
+                        trackConfiguration.Routes.SmallPicturesPath,
+                        trackConfiguration.PicturesSizes.SmallPictureWidth,
+                        trackConfiguration.PicturesSizes.SmallPictureHeight),
+                    new ImageSize(
+                        trackConfiguration.Routes.MediumPicturesPath,
+                        trackConfiguration.PicturesSizes.MediumPictureWidth,
+                        trackConfiguration.PicturesSizes.MediumPictureHeight),
+                    new ImageSize(
+                        trackConfiguration.Routes.LargePicturesPath,
+                        trackConfiguration.PicturesSizes.LargePictureWidth,
+                        trackConfiguration.PicturesSizes.LargePictureHeight)),
+                cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to publish create track event for track {TrackId}", trackEntity.Id);
+            return Error.Failure(description: $"Failed to create track for {request.Title}");
+        }
+
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to save track {Title}", request.Title);
+            return Error.Failure(description: $"Failed to create track for {request.Title}");
+        }
+
+        return TrackApplicationResponse.FromEntity(trackEntity, listensCount: 0);
     }
 }

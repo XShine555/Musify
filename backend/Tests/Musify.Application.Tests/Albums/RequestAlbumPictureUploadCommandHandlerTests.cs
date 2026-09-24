@@ -8,68 +8,67 @@ using Musify.Application.Tests.TestSupport;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Application.Tests.Albums
+namespace Musify.Application.Tests.Albums;
+
+public sealed class RequestAlbumPictureUploadCommandHandlerTests : HandlerTestBase
 {
-    public sealed class RequestAlbumPictureUploadCommandHandlerTests : HandlerTestBase
+    private readonly IStorageService storageService = Substitute.For<IStorageService>();
+
+    private RequestAlbumPictureUploadCommandHandler CreateHandler(UploadIntentConfiguration? uploadIntentConfig = null)
     {
-        private readonly IStorageService storageService = Substitute.For<IStorageService>();
+        storageService
+            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns("https://storage.musify.test/presigned-upload");
 
-        private RequestAlbumPictureUploadCommandHandler CreateHandler(UploadIntentConfiguration? uploadIntentConfig = null)
-        {
-            storageService
-                .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
-                .Returns("https://storage.musify.test/presigned-upload");
+        return new RequestAlbumPictureUploadCommandHandler(
+            Database,
+            new UploadIntentValidator(Database, storageService),
+            storageService,
+            NoOpLogger<RequestAlbumPictureUploadCommandHandler>(),
+            TestConfigurations.Storage(),
+            TestConfigurations.Album(),
+            uploadIntentConfig ?? TestConfigurations.UploadIntent());
+    }
 
-            return new RequestAlbumPictureUploadCommandHandler(
-                Database,
-                new UploadIntentValidator(Database, storageService),
-                storageService,
-                NoOpLogger<RequestAlbumPictureUploadCommandHandler>(),
-                TestConfigurations.Storage(),
-                TestConfigurations.Album(),
-                uploadIntentConfig ?? TestConfigurations.UploadIntent());
-        }
+    [Fact]
+    public async Task Handle_UserExists_IssuesUploadUrlAndCreatesIntent()
+    {
+        var user = TestEntities.User();
+        await SeedAsync(user);
 
-        [Fact]
-        public async Task Handle_UserExists_IssuesUploadUrlAndCreatesIntent()
-        {
-            var user = TestEntities.User();
-            await SeedAsync(user);
+        var command = new RequestAlbumPictureUploadCommand(user.Id, "webp", "image/webp");
 
-            var command = new RequestAlbumPictureUploadCommand(user.Id, "webp", "image/webp");
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+        Assert.False(result.IsError);
+        Assert.Equal("https://storage.musify.test/presigned-upload", result.Value.UploadUrl);
+        Assert.Single(await Database.UploadIntents.ToListAsync(TestContext.Current.CancellationToken));
+    }
 
-            Assert.False(result.IsError);
-            Assert.Equal("https://storage.musify.test/presigned-upload", result.Value.UploadUrl);
-            Assert.Single(await Database.UploadIntents.ToListAsync(TestContext.Current.CancellationToken));
-        }
+    [Fact]
+    public async Task Handle_UserMissing_ReturnsNotFound()
+    {
+        var command = new RequestAlbumPictureUploadCommand(404, "webp", "image/webp");
 
-        [Fact]
-        public async Task Handle_UserMissing_ReturnsNotFound()
-        {
-            var command = new RequestAlbumPictureUploadCommand(404, "webp", "image/webp");
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+    }
 
-            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-        }
+    [Fact]
+    public async Task Handle_UserOverByteQuota_ReturnsValidationErrorAndCreatesNoIntent()
+    {
+        var config = TestConfigurations.UploadIntent();
+        config.MaxActiveUploadBytesPerUser = 100;
 
-        [Fact]
-        public async Task Handle_UserOverByteQuota_ReturnsValidationErrorAndCreatesNoIntent()
-        {
-            var config = TestConfigurations.UploadIntent();
-            config.MaxActiveUploadBytesPerUser = 100;
+        var user = TestEntities.User();
+        await SeedAsync(user);
 
-            var user = TestEntities.User();
-            await SeedAsync(user);
+        var command = new RequestAlbumPictureUploadCommand(user.Id, "webp", "image/webp", ExpectedSizeBytes: 1_000_000);
 
-            var command = new RequestAlbumPictureUploadCommand(user.Id, "webp", "image/webp", ExpectedSizeBytes: 1_000_000);
+        var result = await CreateHandler(config).Handle(command, TestContext.Current.CancellationToken);
 
-            var result = await CreateHandler(config).Handle(command, TestContext.Current.CancellationToken);
-
-            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-            Assert.Empty(await Database.UploadIntents.ToListAsync(TestContext.Current.CancellationToken));
-        }
+        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+        Assert.Empty(await Database.UploadIntents.ToListAsync(TestContext.Current.CancellationToken));
     }
 }

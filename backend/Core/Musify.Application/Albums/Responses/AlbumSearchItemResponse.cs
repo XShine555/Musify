@@ -1,7 +1,6 @@
-namespace Musify.Application.Albums.Responses
+namespace Musify.Application.Albums.Responses;
+
+public record AlbumSearchItemResponse(AlbumApplicationResponse Album)
 {
-    public record AlbumSearchItemResponse(AlbumApplicationResponse Album)
-    {
-        public static AlbumSearchItemResponse FromAlbum(AlbumApplicationResponse album) => new(album);
-    }
+    public static AlbumSearchItemResponse FromAlbum(AlbumApplicationResponse album) => new(album);
 }

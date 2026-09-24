@@ -6,141 +6,140 @@ using Musify.Domain.ValueObjects;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Application.Tests.Services
+namespace Musify.Application.Tests.Services;
+
+public sealed class UploadIntentValidatorTests : HandlerTestBase
 {
-    public sealed class UploadIntentValidatorTests : HandlerTestBase
+    private readonly IStorageService storageService = Substitute.For<IStorageService>();
+    private readonly Domain.Entities.User owner = TestEntities.User();
+
+    private UploadIntentValidator CreateValidator() => new(Database, storageService);
+
+    [Fact]
+    public async Task ValidateAndLoadAsync_UploadedObjectWithinLimits_ReturnsTheIntent()
     {
-        private readonly IStorageService storageService = Substitute.For<IStorageService>();
-        private readonly Domain.Entities.User owner = TestEntities.User();
+        storageService
+            .HeadObjectAsync("bucket", "temp/object.webp", Arg.Any<CancellationToken>())
+            .Returns(new ObjectMetaData("image/webp", 2048));
 
-        private UploadIntentValidator CreateValidator() => new(Database, storageService);
+        var intent = TestEntities.UploadIntent(owner.Id, bucket: "bucket", key: "temp/object.webp");
+        await SeedAsync(owner, intent);
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_UploadedObjectWithinLimits_ReturnsTheIntent()
-        {
-            storageService
-                .HeadObjectAsync("bucket", "temp/object.webp", Arg.Any<CancellationToken>())
-                .Returns(new ObjectMetaData("image/webp", 2048));
+        var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
 
-            var intent = TestEntities.UploadIntent(owner.Id, bucket: "bucket", key: "temp/object.webp");
-            await SeedAsync(owner, intent);
+        Assert.False(result.IsError);
+        Assert.Equal(intent.Id, result.Value.Id);
+    }
 
-            var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task ValidateAndLoadAsync_IntentMissing_ReturnsNotFound()
+    {
+        var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), Guid.NewGuid(), owner.Id, TestContext.Current.CancellationToken);
 
-            Assert.False(result.IsError);
-            Assert.Equal(intent.Id, result.Value.Id);
-        }
+        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+    }
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_IntentMissing_ReturnsNotFound()
-        {
-            var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), Guid.NewGuid(), owner.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task ValidateAndLoadAsync_IntentBelongsToAnotherUser_ReturnsNotFound()
+    {
+        var stranger = TestEntities.User(2, "stranger");
+        var intent = TestEntities.UploadIntent(owner.Id);
+        await SeedAsync(owner, stranger, intent);
 
-            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-        }
+        var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, stranger.Id, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_IntentBelongsToAnotherUser_ReturnsNotFound()
-        {
-            var stranger = TestEntities.User(2, "stranger");
-            var intent = TestEntities.UploadIntent(owner.Id);
-            await SeedAsync(owner, stranger, intent);
+        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+    }
 
-            var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, stranger.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task ValidateAndLoadAsync_AlreadyConsumed_ReturnsConflict()
+    {
+        var intent = TestEntities.UploadIntent(owner.Id, status: UploadIntentStatus.Consumed);
+        await SeedAsync(owner, intent);
 
-            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-        }
+        var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_AlreadyConsumed_ReturnsConflict()
-        {
-            var intent = TestEntities.UploadIntent(owner.Id, status: UploadIntentStatus.Consumed);
-            await SeedAsync(owner, intent);
+        Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+    }
 
-            var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task ValidateAndLoadAsync_PastExpiry_ReturnsValidationError()
+    {
+        var intent = TestEntities.UploadIntent(owner.Id, expiresAt: DateTime.UtcNow.AddMinutes(-1));
+        await SeedAsync(owner, intent);
 
-            Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
-        }
+        var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_PastExpiry_ReturnsValidationError()
-        {
-            var intent = TestEntities.UploadIntent(owner.Id, expiresAt: DateTime.UtcNow.AddMinutes(-1));
-            await SeedAsync(owner, intent);
+        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+    }
 
-            var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task ValidateAndLoadAsync_ObjectNeverUploaded_ReturnsNotFound()
+    {
+        storageService
+            .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns((ObjectMetaData?)null);
 
-            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-        }
+        var intent = TestEntities.UploadIntent(owner.Id);
+        await SeedAsync(owner, intent);
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_ObjectNeverUploaded_ReturnsNotFound()
-        {
-            storageService
-                .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns((ObjectMetaData?)null);
+        var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
 
-            var intent = TestEntities.UploadIntent(owner.Id);
-            await SeedAsync(owner, intent);
+        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+    }
 
-            var result = await CreateValidator().ValidateAndLoadAsync(TestConfigurations.UploadIntent(), intent.Id, owner.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task ValidateAndLoadAsync_UploadedObjectExceedsMaxSize_ReturnsValidationError()
+    {
+        var config = TestConfigurations.UploadIntent();
+        config.MaxUploadBytes = 1024;
 
-            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-        }
+        storageService
+            .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new ObjectMetaData("image/webp", 2048));
 
-        [Fact]
-        public async Task ValidateAndLoadAsync_UploadedObjectExceedsMaxSize_ReturnsValidationError()
-        {
-            var config = TestConfigurations.UploadIntent();
-            config.MaxUploadBytes = 1024;
+        var intent = TestEntities.UploadIntent(owner.Id);
+        await SeedAsync(owner, intent);
 
-            storageService
-                .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(new ObjectMetaData("image/webp", 2048));
+        var result = await CreateValidator().ValidateAndLoadAsync(config, intent.Id, owner.Id, TestContext.Current.CancellationToken);
 
-            var intent = TestEntities.UploadIntent(owner.Id);
-            await SeedAsync(owner, intent);
+        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+    }
 
-            var result = await CreateValidator().ValidateAndLoadAsync(config, intent.Id, owner.Id, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task CheckQuotaAsync_WithinLimits_ReturnsSuccess()
+    {
+        await SeedAsync(owner);
 
-            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-        }
+        var result = await CreateValidator().CheckQuotaAsync(TestConfigurations.UploadIntent(), owner.Id, requiredBytes: 1024, requiredIntentCount: 1, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task CheckQuotaAsync_WithinLimits_ReturnsSuccess()
-        {
-            await SeedAsync(owner);
+        Assert.False(result.IsError);
+    }
 
-            var result = await CreateValidator().CheckQuotaAsync(TestConfigurations.UploadIntent(), owner.Id, requiredBytes: 1024, requiredIntentCount: 1, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task CheckQuotaAsync_TooManyActiveIntents_ReturnsValidationError()
+    {
+        var config = TestConfigurations.UploadIntent();
+        config.MaxActiveUploadIntentsPerUser = 1;
+        await SeedAsync(owner, TestEntities.UploadIntent(owner.Id));
 
-            Assert.False(result.IsError);
-        }
+        var result = await CreateValidator().CheckQuotaAsync(config, owner.Id, requiredBytes: 1, requiredIntentCount: 1, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task CheckQuotaAsync_TooManyActiveIntents_ReturnsValidationError()
-        {
-            var config = TestConfigurations.UploadIntent();
-            config.MaxActiveUploadIntentsPerUser = 1;
-            await SeedAsync(owner, TestEntities.UploadIntent(owner.Id));
+        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+    }
 
-            var result = await CreateValidator().CheckQuotaAsync(config, owner.Id, requiredBytes: 1, requiredIntentCount: 1, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task CheckQuotaAsync_ExpiredOrConsumedIntentsDoNotCountTowardsTheLimit()
+    {
+        var config = TestConfigurations.UploadIntent();
+        config.MaxActiveUploadIntentsPerUser = 1;
+        await SeedAsync(
+            owner,
+            TestEntities.UploadIntent(owner.Id, status: UploadIntentStatus.Expired),
+            TestEntities.UploadIntent(owner.Id, status: UploadIntentStatus.Consumed));
 
-            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-        }
+        var result = await CreateValidator().CheckQuotaAsync(config, owner.Id, requiredBytes: 1, requiredIntentCount: 1, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task CheckQuotaAsync_ExpiredOrConsumedIntentsDoNotCountTowardsTheLimit()
-        {
-            var config = TestConfigurations.UploadIntent();
-            config.MaxActiveUploadIntentsPerUser = 1;
-            await SeedAsync(
-                owner,
-                TestEntities.UploadIntent(owner.Id, status: UploadIntentStatus.Expired),
-                TestEntities.UploadIntent(owner.Id, status: UploadIntentStatus.Consumed));
-
-            var result = await CreateValidator().CheckQuotaAsync(config, owner.Id, requiredBytes: 1, requiredIntentCount: 1, TestContext.Current.CancellationToken);
-
-            Assert.False(result.IsError);
-        }
+        Assert.False(result.IsError);
     }
 }

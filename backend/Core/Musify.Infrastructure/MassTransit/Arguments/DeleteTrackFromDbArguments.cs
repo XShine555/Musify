@@ -1,5 +1,4 @@
-namespace Musify.Infrastructure.MassTransit.Arguments
-{
-    internal record DeleteTrackFromDbArguments(
-        Guid TrackId);
-}
+namespace Musify.Infrastructure.MassTransit.Arguments;
+
+internal record DeleteTrackFromDbArguments(
+    Guid TrackId);

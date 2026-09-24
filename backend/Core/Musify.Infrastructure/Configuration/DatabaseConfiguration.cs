@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace Musify.Infrastructure.Configuration
+namespace Musify.Infrastructure.Configuration;
+
+public class DatabaseConfiguration
 {
-    public class DatabaseConfiguration
-    {
-        public const string SectionName = "Database";
+    public const string SectionName = "Database";
 
-        [Required]
-        public required string ConnectionString { get; set; }
-    }
+    [Required]
+    public required string ConnectionString { get; set; }
 }

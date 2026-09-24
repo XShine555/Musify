@@ -1,9 +1,8 @@
-﻿namespace Musify.Domain.ValueObjects
+namespace Musify.Domain.ValueObjects;
+
+public enum UploadState
 {
-    public enum UploadState
-    {
-        Pending,
-        Failed,
-        Successful,
-    }
+    Pending,
+    Failed,
+    Successful,
 }

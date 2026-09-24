@@ -1,7 +1,6 @@
-namespace Musify.Application.Contracts
+namespace Musify.Application.Contracts;
+
+public interface IEventBus
 {
-    public interface IEventBus
-    {
-        Task PublishAsync<T>(T message, CancellationToken cancellationToken) where T : class;
-    }
+    public Task PublishAsync<T>(T message, CancellationToken cancellationToken) where T : class;
 }

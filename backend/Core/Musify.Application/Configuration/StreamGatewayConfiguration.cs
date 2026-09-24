@@ -1,16 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Musify.Application.Configuration
+namespace Musify.Application.Configuration;
+
+public class StreamGatewayConfiguration
 {
-    public class StreamGatewayConfiguration
-    {
-        public const string SectionName = "StreamGateway";
+    public const string SectionName = "StreamGateway";
 
-        [Url]
-        [Required]
-        public required string PublicBaseUrl { get; set; }
+    [Url]
+    [Required]
+    public required string PublicBaseUrl { get; set; }
 
-        [Required]
-        public string AudioFileName { get; set; } = "audio.m4a";
-    }
+    [Required]
+    public string AudioFileName { get; set; } = "audio.m4a";
 }

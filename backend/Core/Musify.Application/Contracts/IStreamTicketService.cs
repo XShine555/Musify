@@ -1,10 +1,8 @@
-namespace Musify.Application.Contracts
+namespace Musify.Application.Contracts;
+
+public interface IStreamTicketService
 {
-    public interface IStreamTicketService
-    {
-
-        StreamTicket IssueTicket(long? userId, string keyPrefix, long? maxBytes = null);
-    }
-
-    public record StreamTicket(string Token, int ExpiresInSeconds);
+    public StreamTicket IssueTicket(long? userId, string keyPrefix, long? maxBytes = null);
 }
+
+public record StreamTicket(string Token, int ExpiresInSeconds);

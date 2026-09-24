@@ -1,11 +1,10 @@
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using Musify.Application.Users;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Security.Claims;
-using System.Text.Json.Serialization;
 
 namespace Musify.Api.Authentication;
 

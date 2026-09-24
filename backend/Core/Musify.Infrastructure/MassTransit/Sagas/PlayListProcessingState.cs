@@ -1,19 +1,18 @@
 using MassTransit;
 
-namespace Musify.Infrastructure.MassTransit.Sagas
+namespace Musify.Infrastructure.MassTransit.Sagas;
+
+public class PlayListProcessingState : SagaStateMachineInstance
 {
-    public class PlayListProcessingState : SagaStateMachineInstance
-    {
-        public Guid CorrelationId { get; set; }
+    public Guid CorrelationId { get; set; }
 
-        public string CurrentState { get; set; } = null!;
+    public string CurrentState { get; set; } = null!;
 
-        public string? Bucket { get; set; }
+    public string? Bucket { get; set; }
 
-        public string? PictureKey { get; set; }
+    public string? PictureKey { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
-    }
+    public DateTime UpdatedAt { get; set; }
 }

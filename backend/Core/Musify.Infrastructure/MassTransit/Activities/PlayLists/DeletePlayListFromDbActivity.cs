@@ -4,33 +4,32 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 
-namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
+namespace Musify.Infrastructure.MassTransit.Activities.PlayLists;
+
+internal class DeletePlayListFromDbActivity(
+    IDatabase database,
+    ILogger<DeletePlayListFromDbActivity> logger)
+    : IExecuteActivity<DeletePlayListFromDbArguments>
 {
-    internal class DeletePlayListFromDbActivity(
-        IDatabase database,
-        ILogger<DeletePlayListFromDbActivity> logger)
-        : IExecuteActivity<DeletePlayListFromDbArguments>
+    public const string ExecuteEndpointName = "delete-play-list-from-db";
+
+    public async Task<ExecutionResult> Execute(ExecuteContext<DeletePlayListFromDbArguments> executeContext)
     {
-        public const string ExecuteEndpointName = "delete-play-list-from-db";
+        var playList = await database.PlayLists
+            .SingleOrDefaultAsync(p => p.Id == executeContext.Arguments.PlayListId, executeContext.CancellationToken);
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<DeletePlayListFromDbArguments> executeContext)
+        if (playList == null)
         {
-            var playList = await database.PlayLists
-                .SingleOrDefaultAsync(p => p.Id == executeContext.Arguments.PlayListId, executeContext.CancellationToken);
-
-            if (playList == null)
-            {
-                logger.LogInformation(
-                    "PlayList {PlayListId} not found while deleting from DB, skipping",
-                    executeContext.Arguments.PlayListId);
-                return executeContext.Completed();
-            }
-
-            database.PlayLists.Remove(playList);
-            await database.SaveChangesAsync(executeContext.CancellationToken);
-
-            logger.LogInformation("Deleted playlist {PlayListId} from DB", playList.Id);
+            logger.LogInformation(
+                "PlayList {PlayListId} not found while deleting from DB, skipping",
+                executeContext.Arguments.PlayListId);
             return executeContext.Completed();
         }
+
+        database.PlayLists.Remove(playList);
+        await database.SaveChangesAsync(executeContext.CancellationToken);
+
+        logger.LogInformation("Deleted playlist {PlayListId} from DB", playList.Id);
+        return executeContext.Completed();
     }
 }

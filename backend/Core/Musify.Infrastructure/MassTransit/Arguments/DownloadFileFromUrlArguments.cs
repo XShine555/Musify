@@ -1,6 +1,5 @@
-namespace Musify.Infrastructure.MassTransit.Arguments
-{
-    public record DownloadFileFromUrlArguments(
-        string SourceUrl,
-        string DestinationFilePathVariable);
-}
+namespace Musify.Infrastructure.MassTransit.Arguments;
+
+public record DownloadFileFromUrlArguments(
+    string SourceUrl,
+    string DestinationFilePathVariable);

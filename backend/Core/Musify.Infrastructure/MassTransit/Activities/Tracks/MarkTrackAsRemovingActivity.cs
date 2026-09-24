@@ -1,37 +1,36 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Musify.Infrastructure.MassTransit.Arguments;
-using Musify.Domain.ValueObjects;
 using Musify.Application.Contracts;
+using Musify.Domain.ValueObjects;
+using Musify.Infrastructure.MassTransit.Arguments;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Tracks
+namespace Musify.Infrastructure.MassTransit.Activities.Tracks;
+
+internal class MarkTrackAsRemovingActivity(
+    IDatabase database,
+    ILogger<MarkTrackAsRemovingActivity> logger)
+    : IExecuteActivity<MarkTrackAsRemovingArguments>
 {
-    internal class MarkTrackAsRemovingActivity(
-        IDatabase database,
-        ILogger<MarkTrackAsRemovingActivity> logger)
-        : IExecuteActivity<MarkTrackAsRemovingArguments>
+    public const string ExecuteEndpointName = "mark-track-as-removing";
+
+    public async Task<ExecutionResult> Execute(ExecuteContext<MarkTrackAsRemovingArguments> executeContext)
     {
-        public const string ExecuteEndpointName = "mark-track-as-removing";
+        var track = await database.Tracks
+            .SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<MarkTrackAsRemovingArguments> executeContext)
+        if (track == null)
         {
-            var track = await database.Tracks
-                .SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
-
-            if (track == null)
-            {
-                logger.LogInformation(
-                    "Track {TrackId} not found while marking as removing, skipping",
-                    executeContext.Arguments.TrackId);
-                return executeContext.Completed();
-            }
-
-            track.LifeCycleStatus = LifeCycleStatus.Removing;
-            await database.SaveChangesAsync(executeContext.CancellationToken);
-
-            logger.LogInformation("Marked track {TrackId} as removing", track.Id);
+            logger.LogInformation(
+                "Track {TrackId} not found while marking as removing, skipping",
+                executeContext.Arguments.TrackId);
             return executeContext.Completed();
         }
+
+        track.LifeCycleStatus = LifeCycleStatus.Removing;
+        await database.SaveChangesAsync(executeContext.CancellationToken);
+
+        logger.LogInformation("Marked track {TrackId} as removing", track.Id);
+        return executeContext.Completed();
     }
 }

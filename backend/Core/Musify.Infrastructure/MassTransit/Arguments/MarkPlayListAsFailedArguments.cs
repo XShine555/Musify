@@ -1,4 +1,3 @@
-namespace Musify.Infrastructure.MassTransit.Arguments
-{
-    public record MarkPlayListAsFailedArguments(Guid PlayListId);
-}
+namespace Musify.Infrastructure.MassTransit.Arguments;
+
+public record MarkPlayListAsFailedArguments(Guid PlayListId);

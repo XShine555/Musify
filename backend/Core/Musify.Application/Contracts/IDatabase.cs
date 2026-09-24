@@ -1,42 +1,41 @@
 using Microsoft.EntityFrameworkCore;
 using Musify.Domain.Entities;
 
-namespace Musify.Application.Contracts
+namespace Musify.Application.Contracts;
+
+public interface IDatabase
 {
-    public interface IDatabase
-    {
-        DbSet<User> Users { get; }
+    public DbSet<User> Users { get; }
 
-        DbSet<PlayList> PlayLists { get; }
+    public DbSet<PlayList> PlayLists { get; }
 
-        DbSet<Album> Albums { get; }
+    public DbSet<Album> Albums { get; }
 
-        DbSet<AlbumHasTrack> AlbumHasTracks { get; }
+    public DbSet<AlbumHasTrack> AlbumHasTracks { get; }
 
-        DbSet<Track> Tracks { get; }
+    public DbSet<Track> Tracks { get; }
 
-        DbSet<UserHasTrack> UserHasTracks { get; }
+    public DbSet<UserHasTrack> UserHasTracks { get; }
 
-        DbSet<PlayListHasTrack> PlayListHasTracks { get; }
+    public DbSet<PlayListHasTrack> PlayListHasTracks { get; }
 
-        DbSet<Mix> Mixes { get; }
+    public DbSet<Mix> Mixes { get; }
 
-        DbSet<MixItem> MixItems { get; }
+    public DbSet<MixItem> MixItems { get; }
 
-        DbSet<Upload> Uploads { get; }
+    public DbSet<Upload> Uploads { get; }
 
-        DbSet<UploadIntent> UploadIntents { get; }
+    public DbSet<UploadIntent> UploadIntents { get; }
 
-        DbSet<ListeningHistory> ListeningHistories { get; }
+    public DbSet<ListeningHistory> ListeningHistories { get; }
 
-        DbSet<TrackLike> TrackLikes { get; }
+    public DbSet<TrackLike> TrackLikes { get; }
 
-        DbSet<TrackTag> TrackTags { get; }
+    public DbSet<TrackTag> TrackTags { get; }
 
-        DbSet<UserFollow> UserFollows { get; }
+    public DbSet<UserFollow> UserFollows { get; }
 
-        Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
+    public Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
 
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
-    }
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

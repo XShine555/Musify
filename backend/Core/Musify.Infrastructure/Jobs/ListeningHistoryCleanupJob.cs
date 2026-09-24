@@ -1,13 +1,12 @@
 using Mediator;
 using Musify.Application.Tracks;
 
-namespace Musify.Infrastructure.Jobs
+namespace Musify.Infrastructure.Jobs;
+
+public class ListeningHistoryCleanupJob(IMediator mediator)
 {
-    public class ListeningHistoryCleanupJob(IMediator mediator)
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
-        public async Task RunAsync(CancellationToken cancellationToken)
-        {
-            await mediator.Send(new DeleteStaleUncountedListensCommand(), cancellationToken);
-        }
+        await mediator.Send(new DeleteStaleUncountedListensCommand(), cancellationToken);
     }
 }

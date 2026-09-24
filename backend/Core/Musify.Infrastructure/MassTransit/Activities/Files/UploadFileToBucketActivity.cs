@@ -4,58 +4,57 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Files
+namespace Musify.Infrastructure.MassTransit.Activities.Files;
+
+internal class UploadFileToBucketActivity(IStorageService storageHandler,
+    ILogger<UploadFileToBucketActivity> logger)
+    : IActivity<UploadFileToBucketArguments, UploadFileToBucketLog>
 {
-    internal class UploadFileToBucketActivity(IStorageService storageHandler,
-        ILogger<UploadFileToBucketActivity> logger)
-        : IActivity<UploadFileToBucketArguments, UploadFileToBucketLog>
+    public const string ExecuteEndpointName = "upload-file-to-bucket";
+
+    public async Task<ExecutionResult> Execute(ExecuteContext<UploadFileToBucketArguments> executeContext)
     {
-        public const string ExecuteEndpointName = "upload-file-to-bucket";
+        var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariable);
+        ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
+        var fileName = Path.GetFileName(sourceFilePath);
+        var destinationKey = string.Join('/', new[] { executeContext.Arguments.DestinationRoute, fileName }
+            .Where(static s => !string.IsNullOrWhiteSpace(s))
+            .Select(static s => s.Trim().Trim('/', '\\')));
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<UploadFileToBucketArguments> executeContext)
+        try
         {
-            var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariable);
-            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
-            var fileName = Path.GetFileName(sourceFilePath);
-            var destinationKey = string.Join('/', new[] { executeContext.Arguments.DestinationRoute, fileName }
-                .Where(static s => !string.IsNullOrWhiteSpace(s))
-                .Select(static s => s.Trim().Trim('/', '\\')));
-
-            try
-            {
-                await storageHandler.UploadFileAsync(
-                    sourceFilePath,
-                    executeContext.Arguments.DestinationBucket,
-                    destinationKey,
-                    executeContext.CancellationToken);
-                return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
-                    executeContext.Arguments.DestinationBucket,
-                    destinationKey));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to upload file to bucket");
-                throw;
-            }
+            await storageHandler.UploadFileAsync(
+                sourceFilePath,
+                executeContext.Arguments.DestinationBucket,
+                destinationKey,
+                executeContext.CancellationToken);
+            return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
+                executeContext.Arguments.DestinationBucket,
+                destinationKey));
         }
-
-        public async Task<CompensationResult> Compensate(CompensateContext<UploadFileToBucketLog> compensateContext)
+        catch (Exception exception)
         {
-            try
-            {
-                await storageHandler.RemoveFileAsync(
-                    compensateContext.Log.DestinationBucket,
-                    compensateContext.Log.DestinationKey,
-                    compensateContext.CancellationToken);
-                return compensateContext.Compensated();
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Error compensating file upload for {Bucket}/{Key}",
-                    compensateContext.Log.DestinationBucket,
-                    compensateContext.Log.DestinationKey);
-                return compensateContext.Failed(exception);
-            }
+            logger.LogError(exception, "Failed to upload file to bucket");
+            throw;
+        }
+    }
+
+    public async Task<CompensationResult> Compensate(CompensateContext<UploadFileToBucketLog> compensateContext)
+    {
+        try
+        {
+            await storageHandler.RemoveFileAsync(
+                compensateContext.Log.DestinationBucket,
+                compensateContext.Log.DestinationKey,
+                compensateContext.CancellationToken);
+            return compensateContext.Compensated();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Error compensating file upload for {Bucket}/{Key}",
+                compensateContext.Log.DestinationBucket,
+                compensateContext.Log.DestinationKey);
+            return compensateContext.Failed(exception);
         }
     }
 }

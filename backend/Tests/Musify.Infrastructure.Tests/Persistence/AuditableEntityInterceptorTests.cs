@@ -3,52 +3,51 @@ using Musify.Domain.Entities;
 using Musify.Infrastructure.Tests.TestSupport;
 using Xunit;
 
-namespace Musify.Infrastructure.Tests.Persistence
+namespace Musify.Infrastructure.Tests.Persistence;
+
+[Collection(InfrastructureCollection.Name)]
+public sealed class AuditableEntityInterceptorTests(InfrastructureTestFixture fixture)
 {
-    [Collection(InfrastructureCollection.Name)]
-    public sealed class AuditableEntityInterceptorTests(InfrastructureTestFixture fixture)
+    [Fact]
+    public async Task SavingChanges_NewEntity_SetsCreatedAtAndUpdatedAtToNow()
     {
-        [Fact]
-        public async Task SavingChanges_NewEntity_SetsCreatedAtAndUpdatedAtToNow()
-        {
-            await using var database = fixture.CreateDatabase();
-            var before = DateTime.UtcNow;
+        await using var database = fixture.CreateDatabase();
+        var before = DateTime.UtcNow;
 
-            var name = "audit-user";
-            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = name, NormalizedName = name.ToUpperInvariant() };
-            await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
-            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var name = "audit-user";
+        var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = name, NormalizedName = name.ToUpperInvariant() };
+        await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            var after = DateTime.UtcNow;
+        var after = DateTime.UtcNow;
 
-            Assert.InRange(user.CreatedAt, before, after);
-            Assert.InRange(user.UpdatedAt, before, after);
-        }
+        Assert.InRange(user.CreatedAt, before, after);
+        Assert.InRange(user.UpdatedAt, before, after);
+    }
 
-        [Fact]
-        public async Task SavingChanges_ModifiedEntity_BumpsUpdatedAtButKeepsCreatedAt()
-        {
-            await using var database = fixture.CreateDatabase();
+    [Fact]
+    public async Task SavingChanges_ModifiedEntity_BumpsUpdatedAtButKeepsCreatedAt()
+    {
+        await using var database = fixture.CreateDatabase();
 
-            var name = "audit-user-2";
-            var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = name, NormalizedName = name.ToUpperInvariant() };
-            await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
-            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
-            var originalCreatedAt = user.CreatedAt;
+        var name = "audit-user-2";
+        var user = new User { Id = Random.Shared.NextInt64(1, long.MaxValue), Name = name, NormalizedName = name.ToUpperInvariant() };
+        await database.Users.AddAsync(user, TestContext.Current.CancellationToken);
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var originalCreatedAt = user.CreatedAt;
 
-            await Task.Delay(TimeSpan.FromMilliseconds(50), TestContext.Current.CancellationToken);
+        await Task.Delay(TimeSpan.FromMilliseconds(50), TestContext.Current.CancellationToken);
 
-            user.Name = "audit-user-2-renamed";
-            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+        user.Name = "audit-user-2-renamed";
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-            Assert.Equal(originalCreatedAt, user.CreatedAt);
-            Assert.True(user.UpdatedAt > originalCreatedAt,
-                $"original-created-at={originalCreatedAt:O}, final-updated-at={user.UpdatedAt:O}");
+        Assert.Equal(originalCreatedAt, user.CreatedAt);
+        Assert.True(user.UpdatedAt > originalCreatedAt,
+            $"original-created-at={originalCreatedAt:O}, final-updated-at={user.UpdatedAt:O}");
 
-            await using var reader = fixture.CreateDatabase();
-            var stored = await reader.Users.SingleAsync(u => u.Id == user.Id, TestContext.Current.CancellationToken);
-            Assert.True(stored.UpdatedAt > stored.CreatedAt,
-                $"stored-created-at={stored.CreatedAt:O}, stored-updated-at={stored.UpdatedAt:O}");
-        }
+        await using var reader = fixture.CreateDatabase();
+        var stored = await reader.Users.SingleAsync(u => u.Id == user.Id, TestContext.Current.CancellationToken);
+        Assert.True(stored.UpdatedAt > stored.CreatedAt,
+            $"stored-created-at={stored.CreatedAt:O}, stored-updated-at={stored.UpdatedAt:O}");
     }
 }

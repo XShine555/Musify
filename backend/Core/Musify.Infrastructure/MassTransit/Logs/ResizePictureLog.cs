@@ -1,4 +1,3 @@
-namespace Musify.Infrastructure.MassTransit.Logs
-{
-    public record ResizePictureLog(string DestinationFilePath);
-}
+namespace Musify.Infrastructure.MassTransit.Logs;
+
+public record ResizePictureLog(string DestinationFilePath);

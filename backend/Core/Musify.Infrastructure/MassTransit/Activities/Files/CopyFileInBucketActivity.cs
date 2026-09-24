@@ -4,58 +4,57 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Files
+namespace Musify.Infrastructure.MassTransit.Activities.Files;
+
+internal class CopyFileInBucketActivity(
+    IStorageService storageHandler,
+    ILogger<CopyFileInBucketActivity> logger)
+    : IActivity<CopyFileInBucketArguments, CopyFileInBucketLog>
 {
-    internal class CopyFileInBucketActivity(
-        IStorageService storageHandler,
-        ILogger<CopyFileInBucketActivity> logger)
-        : IActivity<CopyFileInBucketArguments, CopyFileInBucketLog>
+    public const string ExecuteEndpointName = "copy-file-in-bucket";
+
+    public async Task<ExecutionResult> Execute(ExecuteContext<CopyFileInBucketArguments> executeContext)
     {
-        public const string ExecuteEndpointName = "copy-file-in-bucket";
-
-        public async Task<ExecutionResult> Execute(ExecuteContext<CopyFileInBucketArguments> executeContext)
+        try
         {
-            try
-            {
-                await storageHandler.CopyFileAsync(
-                    executeContext.Arguments.SourceBucket,
-                    executeContext.Arguments.SourceKey,
-                    executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationKey,
-                    executeContext.CancellationToken);
+            await storageHandler.CopyFileAsync(
+                executeContext.Arguments.SourceBucket,
+                executeContext.Arguments.SourceKey,
+                executeContext.Arguments.DestinationBucket,
+                executeContext.Arguments.DestinationKey,
+                executeContext.CancellationToken);
 
-                return executeContext.Completed(new CopyFileInBucketLog(
-                    executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationKey));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to copy {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
-                    executeContext.Arguments.SourceBucket,
-                    executeContext.Arguments.SourceKey,
-                    executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationKey);
-                throw;
-            }
+            return executeContext.Completed(new CopyFileInBucketLog(
+                executeContext.Arguments.DestinationBucket,
+                executeContext.Arguments.DestinationKey));
         }
-
-        public async Task<CompensationResult> Compensate(CompensateContext<CopyFileInBucketLog> compensateContext)
+        catch (Exception exception)
         {
-            try
-            {
-                await storageHandler.RemoveFileAsync(
-                    compensateContext.Log.DestinationBucket,
-                    compensateContext.Log.DestinationKey,
-                    compensateContext.CancellationToken);
-                return compensateContext.Compensated();
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to compensate copied file {Bucket}/{Key}",
-                    compensateContext.Log.DestinationBucket,
-                    compensateContext.Log.DestinationKey);
-                return compensateContext.Failed(exception);
-            }
+            logger.LogError(exception, "Failed to copy {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
+                executeContext.Arguments.SourceBucket,
+                executeContext.Arguments.SourceKey,
+                executeContext.Arguments.DestinationBucket,
+                executeContext.Arguments.DestinationKey);
+            throw;
+        }
+    }
+
+    public async Task<CompensationResult> Compensate(CompensateContext<CopyFileInBucketLog> compensateContext)
+    {
+        try
+        {
+            await storageHandler.RemoveFileAsync(
+                compensateContext.Log.DestinationBucket,
+                compensateContext.Log.DestinationKey,
+                compensateContext.CancellationToken);
+            return compensateContext.Compensated();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to compensate copied file {Bucket}/{Key}",
+                compensateContext.Log.DestinationBucket,
+                compensateContext.Log.DestinationKey);
+            return compensateContext.Failed(exception);
         }
     }
 }

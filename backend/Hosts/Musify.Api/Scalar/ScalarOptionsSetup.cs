@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
-using Scalar.AspNetCore;
 using Musify.Api.Authentication;
+using Scalar.AspNetCore;
 
 namespace Musify.Api.Scalar;
 
@@ -26,7 +26,7 @@ public sealed class ScalarOptionsSetup(IOptions<AuthenticationConfiguration> opt
                 flow.SelectedScopes = _configuration.Scopes;
                 flow.RedirectUri = _configuration.ScalarRedirectUri;
                 flow.RefreshUrl = _configuration.TokenEndpoint;
-            } )
+            })
             .HideModels();
     }
 }

@@ -1,5 +1,4 @@
-namespace Musify.Infrastructure.MassTransit.Arguments
-{
-    public record ConsumeUploadIntentsArguments(
-        Guid[] IntentIds);
-}
+namespace Musify.Infrastructure.MassTransit.Arguments;
+
+public record ConsumeUploadIntentsArguments(
+    Guid[] IntentIds);

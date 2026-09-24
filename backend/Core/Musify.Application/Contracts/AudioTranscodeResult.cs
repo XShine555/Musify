@@ -1,4 +1,3 @@
-namespace Musify.Application.Contracts
-{
-    public record AudioTranscodeResult(int StatusCode, TimeSpan Duration);
-}
+namespace Musify.Application.Contracts;
+
+public record AudioTranscodeResult(int StatusCode, TimeSpan Duration);

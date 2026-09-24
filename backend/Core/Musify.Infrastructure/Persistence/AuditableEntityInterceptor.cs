@@ -2,43 +2,42 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Musify.Domain.Abstractions;
 
-namespace Musify.Infrastructure.Persistence
+namespace Musify.Infrastructure.Persistence;
+
+public sealed class AuditableEntityInterceptor : SaveChangesInterceptor
 {
-    public sealed class AuditableEntityInterceptor : SaveChangesInterceptor
+    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+        ApplyTimestamps(eventData.Context);
+        return base.SavingChanges(eventData, result);
+    }
+
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    {
+        ApplyTimestamps(eventData.Context);
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
+    private static void ApplyTimestamps(DbContext? context)
+    {
+        if (context == null)
+            return;
+
+        context.ChangeTracker.DetectChanges();
+
+        var now = DateTime.UtcNow;
+
+        foreach (var entry in context.ChangeTracker.Entries<IAuditable>())
         {
-            ApplyTimestamps(eventData.Context);
-            return base.SavingChanges(eventData, result);
-        }
-
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-            DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-        {
-            ApplyTimestamps(eventData.Context);
-            return base.SavingChangesAsync(eventData, result, cancellationToken);
-        }
-
-        private static void ApplyTimestamps(DbContext? context)
-        {
-            if (context == null)
-                return;
-
-            context.ChangeTracker.DetectChanges();
-
-            var now = DateTime.UtcNow;
-
-            foreach (var entry in context.ChangeTracker.Entries<IAuditable>())
+            if (entry.State == EntityState.Added)
             {
-                if (entry.State == EntityState.Added)
-                {
-                    entry.Entity.CreatedAt = now;
-                    entry.Entity.UpdatedAt = now;
-                }
-                else if (entry.State == EntityState.Modified)
-                {
-                    entry.Property(nameof(IAuditable.UpdatedAt)).CurrentValue = now;
-                }
+                entry.Entity.CreatedAt = now;
+                entry.Entity.UpdatedAt = now;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Property(nameof(IAuditable.UpdatedAt)).CurrentValue = now;
             }
         }
     }

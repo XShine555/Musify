@@ -7,66 +7,65 @@ using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Consumers;
 
-namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders
+namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
+
+public class AudioWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfiguration)
 {
-    public class AudioWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfiguration)
+    public RoutingSlipBuilder Build(UpdateTrackAudioEvent message, Guid? correlationId)
     {
-        public RoutingSlipBuilder Build(UpdateTrackAudioEvent message, Guid? correlationId) 
-        {
-            var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
-            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
+        var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
 
-            routingSlipBuilder.AddSubscription(
-                EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
-                RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
+        routingSlipBuilder.AddSubscription(
+            EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
+            RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
 
-            routingSlipBuilder.AddActivity(
-                ActivityNames.GenerateAudioWorkflowPaths,
-                EndpointHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
-                new GenerateAudioWorkflowPathsArguments(
-                    message.TrackId,
-                    workerConfiguration.Routes.TemporaryFilesDirectory,
-                    message.SourceKey));
+        routingSlipBuilder.AddActivity(
+            ActivityNames.GenerateAudioWorkflowPaths,
+            EndpointHelper.BuildExecuteActivityUri(GenerateAudioWorkflowPathsActivity.ExecuteEndpointName),
+            new GenerateAudioWorkflowPathsArguments(
+                message.TrackId,
+                workerConfiguration.Routes.TemporaryFilesDirectory,
+                message.SourceKey));
 
-            routingSlipBuilder.AddActivity(
-                ActivityNames.DownloadFile,
-                EndpointHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
-                new DownloadFileFromBucketArguments(
-                    message.SourceBucket,
-                    message.SourceKey,
-                    RoutingSlipVariableNames.Audio.SourceFilePath));
+        routingSlipBuilder.AddActivity(
+            ActivityNames.DownloadFile,
+            EndpointHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
+            new DownloadFileFromBucketArguments(
+                message.SourceBucket,
+                message.SourceKey,
+                RoutingSlipVariableNames.Audio.SourceFilePath));
 
-            routingSlipBuilder.AddActivity(
-                ActivityNames.TranscodeAudio,
-                EndpointHelper.BuildExecuteActivityUri(TranscodeAudioActivity.ExecuteEndpointName),
-                new TranscodeAudioArguments(
-                    message.TrackId,
-                    RoutingSlipVariableNames.Audio.SourceFilePath,
-                    RoutingSlipVariableNames.Workflow.TemporalDirectory));
+        routingSlipBuilder.AddActivity(
+            ActivityNames.TranscodeAudio,
+            EndpointHelper.BuildExecuteActivityUri(TranscodeAudioActivity.ExecuteEndpointName),
+            new TranscodeAudioArguments(
+                message.TrackId,
+                RoutingSlipVariableNames.Audio.SourceFilePath,
+                RoutingSlipVariableNames.Workflow.TemporalDirectory));
 
-            routingSlipBuilder.AddActivity(
-                ActivityNames.TransferFiles,
-                EndpointHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
-                new TransferFilesToBucketArguments(
-                    message.DestinationBucket,
-                    RoutingSlipVariableNames.Audio.TranscodedDirectory,
-                    message.DestinationFolderKey));
+        routingSlipBuilder.AddActivity(
+            ActivityNames.TransferFiles,
+            EndpointHelper.BuildExecuteActivityUri(TransferFilesToBucketActivity.ExecuteEndpointName),
+            new TransferFilesToBucketArguments(
+                message.DestinationBucket,
+                RoutingSlipVariableNames.Audio.TranscodedDirectory,
+                message.DestinationFolderKey));
 
-            routingSlipBuilder.AddActivity(
-                ActivityNames.UpdateTrackAudio,
-                EndpointHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
-                new UpdateTrackAudioArguments(
-                    message.TrackId,
-                    message.DestinationFolderKey,
-                    RoutingSlipVariableNames.Audio.DurationSeconds));
+        routingSlipBuilder.AddActivity(
+            ActivityNames.UpdateTrackAudio,
+            EndpointHelper.BuildExecuteActivityUri(UpdateTrackAudioActivity.ExecuteEndpointName),
+            new UpdateTrackAudioArguments(
+                message.TrackId,
+                message.DestinationFolderKey,
+                RoutingSlipVariableNames.Audio.DurationSeconds));
 
-            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.TrackId);
-            routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackAudio);
-            routingSlipBuilder.AddSubscription(
-                EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
-                RoutingSlipEvents.Faulted);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.TrackId);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackAudio);
+        routingSlipBuilder.AddSubscription(
+            EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
+            RoutingSlipEvents.Faulted);
 
-            return routingSlipBuilder;
-        }
+        return routingSlipBuilder;
     }
 }

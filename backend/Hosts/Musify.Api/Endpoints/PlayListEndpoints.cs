@@ -1,14 +1,14 @@
 using Mediator;
-using Musify.Application.PlayLists;
-using Musify.Application.PlayLists.Responses;
-using Musify.Application.Tracks;
-using Musify.Application.Tracks.Responses;
-using Musify.Application.Shared;
-using Musify.Application.Contracts;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
+using Musify.Application.Contracts;
+using Musify.Application.PlayLists;
+using Musify.Application.PlayLists.Responses;
+using Musify.Application.Shared;
+using Musify.Application.Tracks;
+using Musify.Application.Tracks.Responses;
 
 namespace Musify.Api.Endpoints;
 

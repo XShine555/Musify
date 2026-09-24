@@ -24,7 +24,7 @@ builder.Services.AddCors(options => options.AddPolicy(corsPolicy, policy =>
     policy.AllowAnyHeader()
         .WithMethods("GET", "HEAD")
         .WithExposedHeaders("Content-Range", "Accept-Ranges", "Content-Length");
-} ));
+}));
 
 builder.Services
     .AddReverseProxy()

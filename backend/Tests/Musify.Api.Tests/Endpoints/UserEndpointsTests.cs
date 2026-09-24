@@ -12,125 +12,124 @@ using Musify.Domain.Entities;
 using Musify.Infrastructure.Persistence;
 using Xunit;
 
-namespace Musify.Api.Tests.Endpoints
+namespace Musify.Api.Tests.Endpoints;
+
+[Collection(ApiCollection.Name)]
+public sealed class UserEndpointsTests(ApiTestFixture fixture)
 {
-    [Collection(ApiCollection.Name)]
-    public sealed class UserEndpointsTests(ApiTestFixture fixture)
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
-        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+        Converters = { new JsonStringEnumConverter() }
+    };
+
+    private async Task SeedListenAsync(long userId, string trackTitle, DateTime listenedAt)
+    {
+        using var scope = fixture.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<Database>();
+        var owner = await database.Users.SingleAsync(u => u.Id == userId);
+        var track = new Track
         {
-            Converters = { new JsonStringEnumConverter() }
+            Title = trackTitle,
+            NormalizedTitle = trackTitle.ToUpperInvariant(),
+            OwnerUserId = owner.Id,
+            Owner = owner
         };
-
-        private async Task SeedListenAsync(long userId, string trackTitle, DateTime listenedAt)
+        database.Tracks.Add(track);
+        database.ListeningHistories.Add(new ListeningHistory
         {
-            using var scope = fixture.Services.CreateScope();
-            var database = scope.ServiceProvider.GetRequiredService<Database>();
-            var owner = await database.Users.SingleAsync(u => u.Id == userId);
-            var track = new Track
-            {
-                Title = trackTitle,
-                NormalizedTitle = trackTitle.ToUpperInvariant(),
-                OwnerUserId = owner.Id,
-                Owner = owner
-            };
-            database.Tracks.Add(track);
-            database.ListeningHistories.Add(new ListeningHistory
-            {
-                UserId = userId,
-                TrackId = track.Id,
-                ListenedAt = listenedAt
-            });
-            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
-        }
+            UserId = userId,
+            TrackId = track.Id,
+            ListenedAt = listenedAt
+        });
+        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+    }
 
-        [Fact]
-        public async Task PostUsers_NewUser_ReturnsCreatedWithLocationHeader()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
+    [Fact]
+    public async Task PostUsers_NewUser_ReturnsCreatedWithLocationHeader()
+    {
+        var client = fixture.CreateAnonymousClient();
+        var userId = Random.Shared.NextInt64(1, long.MaxValue);
 
-            var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Jane Doe", "Jane", "Doe"), TestContext.Current.CancellationToken);
+        var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Jane Doe", "Jane", "Doe"), TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            Assert.Equal($"/users/{userId}", response.Headers.Location?.OriginalString);
-            var body = await response.Content.ReadFromJsonAsync<UserApplicationResponse>(TestContext.Current.CancellationToken);
-            Assert.NotNull(body);
-            Assert.Equal("Jane Doe", body.Name);
-        }
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal($"/users/{userId}", response.Headers.Location?.OriginalString);
+        var body = await response.Content.ReadFromJsonAsync<UserApplicationResponse>(TestContext.Current.CancellationToken);
+        Assert.NotNull(body);
+        Assert.Equal("Jane Doe", body.Name);
+    }
 
-        [Fact]
-        public async Task PostUsers_BlankName_ReturnsValidationProblem()
-        {
-            var client = fixture.CreateAnonymousClient();
+    [Fact]
+    public async Task PostUsers_BlankName_ReturnsValidationProblem()
+    {
+        var client = fixture.CreateAnonymousClient();
 
-            var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(Random.Shared.NextInt64(1, long.MaxValue), "", null, null), TestContext.Current.CancellationToken);
+        var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(Random.Shared.NextInt64(1, long.MaxValue), "", null, null), TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        }
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 
-        [Fact]
-        public async Task PostUsers_DuplicateId_ReturnsConflict()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "First", null, null), TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task PostUsers_DuplicateId_ReturnsConflict()
+    {
+        var client = fixture.CreateAnonymousClient();
+        var userId = Random.Shared.NextInt64(1, long.MaxValue);
+        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "First", null, null), TestContext.Current.CancellationToken);
 
-            var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Second", null, null), TestContext.Current.CancellationToken);
+        var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Second", null, null), TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        }
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 
-        [Fact]
-        public async Task GetUserById_ExistingUser_ReturnsIt()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Findable User", null, null), TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task GetUserById_ExistingUser_ReturnsIt()
+    {
+        var client = fixture.CreateAnonymousClient();
+        var userId = Random.Shared.NextInt64(1, long.MaxValue);
+        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Findable User", null, null), TestContext.Current.CancellationToken);
 
-            var response = await client.GetAsync($"/users/{userId}", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync($"/users/{userId}", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var body = await response.Content.ReadFromJsonAsync<UserApplicationResponse>(TestContext.Current.CancellationToken);
-            Assert.Equal("Findable User", body?.Name);
-        }
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<UserApplicationResponse>(TestContext.Current.CancellationToken);
+        Assert.Equal("Findable User", body?.Name);
+    }
 
-        [Fact]
-        public async Task GetUserById_MissingUser_ReturnsNotFound()
-        {
-            var client = fixture.CreateAnonymousClient();
+    [Fact]
+    public async Task GetUserById_MissingUser_ReturnsNotFound()
+    {
+        var client = fixture.CreateAnonymousClient();
 
-            var response = await client.GetAsync($"/users/{Random.Shared.NextInt64(1, long.MaxValue)}", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync($"/users/{Random.Shared.NextInt64(1, long.MaxValue)}", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 
-        [Fact]
-        public async Task GetLastTrackListenedByUserId_HasHistory_ReturnsMostRecentTrack()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
-            await SeedListenAsync(userId, "Older listen", DateTime.UtcNow.AddMinutes(-10));
-            await SeedListenAsync(userId, "Newer listen", DateTime.UtcNow);
+    [Fact]
+    public async Task GetLastTrackListenedByUserId_HasHistory_ReturnsMostRecentTrack()
+    {
+        var client = fixture.CreateAnonymousClient();
+        var userId = Random.Shared.NextInt64(1, long.MaxValue);
+        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+        await SeedListenAsync(userId, "Older listen", DateTime.UtcNow.AddMinutes(-10));
+        await SeedListenAsync(userId, "Newer listen", DateTime.UtcNow);
 
-            var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var body = await response.Content.ReadFromJsonAsync<TrackApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
-            Assert.Equal("Newer listen", body?.Title);
-        }
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<TrackApplicationResponse>(JsonOptions, TestContext.Current.CancellationToken);
+        Assert.Equal("Newer listen", body?.Title);
+    }
 
-        [Fact]
-        public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNotFound()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNotFound()
+    {
+        var client = fixture.CreateAnonymousClient();
+        var userId = Random.Shared.NextInt64(1, long.MaxValue);
+        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
 
-            var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
+        var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

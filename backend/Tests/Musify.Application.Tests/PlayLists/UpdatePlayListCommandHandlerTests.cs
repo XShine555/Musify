@@ -6,131 +6,130 @@ using Musify.Application.Tests.TestSupport;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Application.Tests.PlayLists
+namespace Musify.Application.Tests.PlayLists;
+
+public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
 {
-    public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
+    private readonly IEventBus eventBus = Substitute.For<IEventBus>();
+    private readonly IStorageService storageService = Substitute.For<IStorageService>();
+
+    private UpdatePlayListCommandHandler CreateHandler() => new(
+        eventBus,
+        Database,
+        new UploadIntentValidator(Database, storageService),
+        NoOpLogger<UpdatePlayListCommandHandler>(),
+        TestConfigurations.Storage(),
+        TestConfigurations.PlayList(),
+        TestConfigurations.UploadIntent());
+
+    [Fact]
+    public async Task Handle_Owner_RenamesPlayList()
     {
-        private readonly IEventBus eventBus = Substitute.For<IEventBus>();
-        private readonly IStorageService storageService = Substitute.For<IStorageService>();
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id, "Old Name");
+        await SeedAsync(owner, playList);
 
-        private UpdatePlayListCommandHandler CreateHandler() => new(
-            eventBus,
-            Database,
-            new UploadIntentValidator(Database, storageService),
-            NoOpLogger<UpdatePlayListCommandHandler>(),
-            TestConfigurations.Storage(),
-            TestConfigurations.PlayList(),
-            TestConfigurations.UploadIntent());
+        var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
 
-        [Fact]
-        public async Task Handle_Owner_RenamesPlayList()
-        {
-            var owner = TestEntities.User();
-            var playList = TestEntities.PlayList(owner.Id, "Old Name");
-            await SeedAsync(owner, playList);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
+        Assert.False(result.IsError);
+        Assert.Equal("New Name", result.Value.Name);
+    }
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task Handle_PlayListMissing_ReturnsNotFound()
+    {
+        var command = new UpdatePlayListCommand(1, Guid.NewGuid(), "New Name", null, null);
 
-            Assert.False(result.IsError);
-            Assert.Equal("New Name", result.Value.Name);
-        }
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-        [Fact]
-        public async Task Handle_PlayListMissing_ReturnsNotFound()
-        {
-            var command = new UpdatePlayListCommand(1, Guid.NewGuid(), "New Name", null, null);
+        Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
+    }
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task Handle_NotOwner_ReturnsUnauthorized()
+    {
+        var owner = TestEntities.User(1, "owner");
+        var stranger = TestEntities.User(2, "stranger");
+        var playList = TestEntities.PlayList(owner.Id);
+        await SeedAsync(owner, stranger, playList);
 
-            Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
-        }
+        var command = new UpdatePlayListCommand(stranger.Id, playList.Id, "Hijacked", null, null);
 
-        [Fact]
-        public async Task Handle_NotOwner_ReturnsUnauthorized()
-        {
-            var owner = TestEntities.User(1, "owner");
-            var stranger = TestEntities.User(2, "stranger");
-            var playList = TestEntities.PlayList(owner.Id);
-            await SeedAsync(owner, stranger, playList);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var command = new UpdatePlayListCommand(stranger.Id, playList.Id, "Hijacked", null, null);
+        Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+    }
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task Handle_NewVisibility_UpdatesIt()
+    {
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id);
+        await SeedAsync(owner, playList);
 
-            Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
-        }
+        var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, null, Musify.Domain.ValueObjects.PlaylistVisibility.Public);
 
-        [Fact]
-        public async Task Handle_NewVisibility_UpdatesIt()
-        {
-            var owner = TestEntities.User();
-            var playList = TestEntities.PlayList(owner.Id);
-            await SeedAsync(owner, playList);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, null, Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        Assert.False(result.IsError);
+        Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+    }
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task Handle_NoVisibilitySpecified_LeavesItUnchanged()
+    {
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        await SeedAsync(owner, playList);
 
-            Assert.False(result.IsError);
-            Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
-        }
+        var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
 
-        [Fact]
-        public async Task Handle_NoVisibilitySpecified_LeavesItUnchanged()
-        {
-            var owner = TestEntities.User();
-            var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
-            await SeedAsync(owner, playList);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
+        Assert.False(result.IsError);
+        Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+    }
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task Handle_BlankNameAndDescription_LeavesThemUnchanged()
+    {
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id, "Original Name", "Original description");
+        await SeedAsync(owner, playList);
 
-            Assert.False(result.IsError);
-            Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
-        }
+        var command = new UpdatePlayListCommand(owner.Id, playList.Id, "   ", "   ", null);
 
-        [Fact]
-        public async Task Handle_BlankNameAndDescription_LeavesThemUnchanged()
-        {
-            var owner = TestEntities.User();
-            var playList = TestEntities.PlayList(owner.Id, "Original Name", "Original description");
-            await SeedAsync(owner, playList);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var command = new UpdatePlayListCommand(owner.Id, playList.Id, "   ", "   ", null);
+        Assert.False(result.IsError);
+        Assert.Equal("Original Name", result.Value.Name);
+        Assert.Equal("Original description", result.Value.Description);
+    }
 
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task Handle_PlayListWithoutPictures_ValidPictureIntent_SetsPictureAndPublishesSourceEvent()
+    {
+        storageService
+            .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new ObjectMetaData("image/webp", 1024));
 
-            Assert.False(result.IsError);
-            Assert.Equal("Original Name", result.Value.Name);
-            Assert.Equal("Original description", result.Value.Description);
-        }
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id);
+        playList.Pictures = null;
+        var intent = TestEntities.UploadIntent(owner.Id, Musify.Domain.ValueObjects.UploadIntentPurpose.PlayListPicture, objectName: "new-cover.webp");
+        await SeedAsync(owner, playList, intent);
 
-        [Fact]
-        public async Task Handle_PlayListWithoutPictures_ValidPictureIntent_SetsPictureAndPublishesSourceEvent()
-        {
-            storageService
-                .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(new ObjectMetaData("image/webp", 1024));
+        var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, intent.Id);
 
-            var owner = TestEntities.User();
-            var playList = TestEntities.PlayList(owner.Id);
-            playList.Pictures = null;
-            var intent = TestEntities.UploadIntent(owner.Id, Musify.Domain.ValueObjects.UploadIntentPurpose.PlayListPicture, objectName: "new-cover.webp");
-            await SeedAsync(owner, playList, intent);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, intent.Id);
-
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
-
-            Assert.False(result.IsError);
-            Assert.Equal("new-cover.webp", result.Value.SmallImageKeyName);
-            var stored = await Database.PlayLists.FindAsync([playList.Id], TestContext.Current.CancellationToken);
-            Assert.NotNull(stored);
-            Assert.Equal("new-cover.webp", stored.Pictures?.OriginalName);
-            await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.UpdatePlayListPictureSourceEvent>(), Arg.Any<CancellationToken>());
-        }
+        Assert.False(result.IsError);
+        Assert.Equal("new-cover.webp", result.Value.SmallImageKeyName);
+        var stored = await Database.PlayLists.FindAsync([playList.Id], TestContext.Current.CancellationToken);
+        Assert.NotNull(stored);
+        Assert.Equal("new-cover.webp", stored.Pictures?.OriginalName);
+        await eventBus.Received(1).PublishAsync(Arg.Any<Musify.Application.Events.UpdatePlayListPictureSourceEvent>(), Arg.Any<CancellationToken>());
     }
 }

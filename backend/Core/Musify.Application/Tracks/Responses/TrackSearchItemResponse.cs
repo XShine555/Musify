@@ -1,7 +1,6 @@
-namespace Musify.Application.Tracks.Responses
+namespace Musify.Application.Tracks.Responses;
+
+public record TrackSearchItemResponse(TrackApplicationResponse Track)
 {
-    public record TrackSearchItemResponse(TrackApplicationResponse Track)
-    {
-        public static TrackSearchItemResponse FromTrack(TrackApplicationResponse track) => new(track);
-    }
+    public static TrackSearchItemResponse FromTrack(TrackApplicationResponse track) => new(track);
 }

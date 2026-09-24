@@ -4,62 +4,61 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Files
+namespace Musify.Infrastructure.MassTransit.Activities.Files;
+
+internal class TransferFilesToBucketActivity(
+    IStorageService storageHandler,
+    ILogger<TransferFilesToBucketActivity> logger)
+    : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
 {
-    internal class TransferFilesToBucketActivity(
-        IStorageService storageHandler,
-        ILogger<TransferFilesToBucketActivity> logger)
-        : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
+    public const string ExecuteEndpointName = "transfer-files-to-bucket";
+
+    public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
     {
-        public const string ExecuteEndpointName = "transfer-files-to-bucket";
+        var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariable);
+        ArgumentNullException.ThrowIfNull(folderPath, nameof(folderPath));
+        var destinationKey = executeContext.Arguments.DestinationKey;
+        ArgumentNullException.ThrowIfNull(destinationKey, nameof(destinationKey));
 
-        public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
+        try
         {
-            var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariable);
-            ArgumentNullException.ThrowIfNull(folderPath, nameof(folderPath));
-            var destinationKey = executeContext.Arguments.DestinationKey;
-            ArgumentNullException.ThrowIfNull(destinationKey, nameof(destinationKey));
+            var uploadedKeys = await storageHandler.TransferFilesAsync(
+                folderPath,
+                executeContext.Arguments.DestinationBucket,
+                destinationKey,
+                executeContext.CancellationToken);
 
-            try
-            {
-                var uploadedKeys = await storageHandler.TransferFilesAsync(
-                    folderPath,
-                    executeContext.Arguments.DestinationBucket,
-                    destinationKey,
-                    executeContext.CancellationToken);
-
-                return executeContext.Completed(new TransferFilesToBucketLog(
-                    executeContext.Arguments.DestinationBucket,
-                    uploadedKeys.ToArray()));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to transfer files from {FolderPath} to {DestinationBucket}",
-                    folderPath,
-                    executeContext.Arguments.DestinationBucket);
-                throw;
-            }
+            return executeContext.Completed(new TransferFilesToBucketLog(
+                executeContext.Arguments.DestinationBucket,
+                uploadedKeys.ToArray()));
         }
-
-        public async Task<CompensationResult> Compensate(CompensateContext<TransferFilesToBucketLog> compensateContext)
+        catch (Exception exception)
         {
-            try
-            {
-                foreach (var uploadedKey in compensateContext.Log.UploadedKeys)
-                {
-                    await storageHandler.RemoveFileAsync(
-                        compensateContext.Log.DestinationBucket,
-                        uploadedKey,
-                        compensateContext.CancellationToken);
-                }
+            logger.LogError(exception, "Failed to transfer files from {FolderPath} to {DestinationBucket}",
+                folderPath,
+                executeContext.Arguments.DestinationBucket);
+            throw;
+        }
+    }
 
-                return compensateContext.Compensated();
-            }
-            catch (Exception exception)
+    public async Task<CompensationResult> Compensate(CompensateContext<TransferFilesToBucketLog> compensateContext)
+    {
+        try
+        {
+            foreach (var uploadedKey in compensateContext.Log.UploadedKeys)
             {
-                logger.LogError(exception, "Failed to compensate file transfers to {DestinationBucket}", compensateContext.Log.DestinationBucket);
-                return compensateContext.Failed(exception);
+                await storageHandler.RemoveFileAsync(
+                    compensateContext.Log.DestinationBucket,
+                    uploadedKey,
+                    compensateContext.CancellationToken);
             }
+
+            return compensateContext.Compensated();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Failed to compensate file transfers to {DestinationBucket}", compensateContext.Log.DestinationBucket);
+            return compensateContext.Failed(exception);
         }
     }
 }

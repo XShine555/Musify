@@ -1,9 +1,9 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Configuration;
+using Musify.Application.Contracts;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
-using Musify.Application.Contracts;
 
 namespace Musify.Application.Services;
 

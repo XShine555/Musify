@@ -1,7 +1,6 @@
-namespace Musify.Application.Contracts
+namespace Musify.Application.Contracts;
+
+public interface IPictureService
 {
-    public interface IPictureService
-    {
-        Task<Stream> ResizePictureAsWebpAsync(Stream pictureStream, int width, int height, CancellationToken cancellationToken);
-    }
+    public Task<Stream> ResizePictureAsWebpAsync(Stream pictureStream, int width, int height, CancellationToken cancellationToken);
 }
