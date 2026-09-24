@@ -48,3 +48,5 @@ export function createPagedList<T>(
 		}
 	};
 }
+
+export type PagedList<T> = ReturnType<typeof createPagedList<T>>;

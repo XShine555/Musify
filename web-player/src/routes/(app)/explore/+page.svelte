@@ -1,23 +1,12 @@
 <script lang="ts">
-	import Music from '@lucide/svelte/icons/music';
-	import { player } from '$lib/player/player.svelte';
 	import type { Paged, Track } from '$lib/types';
-	import { fmtTime, fmtPlays, plural } from '$lib/utils/format';
+	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import Alert from '$lib/components/ui/primitives/Alert.svelte';
-	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
-	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
-	import Artwork from '$lib/components/ui/media/Artwork.svelte';
-	import Avatar from '$lib/components/ui/media/Avatar.svelte';
-	import UserRow from '$lib/components/ui/media/UserRow.svelte';
-	import PlayButton from '$lib/components/ui/media/PlayButton.svelte';
-	import EqBars from '$lib/components/ui/media/EqBars.svelte';
-	import ListRow from '$lib/components/ui/media/ListRow.svelte';
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
-	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
-	import { genreHref, playlistCover } from '$lib/utils/hrefs';
+	import { genreHref } from '$lib/utils/hrefs';
 	import { createMenu } from '$lib/state/menu.svelte';
 	import { createPagedList } from '$lib/state/pagedList.svelte';
 	import TrackContextMenu from '$lib/components/music/TrackContextMenu.svelte';
@@ -25,21 +14,14 @@
 	import { genreInfo, genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,
-		showGroup,
-		capped,
 		matchPlaylists,
-		SEARCH_LABELS,
 		searchTotal,
 		searchChips,
 		findTopResult
 	} from '$lib/data/search';
-
-	const TOP_RESULT_KIND_LABEL: Record<TopResult['kind'], string> = {
-		track: 'Canción',
-		album: 'Álbum',
-		playlist: 'Playlist',
-		user: 'Usuario'
-	};
+	import GenreGrid from './GenreGrid.svelte';
+	import TopResult from './TopResult.svelte';
+	import SearchResults from './SearchResults.svelte';
 
 	let { data, form } = $props();
 
@@ -96,18 +78,7 @@
 	const chips = $derived(searchChips(counts));
 	const totalHits = $derived(searchTotal(counts));
 
-	type TopResult = NonNullable<
-		ReturnType<
-			typeof findTopResult<
-				Track,
-				(typeof albums)[number],
-				(typeof playlistMatches)[number],
-				(typeof users)[number]
-			>
-		>
-	>;
-
-	const topResult = $derived<TopResult | null>(
+	const topResult = $derived(
 		sfilter === 'all' && data.query
 			? findTopResult({
 					query: data.query,
@@ -118,18 +89,6 @@
 				})
 			: null
 	);
-
-	function playTopResult() {
-		if (topResult?.kind !== 'track') return;
-		player.playOrToggle([topResult.track], 0);
-	}
-
-	const topResultHref = $derived.by(() => {
-		if (!topResult || topResult.kind === 'track') return undefined;
-		if (topResult.kind === 'album') return `/albums/${topResult.album.id}`;
-		if (topResult.kind === 'playlist') return `/playlists/${topResult.playlist.id}`;
-		return `/user/${topResult.user.id}`;
-	});
 </script>
 
 <svelte:head>
@@ -174,62 +133,7 @@
 		</div>
 
 		{#if topResult}
-			{#snippet topResultBody()}
-				{#if topResult.kind === 'track'}
-					<Artwork
-						trackIds={[topResult.track.id]}
-						size="xl"
-						alt={topResult.track.title}
-						class="shrink-0"
-					/>
-				{:else if topResult.kind === 'album'}
-					<Artwork trackIds={topResult.album.coverTrackIds} size="xl" class="shrink-0" />
-				{:else if topResult.kind === 'playlist'}
-					<Artwork
-						src={playlistCover(topResult.playlist, 'large')}
-						trackIds={topResult.playlist.coverTrackIds}
-						size="xl"
-						class="shrink-0"
-					/>
-				{:else}
-					<Avatar name={topResult.user.name} src={topResult.user.profilePictureUrl} size="lg" />
-				{/if}
-
-				<div class="flex h-22 min-w-0 flex-1 flex-col justify-center gap-3">
-					<div class="text-eyebrow leading-none font-semibold text-fg-2">
-						Mejor resultado · {TOP_RESULT_KIND_LABEL[topResult.kind]}
-					</div>
-					<div
-						class="truncate font-display text-lg leading-none font-medium tracking-display text-fg"
-					>
-						{topResult.kind === 'track'
-							? topResult.track.title
-							: topResult.kind === 'album'
-								? topResult.album.title
-								: topResult.kind === 'playlist'
-									? topResult.playlist.name
-									: topResult.user.name}
-					</div>
-					{#if topResult.kind === 'track' && topResult.track.artist}
-						<div class="truncate text-sm leading-none text-fg-2">
-							{topResult.track.artist}
-						</div>
-					{/if}
-				</div>
-
-				<PlayButton as="span" size="lg" label="Reproducir" class="group-hover/top:brightness-110" />
-			{/snippet}
-
-			<svelte:element
-				this={topResult.kind === 'track' ? 'button' : 'a'}
-				type={topResult.kind === 'track' ? 'button' : undefined}
-				role={topResult.kind === 'track' ? 'button' : 'link'}
-				href={topResult.kind === 'track' ? undefined : topResultHref}
-				onclick={topResult.kind === 'track' ? playTopResult : undefined}
-				class="group/top animate-pop mt-6.5 flex w-full items-center gap-5 rounded-panel-lg bg-surface p-4.5 text-left transition hover:bg-surface-hover"
-			>
-				{@render topResultBody()}
-			</svelte:element>
+			<TopResult result={topResult} />
 		{/if}
 	{/if}
 
@@ -255,137 +159,22 @@
 	{/if}
 
 	{#if !data.query && !data.genre}
-		<div class="grid-wide">
-			{#each tiles as tile, i (tile.genre)}
-				<a
-					href={genreHref(tile.genre)}
-					class="animate-enter group relative flex h-28 flex-col gap-1 overflow-hidden rounded-panel p-4 transition-[filter] genre-tile hover:brightness-110"
-					style="--i:{i}; --tile-hue:{tile.hue}"
-				>
-					<div class="text-on-art">
-						{tile.label}
-					</div>
-					<div class="text-xs text-on-art-2">{tile.tagline}</div>
-				</a>
-			{/each}
-		</div>
-		{#if tiles.length === 0}
-			<EmptyState icon={Music} description="Todavía no hay géneros. Sube música para empezar." />
-		{/if}
+		<GenreGrid {tiles} />
 	{/if}
 
 	{#if (data.query || data.genre) && !nothingFound}
-		<div class="mt-9 flex flex-col gap-9">
-			{#if showGroup(sfilter, 'tracks')}
-				<div>
-					{#if items.length > 0}
-						<SectionHeading title={SEARCH_LABELS.tracks} count={counts.tracks} />
-						<ul class="flex flex-col gap-1">
-							{#each capped(sfilter, items) as track, i (track.id)}
-								<li>
-									<ListRow
-										title={track.title}
-										subtitle={track.artist}
-										subtitleHref={track.ownerUserId}
-										explicit={track.explicit}
-										active={player.currentId === track.id}
-										size="lg"
-										trackId={track.id}
-										onclick={() => player.playOrToggle(items, i)}
-										oncontextmenu={(e) => trackMenu.open(e, track)}
-									>
-										{#snippet overlay()}
-											{#if player.currentId === track.id}
-												<EqBars overlay paused={!player.playing} />
-											{/if}
-										{/snippet}
-										{#snippet trailing()}
-											<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
-												{fmtTime(track.duration)} · {fmtPlays(track.listensCount)}
-											</span>
-										{/snippet}
-									</ListRow>
-								</li>
-							{/each}
-						</ul>
-
-						{#if sfilter === 'tracks' && tracksList.hasMore}
-							<InfiniteScroll
-								onLoadMore={() => tracksList.loadMore()}
-								hasMore={tracksList.hasMore}
-								loading={tracksList.loading}
-								error={tracksList.error}
-							/>
-						{/if}
-					{:else}
-						<EmptyState
-							icon={Music}
-							description={activeGenre
-								? 'Todavía no hay canciones de este género.'
-								: `No hay canciones que coincidan con «${data.query}».`}
-						/>
-					{/if}
-				</div>
-			{/if}
-
-			{#if hasAlbums && showGroup(sfilter, 'albums')}
-				<div>
-					<SectionHeading title={SEARCH_LABELS.albums} count={counts.albums} />
-					<ul class="flex flex-col gap-1">
-						{#each capped(sfilter, albums) as album (album.id)}
-							<li>
-								<ListRow
-									title={album.title}
-									href="/albums/{album.id}"
-									size="lg"
-									trackIds={album.coverTrackIds}
-									oncontextmenu={(e) => albumMenu.open(e, album.id)}
-								>
-									{#snippet trailing()}
-										<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
-											{plural(album.trackCount, 'canción', 'canciones')}
-										</span>
-									{/snippet}
-								</ListRow>
-							</li>
-						{/each}
-					</ul>
-				</div>
-			{/if}
-
-			{#if hasUsers && showGroup(sfilter, 'users')}
-				<div>
-					<SectionHeading title={SEARCH_LABELS.users} count={counts.users} />
-					<ul class="flex flex-col gap-1">
-						{#each capped(sfilter, users) as u (u.id)}
-							<li>
-								<UserRow user={u} />
-							</li>
-						{/each}
-					</ul>
-				</div>
-			{/if}
-
-			{#if hasPlaylists && showGroup(sfilter, 'playlists')}
-				<div>
-					<SectionHeading title={SEARCH_LABELS.playlists} count={counts.playlists} />
-					<ul class="flex flex-col gap-1">
-						{#each capped(sfilter, playlistMatches) as playlist (playlist.id)}
-							<li>
-								<ListRow
-									title={playlist.name}
-									subtitle={playlist.description}
-									href="/playlists/{playlist.id}"
-									size="lg"
-									coverSrc={playlistCover(playlist, 'medium')}
-									trackIds={playlist.coverTrackIds}
-								/>
-							</li>
-						{/each}
-					</ul>
-				</div>
-			{/if}
-		</div>
+		<SearchResults
+			filter={sfilter}
+			{counts}
+			query={data.query}
+			inGenre={!!activeGenre}
+			{tracksList}
+			{albums}
+			playlists={playlistMatches}
+			{users}
+			{trackMenu}
+			{albumMenu}
+		/>
 	{/if}
 </Page>
 
