@@ -5,6 +5,7 @@ import {
 	getOidcConfig,
 	encodeSession,
 	toSessionUser,
+	safeReturnTo,
 	writeSessionCookie,
 	type Session,
 	STATE_COOKIE,
@@ -17,7 +18,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const codeVerifier = cookies.get(VERIFIER_COOKIE);
 	const state = cookies.get(STATE_COOKIE);
 	const nonce = cookies.get(NONCE_COOKIE);
-	const returnTo = cookies.get(RETURN_COOKIE) ?? '/';
+	const returnTo = safeReturnTo(cookies.get(RETURN_COOKIE));
 
 	if (!codeVerifier || !state) {
 		error(400, 'Estado de autenticación inválido. Vuelve a iniciar sesión.');

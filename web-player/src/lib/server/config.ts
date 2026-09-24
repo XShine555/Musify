@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/private';
 
 const DAY_SECONDS = 60 * 60 * 24;
+const MIN_SESSION_SECRET_LENGTH = 32;
 const DEFAULT_OIDC_SCOPE = 'openid profile email offline_access';
 
 function positiveInt(value: string | undefined, fallback: number): number {
@@ -35,7 +36,13 @@ export const authConfig = {
 		return required('AUTH_POST_LOGOUT_URI', env.AUTH_POST_LOGOUT_URI);
 	},
 	get sessionSecret() {
-		return env.SESSION_SECRET;
+		const secret = required('SESSION_SECRET', env.SESSION_SECRET);
+		if (secret.length < MIN_SESSION_SECRET_LENGTH) {
+			throw new Error(
+				`SESSION_SECRET must be at least ${MIN_SESSION_SECRET_LENGTH} characters long.`
+			);
+		}
+		return secret;
 	},
 	get sessionTtlSeconds() {
 		return positiveInt(env.SESSION_TTL_SECONDS, 7 * DAY_SECONDS);

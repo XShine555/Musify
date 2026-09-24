@@ -5,7 +5,8 @@ import { createApiClient } from '$lib/server/api';
 export const PUT: RequestHandler = async ({ params, request, locals, fetch }) => {
 	if (!locals.accessToken) return json({ message: 'Inicia sesión.' }, { status: 401 });
 
-	const { playedSeconds } = (await request.json()) as { playedSeconds?: number };
+	const payload = (await request.json().catch(() => null)) as { playedSeconds?: unknown } | null;
+	const playedSeconds = payload?.playedSeconds;
 	if (typeof playedSeconds !== 'number' || !Number.isFinite(playedSeconds) || playedSeconds < 0)
 		return json({ message: 'Tiempo inválido.' }, { status: 400 });
 

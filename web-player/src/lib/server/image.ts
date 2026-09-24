@@ -10,7 +10,9 @@ export async function proxyCoverImage(
 ): Promise<Response> {
 	const safeSize = size && ALLOWED_SIZES.has(size) ? size : 'medium';
 
-	const upstream = await fetch(`${apiConfig.baseUrl}/${kind}/${id}/cover?size=${safeSize}`);
+	const upstream = await fetch(
+		`${apiConfig.baseUrl}/${kind}/${encodeURIComponent(id)}/cover?size=${safeSize}`
+	);
 
 	if (!upstream.ok) {
 		return new Response(null, { status: upstream.status });

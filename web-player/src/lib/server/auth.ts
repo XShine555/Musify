@@ -18,6 +18,13 @@ export interface Session extends SessionUser {
 	expiresAt: number;
 }
 
+export function safeReturnTo(value: string | null | undefined): string {
+	if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) {
+		return '/';
+	}
+	return value;
+}
+
 let configPromise: Promise<client.Configuration> | undefined;
 export function getOidcConfig(): Promise<client.Configuration> {
 	configPromise ??= (async () => {

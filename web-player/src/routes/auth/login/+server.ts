@@ -3,6 +3,7 @@ import * as client from 'openid-client';
 import type { RequestHandler } from './$types';
 import {
 	getOidcConfig,
+	safeReturnTo,
 	STATE_COOKIE,
 	VERIFIER_COOKIE,
 	NONCE_COOKIE,
@@ -19,7 +20,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const nonce = client.randomNonce();
 
 	const register = url.searchParams.get('mode') === 'register';
-	const returnTo = url.searchParams.get('returnTo') ?? '/';
+	const returnTo = safeReturnTo(url.searchParams.get('returnTo'));
 
 	const parameters: Record<string, string> = {
 		redirect_uri: authConfig.redirectUri,

@@ -1,4 +1,5 @@
 export const EXPLORE_PAGE_SIZE = 27;
+export const MAX_PAGE_SIZE = 100;
 export const SEARCH_DEBOUNCE_MS = 450;
 export const SEARCH_MIN_LENGTH = 2;
 export const INFINITE_SCROLL_ROOT_MARGIN = '300px';
