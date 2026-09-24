@@ -11,9 +11,10 @@
 	interface Props {
 		tracks: LibraryTrack[];
 		memberIds: string[];
+		onchange?: () => void;
 	}
 
-	let { tracks, memberIds }: Props = $props();
+	let { tracks, memberIds, onchange }: Props = $props();
 
 	const [send, receive] = transferBetweenLists();
 
@@ -28,10 +29,12 @@
 
 	function add(track: LibraryTrack) {
 		currentIds = [...currentIds, track.id];
+		onchange?.();
 	}
 
 	function remove(track: LibraryTrack) {
 		currentIds = currentIds.filter((id) => id !== track.id);
+		onchange?.();
 	}
 </script>
 

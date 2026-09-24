@@ -30,6 +30,10 @@ export function createPagedList<T>(
 			loading = false;
 			error = false;
 		},
+		merge(fresh: T[]) {
+			const byKey = new Map(fresh.map((item) => [keyOf(item), item]));
+			items = items.map((item) => byKey.get(keyOf(item)) ?? item);
+		},
 		async loadMore() {
 			if (loading) return;
 			loading = true;

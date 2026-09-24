@@ -1,13 +1,16 @@
 <script lang="ts" module>
 	const FADE = { duration: 200 };
 	const SEARCH_DEBOUNCE_MS = 300;
+	const REFRESH_MIN_MS = 3000;
+	const REFRESH_MAX_MS = 30000;
 </script>
 
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { tick, untrack } from 'svelte';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import { fade } from 'svelte/transition';
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Upload from '@lucide/svelte/icons/upload';
 	import Music from '@lucide/svelte/icons/music';
 	import SearchX from '@lucide/svelte/icons/search-x';
@@ -62,14 +65,103 @@
 	let publishValue = $state('true');
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
+	let hiddenIds = $state<string[]>([]);
+	let overrides = $state<Record<string, boolean>>({});
+	let deleteError = $state('');
+	let announcement = $state('');
+	let lastKey = '';
+	let previousProcessing = untrack(() => counts.processing);
+
 	$effect(() => {
-		list.reset(tracks);
+		const key = `${query}|${filter}|${tracks.totalItemCount}`;
+		untrack(() => {
+			if (key !== lastKey) {
+				lastKey = key;
+				list.reset(tracks);
+			} else {
+				list.merge(tracks.items);
+			}
+		});
 		search = query;
-		const ids = new Set(list.items.map((track) => track.id));
-		selectedIds = selectedIds.filter((id) => ids.has(id));
 	});
 
-	const items = $derived(list.items);
+	const items = $derived(
+		list.items
+			.filter((track) => !hiddenIds.includes(track.id))
+			.map((track) =>
+				track.id in overrides ? { ...track, published: overrides[track.id] } : track
+			)
+	);
+
+	$effect(() => {
+		const ids = new Set(items.map((track) => track.id));
+		if (selectedIds.some((id) => !ids.has(id)))
+			selectedIds = selectedIds.filter((id) => ids.has(id));
+	});
+
+	const processing = $derived(
+		counts.processing > 0 ||
+			list.items.some((track) => track.status === 'Pending' || track.status === 'Processing')
+	);
+
+	$effect(() => {
+		if (!processing) return;
+		let delay = REFRESH_MIN_MS;
+		let stopped = false;
+		let handle: ReturnType<typeof setTimeout>;
+		const refresh = async () => {
+			if (document.visibilityState === 'visible') await invalidateAll();
+			delay = Math.min(delay * 1.5, REFRESH_MAX_MS);
+			if (!stopped) handle = setTimeout(refresh, delay);
+		};
+		handle = setTimeout(refresh, delay);
+		return () => {
+			stopped = true;
+			clearTimeout(handle);
+		};
+	});
+
+	$effect(() => {
+		const now = counts.processing;
+		if (now < previousProcessing) {
+			announcement = `${plural(previousProcessing - now, 'canción terminó', 'canciones terminaron')} de procesarse.`;
+		}
+		previousProcessing = now;
+	});
+
+	const deleteSubmit: SubmitFunction = () => {
+		const ids = pendingDelete.map((track) => track.id);
+		hiddenIds = [...hiddenIds, ...ids];
+		deleteError = '';
+		return async ({ result, update }) => {
+			if (result.type === 'failure') {
+				hiddenIds = hiddenIds.filter((id) => !ids.includes(id));
+				deleteError =
+					(result.data as { message?: string } | undefined)?.message ??
+					'No se pudieron borrar las canciones.';
+				await invalidateAll();
+				return;
+			}
+			player.removeTracks(ids);
+			selectedIds = [];
+			pendingDelete = [];
+			await update({ reset: false });
+			hiddenIds = hiddenIds.filter((id) => !ids.includes(id));
+		};
+	};
+
+	const publishSubmit: SubmitFunction = ({ formData }) => {
+		const ids = String(formData.get('trackIds') ?? '').split(',');
+		const value = formData.get('isPublished') === 'true';
+		overrides = { ...overrides, ...Object.fromEntries(ids.map((id) => [id, value])) };
+		return async ({ update }) => {
+			await update({ reset: false });
+			overrides = {};
+			selectedIds = [];
+			pendingUnpublish = [];
+		};
+	};
+
 	const hasFilters = $derived(query !== '' || filter !== 'all');
 	const counters = $derived(filterCounts(counts));
 	const filterOptions = $derived(
@@ -119,6 +211,8 @@
 	}
 </script>
 
+<p class="sr-only" aria-live="polite">{announcement}</p>
+
 {#if errorMessage}
 	<Alert tone="danger" class="mt-4">{errorMessage}</Alert>
 {:else if notice}
@@ -130,11 +224,7 @@
 	method="POST"
 	action="?/setPublished"
 	class="hidden"
-	use:enhance={() =>
-		async ({ update }) => {
-			await update({ reset: false });
-			selectedIds = [];
-		}}
+	use:enhance={publishSubmit}
 >
 	<input type="hidden" name="trackIds" value={publishIds} />
 	<input type="hidden" name="isPublished" value={publishValue} />
@@ -218,11 +308,16 @@
 
 <ConfirmDialog
 	open={pendingDelete.length > 0}
-	onClose={() => (pendingDelete = [])}
+	onClose={() => {
+		pendingDelete = [];
+		deleteError = '';
+	}}
 	title="¿Borrar {pendingTitle(pendingDelete)}?"
 	description="Esta acción no se puede deshacer: se eliminarán de tu biblioteca, de tus álbumes y de las playlists donde estén."
 	confirmLabel="Borrar"
 	action="?/deleteTracks"
+	submit={deleteSubmit}
+	error={deleteError}
 	fields={{ trackIds: pendingDelete.map((track) => track.id).join(',') }}
 />
 
@@ -233,5 +328,6 @@
 	description="Dejarán de verse en álbumes, playlists, búsquedas y perfiles. Solo tú podrás verlas y reproducirlas."
 	confirmLabel="Despublicar"
 	action="?/setPublished"
+	submit={publishSubmit}
 	fields={{ trackIds: pendingUnpublish.map((track) => track.id).join(','), isPublished: 'false' }}
 />

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
+import {
+	append,
+	insertNext,
+	isLastIndex,
+	move,
+	nextIndex,
+	previousIndex,
+	removeTracks
+} from './queue';
 
 const t = (id: string) => ({ id });
 const ids = (queue: { id: string }[]) => queue.map((item) => item.id);
@@ -81,5 +89,24 @@ describe('isLastIndex', () => {
 	it('detects the end of the queue', () => {
 		expect(isLastIndex(3, 2)).toBe(true);
 		expect(isLastIndex(3, 1)).toBe(false);
+	});
+});
+
+describe('removeTracks', () => {
+	it('keeps the queue and current track when others are removed', () => {
+		const result = removeTracks(['a', 'b', 'c'].map(t), new Set(['a']), 1);
+		expect(ids(result.queue)).toEqual(['b', 'c']);
+		expect(result.currentRemoved).toBe(false);
+	});
+	it('points at the track that followed the removed current one', () => {
+		const result = removeTracks(['a', 'b', 'c', 'd'].map(t), new Set(['a', 'c']), 2);
+		expect(ids(result.queue)).toEqual(['b', 'd']);
+		expect(result.currentRemoved).toBe(true);
+		expect(result.nextIndex).toBe(1);
+	});
+	it('reports an empty queue when everything is removed', () => {
+		const result = removeTracks(['a'].map(t), new Set(['a']), 0);
+		expect(result.queue).toEqual([]);
+		expect(result.currentRemoved).toBe(true);
 	});
 });

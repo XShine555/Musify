@@ -25,6 +25,18 @@ export function append<T extends Identified>(queue: T[], items: T[]): T[] {
 	return added.length > 0 ? [...queue, ...added] : queue;
 }
 
+export function removeTracks<T extends Identified>(
+	queue: T[],
+	ids: ReadonlySet<string>,
+	currentIndex: number
+): { queue: T[]; currentRemoved: boolean; nextIndex: number } {
+	const remaining = queue.filter((item) => !ids.has(item.id));
+	const currentRemoved = currentIndex >= 0 && ids.has(queue[currentIndex]?.id ?? '');
+	const before =
+		currentIndex < 0 ? 0 : queue.slice(0, currentIndex).filter((i) => !ids.has(i.id)).length;
+	return { queue: remaining, currentRemoved, nextIndex: before };
+}
+
 export function move<T>(queue: T[], from: number, insertAt: number): T[] {
 	if (from < 0 || from >= queue.length) return queue;
 	const target = insertAt > from ? insertAt - 1 : insertAt;

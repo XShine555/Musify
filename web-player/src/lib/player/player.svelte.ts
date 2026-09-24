@@ -5,7 +5,15 @@ import { readStorage, writeStorage } from '$lib/utils/storage';
 import { ListenTracker } from './listenTracker';
 import { mediaSession } from './mediaSession';
 import { ProgressClock } from './progressClock';
-import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
+import {
+	append,
+	insertNext,
+	isLastIndex,
+	move,
+	nextIndex,
+	previousIndex,
+	removeTracks
+} from './queue';
 import { resolveStream } from './stream';
 
 const RECENT_LIMIT = 15;
@@ -279,6 +287,27 @@ class PlayerState {
 
 	moveQueueItem(from: number, insertAt: number) {
 		this.tracks = move(this.tracks, from, insertAt);
+	}
+
+	removeTracks(ids: string[]) {
+		const gone = new Set(ids);
+		if (!this.tracks.some((track) => gone.has(track.id))) return;
+		const result = removeTracks(this.tracks, gone, this.#index());
+		this.tracks = result.queue;
+		if (!result.currentRemoved) return;
+		const next = result.queue[result.nextIndex] ?? result.queue[0];
+		if (next) {
+			this.currentId = next.id;
+			this.#loadCurrent();
+			return;
+		}
+		this.#audio?.pause();
+		this.#loadToken++;
+		this.currentId = null;
+		this.playing = false;
+		this.loading = false;
+		this.progress = 0;
+		mediaSession.setPlaying(false);
 	}
 
 	clearUpcoming() {
