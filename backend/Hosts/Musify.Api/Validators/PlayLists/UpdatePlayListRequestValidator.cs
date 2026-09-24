@@ -9,16 +9,14 @@ namespace Musify.Api.Validators.PlayLists
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .MaximumLength(Limits.PlayListName)
-                .When(x => x.Name != null);
+                .MaximumLength(Limits.PlayListName);
 
             RuleFor(x => x.Description)
-                .MaximumLength(Limits.Description)
-                .When(x => x.Description != null);
+                .MaximumLength(Limits.Description);
 
             RuleFor(x => x.Visibility)
-                .IsInEnum()
-                .When(x => x.Visibility != null);
+                .NotNull()
+                .IsInEnum();
         }
     }
 }

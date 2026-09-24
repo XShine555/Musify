@@ -7,6 +7,7 @@ using Musify.Application.Contracts;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Shared;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists
 {
@@ -34,7 +35,7 @@ namespace Musify.Application.PlayLists
 
             var albumTrackIds = await database.AlbumHasTracks
                 .AsNoTracking()
-                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == Domain.ValueObjects.LifeCycleStatus.Active)
+                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == LifeCycleStatus.Active)
                 .OrderBy(albumTrack => albumTrack.TrackNumber)
                 .Select(albumTrack => albumTrack.TrackId)
                 .ToListAsync(cancellationToken);
@@ -54,8 +55,9 @@ namespace Musify.Application.PlayLists
                 return new AddAlbumToPlayListResponse(0);
 
             // Playlist positions are internal indexes, so they start at 0.
-            var nextPosition = (await playListTracksQuery
-                .MaxAsync(link => (int?)link.Position, cancellationToken) ?? -1) + 1;
+            var nextPosition = existingTrackIds.Count > 0
+               ? await playListTracksQuery.MaxAsync(link => link.Position, cancellationToken) + 1
+                : 0;
 
             foreach (var trackId in newTrackIds)
             {

@@ -11,11 +11,11 @@ namespace Musify.Application.Tests.Genres
             await new GetAvailableGenresQueryHandler().Handle(new GetAvailableGenresQuery(), TestContext.Current.CancellationToken);
 
         [Fact]
-        public async Task Handle_ReturnsEveryGenre()
+        public async Task Handle_ReturnsEveryGenreExceptNone()
         {
             var result = await RunAsync();
 
-            Assert.Equal(Enum.GetValues<Genre>(), result.Select(r => r.Genre));
+            Assert.Equal(Enum.GetValues<Genre>().Where(genre => genre != Genre.None), result.Select(r => r.Genre));
         }
 
         [Fact]

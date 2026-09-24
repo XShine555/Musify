@@ -96,7 +96,7 @@ namespace Musify.Api.Tests.Endpoints
             var playList = await CreatePlayListAsync(owner, PlayListVisibility.Public);
 
             var response = await fixture.CreateAuthenticatedClient(stranger).PutAsJsonAsync(
-                $"/playlists/{playList.Id}", new UpdatePlayListRequest("Hijacked", null, null), Ct);
+                $"/playlists/{playList.Id}", new UpdatePlayListRequest("Hijacked", null, PlayListVisibility.Public), Ct);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -120,11 +120,48 @@ namespace Musify.Api.Tests.Endpoints
             var playList = await CreatePlayListAsync(owner, PlayListVisibility.Private);
 
             var response = await fixture.CreateAuthenticatedClient(owner).PutAsJsonAsync(
-                $"/playlists/{playList.Id}", new UpdatePlayListRequest("Renamed", null, null), Ct);
+                $"/playlists/{playList.Id}", new UpdatePlayListRequest("Renamed", null, PlayListVisibility.Private), Ct);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var body = await response.Content.ReadFromJsonAsync<PlayListApplicationResponse>(JsonOptions, Ct);
             Assert.Equal("Renamed", body!.Name);
+        }
+
+        [Fact]
+        public async Task UpdatePlayList_MissingVisibility_ReturnsBadRequest()
+        {
+            var owner = await fixture.SeedUserAsync();
+            var playList = await CreatePlayListAsync(owner, PlayListVisibility.Public);
+
+            var response = await fixture.CreateAuthenticatedClient(owner).PutAsJsonAsync(
+                $"/playlists/{playList.Id}", new UpdatePlayListRequest("Renamed", null, null), Ct);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdatePlayListPicture_NotTheOwner_ReturnsForbidden()
+        {
+            var owner = await fixture.SeedUserAsync();
+            var stranger = await fixture.SeedUserAsync();
+            var playList = await CreatePlayListAsync(owner, PlayListVisibility.Public);
+
+            var response = await fixture.CreateAuthenticatedClient(stranger).PutAsJsonAsync(
+                $"/playlists/{playList.Id}/picture", new UpdatePlayListPictureRequest(Guid.NewGuid()), Ct);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdatePlayListPicture_EmptyIntent_ReturnsBadRequest()
+        {
+            var owner = await fixture.SeedUserAsync();
+            var playList = await CreatePlayListAsync(owner, PlayListVisibility.Public);
+
+            var response = await fixture.CreateAuthenticatedClient(owner).PutAsJsonAsync(
+                $"/playlists/{playList.Id}/picture", new UpdatePlayListPictureRequest(Guid.Empty), Ct);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]

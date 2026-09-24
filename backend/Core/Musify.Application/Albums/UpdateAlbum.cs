@@ -3,13 +3,8 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Albums.Responses;
-using Musify.Application.Configuration;
 using Musify.Application.Contracts;
-using Musify.Application.Events;
-using Musify.Application.Pictures;
-using Musify.Application.Services;
 using Musify.Application.Shared;
-using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums
 {
@@ -18,16 +13,12 @@ namespace Musify.Application.Albums
         Guid AlbumId,
         string Title,
         string? Description,
-        int? ReleaseYear,
-        Guid? NewPictureIntentId)
+        int? ReleaseYear)
         : ICommand<ErrorOr<AlbumApplicationResponse>>;
 
     public class UpdateAlbumCommandHandler(
-        IEventBus eventBus,
         IDatabase database,
-        UploadIntentValidator uploadIntentValidator,
-        ILogger<UpdateAlbumCommandHandler> logger,
-        AlbumConfiguration albumConfiguration)
+        ILogger<UpdateAlbumCommandHandler> logger)
         : ICommandHandler<UpdateAlbumCommand, ErrorOr<AlbumApplicationResponse>>
     {
         public async ValueTask<ErrorOr<AlbumApplicationResponse>> Handle(UpdateAlbumCommand request, CancellationToken cancellationToken)
@@ -39,26 +30,11 @@ namespace Musify.Application.Albums
             var album = found.Value;
             var title = request.Title.Trim();
 
+            // This is a full replace of the plain fields; the picture has its own command.
             album.Title = title;
             album.NormalizedTitle = TextNormalizer.Normalize(title);
-            album.Description = request.Description;
+            album.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
             album.ReleaseYear = request.ReleaseYear;
-
-            if (request.NewPictureIntentId is { } intentId)
-            {
-                var prepared = await PictureSourceChange.PrepareAsync(
-                    uploadIntentValidator, intentId, request.UserId, UploadIntentPurpose.AlbumPicture, albumConfiguration, cancellationToken);
-                if (prepared.IsError)
-                    return prepared.Errors;
-
-                var picture = prepared.Value;
-                album.Pictures = picture.Pictures;
-
-                await eventBus.PublishAsync(
-                    new UpdateAlbumPictureSourceEvent(
-                        album.Id, picture.Intent.Id, picture.Intent.Bucket, picture.Intent.Key, picture.FinalKey, picture.Sizes),
-                    cancellationToken);
-            }
 
             await database.SaveChangesAsync(cancellationToken);
 

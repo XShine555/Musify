@@ -112,6 +112,37 @@ namespace Musify.Api.Tests.Endpoints
         }
 
         [Fact]
+        public async Task UpdateAlbumPicture_NotTheOwner_ReturnsForbidden()
+        {
+            var owner = await CreateUserAsync();
+            var stranger = await CreateUserAsync();
+            var ownerClient = fixture.CreateAuthenticatedClient(owner);
+            var pictureIntentId = await CreatePictureIntentAsync(ownerClient);
+            var created = await (await ownerClient.PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null, pictureIntentId), TestContext.Current.CancellationToken))
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+
+            var response = await fixture.CreateAuthenticatedClient(stranger).PutAsJsonAsync(
+                $"/albums/{created!.Id}/picture", new UpdateAlbumPictureRequest(Guid.NewGuid()), TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdateAlbumPicture_EmptyIntent_ReturnsBadRequest()
+        {
+            var owner = await CreateUserAsync();
+            var ownerClient = fixture.CreateAuthenticatedClient(owner);
+            var pictureIntentId = await CreatePictureIntentAsync(ownerClient);
+            var created = await (await ownerClient.PostAsJsonAsync("/albums", new CreateAlbumRequest("Owned", null, null, pictureIntentId), TestContext.Current.CancellationToken))
+                .Content.ReadFromJsonAsync<AlbumApplicationResponse>(TestContext.Current.CancellationToken);
+
+            var response = await ownerClient.PutAsJsonAsync(
+                $"/albums/{created!.Id}/picture", new UpdateAlbumPictureRequest(Guid.Empty), TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
         public async Task DeleteAlbum_Owner_ReturnsNoContentAndAlbumIsGone()
         {
             var userId = await CreateUserAsync();

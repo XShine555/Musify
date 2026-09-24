@@ -68,6 +68,17 @@ namespace Musify.Api.Endpoints
                 .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status404NotFound);
 
+            group.MapPut("/{id:guid}/picture", UpdatePlayListPicture)
+                .WithName("UpdatePlayListPicture")
+                .WithSummary("Replace a playlist picture with an uploaded image")
+                .AddEndpointFilter<ValidationFilter<UpdatePlayListPictureRequest>>()
+                .RequireAuthorization()
+                .Produces<PlayListApplicationResponse>()
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status404NotFound);
+
             group.MapDelete("/{id:guid}", DeletePlayList)
                 .WithName("DeletePlayList")
                 .WithSummary("Delete a playlist")
@@ -185,7 +196,21 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(
-                new UpdatePlayListCommand(currentUser.RequiredId, id, request.Name, request.Description, request.PictureIntentId, request.Visibility),
+                new UpdatePlayListCommand(currentUser.RequiredId, id, request.Name, request.Description, request.Visibility!.Value),
+                cancellationToken);
+
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> UpdatePlayListPicture(
+            IMediator mediator,
+            CurrentUser currentUser,
+            Guid id,
+            UpdatePlayListPictureRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(
+                new UpdatePlayListPictureCommand(currentUser.RequiredId, id, request.PictureIntentId),
                 cancellationToken);
 
             return result.ToHttpResult();

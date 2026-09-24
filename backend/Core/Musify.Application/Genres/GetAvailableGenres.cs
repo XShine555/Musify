@@ -11,7 +11,7 @@ namespace Musify.Application.Genres
     {
         public ValueTask<IReadOnlyList<AvailableGenreResponse>> Handle(GetAvailableGenresQuery request, CancellationToken cancellationToken)
         {
-            var all = Enum.GetValues<Genre>();
+            var all = Enum.GetValues<Genre>().Where(genre => genre != Genre.None).ToArray();
 
             IReadOnlyList<AvailableGenreResponse> result = all
                 .Select(genre => new AvailableGenreResponse(

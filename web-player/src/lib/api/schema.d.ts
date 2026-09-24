@@ -75,6 +75,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/albums/{id}/picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace an album picture with an uploaded image */
+        put: operations["UpdateAlbumPicture"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/albums/{id}/tracks": {
         parameters: {
             query?: never;
@@ -277,6 +294,23 @@ export interface paths {
         post?: never;
         /** Delete a playlist */
         delete: operations["DeletePlayList"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists/{id}/picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace a playlist picture with an uploaded image */
+        put: operations["UpdatePlayListPicture"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -958,20 +992,24 @@ export interface components {
             /** Format: int32 */
             expiresInSeconds: number | string;
         };
+        UpdateAlbumPictureRequest: {
+            /** Format: uuid */
+            pictureIntentId: string;
+        };
         UpdateAlbumRequest: {
             title: string;
             description: null | string;
             /** Format: int32 */
             releaseYear: null | number | string;
+        };
+        UpdatePlayListPictureRequest: {
             /** Format: uuid */
-            pictureIntentId: null | string;
+            pictureIntentId: string;
         };
         UpdatePlayListRequest: {
-            name: null | string;
+            name: string;
             description: null | string;
-            /** Format: uuid */
-            pictureIntentId: null | string;
-            visibility?: null | components["schemas"]["PlayListVisibility"];
+            visibility: null | components["schemas"]["PlayListVisibility"];
         };
         UserApplicationResponse: {
             id: string;
@@ -1128,6 +1166,62 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateAlbumRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlbumApplicationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateAlbumPicture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAlbumPictureRequest"];
             };
         };
         responses: {
@@ -1717,6 +1811,62 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdatePlayListRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayListApplicationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdatePlayListPicture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePlayListPictureRequest"];
             };
         };
         responses: {

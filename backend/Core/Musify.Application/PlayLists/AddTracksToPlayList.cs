@@ -47,9 +47,12 @@ namespace Musify.Application.PlayLists
                 return Result.Success;
 
             // Playlist positions are internal indexes, so they start at 0.
-            var nextPosition = (await database.PlayListHasTracks
-                .Where(link => link.PlayListId == request.PlayListId)
-                .MaxAsync(link => (int?)link.Position, cancellationToken) ?? -1) + 1;
+            var playListTracksQuery = database.PlayListHasTracks
+                .Where(link => link.PlayListId == request.PlayListId);
+
+            var nextPosition = await playListTracksQuery.AnyAsync(cancellationToken)
+               ? await playListTracksQuery.MaxAsync(link => link.Position, cancellationToken) + 1
+                : 0;
 
             foreach (var trackId in toAdd)
             {

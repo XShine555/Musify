@@ -63,7 +63,7 @@ namespace Musify.Api.Tests.Endpoints
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var body = await response.Content.ReadFromJsonAsync<List<AvailableGenreResponse>>(JsonOptions, TestContext.Current.CancellationToken);
-            Assert.Equal(Enum.GetValues<Genre>().Length, body!.Count);
+            Assert.Equal(Enum.GetValues<Genre>().Count(genre => genre != Genre.None), body!.Count);
             Assert.Contains(Genre.Lofi, body.Single(g => g.Genre == Genre.Metal).IncompatibleWith);
         }
 

@@ -90,7 +90,6 @@ namespace Musify.Application.Tracks
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
 
-
             var sizes = trackConfiguration.PicturesSizes.ToImageSizes(trackConfiguration.Routes);
             await eventBus.PublishAsync(
                 new CreateTrackResourcesEvent(

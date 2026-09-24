@@ -71,21 +71,34 @@ export const actions: Actions = {
 		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
-		const cover = await uploadOptionalCover(api, '/albums/upload-picture', formFile(form, 'cover'));
-		if ('failMessage' in cover) {
-			return fail(502, { message: cover.failMessage, detail: cover.detail });
-		}
-
 		const result = await api.PUT('/albums/{id}', {
 			params: { path: { id: params.id } },
 			body: {
 				title: parsed.body.title,
 				description: parsed.body.description,
-				releaseYear: parsed.body.releaseYear,
-				pictureIntentId: cover.intentId
+				releaseYear: parsed.body.releaseYear
 			}
 		});
-		return failOnError(result, 'No se pudo actualizar el álbum.') ?? { edited: true };
+		const failure = failOnError(result, 'No se pudo actualizar el álbum.');
+		if (failure) return failure;
+
+		const coverFile = formFile(form, 'cover');
+		if (coverFile) {
+			const cover = await uploadOptionalCover(api, '/albums/upload-picture', coverFile);
+			if ('failMessage' in cover) {
+				return fail(502, { message: cover.failMessage, detail: cover.detail });
+			}
+			if (cover.intentId) {
+				const pictureResult = await api.PUT('/albums/{id}/picture', {
+					params: { path: { id: params.id } },
+					body: { pictureIntentId: cover.intentId }
+				});
+				const pictureFailure = failOnError(pictureResult, 'No se pudo actualizar la portada.');
+				if (pictureFailure) return pictureFailure;
+			}
+		}
+
+		return { edited: true };
 	}),
 
 	delete: authedAction(async ({ api, params }) => {

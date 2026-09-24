@@ -23,6 +23,11 @@ namespace Musify.Api.Validators.Tracks
                 .WithMessage("At least one tag is required.");
 
             RuleFor(x => x.Tags)
+                .Must(tags => !tags.Contains(Genre.None))
+                .When(x => x.Tags is { Count: > 0 })
+                .WithMessage("'None' is not a valid tag.");
+
+            RuleFor(x => x.Tags)
                 .Must(tags => GenreCompatibility.FindConflicts(tags).Count == 0)
                 .When(x => x.Tags is { Count: > 0 })
                 .WithMessage(x =>

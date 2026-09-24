@@ -21,7 +21,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "genre", new[] { "ambient", "blues", "classical", "country", "drum_and_bass", "dubstep", "electronic", "folk", "funk", "hip_hop", "house", "indie", "jazz", "k_pop", "latin", "lofi", "metal", "pop", "punk", "reggae", "reggaeton", "rn_b", "rock", "soul", "techno", "trance" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "genre", new[] { "ambient", "blues", "classical", "country", "drum_and_bass", "dubstep", "electronic", "folk", "funk", "hip_hop", "house", "indie", "jazz", "k_pop", "latin", "lofi", "metal", "none", "pop", "punk", "reggae", "reggaeton", "rn_b", "rock", "soul", "techno", "trance" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>

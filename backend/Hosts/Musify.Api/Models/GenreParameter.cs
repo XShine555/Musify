@@ -7,7 +7,7 @@ namespace Musify.Api.Models
     {
         public static bool TryParse(string? value, out GenreParameter result)
         {
-            if (Enum.TryParse<Genre>(value, ignoreCase: true, out var genre) && Enum.IsDefined(genre))
+            if (Enum.TryParse<Genre>(value, ignoreCase: true, out var genre) && genre != Genre.None && Enum.IsDefined(genre))
             {
                 result = new GenreParameter(genre);
                 return true;

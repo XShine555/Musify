@@ -39,10 +39,10 @@ namespace Musify.Application.PlayLists
                 return AppErrors.NotFound("User", request.UserId);
 
             PreparedPicture? picture = null;
-            if (request.PictureIntentId is { } intentId)
+            if (request.PictureIntentId.HasValue)
             {
                 var prepared = await PictureSourceChange.PrepareAsync(
-                    uploadIntentValidator, intentId, request.UserId, UploadIntentPurpose.PlayListPicture, playListConfiguration, cancellationToken);
+                    uploadIntentValidator, request.PictureIntentId.Value, request.UserId, UploadIntentPurpose.PlayListPicture, playListConfiguration, cancellationToken);
                 if (prepared.IsError)
                     return prepared.Errors;
 

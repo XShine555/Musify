@@ -52,21 +52,29 @@ export const actions: Actions = {
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 		const { name, description, visibility, cover } = parsed.body;
 
-		const uploaded = await uploadOptionalCover(api, '/playlists/upload-picture', cover);
-		if ('failMessage' in uploaded) {
-			return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
-		}
-
 		const result = await api.PUT('/playlists/{id}', {
 			params: { path: { id: params.id } },
-			body: {
-				name,
-				description,
-				pictureIntentId: uploaded.intentId,
-				visibility
-			}
+			body: { name, description, visibility }
 		});
-		return failOnError(result, 'No se pudo actualizar la playlist.') ?? { edited: true };
+		const failure = failOnError(result, 'No se pudo actualizar la playlist.');
+		if (failure) return failure;
+
+		if (cover) {
+			const uploaded = await uploadOptionalCover(api, '/playlists/upload-picture', cover);
+			if ('failMessage' in uploaded) {
+				return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
+			}
+			if (uploaded.intentId) {
+				const pictureResult = await api.PUT('/playlists/{id}/picture', {
+					params: { path: { id: params.id } },
+					body: { pictureIntentId: uploaded.intentId }
+				});
+				const pictureFailure = failOnError(pictureResult, 'No se pudo actualizar la portada.');
+				if (pictureFailure) return pictureFailure;
+			}
+		}
+
+		return { edited: true };
 	}),
 
 	delete: authedAction(async ({ api, params }) => {
