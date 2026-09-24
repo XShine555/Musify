@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities.Files;
 
 internal class TransferFilesToBucketActivity(
-    IStorageService storageHandler,
+    IStorageService storageService,
     ILogger<TransferFilesToBucketActivity> logger)
     : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
 {
@@ -16,13 +16,13 @@ internal class TransferFilesToBucketActivity(
     public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
     {
         var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariable);
-        ArgumentNullException.ThrowIfNull(folderPath, nameof(folderPath));
+        ArgumentNullException.ThrowIfNull(folderPath);
         var destinationKey = executeContext.Arguments.DestinationKey;
-        ArgumentNullException.ThrowIfNull(destinationKey, nameof(destinationKey));
+        ArgumentNullException.ThrowIfNull(destinationKey);
 
         try
         {
-            var uploadedKeys = await storageHandler.TransferFilesAsync(
+            var uploadedKeys = await storageService.TransferFilesAsync(
                 folderPath,
                 executeContext.Arguments.DestinationBucket,
                 destinationKey,
@@ -47,7 +47,7 @@ internal class TransferFilesToBucketActivity(
         {
             foreach (var uploadedKey in compensateContext.Log.UploadedKeys)
             {
-                await storageHandler.RemoveFileAsync(
+                await storageService.RemoveFileAsync(
                     compensateContext.Log.DestinationBucket,
                     uploadedKey,
                     compensateContext.CancellationToken);

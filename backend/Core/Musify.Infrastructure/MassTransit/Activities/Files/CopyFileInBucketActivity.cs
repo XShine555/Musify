@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities.Files;
 
 internal class CopyFileInBucketActivity(
-    IStorageService storageHandler,
+    IStorageService storageService,
     ILogger<CopyFileInBucketActivity> logger)
     : IActivity<CopyFileInBucketArguments, CopyFileInBucketLog>
 {
@@ -17,7 +17,7 @@ internal class CopyFileInBucketActivity(
     {
         try
         {
-            await storageHandler.CopyFileAsync(
+            await storageService.CopyFileAsync(
                 executeContext.Arguments.SourceBucket,
                 executeContext.Arguments.SourceKey,
                 executeContext.Arguments.DestinationBucket,
@@ -43,7 +43,7 @@ internal class CopyFileInBucketActivity(
     {
         try
         {
-            await storageHandler.RemoveFileAsync(
+            await storageService.RemoveFileAsync(
                 compensateContext.Log.DestinationBucket,
                 compensateContext.Log.DestinationKey,
                 compensateContext.CancellationToken);

@@ -1,3 +1,3 @@
 namespace Musify.Infrastructure.MassTransit.Arguments;
 
-public record MarkAlbumAsFailedArguments(Guid AlbumId);
+internal record DeleteEntityArguments(Guid Id);

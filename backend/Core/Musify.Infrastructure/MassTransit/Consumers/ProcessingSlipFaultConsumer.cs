@@ -1,6 +1,7 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
+using Musify.Infrastructure.MassTransit.RoutingSlip;
 
 namespace Musify.Infrastructure.MassTransit.Consumers;
 

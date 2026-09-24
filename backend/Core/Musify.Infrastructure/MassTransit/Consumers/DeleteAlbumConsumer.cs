@@ -4,21 +4,15 @@ using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
 namespace Musify.Infrastructure.MassTransit.Consumers;
 
-public class DeleteAlbumConsumer(
-    IBus bus,
-    DeleteAlbumRoutingSlipBuilder routingSlipBuilder)
+public class DeleteAlbumConsumer(IBus bus, DeleteRoutingSlipBuilder routingSlipBuilder)
     : IConsumer<DeleteAlbumEvent>
 {
-    public async Task Consume(ConsumeContext<DeleteAlbumEvent> consumeContext)
+    public async Task Consume(ConsumeContext<DeleteAlbumEvent> context)
     {
-        var routingSlip = (await routingSlipBuilder
-                .BuildAsync(
-                    consumeContext.Message.AlbumId,
-                    consumeContext.Message.UserId,
-                    consumeContext.CorrelationId,
-                    consumeContext.CancellationToken))
-            .Build();
+        var message = context.Message;
+        var routingSlip = await routingSlipBuilder.BuildAlbumAsync(
+            message.AlbumId, message.UserId, context.CorrelationId, context.CancellationToken);
 
-        await bus.Execute(routingSlip);
+        await bus.Execute(routingSlip.Build());
     }
 }

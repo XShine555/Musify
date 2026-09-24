@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities.Files;
 
 internal class DownloadFileFromBucketActivity(
-    IStorageService storageHandler,
+    IStorageService storageService,
     ILogger<DownloadFileFromBucketActivity> logger)
     : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
 {
@@ -16,11 +16,11 @@ internal class DownloadFileFromBucketActivity(
     public async Task<ExecutionResult> Execute(ExecuteContext<DownloadFileFromBucketArguments> executeContext)
     {
         var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
-        ArgumentNullException.ThrowIfNull(destinationPath, nameof(destinationPath));
+        ArgumentNullException.ThrowIfNull(destinationPath);
 
         try
         {
-            using var fileStream = await storageHandler.GetFileAsync(
+            using var fileStream = await storageService.GetFileAsync(
                 executeContext.Arguments.Bucket,
                 executeContext.Arguments.Key,
                 executeContext.CancellationToken)

@@ -1,6 +1,7 @@
 using MassTransit;
 using MassTransit.Courier.Contracts;
 using Microsoft.Extensions.Logging;
+using Musify.Infrastructure.MassTransit.RoutingSlip;
 
 namespace Musify.Infrastructure.MassTransit.Consumers;
 
@@ -32,14 +33,9 @@ public class RoutingSlipCleanUpConsumer(
             Directory.Delete(pathString, recursive: true);
             logger.LogInformation("Deleted temporal directory at path {Path}", pathString);
         }
-        catch (DirectoryNotFoundException directoryNotFoundException)
+        catch (DirectoryNotFoundException)
         {
-            logger.LogWarning(directoryNotFoundException, "Temporal directory at path {Path} was not found for deletion", pathString);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to delete temporal directory at path {Path}", pathString);
-            throw;
+            logger.LogWarning("Temporal directory at path {Path} was not found for deletion", pathString);
         }
 
         return Task.CompletedTask;

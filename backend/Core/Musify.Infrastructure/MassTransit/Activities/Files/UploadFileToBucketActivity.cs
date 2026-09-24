@@ -6,7 +6,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Files;
 
-internal class UploadFileToBucketActivity(IStorageService storageHandler,
+internal class UploadFileToBucketActivity(IStorageService storageService,
     ILogger<UploadFileToBucketActivity> logger)
     : IActivity<UploadFileToBucketArguments, UploadFileToBucketLog>
 {
@@ -15,7 +15,7 @@ internal class UploadFileToBucketActivity(IStorageService storageHandler,
     public async Task<ExecutionResult> Execute(ExecuteContext<UploadFileToBucketArguments> executeContext)
     {
         var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariable);
-        ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
+        ArgumentNullException.ThrowIfNull(sourceFilePath);
         var fileName = Path.GetFileName(sourceFilePath);
         var destinationKey = string.Join('/', new[] { executeContext.Arguments.DestinationRoute, fileName }
             .Where(static s => !string.IsNullOrWhiteSpace(s))
@@ -23,7 +23,7 @@ internal class UploadFileToBucketActivity(IStorageService storageHandler,
 
         try
         {
-            await storageHandler.UploadFileAsync(
+            await storageService.UploadFileAsync(
                 sourceFilePath,
                 executeContext.Arguments.DestinationBucket,
                 destinationKey,
@@ -43,7 +43,7 @@ internal class UploadFileToBucketActivity(IStorageService storageHandler,
     {
         try
         {
-            await storageHandler.RemoveFileAsync(
+            await storageService.RemoveFileAsync(
                 compensateContext.Log.DestinationBucket,
                 compensateContext.Log.DestinationKey,
                 compensateContext.CancellationToken);

@@ -1,176 +1,86 @@
 using MassTransit;
-using MassTransit.Courier.Contracts;
 using Musify.Application.Events;
 using Musify.Application.Shared;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Activities.Files;
 using Musify.Infrastructure.MassTransit.Activities.Pictures;
 using Musify.Infrastructure.MassTransit.Arguments;
-using Musify.Infrastructure.MassTransit.Consumers;
 
 namespace Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
+/// <summary>Downloads a picture, resizes it to the three sizes, uploads them and records the result on the owner.</summary>
 public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfiguration)
 {
-    public RoutingSlipBuilder Build(UpdateTrackPictureEvent message, Guid? correlationId)
-    {
-        var routingSlipBuilder = BuildPictureWorkflow(
-            message.Bucket,
-            message.SourceKey,
-            message.Sizes,
-            correlationId);
+    public RoutingSlipBuilder Build(UpdateTrackPictureEvent message, Guid? correlationId) =>
+        BuildPictureWorkflow(
+            message.TrackId, message.Bucket, message.SourceKey, message.Sizes, correlationId,
+            ActivityNames.UpdateTrackPicture, UpdateTrackPictureActivity.ExecuteEndpointName,
+            RoutingSlipVariableNames.ProcessKinds.TrackPicture);
 
-        routingSlipBuilder.AddActivity(
-            ActivityNames.UpdateTrackPicture,
-            EndpointHelper.BuildExecuteActivityUri(UpdateTrackPictureActivity.ExecuteEndpointName),
-            new UpdateTrackPictureArguments(
-                message.TrackId,
-                message.SourceKey,
-                RoutingSlipVariableNames.Picture.SmallResizedFilePath,
-                RoutingSlipVariableNames.Picture.MediumResizedFilePath,
-                RoutingSlipVariableNames.Picture.LargeResizedFilePath));
+    public RoutingSlipBuilder Build(UpdatePlayListPictureEvent message, Guid? correlationId) =>
+        BuildPictureWorkflow(
+            message.PlayListId, message.Bucket, message.SourceKey, message.Sizes, correlationId,
+            ActivityNames.UpdatePlayListPicture, UpdatePlayListPictureActivity.ExecuteEndpointName,
+            RoutingSlipVariableNames.ProcessKinds.PlayListPicture);
 
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.TrackId);
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackPicture);
-        routingSlipBuilder.AddSubscription(
-            EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
-            RoutingSlipEvents.Faulted);
-
-        return routingSlipBuilder;
-    }
-
-    public RoutingSlipBuilder Build(UpdatePlayListPictureEvent message, Guid? correlationId)
-    {
-        var routingSlipBuilder = BuildPictureWorkflow(
-            message.Bucket,
-            message.SourceKey,
-            message.Sizes,
-            correlationId);
-
-        routingSlipBuilder.AddActivity(
-            ActivityNames.UpdatePlayListPicture,
-            EndpointHelper.BuildExecuteActivityUri(UpdatePlayListPictureActivity.ExecuteEndpointName),
-            new UpdatePlayListPictureArguments(
-                message.PlayListId,
-                message.SourceKey,
-                RoutingSlipVariableNames.Picture.SmallResizedFilePath,
-                RoutingSlipVariableNames.Picture.MediumResizedFilePath,
-                RoutingSlipVariableNames.Picture.LargeResizedFilePath));
-
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.PlayListId);
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.PlayListPicture);
-        routingSlipBuilder.AddSubscription(
-            EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
-            RoutingSlipEvents.Faulted);
-
-        return routingSlipBuilder;
-    }
-
-    public RoutingSlipBuilder Build(UpdateAlbumPictureEvent message, Guid? correlationId)
-    {
-        var routingSlipBuilder = BuildPictureWorkflow(
-            message.Bucket,
-            message.SourceKey,
-            message.Sizes,
-            correlationId);
-
-        routingSlipBuilder.AddActivity(
-            ActivityNames.UpdateAlbumPicture,
-            EndpointHelper.BuildExecuteActivityUri(UpdateAlbumPictureActivity.ExecuteEndpointName),
-            new UpdateAlbumPictureArguments(
-                message.AlbumId,
-                message.SourceKey,
-                RoutingSlipVariableNames.Picture.SmallResizedFilePath,
-                RoutingSlipVariableNames.Picture.MediumResizedFilePath,
-                RoutingSlipVariableNames.Picture.LargeResizedFilePath));
-
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.AlbumId);
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.AlbumPicture);
-        routingSlipBuilder.AddSubscription(
-            EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
-            RoutingSlipEvents.Faulted);
-
-        return routingSlipBuilder;
-    }
+    public RoutingSlipBuilder Build(UpdateAlbumPictureEvent message, Guid? correlationId) =>
+        BuildPictureWorkflow(
+            message.AlbumId, message.Bucket, message.SourceKey, message.Sizes, correlationId,
+            ActivityNames.UpdateAlbumPicture, UpdateAlbumPictureActivity.ExecuteEndpointName,
+            RoutingSlipVariableNames.ProcessKinds.AlbumPicture);
 
     private RoutingSlipBuilder BuildPictureWorkflow(
+        Guid subjectId,
         string bucket,
         string sourceKey,
         ImageSizes sizes,
-        Guid? correlationId)
+        Guid? correlationId,
+        string updateStepName,
+        string updateEndpointName,
+        string processKind)
     {
-        var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
-        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
+        var builder = RoutingSlips.Create(correlationId)
+            .AddStep(
+                ActivityNames.GeneratePictureWorkflowPaths,
+                GeneratePictureWorkflowPathsActivity.ExecuteEndpointName,
+                new GeneratePictureWorkflowPathsArguments(workerConfiguration.Routes.TemporaryFilesDirectory, sourceKey))
+            .AddStep(
+                ActivityNames.DownloadFile,
+                DownloadFileFromBucketActivity.ExecuteEndpointName,
+                new DownloadFileFromBucketArguments(bucket, sourceKey, RoutingSlipVariableNames.Picture.OriginalFilePath));
 
-        routingSlipBuilder.AddSubscription(
-            EndpointHelper.BuildConsumerUri(RoutingSlipCleanUpConsumer.QueueName),
-            RoutingSlipEvents.Completed | RoutingSlipEvents.Faulted);
+        AddResize(builder, ActivityNames.ResizeSmall, ActivityNames.UploadSmall, bucket, RoutingSlipVariableNames.Picture.SmallResizedFilePath, sizes.Small);
+        AddResize(builder, ActivityNames.ResizeMedium, ActivityNames.UploadMedium, bucket, RoutingSlipVariableNames.Picture.MediumResizedFilePath, sizes.Medium);
+        AddResize(builder, ActivityNames.ResizeLarge, ActivityNames.UploadLarge, bucket, RoutingSlipVariableNames.Picture.LargeResizedFilePath, sizes.Large);
 
-        routingSlipBuilder.AddActivity(
-            ActivityNames.GeneratePictureWorkflowPaths,
-            EndpointHelper.BuildExecuteActivityUri(GeneratePictureWorkflowPathsActivity.ExecuteEndpointName),
-            new GeneratePictureWorkflowPathsArguments(
-                workerConfiguration.Routes.TemporaryFilesDirectory,
-                sourceKey));
-
-        routingSlipBuilder.AddActivity(
-            ActivityNames.DownloadFile,
-            EndpointHelper.BuildExecuteActivityUri(DownloadFileFromBucketActivity.ExecuteEndpointName),
-            new DownloadFileFromBucketArguments(
-                bucket,
-                sourceKey,
-                RoutingSlipVariableNames.Picture.OriginalFilePath));
-
-        AddResizeActivity(
-            routingSlipBuilder,
-            ActivityNames.ResizeSmall,
-            ActivityNames.UploadSmall,
-            bucket,
-            RoutingSlipVariableNames.Picture.SmallResizedFilePath,
-            sizes.Small);
-
-        AddResizeActivity(
-            routingSlipBuilder,
-            ActivityNames.ResizeMedium,
-            ActivityNames.UploadMedium,
-            bucket,
-            RoutingSlipVariableNames.Picture.MediumResizedFilePath,
-            sizes.Medium);
-
-        AddResizeActivity(
-            routingSlipBuilder,
-            ActivityNames.ResizeLarge,
-            ActivityNames.UploadLarge,
-            bucket,
-            RoutingSlipVariableNames.Picture.LargeResizedFilePath,
-            sizes.Large);
-
-        return routingSlipBuilder;
+        return builder
+            .AddStep(
+                updateStepName,
+                updateEndpointName,
+                new UpdatePicturesArguments(
+                    subjectId,
+                    sourceKey,
+                    RoutingSlipVariableNames.Picture.SmallResizedFilePath,
+                    RoutingSlipVariableNames.Picture.MediumResizedFilePath,
+                    RoutingSlipVariableNames.Picture.LargeResizedFilePath))
+            .TrackFaults(subjectId, processKind);
     }
 
-    private static void AddResizeActivity(
-        RoutingSlipBuilder routingSlipBuilder,
-        string resizeActivityName,
-        string uploadActivityName,
-        string bucketName,
-        string destinationFilePathVariableName,
-        ImageSize imageSize)
-    {
-        routingSlipBuilder.AddActivity(
-            resizeActivityName,
-            EndpointHelper.BuildExecuteActivityUri(ResizePictureActivity.ExecuteEndpointName),
-            new ResizePictureLocalArguments(
-                RoutingSlipVariableNames.Picture.OriginalFilePath,
-                destinationFilePathVariableName,
-                imageSize.Width,
-                imageSize.Height));
-
-        routingSlipBuilder.AddActivity(
-            uploadActivityName,
-            EndpointHelper.BuildExecuteActivityUri(UploadFileToBucketActivity.ExecuteEndpointName),
-            new UploadFileToBucketArguments(
-                destinationFilePathVariableName,
-                bucketName,
-                imageSize.SavePath));
-    }
+    private static void AddResize(
+        RoutingSlipBuilder builder,
+        string resizeStepName,
+        string uploadStepName,
+        string bucket,
+        string resizedFileVariable,
+        ImageSize size) =>
+        builder
+            .AddStep(
+                resizeStepName,
+                ResizePictureActivity.ExecuteEndpointName,
+                new ResizePictureLocalArguments(
+                    RoutingSlipVariableNames.Picture.OriginalFilePath, resizedFileVariable, size.Width, size.Height))
+            .AddStep(
+                uploadStepName,
+                UploadFileToBucketActivity.ExecuteEndpointName,
+                new UploadFileToBucketArguments(resizedFileVariable, bucket, size.SavePath));
 }

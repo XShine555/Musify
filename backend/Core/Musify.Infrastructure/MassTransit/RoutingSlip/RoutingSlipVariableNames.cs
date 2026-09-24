@@ -1,4 +1,4 @@
-namespace Musify.Infrastructure.MassTransit;
+namespace Musify.Infrastructure.MassTransit.RoutingSlip;
 
 internal static class RoutingSlipVariableNames
 {

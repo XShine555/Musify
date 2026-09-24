@@ -1,10 +1,9 @@
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
-using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
+using Musify.Infrastructure.MassTransit.RoutingSlip;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Audio;
 
@@ -17,26 +16,15 @@ internal class GenerateAudioWorkflowPathsActivity(
 
     public async Task<ExecutionResult> Execute(ExecuteContext<GenerateAudioWorkflowPathsArguments> executeContext)
     {
-        Track track;
-        try
-        {
-            var getTrack = await database.Tracks.SingleOrDefaultAsync(p => p.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
-            track = getTrack ?? throw new InvalidOperationException($"Track with id {executeContext.Arguments.TrackId} not found.");
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to retrieve track for TrackId {TrackId}",
-                executeContext.Arguments.TrackId);
-            throw;
-        }
+        var arguments = executeContext.Arguments;
+        var track = await TrackAudioStatus.LoadAsync(database, arguments.TrackId, executeContext.CancellationToken);
 
         try
         {
             track.Audio.TranscodeStatus = ProcessingStatus.Processing;
-            var folderName = Guid.NewGuid().ToString();
-            var sourceFileName = Path.GetFileName(executeContext.Arguments.SourceKey);
-            var workingDirectory = Path.Combine(executeContext.Arguments.TemporaryRootDirectory, folderName);
-            var sourceFilePath = Path.Combine(workingDirectory, sourceFileName);
+
+            var workingDirectory = Path.Combine(arguments.TemporaryRootDirectory, Guid.NewGuid().ToString());
+            var sourceFilePath = Path.Combine(workingDirectory, Path.GetFileName(arguments.SourceKey));
 
             Directory.CreateDirectory(workingDirectory);
             await database.SaveChangesAsync(executeContext.CancellationToken);
@@ -50,22 +38,9 @@ internal class GenerateAudioWorkflowPathsActivity(
                 [RoutingSlipVariableNames.Audio.TranscodedDirectory] = workingDirectory
             });
         }
-        catch (Exception exception)
+        catch
         {
-            logger.LogError(exception, "Failed to generate audio workflow paths for {SourceKey}",
-                executeContext.Arguments.SourceKey);
-
-            try
-            {
-                track.Audio.TranscodeStatus = ProcessingStatus.Failed;
-                await database.SaveChangesAsync(executeContext.CancellationToken);
-            }
-            catch (Exception dbException)
-            {
-                logger.LogError(dbException, "Failed to update ProcessingStatus to Failed for track {TrackId}",
-                    executeContext.Arguments.TrackId);
-            }
-
+            await TrackAudioStatus.MarkFailedAsync(database, arguments.TrackId, executeContext.CancellationToken);
             throw;
         }
     }

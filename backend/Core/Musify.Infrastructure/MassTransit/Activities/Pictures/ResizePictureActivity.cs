@@ -16,9 +16,9 @@ internal class ResizePictureActivity(
     public async Task<ExecutionResult> Execute(ExecuteContext<ResizePictureLocalArguments> executeContext)
     {
         var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariable);
-        ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
+        ArgumentNullException.ThrowIfNull(sourceFilePath);
         var destinationFilePath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
-        ArgumentNullException.ThrowIfNull(destinationFilePath, nameof(destinationFilePath));
+        ArgumentNullException.ThrowIfNull(destinationFilePath);
 
         try
         {

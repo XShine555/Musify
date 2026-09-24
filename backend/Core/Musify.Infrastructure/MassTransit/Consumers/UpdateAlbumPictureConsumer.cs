@@ -4,17 +4,9 @@ using Musify.Infrastructure.MassTransit.RoutingSlip.Builders;
 
 namespace Musify.Infrastructure.MassTransit.Consumers;
 
-public class UpdateAlbumPictureConsumer(
-    IBus bus,
-    PictureWorkflowRoutingSlipBuilder routingSlipBuilder)
+public class UpdateAlbumPictureConsumer(IBus bus, PictureWorkflowRoutingSlipBuilder routingSlipBuilder)
     : IConsumer<UpdateAlbumPictureEvent>
 {
-    public async Task Consume(ConsumeContext<UpdateAlbumPictureEvent> consumeContext)
-    {
-        var routingSlip = routingSlipBuilder
-            .Build(consumeContext.Message, consumeContext.CorrelationId)
-            .Build();
-
-        await bus.Execute(routingSlip);
-    }
+    public Task Consume(ConsumeContext<UpdateAlbumPictureEvent> context) =>
+        bus.Execute(routingSlipBuilder.Build(context.Message, context.CorrelationId).Build());
 }

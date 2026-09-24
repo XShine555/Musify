@@ -1,11 +1,9 @@
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
-using Musify.Domain.Entities;
-using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
+using Musify.Infrastructure.MassTransit.RoutingSlip;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Audio;
 
@@ -19,22 +17,13 @@ internal class TranscodeAudioActivity(
 
     public async Task<ExecutionResult> Execute(ExecuteContext<TranscodeAudioArguments> executeContext)
     {
-        var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.SourceFilePathVariable);
-        ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
-        var workingDirectory = executeContext.GetVariable<string>(executeContext.Arguments.WorkingDirectoryVariable);
-        ArgumentNullException.ThrowIfNull(workingDirectory, nameof(workingDirectory));
+        var arguments = executeContext.Arguments;
+        var sourceFilePath = executeContext.GetVariable<string>(arguments.SourceFilePathVariable);
+        ArgumentNullException.ThrowIfNull(sourceFilePath);
+        var workingDirectory = executeContext.GetVariable<string>(arguments.WorkingDirectoryVariable);
+        ArgumentNullException.ThrowIfNull(workingDirectory);
 
-        Track track;
-        try
-        {
-            var getTrack = await database.Tracks.SingleOrDefaultAsync(t => t.Id == executeContext.Arguments.TrackId, executeContext.CancellationToken);
-            track = getTrack ?? throw new InvalidOperationException($"Track with Id {executeContext.Arguments.TrackId} not found");
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to retrieve track with Id {TrackId} from database", executeContext.Arguments.TrackId);
-            throw;
-        }
+        await TrackAudioStatus.LoadAsync(database, arguments.TrackId, executeContext.CancellationToken);
 
         try
         {
@@ -42,9 +31,7 @@ internal class TranscodeAudioActivity(
             await using (var fileStream = File.OpenRead(sourceFilePath))
             {
                 transcodeResult = await audioTranscoder.TranscodeToAudioFileAsync(
-                    fileStream,
-                    workingDirectory,
-                    executeContext.CancellationToken);
+                    fileStream, workingDirectory, executeContext.CancellationToken);
             }
 
             if (transcodeResult.StatusCode != 0)
@@ -52,51 +39,27 @@ internal class TranscodeAudioActivity(
 
             File.Delete(sourceFilePath);
 
-            var log = new TranscodeAudioLog(workingDirectory);
-            return executeContext.CompletedWithVariables(log, new Dictionary<string, object>
+            return executeContext.CompletedWithVariables(new TranscodeAudioLog(workingDirectory), new Dictionary<string, object>
             {
                 [RoutingSlipVariableNames.Audio.DurationSeconds] = transcodeResult.Duration.TotalSeconds
             });
         }
-        catch (Exception exception)
+        catch
         {
-            logger.LogError(exception, "Failed to transcode {SourceFilePath}", sourceFilePath);
-
-            try
-            {
-                track.Audio.TranscodeStatus = ProcessingStatus.Failed;
-                await database.SaveChangesAsync(executeContext.CancellationToken);
-            }
-            catch (Exception dbException)
-            {
-                logger.LogError(dbException, "Failed to update ProcessingStatus to Failed for track {TrackId}",
-                    executeContext.Arguments.TrackId);
-            }
-
+            await TrackAudioStatus.MarkFailedAsync(database, arguments.TrackId, executeContext.CancellationToken);
             throw;
         }
     }
 
     public Task<CompensationResult> Compensate(CompensateContext<TranscodeAudioLog> compensateContext)
     {
-        try
-        {
-            if (Directory.Exists(compensateContext.Log.WorkingDirectory))
-            {
-                Directory.Delete(compensateContext.Log.WorkingDirectory, recursive: true);
-            }
-            else
-            {
-                logger.LogWarning("Working directory {WorkingDirectory} not found during compensation",
-                    compensateContext.Log.WorkingDirectory);
-            }
+        var workingDirectory = compensateContext.Log.WorkingDirectory;
 
-            return Task.FromResult(compensateContext.Compensated());
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to compensate transcoded audio directory {WorkingDirectory}", compensateContext.Log.WorkingDirectory);
-            return Task.FromResult(compensateContext.Failed(exception));
-        }
+        if (Directory.Exists(workingDirectory))
+            Directory.Delete(workingDirectory, recursive: true);
+        else
+            logger.LogWarning("Working directory {WorkingDirectory} not found during compensation", workingDirectory);
+
+        return Task.FromResult(compensateContext.Compensated());
     }
 }

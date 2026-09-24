@@ -8,7 +8,7 @@ using Musify.Infrastructure.MassTransit.Arguments;
 namespace Musify.Infrastructure.MassTransit.Activities.Files;
 
 internal class RemoveFileFromBucketActivity(
-    IStorageService storageHandler,
+    IStorageService storageService,
     ILogger<RemoveFileFromBucketActivity> logger)
     : IExecuteActivity<RemoveFileFromBucketArguments>
 {
@@ -18,7 +18,7 @@ internal class RemoveFileFromBucketActivity(
     {
         try
         {
-            await storageHandler.RemoveFileAsync(
+            await storageService.RemoveFileAsync(
                 executeContext.Arguments.Bucket,
                 executeContext.Arguments.Key,
                 executeContext.CancellationToken);
