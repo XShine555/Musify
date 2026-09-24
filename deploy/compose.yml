@@ -398,7 +398,10 @@ services:
       AUTH_POST_LOGOUT_URI: "${PUBLIC_WEB_URL}/"
       AUTH_ALLOW_INSECURE_HTTP: ${AUTH_ALLOW_INSECURE_HTTP}
       SESSION_SECRET: ${SESSION_SECRET}
-      API_BASE_URL: http://api:5111
+      # The container name, not the `api` service name: in prod every project
+      # shares infra-net, where a generic name can resolve to another
+      # project's container.
+      API_BASE_URL: http://musify-api:5111
       # Presigned PUTs are signed for the public S3 host; the container sends
       # them straight to SeaweedFS instead of going back out through the edge.
       S3_UPLOAD_ENDPOINT: ${S3_INTERNAL_URL}
