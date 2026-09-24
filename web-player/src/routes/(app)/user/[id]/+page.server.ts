@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { apiFor, optionalUser, unwrapOrError } from '$lib/server/api';
-import { toPlaylistSummary } from '$lib/server/mappers';
-import { COUNT_ONLY_PAGE_SIZE, PROFILE_PLAYLISTS_PAGE_SIZE } from '$lib/config';
+import { toPlaylist } from '$lib/server/mappers';
+import { PROFILE_PLAYLISTS_PAGE_SIZE } from '$lib/config';
 import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
@@ -20,24 +20,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	]);
 
 	const profile = unwrapOrError(profileRes, 'Usuario no encontrado.', 404);
-	const playlistItems = playlistsRes.data?.items ?? [];
-
-	const tracksByPlaylist = await Promise.all(
-		playlistItems.map((playlist) =>
-			api
-				.GET('/playlists/{playlistId}/tracks', {
-					params: {
-						path: { playlistId: playlist.id },
-						query: { pageNumber: 1, pageSize: COUNT_ONLY_PAGE_SIZE }
-					}
-				})
-				.then((res) => Number(res.data?.totalItemCount ?? 0))
-		)
-	);
-
-	const playlists = playlistItems.map((playlist, i) =>
-		toPlaylistSummary(playlist, tracksByPlaylist[i])
-	);
+	const playlists = (playlistsRes.data?.items ?? []).map(toPlaylist);
 
 	const isOwnProfile = viewer !== null && viewer.sub === params.id;
 

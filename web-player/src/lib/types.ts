@@ -38,12 +38,10 @@ export interface Playlist {
 	description: string | null;
 	visibility: 'Public' | 'Private';
 	ownerUserId: string;
+	trackCount: number;
+	durationSeconds: number;
 	coverTrackIds: string[];
 	updatedAt: string;
-}
-
-export interface PlaylistSummary extends Playlist {
-	trackCount: number;
 }
 
 export interface Mix {

@@ -1,15 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { components } from '$lib/api/schema';
-import {
-	toAlbum,
-	toDatedTrack,
-	toLikedTrack,
-	toMix,
-	toPage,
-	toPlaylist,
-	toPlaylistSummary,
-	toTrack
-} from './mappers';
+import { toAlbum, toDatedTrack, toLikedTrack, toMix, toPage, toPlaylist, toTrack } from './mappers';
 
 const trackDto: components['schemas']['TrackApplicationResponse'] = {
 	id: 't1',
@@ -107,23 +98,24 @@ describe('toPlaylist', () => {
 		largeImageKeyName: null,
 		ownerUserId: '42',
 		visibility: 'Public',
+		trackCount: '7',
+		durationSeconds: '90.5',
 		createdAt: '',
 		updatedAt: 'u',
 		coverTrackIds: []
 	};
-	it('drops storage keys', () => {
+	it('drops storage keys and normalizes totals', () => {
 		expect(toPlaylist(dto)).toEqual({
 			id: 'p1',
 			name: 'List',
 			description: 'd',
 			visibility: 'Public',
 			ownerUserId: '42',
+			trackCount: 7,
+			durationSeconds: 90.5,
 			coverTrackIds: [],
 			updatedAt: 'u'
 		});
-	});
-	it('adds the track count in summaries', () => {
-		expect(toPlaylistSummary(dto, 7).trackCount).toBe(7);
 	});
 });
 

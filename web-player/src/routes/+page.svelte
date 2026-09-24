@@ -155,7 +155,7 @@
 					{@const meta =
 						totalCount === 0
 							? visibilityLabel
-							: `${plural(totalCount, 'canción', 'canciones')} · ${visibilityLabel}`}
+							: `${plural(totalCount, 'canción', 'canciones')} · ${fmtDurationLong(spotlight.durationSeconds)} · ${visibilityLabel}`}
 					<div
 						class="grid spotlight-surface grid-cols-1 overflow-hidden rounded-panel-lg lg:grid-cols-2"
 					>

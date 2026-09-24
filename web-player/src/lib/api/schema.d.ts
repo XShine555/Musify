@@ -942,6 +942,10 @@ export interface components {
             largeImageKeyName: null | string;
             ownerUserId: string;
             visibility: components["schemas"]["PlaylistVisibility"];
+            /** Format: int32 */
+            trackCount: number | string;
+            /** Format: double */
+            durationSeconds: number | string;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

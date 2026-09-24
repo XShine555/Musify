@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { apiFor, unwrapOrError } from '$lib/server/api';
+import { getGenres } from '$lib/server/genres';
 import { toAlbum, toPage, toTrack } from '$lib/server/mappers';
 import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/playlistActions';
 import { EXPLORE_ALBUMS_PAGE_SIZE, EXPLORE_PAGE_SIZE, EXPLORE_USERS_LIMIT } from '$lib/config';
@@ -12,20 +13,17 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const user = locals.user;
 	const api = apiFor({ fetch, locals });
 
-	const genresRes = await api.GET('/genres');
-	const genres = genresRes.data ?? [];
-	const genre = genres.find((item) => item.genre === genreParam)?.genre ?? null;
-
-	const tracksPromise = api.GET('/tracks', {
-		params: {
-			query: {
-				name: query || undefined,
-				genre: genre ?? undefined,
-				pageNumber: page,
-				pageSize: EXPLORE_PAGE_SIZE
+	const tracksFor = (genre: string | null) =>
+		api.GET('/tracks', {
+			params: {
+				query: {
+					name: query || undefined,
+					genre: genre ?? undefined,
+					pageNumber: page,
+					pageSize: EXPLORE_PAGE_SIZE
+				}
 			}
-		}
-	});
+		});
 
 	const albumsPromise = query
 		? api.GET('/albums', {
@@ -39,11 +37,14 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 			})
 		: Promise.resolve(null);
 
-	const [tracksRes, albumsRes, usersRes] = await Promise.all([
-		tracksPromise,
+	const [genres, firstTracksRes, albumsRes, usersRes] = await Promise.all([
+		getGenres(api),
+		tracksFor(genreParam),
 		albumsPromise,
 		usersPromise
 	]);
+	const genre = genres.find((item) => item.genre === genreParam)?.genre ?? null;
+	const tracksRes = genre === genreParam ? firstTracksRes : await tracksFor(genre);
 
 	const tracks = toPage(unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.'), (item) =>
 		toTrack(item.track)

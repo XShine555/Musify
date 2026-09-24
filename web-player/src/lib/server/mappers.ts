@@ -1,5 +1,5 @@
 import type { components } from '$lib/api/schema';
-import type { Album, LikedTrack, Mix, Paged, Playlist, PlaylistSummary, Track } from '$lib/types';
+import type { Album, LikedTrack, Mix, Paged, Playlist, Track } from '$lib/types';
 
 type TrackDto = components['schemas']['TrackApplicationResponse'];
 type AlbumDto = components['schemas']['AlbumApplicationResponse'];
@@ -75,13 +75,11 @@ export function toPlaylist(dto: PlaylistDto): Playlist {
 		description: dto.description,
 		visibility: dto.visibility,
 		ownerUserId: dto.ownerUserId,
+		trackCount: Number(dto.trackCount) || 0,
+		durationSeconds: Number(dto.durationSeconds) || 0,
 		coverTrackIds: dto.coverTrackIds,
 		updatedAt: dto.updatedAt
 	};
-}
-
-export function toPlaylistSummary(dto: PlaylistDto, trackCount: number): PlaylistSummary {
-	return { ...toPlaylist(dto), trackCount };
 }
 
 export function toPage<D, T>(dto: PageDto<D>, map: (item: D) => T): Paged<T> {

@@ -1,8 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { apiFor, authedAction, requireUser, unwrapOrError } from '$lib/server/api';
-import { PLAYLISTS_PAGE_SIZE, PLAYLIST_SUMMARY_TRACKS_PAGE_SIZE } from '$lib/config';
-import { toPlaylistSummary, toTrack } from '$lib/server/mappers';
+import { PLAYLISTS_PAGE_SIZE } from '$lib/config';
+import { toPlaylist } from '$lib/server/mappers';
 import { parsePlaylistForm } from '$lib/server/forms/playlistForm';
 import { uploadOptionalCover } from '$lib/server/upload';
 
@@ -13,32 +13,17 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: PLAYLISTS_PAGE_SIZE } }
 	});
 
-	const data = unwrapOrError(result, 'No se pudieron cargar tus playlists.');
-
-	const tracksByPlaylist = await Promise.all(
-		data.items.map((playlist) =>
-			api
-				.GET('/playlists/{playlistId}/tracks', {
-					params: {
-						path: { playlistId: playlist.id },
-						query: { pageNumber: 1, pageSize: PLAYLIST_SUMMARY_TRACKS_PAGE_SIZE }
-					}
-				})
-				.then((res) => (res.data?.items ?? []).map(toTrack))
-		)
-	);
-
-	const items = data.items.map((playlist, i) =>
-		toPlaylistSummary(playlist, tracksByPlaylist[i].length)
+	const playlists = unwrapOrError(result, 'No se pudieron cargar tus playlists.').items.map(
+		toPlaylist
 	);
 
 	const totals = {
-		playlistCount: items.length,
-		trackCount: items.reduce((sum, playlist) => sum + playlist.trackCount, 0),
-		durationSeconds: tracksByPlaylist.flat().reduce((sum, track) => sum + track.duration, 0)
+		playlistCount: playlists.length,
+		trackCount: playlists.reduce((sum, playlist) => sum + playlist.trackCount, 0),
+		durationSeconds: playlists.reduce((sum, playlist) => sum + playlist.durationSeconds, 0)
 	};
 
-	return { playlists: items, totals };
+	return { playlists, totals };
 };
 
 export const actions: Actions = {
