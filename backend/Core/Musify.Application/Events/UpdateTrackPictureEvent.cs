@@ -6,6 +6,4 @@ public record UpdateTrackPictureEvent(
     Guid TrackId,
     string Bucket,
     string SourceKey,
-    ImageSize Small,
-    ImageSize Medium,
-    ImageSize Large);
+    ImageSizes Sizes);

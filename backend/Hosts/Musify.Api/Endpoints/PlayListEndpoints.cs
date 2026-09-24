@@ -4,6 +4,8 @@ using Musify.Api.DataTransferObjects.PlayLists;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
 using Musify.Application.Contracts;
+using Musify.Application.Pictures;
+using Musify.Application.Pictures.Responses;
 using Musify.Application.PlayLists;
 using Musify.Application.PlayLists.Responses;
 using Musify.Api.Models;
@@ -80,7 +82,7 @@ public static class PlayListEndpoints
             .WithSummary("Request A Pre-Signed URL To Upload A PlayList Picture.")
             .AddEndpointFilter<ValidationFilter<RequestPlayListPictureUploadRequest>>()
             .RequireAuthorization()
-            .Produces<PlayListPictureUploadResponse>()
+            .Produces<PictureUploadResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
@@ -140,7 +142,7 @@ public static class PlayListEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetPlayListCover(
+    private static Task<IResult> GetPlayListCover(
         IMediator mediator,
         IStorageService storageService,
         HttpResponse response,
@@ -148,17 +150,7 @@ public static class PlayListEndpoints
         CancellationToken cancellationToken,
         string size = "medium")
     {
-        var result = await mediator.Send(new GetPlayListCoverQuery(id, size), cancellationToken);
-        if (result.IsError)
-            return Results.NotFound();
-
-        var location = result.Value;
-        var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
-        if (stream == null)
-            return Results.NotFound();
-
-        response.Headers.CacheControl = "public, max-age=31536000, immutable";
-        return Results.Stream(stream, location.ContentType);
+        return CoverEndpoint.Stream(mediator, storageService, response, CoverOwner.PlayList, id, size, cancellationToken);
     }
 
     private static async Task<IResult> CreatePlayList(

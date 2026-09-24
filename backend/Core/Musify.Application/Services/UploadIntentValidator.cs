@@ -2,40 +2,49 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
-using Musify.Application.Shared;
 
 namespace Musify.Application.Services;
 
 public sealed class UploadIntentValidator(
     IDatabase database,
-    IStorageService storageService)
+    IStorageService storageService,
+    UploadIntentConfiguration config)
 {
     public async Task<ErrorOr<Success>> CheckQuotaAsync(
-        UploadIntentConfiguration config,
         long userId,
         long requiredBytes,
         int requiredIntentCount,
         CancellationToken cancellationToken)
     {
-        var activeIntents = await database.UploadIntents
-            .AsNoTracking()
-            .Where(i => i.UserId == userId && i.Status == UploadIntentStatus.Issued)
-            .ToListAsync(cancellationToken);
+        var now = DateTime.UtcNow;
+        var pictureDefault = config.DefaultExpectedPictureSizeBytes;
+        var audioDefault = config.DefaultExpectedAudioSizeBytes;
 
-        if (activeIntents.Count + requiredIntentCount > config.MaxActiveUploadIntentsPerUser)
+        var active = await database.UploadIntents
+            .AsNoTracking()
+            .Where(intent => intent.UserId == userId && intent.Status == UploadIntentStatus.Issued && intent.ExpiresAt > now)
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                Count = group.Count(),
+                Bytes = group.Sum(intent => intent.ExpectedSizeBytes
+                    ?? (intent.Purpose == UploadIntentPurpose.TrackAudio ? audioDefault : pictureDefault))
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if ((active?.Count ?? 0) + requiredIntentCount > config.MaxActiveUploadIntentsPerUser)
             return Error.Validation(description: "Upload intent limit exceeded. Wait for existing uploads to complete or expire.");
 
-        var activeBytes = activeIntents.Sum(i => i.ExpectedSizeBytes ?? config.DefaultExpectedPictureSizeBytes);
-        if (activeBytes + requiredBytes > config.MaxActiveUploadBytesPerUser)
+        if ((active?.Bytes ?? 0) + requiredBytes > config.MaxActiveUploadBytesPerUser)
             return Error.Validation(description: "Upload byte quota exceeded. Wait for existing uploads to complete or expire.");
 
         return Result.Success;
     }
 
     public async Task<ErrorOr<UploadIntent>> ValidateAndLoadAsync(
-        UploadIntentConfiguration config,
         Guid intentId,
         long userId,
         UploadIntentPurpose purpose,

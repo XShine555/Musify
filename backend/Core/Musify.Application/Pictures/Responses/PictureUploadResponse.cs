@@ -1,6 +1,6 @@
-namespace Musify.Application.PlayLists.Responses;
+namespace Musify.Application.Pictures.Responses;
 
-public record PlayListPictureUploadResponse(
+public record PictureUploadResponse(
     Guid IntentId,
     string Bucket,
     string Key,

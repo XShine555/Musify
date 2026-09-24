@@ -6,6 +6,4 @@ public record PublishAlbumPictureProcessingEventArguments(
     Guid AlbumId,
     string Bucket,
     string FinalPictureKey,
-    ImageSize Small,
-    ImageSize Medium,
-    ImageSize Large);
+    ImageSizes Sizes);

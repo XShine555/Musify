@@ -16,11 +16,9 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
     private UpdatePlayListCommandHandler CreateHandler() => new(
         eventBus,
         Database,
-        new UploadIntentValidator(Database, storageService),
+        new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
         NoOpLogger<UpdatePlayListCommandHandler>(),
-        TestConfigurations.Storage(),
-        TestConfigurations.PlayList(),
-        TestConfigurations.UploadIntent());
+        TestConfigurations.PlayList());
 
     [Fact]
     public async Task Handle_Owner_RenamesPlayList()

@@ -16,11 +16,9 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
     private CreatePlayListCommandHandler CreateHandler() => new(
         eventBus,
         Database,
-        new UploadIntentValidator(Database, storageService),
+        new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
         NoOpLogger<CreatePlayListCommandHandler>(),
-        TestConfigurations.Storage(),
-        TestConfigurations.PlayList(),
-        TestConfigurations.UploadIntent());
+        TestConfigurations.PlayList());
 
     [Fact]
     public async Task Handle_NoPictureIntent_CreatesPlayListWithoutPictures()

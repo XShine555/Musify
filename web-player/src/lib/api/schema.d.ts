@@ -752,17 +752,6 @@ export interface components {
             updatedAt: string;
             coverTrackIds: string[];
         };
-        AlbumPictureUploadResponse: {
-            /** Format: uuid */
-            intentId: string;
-            bucket: string;
-            key: string;
-            pictureName: string;
-            contentType: string;
-            /** Format: int32 */
-            expiresInSeconds: number | string;
-            uploadUrl: string;
-        };
         AvailableGenreResponse: {
             genre: components["schemas"]["Genre"];
             incompatibleWith: components["schemas"]["Genre"][];
@@ -889,6 +878,17 @@ export interface components {
             hasNextPage: boolean;
             hasPreviousPage: boolean;
         };
+        PictureUploadResponse: {
+            /** Format: uuid */
+            intentId: string;
+            bucket: string;
+            key: string;
+            pictureName: string;
+            contentType: string;
+            /** Format: int32 */
+            expiresInSeconds: number | string;
+            uploadUrl: string;
+        };
         PlaybackPublicConfigResponse: {
             allowAnonymousListening: boolean;
             /** Format: int32 */
@@ -913,17 +913,6 @@ export interface components {
             trackCount: number | string;
             /** Format: double */
             durationSeconds: number | string;
-        };
-        PlayListPictureUploadResponse: {
-            /** Format: uuid */
-            intentId: string;
-            bucket: string;
-            key: string;
-            pictureName: string;
-            contentType: string;
-            /** Format: int32 */
-            expiresInSeconds: number | string;
-            uploadUrl: string;
         };
         /** @enum {unknown} */
         PlayListVisibility: "Private" | "Public";
@@ -1301,7 +1290,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AlbumPictureUploadResponse"];
+                    "application/json": components["schemas"]["PictureUploadResponse"];
                 };
             };
             /** @description Bad Request */
@@ -2041,7 +2030,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlayListPictureUploadResponse"];
+                    "application/json": components["schemas"]["PictureUploadResponse"];
                 };
             };
             /** @description Bad Request */

@@ -20,14 +20,17 @@ public sealed class RequestAlbumPictureUploadCommandHandlerTests : HandlerTestBa
             .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
             .Returns("https://storage.musify.test/presigned-upload");
 
+        var config = uploadIntentConfig ?? TestConfigurations.UploadIntent();
+
         return new RequestAlbumPictureUploadCommandHandler(
-            Database,
-            new UploadIntentValidator(Database, storageService),
-            storageService,
-            NoOpLogger<RequestAlbumPictureUploadCommandHandler>(),
-            TestConfigurations.Storage(),
-            TestConfigurations.Album(),
-            uploadIntentConfig ?? TestConfigurations.UploadIntent());
+            new UploadIntentIssuer(
+                Database,
+                storageService,
+                new UploadIntentValidator(Database, storageService, config),
+                TestConfigurations.Storage(),
+                config,
+                NoOpLogger<UploadIntentIssuer>()),
+            TestConfigurations.Album());
     }
 
     [Fact]

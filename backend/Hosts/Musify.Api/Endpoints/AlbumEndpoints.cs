@@ -6,6 +6,8 @@ using Musify.Api.Filters;
 using Musify.Application.Albums;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
+using Musify.Application.Pictures;
+using Musify.Application.Pictures.Responses;
 using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
@@ -65,7 +67,7 @@ public static class AlbumEndpoints
             .WithSummary("Request A Pre-Signed URL To Upload An Album Picture.")
             .AddEndpointFilter<ValidationFilter<RequestAlbumPictureUploadRequest>>()
             .RequireAuthorization()
-            .Produces<AlbumPictureUploadResponse>()
+            .Produces<PictureUploadResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
@@ -179,7 +181,7 @@ public static class AlbumEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetAlbumCover(
+    private static Task<IResult> GetAlbumCover(
         IMediator mediator,
         IStorageService storageService,
         HttpResponse response,
@@ -187,17 +189,7 @@ public static class AlbumEndpoints
         CancellationToken cancellationToken,
         string size = "medium")
     {
-        var result = await mediator.Send(new GetAlbumCoverQuery(id, size), cancellationToken);
-        if (result.IsError)
-            return Results.NotFound();
-
-        var location = result.Value;
-        var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
-        if (stream == null)
-            return Results.NotFound();
-
-        response.Headers.CacheControl = "public, max-age=31536000, immutable";
-        return Results.Stream(stream, location.ContentType);
+        return CoverEndpoint.Stream(mediator, storageService, response, CoverOwner.Album, id, size, cancellationToken);
     }
 
     private static async Task<IResult> RequestAlbumPictureUpload(

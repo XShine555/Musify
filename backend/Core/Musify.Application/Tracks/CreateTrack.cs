@@ -27,9 +27,7 @@ public class CreateTrackCommandHandler(
     IEventBus eventBus,
     UploadIntentValidator uploadIntentValidator,
     ILogger<CreateTrackCommandHandler> logger,
-    ApplicationStorageConfiguration storageConfiguration,
-    TrackConfiguration trackConfiguration,
-    UploadIntentConfiguration uploadIntentConfiguration)
+    TrackConfiguration trackConfiguration)
     : ICommandHandler<CreateTrackCommand, ErrorOr<TrackApplicationResponse>>
 {
     public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
@@ -63,13 +61,11 @@ public class CreateTrackCommandHandler(
             return Error.Validation(description: "Picture and audio must use different upload intents.");
 
         var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-            uploadIntentConfiguration,
             request.PictureIntentId, request.UserId, UploadIntentPurpose.TrackPicture, cancellationToken);
         if (pictureValidation.IsError)
             return pictureValidation.Errors;
 
         var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-            uploadIntentConfiguration,
             request.AudioIntentId, request.UserId, UploadIntentPurpose.TrackAudio, cancellationToken);
         if (audioValidation.IsError)
             return audioValidation.Errors;
@@ -115,40 +111,22 @@ public class CreateTrackCommandHandler(
             TrackId = trackEntity.Id
         }, cancellationToken);
 
-        try
-        {
-            var sizes = trackConfiguration.PicturesSizes.ToImageSizes(trackConfiguration.Routes);
-            await eventBus.PublishAsync(
-                new CreateTrackResourcesEvent(
-                    trackEntity.Id,
-                    pictureIntent.Id,
-                    audioIntent.Id,
-                    storageConfiguration.Bucket,
-                    pictureIntent.Key,
-                    finalPictureKey,
-                    audioIntent.Key,
-                    finalAudioKey,
-                    audioProcessedFolderKey,
-                    sizes.Small,
-                    sizes.Medium,
-                    sizes.Large),
-                cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to publish create track event for track {TrackId}", trackEntity.Id);
-            return Error.Failure(description: $"Failed to create track for {request.Title}");
-        }
+        var sizes = trackConfiguration.PicturesSizes.ToImageSizes(trackConfiguration.Routes);
+        await eventBus.PublishAsync(
+            new CreateTrackResourcesEvent(
+                trackEntity.Id,
+                pictureIntent.Id,
+                audioIntent.Id,
+                pictureIntent.Bucket,
+                pictureIntent.Key,
+                finalPictureKey,
+                audioIntent.Key,
+                finalAudioKey,
+                audioProcessedFolderKey,
+                sizes),
+            cancellationToken);
 
-        try
-        {
-            await database.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to save track {Title}", request.Title);
-            return Error.Failure(description: $"Failed to create track for {request.Title}");
-        }
+        await database.SaveChangesAsync(cancellationToken);
 
         return TrackApplicationResponse.FromEntity(trackEntity, listensCount: 0);
     }

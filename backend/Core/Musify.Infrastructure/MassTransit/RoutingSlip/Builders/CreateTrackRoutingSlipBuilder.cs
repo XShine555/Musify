@@ -53,9 +53,7 @@ public class CreateTrackRoutingSlipBuilder
                 message.PictureDestinationKey,
                 message.AudioDestinationKey,
                 message.AudioProcessedFolderKey,
-                message.Small,
-                message.Medium,
-                message.Large));
+                message.Sizes));
 
         routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.TrackId);
         routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackCreation);

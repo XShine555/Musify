@@ -24,11 +24,9 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
         return new CreateTrackCommandHandler(
             Database,
             eventBus,
-            new UploadIntentValidator(Database, storageService),
+            new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
             NoOpLogger<CreateTrackCommandHandler>(),
-            TestConfigurations.Storage(),
-            TestConfigurations.Track(),
-            TestConfigurations.UploadIntent());
+            TestConfigurations.Track());
     }
 
     private static (Domain.Entities.UploadIntent Picture, Domain.Entities.UploadIntent Audio) SeedIntents(long userId) =>

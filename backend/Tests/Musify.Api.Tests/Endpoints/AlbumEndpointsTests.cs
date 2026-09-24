@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Musify.Api.DataTransferObjects.Albums;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Albums.Responses;
+using Musify.Application.Pictures.Responses;
 using Musify.Application.Contracts;
 using NSubstitute;
 using Xunit;
@@ -29,7 +30,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
             TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var body = await response.Content.ReadFromJsonAsync<AlbumPictureUploadResponse>(TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadFromJsonAsync<PictureUploadResponse>(TestContext.Current.CancellationToken);
         return body!.IntentId;
     }
 

@@ -8,6 +8,4 @@ public record PublishTrackProcessingEventsArguments(
     string FinalPictureKey,
     string FinalAudioKey,
     string AudioDestinationFolderKey,
-    ImageSize Small,
-    ImageSize Medium,
-    ImageSize Large);
+    ImageSizes Sizes);

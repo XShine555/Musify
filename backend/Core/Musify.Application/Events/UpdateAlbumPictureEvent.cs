@@ -6,6 +6,4 @@ public record UpdateAlbumPictureEvent(
     Guid AlbumId,
     string Bucket,
     string SourceKey,
-    ImageSize Small,
-    ImageSize Medium,
-    ImageSize Large);
+    ImageSizes Sizes);

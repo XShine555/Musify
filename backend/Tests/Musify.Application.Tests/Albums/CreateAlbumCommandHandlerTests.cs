@@ -16,11 +16,9 @@ public sealed class CreateAlbumCommandHandlerTests : HandlerTestBase
     private CreateAlbumCommandHandler CreateHandler() => new(
         eventBus,
         Database,
-        new UploadIntentValidator(Database, storageService),
+        new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
         NoOpLogger<CreateAlbumCommandHandler>(),
-        TestConfigurations.Storage(),
-        TestConfigurations.Album(),
-        TestConfigurations.UploadIntent());
+        TestConfigurations.Album());
 
     [Fact]
     public async Task Handle_ValidPictureIntent_CreatesAlbumAndPublishesResourcesEvent()

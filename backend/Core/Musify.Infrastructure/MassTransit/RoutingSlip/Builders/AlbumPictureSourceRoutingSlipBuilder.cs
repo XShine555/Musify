@@ -19,9 +19,7 @@ public class AlbumPictureSourceRoutingSlipBuilder
             message.Bucket,
             message.PictureSourceKey,
             message.PictureDestinationKey,
-            message.Small,
-            message.Medium,
-            message.Large,
+            message.Sizes,
             correlationId,
             RoutingSlipVariableNames.ProcessKinds.AlbumCreation);
 
@@ -32,9 +30,7 @@ public class AlbumPictureSourceRoutingSlipBuilder
             message.Bucket,
             message.PictureSourceKey,
             message.PictureDestinationKey,
-            message.Small,
-            message.Medium,
-            message.Large,
+            message.Sizes,
             correlationId,
             RoutingSlipVariableNames.ProcessKinds.AlbumPicture);
 
@@ -44,9 +40,7 @@ public class AlbumPictureSourceRoutingSlipBuilder
         string bucket,
         string pictureSourceKey,
         string pictureDestinationKey,
-        ImageSize small,
-        ImageSize medium,
-        ImageSize large,
+        ImageSizes sizes,
         Guid? correlationId,
         string processKind)
     {
@@ -78,9 +72,7 @@ public class AlbumPictureSourceRoutingSlipBuilder
                 albumId,
                 bucket,
                 pictureDestinationKey,
-                small,
-                medium,
-                large));
+                sizes));
 
         routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, albumId);
         routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, processKind);

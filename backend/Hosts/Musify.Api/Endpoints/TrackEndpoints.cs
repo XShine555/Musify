@@ -4,6 +4,7 @@ using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
 using Musify.Application.Contracts;
+using Musify.Application.Pictures;
 using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
@@ -128,7 +129,7 @@ public static class TrackEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> GetTrackCover(
+    private static Task<IResult> GetTrackCover(
         IMediator mediator,
         IStorageService storageService,
         HttpResponse response,
@@ -136,17 +137,7 @@ public static class TrackEndpoints
         CancellationToken cancellationToken,
         string size = "medium")
     {
-        var result = await mediator.Send(new GetTrackCoverQuery(id, size), cancellationToken);
-        if (result.IsError)
-            return Results.NotFound();
-
-        var location = result.Value;
-        var stream = await storageService.GetFileAsync(location.Bucket, location.Key, cancellationToken);
-        if (stream == null)
-            return Results.NotFound();
-
-        response.Headers.CacheControl = "public, max-age=31536000, immutable";
-        return Results.Stream(stream, location.ContentType);
+        return CoverEndpoint.Stream(mediator, storageService, response, CoverOwner.Track, id, size, cancellationToken);
     }
 
     private static async Task<IResult> GetTrackStream(

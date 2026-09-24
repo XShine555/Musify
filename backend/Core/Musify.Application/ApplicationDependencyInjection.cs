@@ -11,6 +11,7 @@ public static class ApplicationDependencyInjection
     {
         services.AddMediator();
         services.AddScoped<UploadIntentValidator>();
+        services.AddScoped<UploadIntentIssuer>();
         services.AddScoped<TrackStreamIssuer>();
 
         services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration);

@@ -17,9 +17,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
         var routingSlipBuilder = BuildPictureWorkflow(
             message.Bucket,
             message.SourceKey,
-            message.Small,
-            message.Medium,
-            message.Large,
+            message.Sizes,
             correlationId);
 
         routingSlipBuilder.AddActivity(
@@ -46,9 +44,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
         var routingSlipBuilder = BuildPictureWorkflow(
             message.Bucket,
             message.SourceKey,
-            message.Small,
-            message.Medium,
-            message.Large,
+            message.Sizes,
             correlationId);
 
         routingSlipBuilder.AddActivity(
@@ -75,9 +71,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
         var routingSlipBuilder = BuildPictureWorkflow(
             message.Bucket,
             message.SourceKey,
-            message.Small,
-            message.Medium,
-            message.Large,
+            message.Sizes,
             correlationId);
 
         routingSlipBuilder.AddActivity(
@@ -102,9 +96,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
     private RoutingSlipBuilder BuildPictureWorkflow(
         string bucket,
         string sourceKey,
-        ImageSize small,
-        ImageSize medium,
-        ImageSize large,
+        ImageSizes sizes,
         Guid? correlationId)
     {
         var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
@@ -135,7 +127,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
             ActivityNames.UploadSmall,
             bucket,
             RoutingSlipVariableNames.Picture.SmallResizedFilePath,
-            small);
+            sizes.Small);
 
         AddResizeActivity(
             routingSlipBuilder,
@@ -143,7 +135,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
             ActivityNames.UploadMedium,
             bucket,
             RoutingSlipVariableNames.Picture.MediumResizedFilePath,
-            medium);
+            sizes.Medium);
 
         AddResizeActivity(
             routingSlipBuilder,
@@ -151,7 +143,7 @@ public class PictureWorkflowRoutingSlipBuilder(WorkerConfiguration workerConfigu
             ActivityNames.UploadLarge,
             bucket,
             RoutingSlipVariableNames.Picture.LargeResizedFilePath,
-            large);
+            sizes.Large);
 
         return routingSlipBuilder;
     }

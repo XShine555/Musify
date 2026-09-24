@@ -8,6 +8,4 @@ public record CreatePlayListResourcesEvent(
     string Bucket,
     string PictureSourceKey,
     string PictureDestinationKey,
-    ImageSize Small,
-    ImageSize Medium,
-    ImageSize Large);
+    ImageSizes Sizes);

@@ -16,11 +16,9 @@ public sealed class UpdateAlbumCommandHandlerTests : HandlerTestBase
     private UpdateAlbumCommandHandler CreateHandler() => new(
         eventBus,
         Database,
-        new UploadIntentValidator(Database, storageService),
+        new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
         NoOpLogger<UpdateAlbumCommandHandler>(),
-        TestConfigurations.Storage(),
-        TestConfigurations.Album(),
-        TestConfigurations.UploadIntent());
+        TestConfigurations.Album());
 
     [Fact]
     public async Task Handle_Owner_UpdatesTitleDescriptionAndReleaseYear()

@@ -12,6 +12,4 @@ public record CreateTrackResourcesEvent(
     string AudioSourceKey,
     string AudioDestinationKey,
     string AudioProcessedFolderKey,
-    ImageSize Small,
-    ImageSize Medium,
-    ImageSize Large);
+    ImageSizes Sizes);
