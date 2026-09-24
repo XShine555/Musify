@@ -51,7 +51,6 @@ internal class UpdateTrackPictureActivity(
             track.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
             track.Pictures.ProcessingStatus = ProcessingStatus.Completed;
 
-            database.Tracks.Update(track);
             await database.SaveChangesAsync(executeContext.CancellationToken);
 
             logger.LogInformation("Updated track {TrackId} pictures",
@@ -88,7 +87,6 @@ internal class UpdateTrackPictureActivity(
             track.Pictures.LargeName = compensateContext.Log.PreviousLargePictureKey;
             track.Pictures.ProcessingStatus = ProcessingStatus.Failed;
 
-            database.Tracks.Update(track);
             await database.SaveChangesAsync(compensateContext.CancellationToken);
 
             return compensateContext.Compensated();

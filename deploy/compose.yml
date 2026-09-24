@@ -315,7 +315,6 @@ services:
       ASPNETCORE_URLS: http://+:5111
       StreamGateway__PublicBaseUrl: ${PUBLIC_STREAM_URL}
       StreamTicket__PrivateKeyPath: /keys/stream_private.pem
-      Workers__Routes__TemporaryFilesDirectory: /tmp/musify
       # AUTH_CLIENT_ID is written to the env file by the zitadel-init service.
       Authentication__MetadataAddress: "${PUBLIC_AUTH_URL}/.well-known/openid-configuration"
       Authentication__IssuerAddress: ${PUBLIC_AUTH_URL}
@@ -344,7 +343,6 @@ services:
     environment:
       <<: *backend-env
       DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
-      AudioTranscoder__Routes__WorkingDirectory: /tmp/musify
       Workers__Routes__TemporaryFilesDirectory: /tmp/musify
     restart: unless-stopped
 

@@ -8,12 +8,11 @@ using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Sagas;
 using Npgsql;
-using AppIDatabase = Musify.Application.Contracts.IDatabase;
 
 namespace Musify.Infrastructure.Persistence;
 
 public class Database(DatabaseConfiguration configuration)
-    : DbContext, AppIDatabase
+    : DbContext, Musify.Application.Contracts.IDatabase
 {
     private static readonly AuditableEntityInterceptor AuditInterceptor = new();
 
@@ -54,9 +53,6 @@ public class Database(DatabaseConfiguration configuration)
                 audio.Property(a => a.OriginalName).HasColumnName("OriginalAudioName").HasMaxLength(64);
                 audio.Property(a => a.FolderName).HasColumnName("AudioFolderName").HasMaxLength(64);
                 audio.Property(a => a.TranscodeStatus).HasColumnName("AudioTranscodeProcessingStatus");
-                audio.Property(a => a.DownloadRequested).HasColumnName("DownloadRequested");
-                audio.Property(a => a.RetryCount).HasColumnName("RetryCount");
-                audio.Property(a => a.LastRetryAt).HasColumnName("LastRetryAt");
             });
         modelBuilder.Entity<Track>().Navigation(track => track.Audio).IsRequired();
 
@@ -192,8 +188,6 @@ public class Database(DatabaseConfiguration configuration)
     public DbSet<Mix> Mixes => Set<Mix>();
 
     public DbSet<MixItem> MixItems => Set<MixItem>();
-
-    public DbSet<Upload> Uploads => Set<Upload>();
 
     public DbSet<UploadIntent> UploadIntents => Set<UploadIntent>();
 

@@ -151,8 +151,6 @@ public sealed class TestDatabase : DbContext, IDatabase
 
     public DbSet<MixItem> MixItems => Set<MixItem>();
 
-    public DbSet<Upload> Uploads => Set<Upload>();
-
     public DbSet<UploadIntent> UploadIntents => Set<UploadIntent>();
 
     public DbSet<ListeningHistory> ListeningHistories => Set<ListeningHistory>();

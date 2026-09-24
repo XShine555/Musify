@@ -23,8 +23,7 @@ services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfigurati
 services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
 services.AddStorageService(configuration);
 services.AddAudioTranscoder(configuration);
-services.AddHttpClient();
-services.AddPictureService(configuration);
+services.AddPictureService();
 services.AddDatabase(configuration);
 services.AddMassTransitConsumers(configuration);
 services.AddUploadIntentJobs(configuration);

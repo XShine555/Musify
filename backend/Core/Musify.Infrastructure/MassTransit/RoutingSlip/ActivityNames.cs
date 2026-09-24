@@ -16,7 +16,6 @@ internal static class ActivityNames
     internal const string GeneratePictureWorkflowPaths = "GeneratePictureWorkflowPaths";
 
     internal const string DownloadFile = "DownloadFile";
-    internal const string DownloadThumbnail = "DownloadThumbnail";
 
     internal const string TranscodeAudio = "TranscodeAudio";
 

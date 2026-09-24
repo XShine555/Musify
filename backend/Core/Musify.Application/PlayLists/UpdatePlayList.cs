@@ -63,9 +63,6 @@ public class UpdatePlayListCommandHandler(
             playListEntity.Visibility = request.NewVisibility.Value;
         }
 
-        UploadIntent? pictureIntent = null;
-        string? finalPictureKey = null;
-
         if (request.NewPictureIntentId.HasValue)
         {
             var validation = await uploadIntentValidator.ValidateAndLoadAsync(
@@ -74,13 +71,10 @@ public class UpdatePlayListCommandHandler(
             if (validation.IsError)
                 return validation.Errors;
 
-            pictureIntent = validation.Value;
+            var pictureIntent = validation.Value;
             playListEntity.Pictures = PlayListPictures.Pending(pictureIntent.ObjectName);
-            finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
-        }
+            var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
 
-        if (pictureIntent != null && finalPictureKey != null)
-        {
             var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(
                 playListEntity.Id, pictureIntent, finalPictureKey, cancellationToken);
             if (publishResult.IsError)

@@ -17,8 +17,7 @@ public class GetUsersQueryHandler(IDatabase database)
     public async ValueTask<ErrorOr<PaginatedResponse<UserSummaryResponse>>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
         var usersQuery = database.Users
-            .AsNoTracking()
-            .AsQueryable();
+            .AsNoTracking();
 
         if (!string.IsNullOrEmpty(request.UsernameSearch))
         {

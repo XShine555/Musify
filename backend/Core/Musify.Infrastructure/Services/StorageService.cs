@@ -4,14 +4,12 @@ using Amazon.S3.Transfer;
 using Microsoft.Extensions.Logging;
 using MimeMapping;
 using Musify.Application.Contracts;
-using Musify.Domain.Entities;
-using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.Configuration;
 using ObjectMetaData = Musify.Application.Contracts.ObjectMetaData;
 
 namespace Musify.Infrastructure.Services;
 
-public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<StorageService> logger,
+public class StorageService(IAmazonS3 amazonS3, ILogger<StorageService> logger,
     InfrastructureStorageConfiguration storageClientConfiguration)
     : IStorageService
 {
@@ -39,20 +37,6 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
             logger.LogError(exception, "Failed to get file from S3 {Bucket}/{Key}", bucket, key);
             throw;
         }
-    }
-
-    public async Task<string> GetUrlAsync(string bucket, string key, TimeSpan expirationTime, CancellationToken cancellationToken)
-    {
-        var request = new GetPreSignedUrlRequest
-        {
-            BucketName = bucket,
-            Key = key,
-            Expires = DateTime.UtcNow + expirationTime,
-            Protocol = storageClientConfiguration.UseHttp ? Protocol.HTTP : Protocol.HTTPS
-        };
-
-        logger.LogDebug("Generating pre-signed URL for {Bucket}/{Key}", bucket, key);
-        return await amazonS3.GetPreSignedURLAsync(request);
     }
 
     public async Task<string> GetUploadUrlAsync(
@@ -129,15 +113,6 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
                 .Where(static s => !string.IsNullOrWhiteSpace(s))
                 .Select(static s => s.Trim().Trim('/', '\\')));
             var contentType = MimeUtility.GetMimeMapping(filePath);
-            var upload = new Upload
-            {
-                Id = Guid.NewGuid(),
-                Bucket = bucket,
-                Key = key,
-                ContentType = contentType
-            };
-            await database.Uploads.AddAsync(upload, cancellationToken);
-
             try
             {
                 await trasnsferUtility.UploadAsync(
@@ -149,7 +124,6 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
                         ContentType = contentType
                     },
                     cancellationToken);
-                upload.State = UploadState.Successful;
                 uploadedKeys.Add(key);
                 successCount++;
                 logger.LogDebug("Transferred file to S3 {Bucket}/{Key}", bucket, key);
@@ -157,13 +131,11 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
             catch (Exception exception)
             {
                 failedCount++;
-                upload.State = UploadState.Failed;
                 logger.LogError(exception, "Failed to transfer file to S3 {Bucket}/{Key}", bucket, key);
                 throw;
             }
         }
 
-        await database.SaveChangesAsync(cancellationToken);
         logger.LogInformation("File transfer completed to {Bucket}/{Route}. Success: {SuccessCount}, Failed: {FailedCount}", bucket, route, successCount, failedCount);
 
         return uploadedKeys;
@@ -194,31 +166,16 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
             Key = key
         };
 
-        var upload = new Upload
-        {
-            Id = Guid.NewGuid(),
-            Bucket = bucket,
-            Key = key,
-            ContentType = contentType
-        };
-        await database.Uploads.AddAsync(upload, cancellationToken);
-
         try
         {
-            var response = await amazonS3.PutObjectAsync(request, cancellationToken);
+            await amazonS3.PutObjectAsync(request, cancellationToken);
             logger.LogDebug("Uploaded file to S3 {Bucket}/{Key}", bucket, key);
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Failed to upload file to S3 {Bucket}/{Key}", bucket, key);
-            upload.State = UploadState.Failed;
-            await database.SaveChangesAsync(cancellationToken);
             throw;
         }
-
-        upload.State = UploadState.Successful;
-        await database.SaveChangesAsync(cancellationToken);
-        logger.LogDebug("Saved upload record for {Bucket}/{Key}", bucket, key);
     }
 
     public async Task CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey,
@@ -234,7 +191,7 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
 
         try
         {
-            var response = await amazonS3.CopyObjectAsync(request, cancellationToken);
+            await amazonS3.CopyObjectAsync(request, cancellationToken);
             logger.LogInformation("Copied file from {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
                 sourceBucket, sourceKey, destinationBucket, destinationKey);
         }
@@ -265,44 +222,5 @@ public class StorageService(IDatabase database, IAmazonS3 amazonS3, ILogger<Stor
             listRequest.ContinuationToken = listResponse.NextContinuationToken;
         }
         while (listResponse.IsTruncated.HasValue && listResponse.IsTruncated.Value);
-    }
-
-    public async Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken)
-    {
-        var prefix = folderKey.EndsWith('/') ? folderKey : $"{folderKey}/";
-        var listRequest = new ListObjectsV2Request
-        {
-            BucketName = bucket,
-            Prefix = prefix
-        };
-
-        ListObjectsV2Response listResponse;
-        do
-        {
-            listResponse = await amazonS3.ListObjectsV2Async(listRequest, cancellationToken);
-
-            if (listResponse.S3Objects == null || listResponse.S3Objects.Count == 0)
-                break;
-
-            var deleteRequest = new DeleteObjectsRequest
-            {
-                BucketName = bucket,
-                Objects = listResponse.S3Objects
-                    .Select(o => new KeyVersion { Key = o.Key })
-                    .ToList()
-            };
-
-            var deleteResponse = await amazonS3.DeleteObjectsAsync(deleteRequest, cancellationToken);
-
-            var deleteErrors = deleteResponse.DeleteErrors ?? [];
-            if (deleteErrors.Count > 0)
-            {
-                var errors = string.Join(", ", deleteErrors.Select(e => $"{e.Key}: {e.Message}"));
-                throw new InvalidOperationException($"Failed to delete some objects in folder {folderKey}: {errors}");
-            }
-
-            listRequest.ContinuationToken = listResponse.NextContinuationToken;
-
-        } while (listResponse.IsTruncated.HasValue && listResponse.IsTruncated.Value);
     }
 }

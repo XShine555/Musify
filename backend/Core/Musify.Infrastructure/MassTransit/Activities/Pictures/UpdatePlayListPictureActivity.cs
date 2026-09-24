@@ -57,7 +57,6 @@ internal class UpdatePlayListPictureActivity(
             playList.Pictures.MediumName = Path.GetFileName(mediumResizedVariable);
             playList.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
 
-            database.PlayLists.Update(playList);
             await database.SaveChangesAsync(executeContext.CancellationToken);
 
             logger.LogInformation("Updated playlist {PlayListId} pictures",
@@ -98,7 +97,6 @@ internal class UpdatePlayListPictureActivity(
                 LargeName = compensateContext.Log.PreviousLargePictureKey
             };
 
-            database.PlayLists.Update(playList);
             await database.SaveChangesAsync(compensateContext.CancellationToken);
 
             return compensateContext.Compensated();

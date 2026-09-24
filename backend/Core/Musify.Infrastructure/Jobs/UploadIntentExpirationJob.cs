@@ -54,20 +54,17 @@ public class UploadIntentExpirationJob(
             logger.LogInformation("Marked {Count} upload intents as Expired", expiredIntents.Count);
         }
 
-        if (uploadIntentConfiguration.ExpiredIntentsRetentionDays >= 0)
+        var retentionCutoff = now.AddDays(-uploadIntentConfiguration.ExpiredIntentsRetentionDays);
+
+        var oldExpiredIntents = await database.UploadIntents
+            .Where(i => i.Status == UploadIntentStatus.Expired && i.ExpiresAt < retentionCutoff)
+            .ToListAsync(cancellationToken);
+
+        if (oldExpiredIntents.Count > 0)
         {
-            var retentionCutoff = now.AddDays(-uploadIntentConfiguration.ExpiredIntentsRetentionDays);
-
-            var oldExpiredIntents = await database.UploadIntents
-                .Where(i => i.Status == UploadIntentStatus.Expired && i.ExpiresAt < retentionCutoff)
-                .ToListAsync(cancellationToken);
-
-            if (oldExpiredIntents.Count > 0)
-            {
-                database.UploadIntents.RemoveRange(oldExpiredIntents);
-                await database.SaveChangesAsync(cancellationToken);
-                logger.LogInformation("Deleted {Count} old Expired upload intents past retention window", oldExpiredIntents.Count);
-            }
+            database.UploadIntents.RemoveRange(oldExpiredIntents);
+            await database.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Deleted {Count} old Expired upload intents past retention window", oldExpiredIntents.Count);
         }
     }
 }

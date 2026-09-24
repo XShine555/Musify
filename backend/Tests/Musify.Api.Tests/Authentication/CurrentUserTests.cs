@@ -63,22 +63,4 @@ public sealed class CurrentUserTests
 
         Assert.Throws<InvalidOperationException>(() => user.RequiredId);
     }
-
-    [Fact]
-    public async Task HasClaim_ExistingClaimType_ReturnsTrue()
-    {
-        var user = await BindAsync(AuthenticatedPrincipal(new Claim("role", "admin")));
-
-        Assert.True(user.HasClaim("role"));
-        Assert.False(user.HasClaim("missing"));
-    }
-
-    [Fact]
-    public async Task FindClaim_ExistingClaimType_ReturnsItsValue()
-    {
-        var user = await BindAsync(AuthenticatedPrincipal(new Claim("picture", "https://avatar.example/jane.png")));
-
-        Assert.Equal("https://avatar.example/jane.png", user.FindClaim("picture"));
-        Assert.Null(user.FindClaim("missing"));
-    }
 }

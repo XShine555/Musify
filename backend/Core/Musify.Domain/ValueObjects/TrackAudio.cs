@@ -11,12 +11,6 @@ public class TrackAudio
 
     public ProcessingStatus TranscodeStatus { get; set; } = ProcessingStatus.Pending;
 
-    public bool DownloadRequested { get; set; }
-
-    public int RetryCount { get; set; }
-
-    public DateTime? LastRetryAt { get; set; }
-
     [MemberNotNullWhen(true, nameof(FolderName))]
     public bool IsProcessed => TranscodeStatus == ProcessingStatus.Completed;
 

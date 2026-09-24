@@ -88,7 +88,7 @@ dotnet test backend/Musify.slnx
 |---|---|---|
 | `Musify.Domain.Tests` | Value object logic (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Entities are mostly anemic, with no behavior of their own beyond that. | No |
 | `Musify.Application.Tests` | The ~45 handlers and services in `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes). | No |
-| `Musify.Infrastructure.Tests` | `Database`/migrations, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `SingleFlightCache`, `PlayListPresetSeeder`. | **Yes** |
+| `Musify.Infrastructure.Tests` | `Database`/migrations, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `PlayListPresetSeeder`. | **Yes** |
 | `Musify.Api.Tests` | Real HTTP endpoints (routing, auth, `ValidationFilter`, `ErrorOr`→HTTP mapping) via `WebApplicationFactory`, plus `ErrorOrHttpExtensions`/`CurrentUser`/FluentValidation validators in isolation. | **Yes** |
 | `Musify.StreamingGateway.Tests` | `TicketValidator` (RS256) and `TicketValidationMiddleware` (traversal, prefix limits, ticket extraction). | No |
 

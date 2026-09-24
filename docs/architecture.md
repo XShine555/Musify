@@ -52,4 +52,3 @@ See [authentication.md](authentication.md).
 - **PlayListHasTrack**: the tracks inside a playlist (with `Position`).
 - **UserHasTrack**: ownership, which user owns which track.
 - **UploadIntent**: an upload reservation (key, bucket, expected size, status, expiration) used for validation and quota.
-- **Upload**: a record of objects uploaded or transferred to storage.

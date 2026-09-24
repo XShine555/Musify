@@ -39,7 +39,7 @@ public static class ServicesDependencyInjection
         return serviceDescriptors;
     }
 
-    public static IServiceCollection AddPictureService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+    public static IServiceCollection AddPictureService(this IServiceCollection serviceDescriptors)
     {
         serviceDescriptors.AddScoped<IPictureService, PictureService>();
         return serviceDescriptors;

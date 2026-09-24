@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musify.Infrastructure.Configuration;
-using Musify.Infrastructure.Persistence;
 using Musify.Infrastructure.Services;
 using Musify.Infrastructure.Tests.TestSupport;
 using Xunit;
@@ -13,12 +12,10 @@ namespace Musify.Infrastructure.Tests.Services;
 [Collection(InfrastructureCollection.Name)]
 public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAsyncLifetime
 {
-    private Database database = null!;
     private StorageService service = null!;
 
     public ValueTask InitializeAsync()
     {
-        database = fixture.CreateDatabase();
         var storageConfiguration = new InfrastructureStorageConfiguration
         {
             Address = fixture.S3ServiceUrl,
@@ -27,11 +24,11 @@ public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAs
             ForcePathStyle = true,
             UseHttp = true,
         };
-        service = new StorageService(database, fixture.CreateS3Client(), NullLogger<StorageService>.Instance, storageConfiguration);
+        service = new StorageService(fixture.CreateS3Client(), NullLogger<StorageService>.Instance, storageConfiguration);
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask DisposeAsync() => database.DisposeAsync();
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     [Fact]
     public async Task UploadThenGetFile_RoundTripsTheSameBytes()
@@ -112,21 +109,6 @@ public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAs
             keys.Add(item.Key);
 
         Assert.Equal([$"{prefix}/a.txt", $"{prefix}/b.txt"], keys.Order());
-    }
-
-    [Fact]
-    public async Task RemoveFolderAsync_DeletesEveryObjectUnderThePrefix()
-    {
-        var prefix = $"tests/{Guid.NewGuid():N}";
-        await service.UploadFileAsync(new MemoryStream("a"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/a.txt", TestContext.Current.CancellationToken);
-        await service.UploadFileAsync(new MemoryStream("b"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/nested/b.txt", TestContext.Current.CancellationToken);
-
-        await service.RemoveFolderAsync(InfrastructureTestFixture.S3Bucket, prefix, TestContext.Current.CancellationToken);
-
-        var remaining = new List<string>();
-        await foreach (var item in service.ListObjectsAsync(InfrastructureTestFixture.S3Bucket, prefix, TestContext.Current.CancellationToken))
-            remaining.Add(item.Key);
-        Assert.Empty(remaining);
     }
 
     [Fact]

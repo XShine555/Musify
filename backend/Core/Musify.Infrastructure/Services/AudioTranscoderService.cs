@@ -75,47 +75,6 @@ public partial class AudioService(ILogger<AudioService> logger,
         return new TimeSpan(hours, minutes, 0) + TimeSpan.FromSeconds(seconds);
     }
 
-    public async Task<bool> IsValidAudioFileAsync(string filePath, CancellationToken cancellationToken)
-    {
-        if (!File.Exists(filePath))
-        {
-            logger.LogWarning("Audio validation requested for non-existing file {FilePath}", filePath);
-            return false;
-        }
-
-        try
-        {
-            logger.LogDebug("Validating audio file {FilePath}", filePath);
-
-            var executionResult = await ExecuteFfmpegAsync(
-                BuildValidateAudioArguments(filePath),
-                Path.GetDirectoryName(filePath) ?? Environment.CurrentDirectory,
-                "ValidateAudioFile",
-                cancellationToken);
-
-            var isValid = executionResult.ExitCode == 0;
-            if (!isValid)
-            {
-                logger.LogWarning("Audio validation failed for {FilePath}: {StandardError}", filePath, executionResult.StandardError);
-            }
-            else
-            {
-                logger.LogDebug("Audio validation successful for {FilePath}", filePath);
-            }
-
-            return isValid;
-        }
-        catch (TimeoutException timeoutException)
-        {
-            logger.LogError(timeoutException, "Audio validation timed out for {FilePath}", filePath);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to validate audio file {FilePath}", filePath);
-        }
-        return false;
-    }
-
     private async Task<FfmpegExecutionResult> ExecuteFfmpegWithInputAsync(
         string arguments,
         string workingDirectory,
@@ -238,9 +197,6 @@ public partial class AudioService(ILogger<AudioService> logger,
                additionalArguments +
                $" \"{outputPath}\"";
     }
-
-    private static string BuildValidateAudioArguments(string filePath)
-        => $"-v error -i \"{filePath}\" -map 0:a:0 -f null -";
 
     private static string BuildProbeDurationArguments(string filePath)
         => $"-hide_banner -i \"{filePath}\" -f null -";

@@ -24,8 +24,6 @@ public interface IDatabase
 
     public DbSet<MixItem> MixItems { get; }
 
-    public DbSet<Upload> Uploads { get; }
-
     public DbSet<UploadIntent> UploadIntents { get; }
 
     public DbSet<ListeningHistory> ListeningHistories { get; }

@@ -75,6 +75,5 @@ public static partial class MassTransitDependencyInjection
         options.AddActivity<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>();
         options.AddActivity<CopyFileInBucketActivity, CopyFileInBucketArguments, CopyFileInBucketLog>();
         options.AddActivity<ConsumeUploadIntentsActivity, ConsumeUploadIntentsArguments, ConsumeUploadIntentsLog>();
-        options.AddActivity<DownloadFileFromUrlActivity, DownloadFileFromUrlArguments, DownloadFileFromUrlLog>();
     }
 }

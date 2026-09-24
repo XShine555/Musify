@@ -7,7 +7,6 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
 {
     private CurrentUser(ClaimsPrincipal principal)
     {
-        Principal = principal;
         IsAuthenticated = principal.Identity?.IsAuthenticated ?? false;
 
         var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -18,8 +17,6 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
         FirstName = principal.FindFirstValue(ClaimTypes.GivenName);
         LastName = principal.FindFirstValue(ClaimTypes.Surname);
     }
-
-    public ClaimsPrincipal Principal { get; }
 
     public bool IsAuthenticated { get; }
 
@@ -32,10 +29,6 @@ public sealed class CurrentUser : IBindableFromHttpContext<CurrentUser>
     public string? LastName { get; }
 
     public long RequiredId => Id ?? throw new InvalidOperationException("User Id claim is missing or invalid.");
-
-    public bool HasClaim(string type) => Principal.HasClaim(c => c.Type == type);
-
-    public string? FindClaim(string type) => Principal.FindFirstValue(type);
 
     public static ValueTask<CurrentUser?> BindAsync(HttpContext context, ParameterInfo parameter) =>
         ValueTask.FromResult<CurrentUser?>(new CurrentUser(context.User));

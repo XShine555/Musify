@@ -57,7 +57,6 @@ internal class UpdateAlbumPictureActivity(
             album.Pictures.MediumName = Path.GetFileName(mediumResizedVariable);
             album.Pictures.LargeName = Path.GetFileName(largeResizedVariable);
 
-            database.Albums.Update(album);
             await database.SaveChangesAsync(executeContext.CancellationToken);
 
             logger.LogInformation("Updated album {AlbumId} pictures",
@@ -98,7 +97,6 @@ internal class UpdateAlbumPictureActivity(
                 LargeName = compensateContext.Log.PreviousLargePictureKey
             };
 
-            database.Albums.Update(album);
             await database.SaveChangesAsync(compensateContext.CancellationToken);
 
             return compensateContext.Compensated();

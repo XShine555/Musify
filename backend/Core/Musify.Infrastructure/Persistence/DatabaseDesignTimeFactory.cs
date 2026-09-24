@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Musify.Infrastructure.Configuration;
@@ -20,9 +19,6 @@ public class DatabaseDesignTimeFactory : IDesignTimeDbContextFactory<Database>
             .GetRequiredSection(DatabaseConfiguration.SectionName)
             .Get<DatabaseConfiguration>()
             ?? throw new InvalidOperationException($"{DatabaseConfiguration.SectionName} configuration section not found.");
-
-        var optionsBuilder = new DbContextOptionsBuilder<Database>();
-        optionsBuilder.UseNpgsql(databaseConfiguration.ConnectionString);
 
         return new Database(databaseConfiguration);
     }
