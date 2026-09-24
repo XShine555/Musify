@@ -1,4 +1,5 @@
 using Mediator;
+using Microsoft.AspNetCore.Mvc;
 using Musify.Api.Authentication;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
@@ -9,6 +10,7 @@ using Musify.Application.Pictures;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Api.Endpoints
 {
@@ -57,8 +59,16 @@ namespace Musify.Api.Endpoints
             group.MapGet("/users/{userId:long}", GetTracksByUserId)
                 .AddEndpointFilter<ValidationFilter<PageQuery>>()
                 .WithName("GetTracksByUserId")
-                .WithSummary("Get paginated tracks for a user")
-                .Produces<PaginatedResponse<TrackApplicationResponse>>();
+                .WithSummary("Get paginated tracks for a user, optionally filtered by name and audio processing status. Each track lists the albums it belongs to")
+                .Produces<PaginatedResponse<UserTrackApplicationResponse>>();
+
+            group.MapGet("/users/{userId:long}/status-counts", GetTrackStatusCounts)
+                .WithName("GetTrackStatusCounts")
+                .WithSummary("Get how many of your tracks are in each audio processing status")
+                .RequireAuthorization()
+                .Produces<TrackStatusCountsResponse>()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden);
 
             group.MapPost("/", CreateTrack)
                 .WithName("CreateTrack")
@@ -80,6 +90,16 @@ namespace Musify.Api.Endpoints
                 .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status404NotFound)
                 .Produces(StatusCodes.Status409Conflict);
+
+            group.MapDelete("/", DeleteTracks)
+                .WithName("DeleteTracks")
+                .WithSummary("Delete several of your tracks at once. Tracks that are missing or still processing are returned as failed")
+                .AddEndpointFilter<ValidationFilter<DeleteTracksRequest>>()
+                .RequireAuthorization()
+                .Produces<DeleteTracksResponse>()
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden);
 
             group.MapPost("/upload-urls", RequestTrackUploadUrls)
                 .WithName("RequestTrackUploadUrls")
@@ -154,9 +174,35 @@ namespace Musify.Api.Endpoints
             long userId,
             string? name,
             [AsParameters] PageQuery page,
+            CancellationToken cancellationToken,
+            ProcessingStatus[]? status = null)
+        {
+            var result = await mediator.Send(
+                new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize, status),
+                cancellationToken);
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> GetTrackStatusCounts(
+            IMediator mediator,
+            CurrentUser currentUser,
+            long userId,
             CancellationToken cancellationToken)
         {
-            var result = await mediator.Send(new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize), cancellationToken);
+            if (currentUser.RequiredId != userId)
+                return Results.Problem("You can only read the status counts of your own tracks.", statusCode: StatusCodes.Status403Forbidden);
+
+            var result = await mediator.Send(new GetTrackStatusCountsQuery(userId), cancellationToken);
+            return Results.Ok(result);
+        }
+
+        private static async Task<IResult> DeleteTracks(
+            IMediator mediator,
+            CurrentUser currentUser,
+            [FromBody] DeleteTracksRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new DeleteTracksCommand(currentUser.RequiredId, request.TrackIds), cancellationToken);
             return result.ToHttpResult();
         }
 

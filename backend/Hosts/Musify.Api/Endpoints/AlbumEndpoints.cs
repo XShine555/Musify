@@ -57,6 +57,15 @@ namespace Musify.Api.Endpoints
                 .Produces<PaginatedResponse<TrackApplicationResponse>>()
                 .Produces(StatusCodes.Status404NotFound);
 
+            group.MapGet("/{id:guid}/tracks/ids", GetAlbumTrackIds)
+                .WithName("GetAlbumTrackIds")
+                .WithSummary("Get the ids of every track in one of your albums, ordered by track number")
+                .RequireAuthorization()
+                .Produces<AlbumTrackIdsResponse>()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status404NotFound);
+
             group.MapGet("/{id:guid}/cover", GetAlbumCover)
                 .WithName("GetAlbumCover")
                 .WithSummary("Get an album cover image")
@@ -192,6 +201,16 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(new GetAlbumTracksQuery(id, page.PageNumber, page.PageSize), cancellationToken);
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> GetAlbumTrackIds(
+            IMediator mediator,
+            CurrentUser currentUser,
+            Guid id,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new GetAlbumTrackIdsQuery(currentUser.RequiredId, id), cancellationToken);
             return result.ToHttpResult();
         }
 

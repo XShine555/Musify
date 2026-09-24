@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks
 {
@@ -11,13 +12,14 @@ namespace Musify.Application.Tracks
         long UserId,
         string? Name,
         int PageNumber,
-        int PageSize)
-        : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse>>>;
+        int PageSize,
+        IReadOnlyList<ProcessingStatus>? Statuses = null)
+        : IQuery<ErrorOr<PaginatedResponse<UserTrackApplicationResponse>>>;
 
     public class GetTracksByUserIdQueryHandler(IDatabase database)
-        : IQueryHandler<GetTracksByUserIdQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>>>
+        : IQueryHandler<GetTracksByUserIdQuery, ErrorOr<PaginatedResponse<UserTrackApplicationResponse>>>
     {
-        public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse>>> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
+        public async ValueTask<ErrorOr<PaginatedResponse<UserTrackApplicationResponse>>> Handle(GetTracksByUserIdQuery request, CancellationToken cancellationToken)
         {
             var tracksQuery = database.Tracks
                 .AsNoTracking()
@@ -30,10 +32,16 @@ namespace Musify.Application.Tracks
                 tracksQuery = tracksQuery.Where(track => track.NormalizedTitle.Contains(normalizedName));
             }
 
+            if (request.Statuses is { Count: > 0 } statuses)
+            {
+                var statusList = statuses.Distinct().ToList();
+                tracksQuery = tracksQuery.Where(track => statusList.Contains(track.Audio.TranscodeStatus));
+            }
+
             return await tracksQuery
                 .OrderByDescending(track => track.CreatedAt)
                 .ThenBy(track => track.Id)
-                .SelectResponse()
+                .SelectUserResponse()
                 .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
         }
     }
