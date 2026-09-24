@@ -57,6 +57,17 @@
 		onTitle,
 		class: klass = ''
 	}: Props = $props();
+
+	function details(item: QueuedUpload): string {
+		return [
+			genresLabel,
+			visibilityLabel,
+			formatSize(item.file.size),
+			item.duration === null ? '' : fmtTime(item.duration)
+		]
+			.filter((part) => part !== '' && part !== '-')
+			.join(' · ');
+	}
 </script>
 
 <DataGrid
@@ -82,6 +93,7 @@
 						class="w-full truncate rounded-tag bg-transparent text-sm text-fg transition-colors hover:bg-surface focus:bg-surface-2 focus:outline-none"
 					/>
 					<p class="truncate text-xs text-fg-2">{item.file.name}</p>
+					<p class="truncate text-xs text-fg-2 sm:hidden">{details(item)}</p>
 				</div>
 			</div>
 		{:else if column.id === 'genres'}

@@ -10,7 +10,7 @@
 	const TONE = {
 		success: 'bg-accent-tint text-accent-soft',
 		neutral: 'bg-btn text-fg-2',
-		danger: 'bg-danger/15 text-danger-fg'
+		danger: 'bg-danger-tint text-danger-fg'
 	};
 </script>
 

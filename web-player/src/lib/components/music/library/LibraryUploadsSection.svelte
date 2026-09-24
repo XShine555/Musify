@@ -6,6 +6,7 @@
 		summarizeQueue,
 		toQueuedUpload,
 		UPLOAD_FORMATS,
+		uploadLimitsLabel,
 		type QueuedUpload,
 		type Visibility
 	} from '$lib/data/uploadQueue';
@@ -69,7 +70,7 @@
 		<FileDropzone
 			accept={ACCEPT}
 			title="Arrastra tus archivos aquí"
-			hint="WAV, FLAC, AIFF o MP3 · hasta 500 MB por archivo · puedes soltar carpetas enteras"
+			hint={uploadLimitsLabel()}
 			inputLabel="Elegir archivos de audio"
 			onfiles={enqueue}
 			readDrop={filesFromDrop}
@@ -88,7 +89,7 @@
 	<section class="min-w-0 rounded-panel bg-surface p-5 sm:p-6">
 		<div class="flex flex-wrap items-start justify-between gap-4">
 			<div>
-				<h2 class="font-display text-xl font-semibold tracking-display text-fg">Cola de subida</h2>
+				<h2 class="text-display-3 text-fg">Cola de subida</h2>
 				<p class="mt-1 text-xs text-fg-2">
 					{queue.length > 0 ? queueMeta : 'Todavía no hay archivos'}
 				</p>

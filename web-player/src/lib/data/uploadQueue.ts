@@ -1,6 +1,14 @@
 export const UPLOAD_MAX_BYTES = 500 * 1024 * 1024;
 export const UPLOAD_FORMATS = ['wav', 'flac', 'aiff', 'aif', 'mp3'];
 
+const UPLOAD_MAX_MB = Math.round(UPLOAD_MAX_BYTES / (1024 * 1024));
+
+export function uploadLimitsLabel(): string {
+	const names = UPLOAD_FORMATS.filter((ext) => ext !== 'aif').map((ext) => ext.toUpperCase());
+	const list = `${names.slice(0, -1).join(', ')} o ${names[names.length - 1]}`;
+	return `${list} · hasta ${UPLOAD_MAX_MB} MB por archivo · puedes soltar carpetas enteras`;
+}
+
 export type Visibility = 'private' | 'public';
 
 export interface QueuedUpload {
@@ -30,7 +38,7 @@ export function titleFromFileName(name: string): string {
 
 export function uploadError(file: File): string | null {
 	if (!UPLOAD_FORMATS.includes(fileExtension(file.name))) return 'Formato no compatible';
-	if (file.size > UPLOAD_MAX_BYTES) return 'Supera 500 MB';
+	if (file.size > UPLOAD_MAX_BYTES) return `Supera ${UPLOAD_MAX_MB} MB`;
 	if (file.size === 0) return 'Archivo vacío';
 	return null;
 }

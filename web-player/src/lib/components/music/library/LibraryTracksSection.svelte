@@ -77,6 +77,7 @@
 			<SearchInput
 				bind:value={query}
 				placeholder="Filtrar por título o artista"
+				size="sm"
 				class="w-full sm:max-w-search sm:flex-1"
 			/>
 			<ChipGroup label="Filtrar por estado" options={filterOptions} bind:value={filter} />

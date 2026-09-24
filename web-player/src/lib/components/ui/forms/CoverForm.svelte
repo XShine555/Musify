@@ -75,6 +75,7 @@
 				icon={coverIcon}
 				gradient
 				size="fill"
+				class="max-w-cover-fill lg:max-w-none"
 			/>
 			{#if coverHint}
 				<p class="text-xs text-fg-2">{coverHint}</p>

@@ -28,6 +28,7 @@
 	--color-on-art-2: var(--mf-on-art-2);
 	--color-danger: oklch(63.7% 0.15 25.331);
 	--color-danger-fg: var(--mf-danger-fg);
+	--color-danger-tint: color-mix(in srgb, var(--color-danger) 15%, transparent);
 	--color-btn: var(--mf-btn-bg);
 	--color-btn-hover: var(--mf-btn-bg-hover);
 	--color-cta-strong-hover: var(--mf-cta-strong-hover);
@@ -60,6 +61,8 @@
 	--spacing-icon-2xl: 1.75rem;
 	--spacing-icon-3xl: 2.5rem;
 	--spacing-section: 2.875rem;
+	--spacing-dropzone: 16rem;
+	--spacing-cover-fill: 11rem;
 
 	--container-prose-sm: 26rem;
 	--container-hero: 34rem;

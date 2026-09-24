@@ -70,14 +70,14 @@
 	ondragover={onOver}
 	ondragleave={onLeave}
 	ondrop={onDrop}
-	class="flex min-h-64 flex-col items-center justify-center rounded-panel border border-dashed p-6 text-center transition sm:p-10 {dragging
+	class="flex min-h-dropzone flex-col items-center justify-center rounded-panel border border-dashed p-6 text-center transition sm:p-10 {dragging
 		? 'border-accent/60 bg-accent-tint'
 		: 'border-line-strong bg-surface'} {klass}"
 >
 	<span class="grid size-14 place-items-center rounded-full bg-surface-2 text-fg-2">
 		<UploadCloud class="size-icon-xl" />
 	</span>
-	<h2 class="mt-5 font-display text-xl font-semibold tracking-display text-fg">{title}</h2>
+	<h2 class="mt-5 text-display-3 text-fg">{title}</h2>
 	{#if hint}
 		<p class="mt-2 text-xs text-fg-2">{hint}</p>
 	{/if}

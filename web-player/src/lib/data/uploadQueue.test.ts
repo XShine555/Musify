@@ -4,6 +4,7 @@ import {
 	titleFromFileName,
 	toQueuedUpload,
 	uploadError,
+	uploadLimitsLabel,
 	UPLOAD_MAX_BYTES
 } from '$lib/data/uploadQueue';
 
@@ -41,5 +42,13 @@ describe('summarizeQueue', () => {
 	it('counts ready and failed items', () => {
 		const items = [file('a.wav'), file('b.mp3'), file('c.psd')].map(toQueuedUpload);
 		expect(summarizeQueue(items)).toEqual({ ready: 2, failed: 1 });
+	});
+});
+
+describe('uploadLimitsLabel', () => {
+	it('lists the formats and the size limit', () => {
+		expect(uploadLimitsLabel()).toBe(
+			'WAV, FLAC, AIFF o MP3 · hasta 500 MB por archivo · puedes soltar carpetas enteras'
+		);
 	});
 });

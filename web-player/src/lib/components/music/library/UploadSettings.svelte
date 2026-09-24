@@ -59,11 +59,11 @@
 </script>
 
 <aside class="flex flex-col gap-6 {klass}">
-	<p class="text-xs font-medium tracking-eyebrow text-fg-2 uppercase">Aplicar a esta subida</p>
+	<p class="text-eyebrow text-fg-2">Aplicar a esta subida</p>
 
 	<div class="grid gap-8 sm:grid-cols-[auto_1fr]">
 		<Field label="Portada">
-			<div class="w-full max-w-44">
+			<div class="w-full max-w-cover-fill">
 				<ImageDropzone
 					name="cover"
 					icon={ImageIcon}
