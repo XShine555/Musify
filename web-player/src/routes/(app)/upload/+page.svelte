@@ -41,8 +41,7 @@
 
 	const steps = [
 		{ key: 'upload', label: 'Subir', hint: 'Portada y audio.' },
-		{ key: 'process', label: 'Procesar', hint: 'Transcodificado para streaming.' },
-		{ key: 'publish', label: 'Publicar', hint: 'Disponible en el catálogo.' }
+		{ key: 'done', label: 'Listo', hint: 'Se procesa y aparece en tu biblioteca.' }
 	];
 
 	const options = $derived(genreOptions(data.genres));
@@ -61,9 +60,9 @@
 	);
 
 	const stepStates = $derived.by<StepState[]>(() => {
-		if (status === 'done') return ['done', 'done', 'done'];
-		if (status === 'uploading') return ['active', 'idle', 'idle'];
-		return ['idle', 'idle', 'idle'];
+		if (status === 'done') return ['done', 'done'];
+		if (status === 'uploading') return ['active', 'idle'];
+		return ['idle', 'idle'];
 	});
 
 	function stepClass(s: StepState) {
@@ -122,7 +121,7 @@
 		description="Añade una canción con su portada y título. Nosotros la procesamos para streaming."
 	/>
 
-	<ol class="grid gap-3 sm:grid-cols-3 sm:gap-4">
+	<ol class="grid gap-3 sm:grid-cols-2 sm:gap-4">
 		{#each steps as step, i (step.key)}
 			<li>
 				<Surface padding="sm" class={stepClass(stepStates[i])}>
