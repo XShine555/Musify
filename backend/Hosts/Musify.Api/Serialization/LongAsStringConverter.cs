@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Musify.Application.Serialization;
+namespace Musify.Api.Serialization;
 
 public sealed class LongAsStringConverter : JsonConverter<long>
 {

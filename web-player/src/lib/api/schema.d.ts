@@ -142,6 +142,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/albums/{id}/tracks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Your Uploaded Tracks To An Album, Skipping The Ones It Already Has. */
+        post: operations["AddAlbumTracks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/albums/{albumId}/tracks/{trackId}": {
         parameters: {
             query?: never;
@@ -151,8 +168,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add One Of Your Uploaded Tracks To An Album. */
-        post: operations["AddTrackToAlbum"];
+        post?: never;
         /** Remove A Track From An Album. */
         delete: operations["RemoveTrackFromAlbum"];
         options?: never;
@@ -323,8 +339,7 @@ export interface paths {
         /** Get Paginated Tracks Of A PlayList. */
         get: operations["GetPlayListTracks"];
         put?: never;
-        /** Add One Of Your Tracks To A PlayList. */
-        post: operations["AddPlayListTrack"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -394,6 +409,23 @@ export interface paths {
         put?: never;
         /** Request A Pre-Signed URL To Upload A PlayList Picture. */
         post: operations["RequestPlayListPictureUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists/{id}/tracks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Tracks To A PlayList, Skipping The Ones It Already Has. */
+        post: operations["AddPlayListTracks"];
         delete?: never;
         options?: never;
         head?: never;
@@ -729,9 +761,8 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        AddPlayListTrackRequest: {
-            /** Format: uuid */
-            trackId: string;
+        AddTracksRequest: {
+            trackIds: string[];
         };
         AlbumApplicationResponse: {
             /** Format: uuid */
@@ -810,8 +841,7 @@ export interface components {
         MixApplicationResponse: {
             /** Format: uuid */
             id: string;
-            title: string;
-            subtitle: null | string;
+            kind: components["schemas"]["MixKind"];
             /** Format: int32 */
             itemCount: number | string;
             items: components["schemas"]["MixItemApplicationResponse"][];
@@ -826,6 +856,8 @@ export interface components {
             /** Format: int32 */
             listensCount: number | string;
         };
+        /** @enum {unknown} */
+        MixKind: "Discovery" | "Daily";
         PaginatedResponseOfAlbumApplicationResponse: {
             items: components["schemas"]["AlbumApplicationResponse"][];
             /** Format: int32 */
@@ -1157,7 +1189,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: number | string;
+                userId: unknown;
             };
             cookie?: never;
         };
@@ -1415,17 +1447,20 @@ export interface operations {
             };
         };
     };
-    AddTrackToAlbum: {
+    AddAlbumTracks: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                albumId: string;
-                trackId: string;
+                id: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddTracksRequest"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
@@ -1433,6 +1468,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1735,7 +1779,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: number | string;
+                userId: unknown;
             };
             cookie?: never;
         };
@@ -1777,60 +1821,6 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AddPlayListTrack: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                playlistId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddPlayListTrackRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrackApplicationResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2051,6 +2041,67 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AddPlayListTracks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddTracksRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2329,7 +2380,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                userId: number | string;
+                userId: unknown;
             };
             cookie?: never;
         };
@@ -2477,7 +2528,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2506,7 +2557,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2535,7 +2586,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2571,7 +2622,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2600,7 +2651,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2632,7 +2683,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2671,7 +2722,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2700,7 +2751,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2729,7 +2780,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };
@@ -2772,7 +2823,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | string;
+                id: unknown;
             };
             cookie?: never;
         };

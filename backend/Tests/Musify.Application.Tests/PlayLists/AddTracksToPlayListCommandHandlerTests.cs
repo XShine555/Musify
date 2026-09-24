@@ -7,9 +7,9 @@ using Xunit;
 
 namespace Musify.Application.Tests.PlayLists;
 
-public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
+public sealed class AddTracksToPlayListCommandHandlerTests : HandlerTestBase
 {
-    private AddTrackToPlayListCommandHandler CreateHandler() => new(Database, NoOpLogger<AddTrackToPlayListCommandHandler>());
+    private AddTracksToPlayListCommandHandler CreateHandler() => new(Database, NoOpLogger<AddTracksToPlayListCommandHandler>());
 
     [Fact]
     public async Task Handle_FirstTrack_AddsItAtPositionZero()
@@ -19,7 +19,7 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
         var track = TestEntities.Track(owner);
         await SeedAsync(owner, playList, track);
 
-        var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, track.Id), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new AddTracksToPlayListCommand(owner.Id, playList.Id, [track.Id]), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var link = Assert.Single(await Database.PlayListHasTracks.ToListAsync(TestContext.Current.CancellationToken));
@@ -37,7 +37,7 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
             owner, playList, existingTrack, newTrack,
             new PlayListHasTrack { PlayListId = playList.Id, TrackId = existingTrack.Id, Position = 0 });
 
-        var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, newTrack.Id), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new AddTracksToPlayListCommand(owner.Id, playList.Id, [newTrack.Id]), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var newLink = await Database.PlayListHasTracks.SingleAsync(link => link.TrackId == newTrack.Id, TestContext.Current.CancellationToken);
@@ -47,7 +47,7 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_PlayListMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(1, Guid.NewGuid(), Guid.NewGuid()), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new AddTracksToPlayListCommand(1, Guid.NewGuid(), [Guid.NewGuid()]), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -60,7 +60,7 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, stranger, playList);
 
-        var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(stranger.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new AddTracksToPlayListCommand(stranger.Id, playList.Id, [Guid.NewGuid()]), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
     }
@@ -72,22 +72,23 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, playList);
 
-        var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, Guid.NewGuid()), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new AddTracksToPlayListCommand(owner.Id, playList.Id, [Guid.NewGuid()]), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
 
     [Fact]
-    public async Task Handle_TrackAlreadyInPlayList_ReturnsConflict()
+    public async Task Handle_TrackAlreadyInPlayList_IsSkipped()
     {
         var owner = TestEntities.User();
         var playList = TestEntities.PlayList(owner.Id);
         var track = TestEntities.Track(owner);
         await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
-        var result = await CreateHandler().Handle(new AddTrackToPlayListCommand(owner.Id, playList.Id, track.Id), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new AddTracksToPlayListCommand(owner.Id, playList.Id, [track.Id]), TestContext.Current.CancellationToken);
 
-        Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
+        Assert.False(result.IsError);
+        Assert.Single(await Database.PlayListHasTracks.ToListAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -102,5 +103,27 @@ public sealed class AddTrackToPlayListCommandHandlerTests : HandlerTestBase
         var result = await Database.TrySaveChangesAsync(Error.Conflict("Test.Duplicate", "duplicate"), TestContext.Current.CancellationToken);
 
         Assert.Equal("Test.Duplicate", result.FirstError.Code);
+    }
+
+    [Fact]
+    public async Task Handle_SeveralTracks_AppendsThemInOrderSkippingExistingOnes()
+    {
+        var owner = TestEntities.User();
+        var playList = TestEntities.PlayList(owner.Id);
+        var existing = TestEntities.Track(owner, "Existing");
+        var first = TestEntities.Track(owner, "First");
+        var second = TestEntities.Track(owner, "Second");
+        await SeedAsync(
+            owner, playList, existing, first, second,
+            new PlayListHasTrack { PlayListId = playList.Id, TrackId = existing.Id, Position = 0 });
+
+        var result = await CreateHandler().Handle(
+            new AddTracksToPlayListCommand(owner.Id, playList.Id, [first.Id, existing.Id, second.Id, first.Id]),
+            TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsError);
+        var links = await Database.PlayListHasTracks.OrderBy(link => link.Position).ToListAsync(TestContext.Current.CancellationToken);
+        Assert.Equal([existing.Id, first.Id, second.Id], links.Select(link => link.TrackId));
+        Assert.Equal([0, 1, 2], links.Select(link => link.Position));
     }
 }

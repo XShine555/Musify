@@ -17,9 +17,6 @@ public class RecordListeningProgressCommandHandler(IDatabase database)
 {
     public async ValueTask<ErrorOr<Success>> Handle(RecordListeningProgressCommand request, CancellationToken cancellationToken)
     {
-        if (!double.IsFinite(request.PlayedSeconds) || request.PlayedSeconds < 0)
-            return Error.Validation(description: "playedSeconds must be a non-negative number.");
-
         var listen = await database.ListeningHistories
             .Include(l => l.Track)
             .SingleOrDefaultAsync(l => l.Id == request.ListenId && l.UserId == request.UserId, cancellationToken);

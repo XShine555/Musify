@@ -26,6 +26,6 @@ public class GetMixByIdQueryHandler(IDatabase database)
         var orderedItems = mix.Items.OrderBy(item => item.Position).ToList();
         var items = await MixItemMapper.ToResponsesAsync(database, orderedItems, cancellationToken);
 
-        return new MixApplicationResponse(mix.Id, mix.Title, mix.Subtitle, items.Count, items);
+        return new MixApplicationResponse(mix.Id, mix.Kind, items.Count, items);
     }
 }

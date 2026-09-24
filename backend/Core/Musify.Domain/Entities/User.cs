@@ -30,8 +30,6 @@ public class User : IAuditable
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
-
     public ICollection<PlayList> PlayLists { get; set; } = new List<PlayList>();
 
     public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();

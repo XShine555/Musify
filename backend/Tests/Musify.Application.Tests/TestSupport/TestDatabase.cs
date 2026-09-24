@@ -143,8 +143,6 @@ public sealed class TestDatabase : DbContext, IDatabase
 
     public DbSet<Track> Tracks => Set<Track>();
 
-    public DbSet<UserHasTrack> UserHasTracks => Set<UserHasTrack>();
-
     public DbSet<PlayListHasTrack> PlayListHasTracks => Set<PlayListHasTrack>();
 
     public DbSet<Mix> Mixes => Set<Mix>();

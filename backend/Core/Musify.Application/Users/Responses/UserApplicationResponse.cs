@@ -1,11 +1,9 @@
-using System.Text.Json.Serialization;
-using Musify.Application.Serialization;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Users.Responses;
 
 public record UserApplicationResponse(
-    [property: JsonConverter(typeof(LongAsStringConverter))] long Id,
+    long Id,
     string Name,
     string? FirstName,
     string? SecondName,

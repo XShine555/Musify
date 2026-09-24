@@ -15,15 +15,12 @@ export async function addTrackAction({ request, params, locals, fetch }: Request
 	}
 
 	const api = createApiClient({ fetch, accessToken });
-	const { error: err, response } = await api.POST('/playlists/{playlistId}/tracks', {
-		params: { path: { playlistId } },
-		body: { trackId }
+	const { error: err } = await api.POST('/playlists/{id}/tracks', {
+		params: { path: { id: playlistId } },
+		body: { trackIds: [trackId] }
 	});
 
 	if (err) {
-		if (response?.status === 409) {
-			return fail(409, { message: 'La canción ya está en esa playlist.', trackId });
-		}
 		return fail(502, { message: 'No se pudo añadir la canción.', trackId });
 	}
 
@@ -51,14 +48,18 @@ export async function addAlbumToPlaylistAction({ request, params, locals, fetch 
 		return fail(502, { message: 'No se pudo cargar el álbum.', albumId });
 	}
 
-	let added = 0;
-	for (const track of tracks.items) {
-		const { error: err } = await api.POST('/playlists/{playlistId}/tracks', {
-			params: { path: { playlistId } },
-			body: { trackId: String(track.id) }
-		});
-		if (!err) added++;
+	const trackIds = tracks.items.map((track) => String(track.id));
+	if (trackIds.length === 0) {
+		return { addedAlbum: true, albumId, playlistId, added: 0 };
 	}
 
-	return { addedAlbum: true, albumId, playlistId, added };
+	const { error: addErr } = await api.POST('/playlists/{id}/tracks', {
+		params: { path: { id: playlistId } },
+		body: { trackIds }
+	});
+	if (addErr) {
+		return fail(502, { message: 'No se pudo añadir el álbum.', albumId });
+	}
+
+	return { addedAlbum: true, albumId, playlistId, added: trackIds.length };
 }

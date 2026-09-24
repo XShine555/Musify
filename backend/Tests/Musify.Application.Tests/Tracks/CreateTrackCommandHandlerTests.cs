@@ -90,34 +90,6 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_NoTags_ReturnsValidationError()
-    {
-        var user = TestEntities.User();
-        var (picture, audio) = SeedIntents(user.Id);
-        await SeedAsync(user, picture, audio);
-
-        var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, []);
-
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
-
-        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-    }
-
-    [Fact]
-    public async Task Handle_IncompatibleTags_ReturnsValidationError()
-    {
-        var user = TestEntities.User();
-        var (picture, audio) = SeedIntents(user.Id);
-        await SeedAsync(user, picture, audio);
-
-        var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Classical, Genre.Metal]);
-
-        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
-
-        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-    }
-
-    [Fact]
     public async Task Handle_UserMissing_ReturnsNotFound()
     {
         var command = new CreateTrackCommand(404, "Orphan Song", Guid.NewGuid(), Guid.NewGuid(), [Genre.Pop]);

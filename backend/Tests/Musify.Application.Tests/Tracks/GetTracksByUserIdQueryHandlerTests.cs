@@ -1,6 +1,5 @@
 using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
-using Musify.Domain.Entities;
 using Xunit;
 
 namespace Musify.Application.Tests.Tracks;
@@ -17,9 +16,7 @@ public sealed class GetTracksByUserIdQueryHandlerTests : HandlerTestBase
         var mine = TestEntities.Track(owner, "Mine");
         var theirs = TestEntities.Track(other, "Theirs");
         await SeedAsync(
-            owner, other, mine, theirs,
-            new UserHasTrack { UserId = owner.Id, TrackId = mine.Id },
-            new UserHasTrack { UserId = other.Id, TrackId = theirs.Id });
+            owner, other, mine, theirs);
 
         var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
 

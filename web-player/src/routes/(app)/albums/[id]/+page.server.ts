@@ -54,8 +54,9 @@ export const actions: Actions = {
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
 		const api = createApiClient({ fetch, accessToken });
-		const result = await api.POST('/albums/{albumId}/tracks/{trackId}', {
-			params: { path: { albumId: params.id, trackId } }
+		const result = await api.POST('/albums/{id}/tracks', {
+			params: { path: { id: params.id } },
+			body: { trackIds: [trackId] }
 		});
 		const failure = unwrapOrFail(result, 'No se pudo añadir la canción.');
 		if (failure) return failure;

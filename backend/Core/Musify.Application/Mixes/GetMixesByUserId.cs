@@ -42,7 +42,7 @@ public class GetMixesByUserIdQueryHandler(IDatabase database)
                 .Select(item => coverResponses[item.TrackId])
                 .ToList();
 
-            responses.Add(new MixApplicationResponse(mix.Id, mix.Title, mix.Subtitle, orderedItems.Count, covers));
+            responses.Add(new MixApplicationResponse(mix.Id, mix.Kind, orderedItems.Count, covers));
         }
 
         return responses;

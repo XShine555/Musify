@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Musify.Api.Authentication;
-using Musify.Application.Serialization;
 
 namespace Musify.Api.OpenApi;
 
@@ -41,10 +40,16 @@ public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> op
 
         options.AddSchemaTransformer((schema, context, _) =>
         {
-            if (context.JsonPropertyInfo?.CustomConverter is LongAsStringConverter or NullableLongAsStringConverter)
+            // Every long the API returns is a user id, serialized as a string (JS loses precision above 2^53).
+            // Request DTOs only carry byte sizes, which may be sent as numbers or strings.
+            if (context.JsonPropertyInfo is { } property
+                && (property.PropertyType == typeof(long) || property.PropertyType == typeof(long?)))
             {
-                schema.Type = JsonSchemaType.String;
-                schema.Format = null;
+                var isRequest = property.DeclaringType?.Name.EndsWith("Request", StringComparison.Ordinal) == true;
+                schema.Type = isRequest ? JsonSchemaType.Integer | JsonSchemaType.String : JsonSchemaType.String;
+                if (property.PropertyType == typeof(long?))
+                    schema.Type |= JsonSchemaType.Null;
+                schema.Format = isRequest ? "int64" : null;
             }
 
             return Task.CompletedTask;

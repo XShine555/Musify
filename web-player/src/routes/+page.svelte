@@ -14,7 +14,7 @@
 	} from '$lib/player/player.svelte';
 	import { pressable } from '$lib/actions/pressable';
 	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
-	import { mixItemTrack } from '$lib/data/mixes';
+	import { mixItemTrack, mixText } from '$lib/data/mixes';
 	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
@@ -279,8 +279,8 @@
 					{#each mixes as mix, i (mix.id)}
 						<MediaCard
 							href="/mixes/{mix.id}"
-							title={mix.title}
-							subtitle={mix.subtitle}
+							title={mixText(mix).title}
+							subtitle={mixText(mix).subtitle}
 							trackIds={mix.items.map((item) => item.trackId)}
 							onPlay={(event) => playMix(mix, event)}
 							index={i}

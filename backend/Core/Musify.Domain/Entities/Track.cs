@@ -36,8 +36,6 @@ public class Track : IAuditable, IHasLifeCycle, IOwnedEntity
 
     public TrackAudio Audio { get; set; } = new();
 
-    public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
-
     public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
 
     public ICollection<AlbumHasTrack> AlbumTracks { get; set; } = new List<AlbumHasTrack>();

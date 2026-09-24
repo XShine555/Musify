@@ -9,7 +9,6 @@ using Musify.Api.Models;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
-using Musify.Domain.ValueObjects;
 
 namespace Musify.Api.Endpoints;
 
@@ -47,6 +46,7 @@ public static class TrackEndpoints
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPut("/listens/{listenId}/progress", RecordListeningProgress)
+            .AddEndpointFilter<ValidationFilter<RecordListeningProgressRequest>>()
             .WithName("RecordListeningProgress")
             .WithSummary("Report The Total Seconds Actually Played For A Listen Started By The Stream Endpoint.")
             .RequireAuthorization()
@@ -99,24 +99,10 @@ public static class TrackEndpoints
         IMediator mediator,
         CancellationToken cancellationToken,
         string? name,
-        string? genre,
+        GenreParameter? genre,
         [AsParameters] PageQuery page)
     {
-        Genre? parsedGenre = null;
-        if (!string.IsNullOrWhiteSpace(genre))
-        {
-            if (!Enum.TryParse<Genre>(genre, ignoreCase: true, out var value) || !Enum.IsDefined(value))
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    [nameof(genre)] = [$"'{genre}' is not a valid genre."]
-                });
-            }
-
-            parsedGenre = value;
-        }
-
-        var result = await mediator.Send(new GetTracksQuery(name, page.PageNumber, page.PageSize, parsedGenre), cancellationToken);
+        var result = await mediator.Send(new GetTracksQuery(name, page.PageNumber, page.PageSize, genre?.Value), cancellationToken);
         return Results.Ok(result);
     }
 
@@ -146,7 +132,7 @@ public static class TrackEndpoints
         Guid id,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new GetTrackStreamQuery(id, currentUser.Id), cancellationToken);
+        var result = await mediator.Send(new StartListeningCommand(id, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 

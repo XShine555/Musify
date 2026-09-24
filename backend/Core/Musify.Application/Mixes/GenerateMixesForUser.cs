@@ -18,16 +18,16 @@ public class GenerateMixesForUserCommandHandler(
     ILogger<GenerateMixesForUserCommandHandler> logger)
     : ICommandHandler<GenerateMixesForUserCommand, ErrorOr<Success>>
 {
-    private sealed record MixDraft(string Title, string? Subtitle, IReadOnlyList<Guid> TrackIds);
+    private sealed record MixDraft(MixKind Kind, IReadOnlyList<Guid> TrackIds);
 
     public async ValueTask<ErrorOr<Success>> Handle(GenerateMixesForUserCommand request, CancellationToken cancellationToken)
     {
         var userId = request.UserId;
 
-        var libraryTrackIds = await database.UserHasTracks
+        var libraryTrackIds = await database.Tracks
             .AsNoTracking()
-            .Where(userTrack => userTrack.UserId == userId && userTrack.Track.LifeCycleStatus == LifeCycleStatus.Active)
-            .Select(userTrack => userTrack.TrackId)
+            .Where(track => track.OwnerUserId == userId && track.LifeCycleStatus == LifeCycleStatus.Active)
+            .Select(track => track.Id)
             .ToListAsync(cancellationToken);
 
         if (libraryTrackIds.Count == 0)
@@ -51,19 +51,13 @@ public class GenerateMixesForUserCommandHandler(
         var discovery = Take(Shuffle(unheardTrackIds));
         if (discovery.Count > 0)
         {
-            drafts.Add(new MixDraft(
-                "Descubrimiento",
-                "Canciones de tu biblioteca que todavía no has escuchado.",
-                discovery));
+            drafts.Add(new MixDraft(MixKind.Discovery, discovery));
         }
 
         var daily = Take(Interleave(Shuffle(historyTrackIds), Shuffle(unheardTrackIds)));
         if (daily.Count > 0)
         {
-            drafts.Add(new MixDraft(
-                "Tu mezcla diaria",
-                "Lo que más escuchas, con alguna sorpresa de tu biblioteca.",
-                daily));
+            drafts.Add(new MixDraft(MixKind.Daily, daily));
         }
 
         if (drafts.Count == 0)
@@ -108,12 +102,6 @@ public class GenerateMixesForUserCommandHandler(
 
         if (previousMixes.Count > 0)
         {
-            var previousIds = previousMixes.Select(mix => mix.Id).ToList();
-            var previousItems = await database.MixItems
-                .Where(item => previousIds.Contains(item.MixId))
-                .ToListAsync(cancellationToken);
-
-            database.MixItems.RemoveRange(previousItems);
             database.Mixes.RemoveRange(previousMixes);
         }
 
@@ -123,8 +111,7 @@ public class GenerateMixesForUserCommandHandler(
             var mix = new Mix
             {
                 UserId = userId,
-                Title = draft.Title,
-                Subtitle = draft.Subtitle,
+                Kind = draft.Kind,
                 Position = position
             };
 

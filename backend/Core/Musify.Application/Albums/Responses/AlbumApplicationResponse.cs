@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-using Musify.Application.Serialization;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Albums.Responses;
@@ -9,7 +7,7 @@ public record AlbumApplicationResponse(
     string Title,
     string? Description,
     int? ReleaseYear,
-    [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
+    long OwnerUserId,
     int TrackCount,
     string? SmallImageKeyName,
     string? MediumImageKeyName,

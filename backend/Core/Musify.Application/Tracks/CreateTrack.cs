@@ -41,21 +41,6 @@ public class CreateTrackCommandHandler(
         }
 
         var distinctTags = request.Tags.Distinct().ToList();
-        if (distinctTags.Count == 0)
-        {
-            logger.LogWarning("Track {Title} was submitted without any tags", request.Title);
-            return Error.Validation(description: "At least one tag is required.");
-        }
-
-        var tagConflicts = GenreCompatibility.FindConflicts(distinctTags);
-        if (tagConflicts.Count > 0)
-        {
-            var conflict = tagConflicts.First();
-            logger.LogWarning(
-                "Track {Title} was submitted with incompatible tags {First} and {Second}",
-                request.Title, conflict.First, conflict.Second);
-            return Error.Validation(description: $"Tags '{conflict.First}' and '{conflict.Second}' are not compatible.");
-        }
 
         if (request.PictureIntentId == request.AudioIntentId)
             return Error.Validation(description: "Picture and audio must use different upload intents.");
@@ -105,11 +90,6 @@ public class CreateTrackCommandHandler(
 
         await database.Tracks.AddAsync(trackEntity, cancellationToken);
 
-        await database.UserHasTracks.AddAsync(new UserHasTrack
-        {
-            UserId = request.UserId,
-            TrackId = trackEntity.Id
-        }, cancellationToken);
 
         var sizes = trackConfiguration.PicturesSizes.ToImageSizes(trackConfiguration.Routes);
         await eventBus.PublishAsync(

@@ -110,17 +110,4 @@ public sealed class RecordListeningProgressCommandHandlerTests : HandlerTestBase
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    public async Task Handle_InvalidSeconds_ReturnsValidationError(double seconds)
-    {
-        var (user, listen) = await SeedListenAsync(200, DateTime.UtcNow.AddSeconds(-60));
-
-        var result = await CreateHandler().Handle(
-            new RecordListeningProgressCommand(user.Id, listen.Id, seconds), TestContext.Current.CancellationToken);
-
-        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-    }
 }

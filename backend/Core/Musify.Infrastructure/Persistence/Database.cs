@@ -181,8 +181,6 @@ public class Database(DatabaseConfiguration configuration)
 
     public DbSet<AlbumHasTrack> AlbumHasTracks => Set<AlbumHasTrack>();
 
-    public DbSet<UserHasTrack> UserHasTracks => Set<UserHasTrack>();
-
     public DbSet<PlayListHasTrack> PlayListHasTracks => Set<PlayListHasTrack>();
 
     public DbSet<Mix> Mixes => Set<Mix>();

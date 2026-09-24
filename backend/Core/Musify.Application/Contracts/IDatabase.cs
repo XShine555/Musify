@@ -16,8 +16,6 @@ public interface IDatabase
 
     public DbSet<Track> Tracks { get; }
 
-    public DbSet<UserHasTrack> UserHasTracks { get; }
-
     public DbSet<PlayListHasTrack> PlayListHasTracks { get; }
 
     public DbSet<Mix> Mixes { get; }

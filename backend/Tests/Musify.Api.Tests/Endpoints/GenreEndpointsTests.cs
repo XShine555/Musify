@@ -40,7 +40,6 @@ public sealed class GenreEndpointsTests(ApiTestFixture fixture)
             tag.TrackId = track.Id;
         database.Users.Add(owner);
         database.Tracks.Add(track);
-        database.UserHasTracks.Add(new UserHasTrack { UserId = owner.Id, TrackId = track.Id });
         await database.SaveChangesAsync(TestContext.Current.CancellationToken);
         return title;
     }

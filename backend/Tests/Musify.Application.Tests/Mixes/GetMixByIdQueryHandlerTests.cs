@@ -1,6 +1,7 @@
 using ErrorOr;
 using Musify.Application.Mixes;
 using Musify.Application.Tests.TestSupport;
+using Musify.Domain.ValueObjects;
 using Xunit;
 
 namespace Musify.Application.Tests.Mixes;
@@ -15,7 +16,7 @@ public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         var firstTrack = TestEntities.Track(owner, "First");
         var secondTrack = TestEntities.Track(owner, "Second");
-        var mix = TestEntities.Mix(owner.Id, "Discovery");
+        var mix = TestEntities.Mix(owner.Id, MixKind.Daily);
         var second = TestEntities.MixItem(mix.Id, secondTrack.Id, position: 1);
         var first = TestEntities.MixItem(mix.Id, firstTrack.Id, position: 0);
         await SeedAsync(owner, firstTrack, secondTrack, mix, second, first);
@@ -23,7 +24,7 @@ public sealed class GetMixByIdQueryHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(new GetMixByIdQuery(owner.Id, mix.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Equal("Discovery", result.Value.Title);
+        Assert.Equal(MixKind.Daily, result.Value.Kind);
         Assert.Equal(["First", "Second"], result.Value.Items.Select(item => item.Title));
     }
 

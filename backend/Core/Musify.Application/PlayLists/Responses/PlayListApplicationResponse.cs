@@ -1,8 +1,6 @@
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
-using System.Text.Json.Serialization;
-using Musify.Application.Serialization;
 
 namespace Musify.Application.PlayLists.Responses;
 
@@ -17,7 +15,7 @@ public record PlayListApplicationResponse(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     IReadOnlyList<Guid> CoverTrackIds,
-    [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
+    long OwnerUserId,
     int TrackCount,
     double DurationSeconds)
 {

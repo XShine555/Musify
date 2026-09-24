@@ -1,9 +1,10 @@
+using Musify.Domain.ValueObjects;
+
 namespace Musify.Application.Mixes.Responses;
 
 public record MixApplicationResponse(
     Guid Id,
-    string Title,
-    string? Subtitle,
+    MixKind Kind,
     int ItemCount,
     IReadOnlyList<MixItemApplicationResponse> Items)
 {

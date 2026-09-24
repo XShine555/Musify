@@ -1,5 +1,6 @@
 using Mediator;
 using Musify.Api.Authentication;
+using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Albums;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
@@ -102,11 +103,13 @@ public static class AlbumEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/{albumId}/tracks/{trackId}", AddTrackToAlbum)
-            .WithName("AddTrackToAlbum")
-            .WithSummary("Add One Of Your Uploaded Tracks To An Album.")
+        group.MapPost("/{id}/tracks", AddAlbumTracks)
+            .WithName("AddAlbumTracks")
+            .WithSummary("Add Your Uploaded Tracks To An Album, Skipping The Ones It Already Has.")
+            .AddEndpointFilter<ValidationFilter<AddTracksRequest>>()
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
@@ -242,15 +245,15 @@ public static class AlbumEndpoints
         return result.ToHttpResult();
     }
 
-    private static async Task<IResult> AddTrackToAlbum(
+    private static async Task<IResult> AddAlbumTracks(
         IMediator mediator,
         CurrentUser currentUser,
-        Guid albumId,
-        Guid trackId,
+        Guid id,
+        AddTracksRequest request,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(
-            new AddTrackToAlbumCommand(currentUser.RequiredId, albumId, trackId),
+            new AddTracksToAlbumCommand(currentUser.RequiredId, id, request.TrackIds),
             cancellationToken);
 
         return result.ToHttpResult();

@@ -154,14 +154,12 @@ public static class TestEntities
 
     public static Mix Mix(
         long userId,
-        string title = "Test Mix",
-        string? subtitle = null,
+        MixKind kind = MixKind.Discovery,
         int position = 0) =>
         new()
         {
             UserId = userId,
-            Title = title,
-            Subtitle = subtitle,
+            Kind = kind,
             Position = position
         };
 

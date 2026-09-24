@@ -10,22 +10,21 @@ using Xunit;
 
 namespace Musify.Application.Tests.Tracks;
 
-public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
+public sealed class StartListeningCommandHandlerTests : HandlerTestBase
 {
     private readonly IStreamTicketService ticketService = Substitute.For<IStreamTicketService>();
 
-    private GetTrackStreamQueryHandler CreateHandler(PlaybackConfiguration? playback = null)
+    private StartListeningCommandHandler CreateHandler(PlaybackConfiguration? playback = null)
     {
         ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("ticket-token", 60));
 
         var issuer = new TrackStreamIssuer(
-            Database,
             ticketService,
             TestConfigurations.Track(),
             TestConfigurations.StreamGateway("https://stream.musify.test"),
             playback ?? TestConfigurations.Playback());
 
-        return new GetTrackStreamQueryHandler(Database, issuer, playback ?? TestConfigurations.Playback(), NoOpLogger<GetTrackStreamQueryHandler>());
+        return new StartListeningCommandHandler(Database, issuer, playback ?? TestConfigurations.Playback(), NoOpLogger<StartListeningCommandHandler>());
     }
 
     [Fact]
@@ -35,7 +34,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
         var track = TestEntities.Track(owner);
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new StartListeningCommand(track.Id, owner.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("ticket-token", result.Value.Ticket);
@@ -53,7 +52,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_TrackMissing_ReturnsNotFound()
     {
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(Guid.NewGuid(), 1), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new StartListeningCommand(Guid.NewGuid(), 1), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.NotFound, result.FirstError.Type);
     }
@@ -65,7 +64,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
         var track = TestEntities.Track(owner, audio: TestEntities.PendingAudio());
         await SeedAsync(owner, track);
 
-        var result = await CreateHandler().Handle(new GetTrackStreamQuery(track.Id, owner.Id), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new StartListeningCommand(track.Id, owner.Id), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Conflict, result.FirstError.Type);
     }
@@ -79,7 +78,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
 
         var handler = CreateHandler(TestConfigurations.Playback(allowAnonymousListening: false));
 
-        var result = await handler.Handle(new GetTrackStreamQuery(track.Id, UserId: null), TestContext.Current.CancellationToken);
+        var result = await handler.Handle(new StartListeningCommand(track.Id, UserId: null), TestContext.Current.CancellationToken);
 
         Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
     }
@@ -93,7 +92,7 @@ public sealed class GetTrackStreamQueryHandlerTests : HandlerTestBase
 
         var handler = CreateHandler(TestConfigurations.Playback(allowAnonymousListening: true));
 
-        var result = await handler.Handle(new GetTrackStreamQuery(track.Id, UserId: null), TestContext.Current.CancellationToken);
+        var result = await handler.Handle(new StartListeningCommand(track.Id, UserId: null), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         Assert.Equal("ticket-token", result.Value.Ticket);

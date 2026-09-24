@@ -18,11 +18,12 @@
 	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import { mixItemTrack } from '$lib/data/mixes';
+	import { mixItemTrack, mixText } from '$lib/data/mixes';
 
 	let { data, form } = $props();
 
 	const mix = $derived(data.mix);
+	const text = $derived(mixText(mix));
 	const items = $derived(mix.items);
 	const tracks = $derived(items.map(mixItemTrack));
 	const queue = $derived(tracks.map(toQueueItem));
@@ -49,8 +50,8 @@
 </script>
 
 <svelte:head>
-	<title>{mix.title}</title>
-	<meta name="description" content="Mezcla {mix.title}, hecha para ti." />
+	<title>{text.title}</title>
+	<meta name="description" content="Mezcla {text.title}, hecha para ti." />
 </svelte:head>
 
 <Page>
@@ -58,15 +59,15 @@
 
 	<PageHeader
 		eyebrow="Mezcla"
-		title={mix.title}
-		description={mix.subtitle ?? undefined}
+		title={text.title}
+		description={text.subtitle}
 		meta="{plural(items.length, 'canción', 'canciones')} · {fmtTime(totalSeconds)}"
 	>
 		{#snippet cover()}
 			<Artwork
 				trackIds={items.map((item) => item.trackId)}
 				size="hero"
-				alt={mix.title}
+				alt={text.title}
 				class="shrink-0"
 			/>
 		{/snippet}

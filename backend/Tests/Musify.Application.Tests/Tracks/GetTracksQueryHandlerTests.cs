@@ -16,9 +16,7 @@ public sealed class GetTracksQueryHandlerTests : HandlerTestBase
         var trackA = TestEntities.Track(owner, "Alpha");
         var trackB = TestEntities.Track(owner, "Beta");
         await SeedAsync(
-            owner, trackA, trackB,
-            new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = trackA.Id },
-            new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = trackB.Id });
+            owner, trackA, trackB);
 
         var result = await CreateHandler().Handle(new GetTracksQuery(Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
         Assert.Equal(2, result.TotalItemCount);
@@ -32,9 +30,7 @@ public sealed class GetTracksQueryHandlerTests : HandlerTestBase
         var match = TestEntities.Track(owner, "Bohemian Rhapsody");
         var other = TestEntities.Track(owner, "Imagine");
         await SeedAsync(
-            owner, match, other,
-            new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = match.Id },
-            new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = other.Id });
+            owner, match, other);
 
         var result = await CreateHandler().Handle(new GetTracksQuery(Name: "rhapsody", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
         var item = Assert.Single(result.Items);
@@ -48,9 +44,7 @@ public sealed class GetTracksQueryHandlerTests : HandlerTestBase
         var rock = TestEntities.Track(owner, "Loud", tags: [Genre.Rock, Genre.Indie]);
         var jazz = TestEntities.Track(owner, "Smooth", tags: [Genre.Jazz]);
         await SeedAsync(
-            owner, rock, jazz,
-            new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = rock.Id },
-            new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = jazz.Id });
+            owner, rock, jazz);
 
         var result = await CreateHandler().Handle(new GetTracksQuery(null, 1, 10, Genre.Indie), TestContext.Current.CancellationToken);
         var item = Assert.Single(result.Items);
