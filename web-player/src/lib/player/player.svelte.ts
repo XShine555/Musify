@@ -242,17 +242,13 @@ class PlayerState {
 			await audio.play();
 			this.loading = false;
 			if (track) this.#pushRecent(track);
-		} catch (exception) {
-			console.error('playback failed', exception);
+		} catch (err) {
+			console.error('playback failed', err);
 			if (token !== this.#loadToken) return;
 			this.loading = false;
 			this.playing = false;
-			if (exception instanceof DOMException && exception.name === 'AbortError') return;
-			this.#fail(
-				exception instanceof Error && !(exception instanceof DOMException)
-					? exception.message
-					: undefined
-			);
+			if (err instanceof DOMException && err.name === 'AbortError') return;
+			this.#fail(err instanceof Error && !(err instanceof DOMException) ? err.message : undefined);
 		}
 	}
 

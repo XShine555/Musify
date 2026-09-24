@@ -34,8 +34,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			expectedNonce: nonce,
 			idTokenExpected: true
 		});
-	} catch (exception) {
-		console.error('Token exchange failed', exception);
+	} catch (err) {
+		console.error('Token exchange failed', err);
 		error(401, 'La autenticación ha fallado.');
 	}
 

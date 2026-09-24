@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { createApiClient } from '$lib/server/api';
+import { apiFor } from '$lib/server/api';
 
 export const PUT: RequestHandler = async ({ params, request, locals, fetch }) => {
 	if (!locals.accessToken) return json({ message: 'Inicia sesión.' }, { status: 401 });
@@ -10,7 +10,7 @@ export const PUT: RequestHandler = async ({ params, request, locals, fetch }) =>
 	if (typeof playedSeconds !== 'number' || !Number.isFinite(playedSeconds) || playedSeconds < 0)
 		return json({ message: 'Tiempo inválido.' }, { status: 400 });
 
-	const api = createApiClient({ fetch, accessToken: locals.accessToken });
+	const api = apiFor({ fetch, locals });
 	const result = await api.PUT('/tracks/listens/{listenId}/progress', {
 		params: { path: { listenId: params.id } },
 		body: { playedSeconds }

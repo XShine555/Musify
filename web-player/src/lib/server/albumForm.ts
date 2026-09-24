@@ -1,3 +1,4 @@
+import { formString } from '$lib/server/api';
 import { ALBUM_EARLIEST_YEAR } from '$lib/config';
 
 interface AlbumFormBody {
@@ -7,17 +8,17 @@ interface AlbumFormBody {
 }
 
 export function parseAlbumForm(form: FormData): { body: AlbumFormBody } | { failMessage: string } {
-	const title = String(form.get('title') ?? '').trim();
+	const title = formString(form, 'title').trim();
 	if (title === '' || title.length > 200) {
 		return { failMessage: 'El título es obligatorio (máx. 200 caracteres).' };
 	}
 
-	const description = String(form.get('description') ?? '').trim();
+	const description = formString(form, 'description').trim();
 	if (description.length > 256) {
 		return { failMessage: 'La descripción no puede pasar de 256 caracteres.' };
 	}
 
-	const rawYear = String(form.get('releaseYear') ?? '').trim();
+	const rawYear = formString(form, 'releaseYear').trim();
 	const latestYear = new Date().getFullYear() + 1;
 	let releaseYear: number | null = null;
 

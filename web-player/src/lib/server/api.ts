@@ -1,5 +1,5 @@
 import createClient from 'openapi-fetch';
-import { error, fail, redirect, type ActionFailure } from '@sveltejs/kit';
+import { error, fail, redirect, type ActionFailure, type RequestEvent } from '@sveltejs/kit';
 import type { paths } from '$lib/api/schema';
 import type { SessionUser } from '$lib/types';
 import { apiConfig } from '$lib/server/config';
@@ -17,9 +17,18 @@ export function createApiClient({ fetch, accessToken }: ApiClientOptions) {
 	});
 }
 
+export type ApiClient = ReturnType<typeof createApiClient>;
+
+export function apiFor({ fetch, locals }: Pick<RequestEvent, 'fetch' | 'locals'>): ApiClient {
+	return createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+}
+
+export function loginRedirect(url: URL): never {
+	redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+}
+
 export function requireUser(locals: App.Locals, url: URL): SessionUser {
-	if (!locals.user)
-		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+	if (!locals.user) loginRedirect(url);
 	return locals.user;
 }
 
@@ -29,16 +38,42 @@ export function optionalUser(
 	allowAnonymousListening: boolean
 ): SessionUser | null {
 	if (locals.user) return locals.user;
-	if (!allowAnonymousListening)
-		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+	if (!allowAnonymousListening) loginRedirect(url);
 	return null;
 }
 
-export function requireAccessTokenAction(
-	locals: App.Locals,
-	message = 'Inicia sesión.'
-): string | ActionFailure<{ message: string }> {
-	return locals.accessToken ?? fail(401, { message });
+export function formString(form: FormData, key: string): string {
+	return String(form.get(key) ?? '');
+}
+
+export function formFile(form: FormData, key: string): File | null {
+	const value = form.get(key);
+	return value instanceof File && value.size > 0 ? value : null;
+}
+
+interface ActionContext {
+	api: ApiClient;
+	form: FormData;
+	params: Record<string, string>;
+	locals: App.Locals;
+	url: URL;
+}
+
+export function authedAction<R>(
+	handler: (context: ActionContext) => R | Promise<R>,
+	unauthorizedMessage = 'Inicia sesión.'
+) {
+	return async (event: RequestEvent) => {
+		if (!event.locals.accessToken) return fail(401, { message: unauthorizedMessage });
+		const form = await event.request.formData();
+		return handler({
+			api: apiFor(event),
+			form,
+			params: event.params as Record<string, string>,
+			locals: event.locals,
+			url: event.url
+		});
+	};
 }
 
 export function unwrapOrError<T>(
@@ -70,9 +105,18 @@ export function apiErrorDetail(error: unknown): string | undefined {
 	return undefined;
 }
 
-export function unwrapOrFail(
-	result: { error?: unknown },
-	message: string
-): ActionFailure<{ message: string; detail?: string }> | undefined {
+type Failure = ActionFailure<{ message: string; detail?: string }>;
+
+export function failOnError(result: { error?: unknown }, message: string): Failure | undefined {
 	return result.error ? fail(502, { message, detail: apiErrorDetail(result.error) }) : undefined;
+}
+
+export function requireData<T>(
+	result: { data?: T; error?: unknown },
+	message: string
+): { data: T; failure?: undefined } | { data?: undefined; failure: Failure } {
+	if (result.error || result.data === undefined) {
+		return { failure: fail(502, { message, detail: apiErrorDetail(result.error) }) };
+	}
+	return { data: result.data };
 }

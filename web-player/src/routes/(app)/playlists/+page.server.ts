@@ -1,11 +1,14 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
-	createApiClient,
-	requireAccessTokenAction,
+	apiFor,
+	authedAction,
+	formFile,
+	formString,
 	requireUser,
 	unwrapOrError
 } from '$lib/server/api';
+import { PLAYLISTS_PAGE_SIZE, PLAYLIST_SUMMARY_TRACKS_PAGE_SIZE } from '$lib/config';
 import { toPlaylistSummary, toTrack } from '$lib/server/mappers';
 import { uploadPresignedImage } from '$lib/server/upload';
 
@@ -13,9 +16,9 @@ const MAX_NAME = 100;
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 	const result = await api.GET('/playlists/users/{userId}', {
-		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
+		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: PLAYLISTS_PAGE_SIZE } }
 	});
 
 	const data = unwrapOrError(result, 'No se pudieron cargar tus playlists.');
@@ -24,7 +27,10 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		data.items.map((playlist) =>
 			api
 				.GET('/playlists/{playlistId}/tracks', {
-					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 500 } }
+					params: {
+						path: { playlistId: playlist.id },
+						query: { pageNumber: 1, pageSize: PLAYLIST_SUMMARY_TRACKS_PAGE_SIZE }
+					}
 				})
 				.then((res) => (res.data?.items ?? []).map(toTrack))
 		)
@@ -44,15 +50,10 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 };
 
 export const actions: Actions = {
-	create: async ({ request, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const form = await request.formData();
-		const name = String(form.get('name') ?? '').trim();
-		const description = String(form.get('description') ?? '').trim();
-		const visibility = form.get('visibility') === 'public' ? 'Public' : 'Private';
-		const cover = form.get('cover');
+	create: authedAction(async ({ api, form }) => {
+		const name = formString(form, 'name').trim();
+		const description = formString(form, 'description').trim();
+		const visibility = formString(form, 'visibility') === 'public' ? 'Public' : 'Private';
 
 		if (name === '' || name.length > MAX_NAME) {
 			return fail(400, {
@@ -62,10 +63,9 @@ export const actions: Actions = {
 			});
 		}
 
-		const api = createApiClient({ fetch, accessToken });
-
 		let pictureIntentId: string | null = null;
-		if (cover instanceof File && cover.size > 0) {
+		const cover = formFile(form, 'cover');
+		if (cover) {
 			const result = await uploadPresignedImage(
 				(args) => api.POST('/playlists/upload-picture', { body: args }),
 				cover
@@ -76,13 +76,13 @@ export const actions: Actions = {
 			pictureIntentId = result.intentId;
 		}
 
-		const { data, error: err } = await api.POST('/playlists', {
+		const { data, error } = await api.POST('/playlists', {
 			body: { name, description, pictureIntentId, visibility }
 		});
 
-		if (err || !data)
+		if (error || !data)
 			return fail(502, { message: 'No se pudo crear la playlist.', name, description });
 
 		redirect(303, `/playlists/${data.id}`);
-	}
+	})
 };

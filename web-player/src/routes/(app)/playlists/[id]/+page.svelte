@@ -106,7 +106,7 @@
 
 <Modal open={editing} onClose={() => (editing = false)} title="Editar playlist">
 	<PlaylistForm
-		action="?/rename"
+		action="?/edit"
 		initialName={playlist.name}
 		initialDescription={playlist.description ?? ''}
 		initialVisibility={playlist.visibility === 'Public' ? 'public' : 'private'}

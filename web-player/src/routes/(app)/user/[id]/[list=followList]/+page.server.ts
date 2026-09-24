@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, optionalUser, unwrapOrError } from '$lib/server/api';
 import { toPage } from '$lib/server/mappers';
 import { fetchFollowList } from '$lib/server/follows';
 import { FOLLOW_LIST_PAGE_SIZE } from '$lib/config';
@@ -7,7 +7,7 @@ import { FOLLOW_LIST_PAGE_SIZE } from '$lib/config';
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const viewer = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [profileRes, listRes] = await Promise.all([
 		api.GET('/users/{id}/profile', { params: { path: { id: params.id } } }),

@@ -1,12 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
 import { toAlbum, toPage, toTrack } from '$lib/server/mappers';
 import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/playlistActions';
-import {
-	EXPLORE_ALBUMS_PAGE_SIZE,
-	EXPLORE_PAGE_SIZE as PAGE_SIZE,
-	EXPLORE_USERS_LIMIT
-} from '$lib/config';
+import { EXPLORE_ALBUMS_PAGE_SIZE, EXPLORE_PAGE_SIZE, EXPLORE_USERS_LIMIT } from '$lib/config';
 
 export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const query = url.searchParams.get('q')?.trim() ?? '';
@@ -14,7 +10,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 
 	const user = locals.user;
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const genresRes = await api.GET('/genres');
 	const genres = genresRes.data ?? [];
@@ -26,7 +22,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 				name: query || undefined,
 				genre: genre ?? undefined,
 				pageNumber: page,
-				pageSize: PAGE_SIZE
+				pageSize: EXPLORE_PAGE_SIZE
 			}
 		}
 	});

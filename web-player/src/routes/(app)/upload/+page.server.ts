@@ -1,10 +1,12 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import {
-	createApiClient,
-	requireAccessTokenAction,
-	requireUser,
-	unwrapOrFail
+	apiFor,
+	authedAction,
+	formFile,
+	formString,
+	requireData,
+	requireUser
 } from '$lib/server/api';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
 import { findConflict, genreInfo } from '$lib/data/genres';
@@ -16,37 +18,28 @@ const MAX_TITLE = 100;
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	requireUser(locals, url);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 	const { data } = await api.GET('/genres/available');
 	return { genres: data ?? [] };
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals, 'Inicia sesión para subir música.');
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const form = await request.formData();
-		const title = String(form.get('title') ?? '').trim();
-		const audio = form.get('audio');
-		const cover = form.get('cover');
+	default: authedAction(async ({ api, form }) => {
+		const title = formString(form, 'title').trim();
+		const audio = formFile(form, 'audio');
+		const cover = formFile(form, 'cover');
 		const rawTags = form.getAll('tags').map(String);
 		const isExplicit = form.get('isExplicit') === 'on';
 
 		if (title === '' || title.length > MAX_TITLE) {
 			return fail(400, { message: 'El título es obligatorio (máx. 100 caracteres).' });
 		}
-		if (!(audio instanceof File) || audio.size === 0) {
-			return fail(400, { message: 'Selecciona un archivo de audio.' });
-		}
-		if (!(cover instanceof File) || cover.size === 0) {
-			return fail(400, { message: 'Selecciona una portada.' });
-		}
+		if (!audio) return fail(400, { message: 'Selecciona un archivo de audio.' });
+		if (!cover) return fail(400, { message: 'Selecciona una portada.' });
 
 		if (rawTags.length === 0) {
 			return fail(400, { message: 'Elige al menos un género.' });
 		}
-		const api = createApiClient({ fetch, accessToken });
 		const { data: available } = await api.GET('/genres/available');
 		const options = available ?? [];
 		const known = new Set<string>(options.map((option) => option.genre));
@@ -75,9 +68,11 @@ export const actions: Actions = {
 			}
 		});
 
-		const urlsFailure = unwrapOrFail(urlsResult, 'No se pudieron reservar las URLs de subida.');
+		const { data: urls, failure: urlsFailure } = requireData(
+			urlsResult,
+			'No se pudieron reservar las URLs de subida.'
+		);
 		if (urlsFailure) return urlsFailure;
-		const urls = urlsResult.data!;
 
 		try {
 			const [audioBuffer, coverBuffer] = await Promise.all([
@@ -105,10 +100,12 @@ export const actions: Actions = {
 			}
 		});
 
-		const trackFailure = unwrapOrFail(trackResult, 'No se pudo crear la pista tras la subida.');
+		const { data: track, failure: trackFailure } = requireData(
+			trackResult,
+			'No se pudo crear la pista tras la subida.'
+		);
 		if (trackFailure) return trackFailure;
-		const track = trackResult.data!;
 
 		return { success: true, trackId: track.id, title: track.title };
-	}
+	}, 'Inicia sesión para subir música.')
 };

@@ -1,65 +1,21 @@
-import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { getAllowAnonymousListening } from '$lib/server/playbackConfig';
-import { createApiClient } from '$lib/server/api';
+import { apiFor, loginRedirect } from '$lib/server/api';
 import { toLikedTrack, toPlaylist, toTrack } from '$lib/server/mappers';
 import { authConfig } from '$lib/server/config';
 import { LIKED_TRACKS_PAGE_SIZE, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
 const PUBLIC_PATHS = new Set(['/auth']);
 
-async function fetchUserPlaylists(
-	fetchFn: typeof fetch,
-	accessToken: string | null,
-	userId: string
-) {
-	try {
-		const api = createApiClient({ fetch: fetchFn, accessToken: accessToken ?? undefined });
-		const { data } = await api.GET('/playlists/users/{userId}', {
-			params: {
-				path: { userId },
-				query: { pageNumber: 1, pageSize: PLAYLIST_PICKER_PAGE_SIZE }
-			}
-		});
-		return { items: (data?.items ?? []).map(toPlaylist), total: Number(data?.totalItemCount ?? 0) };
-	} catch {
-		return { items: [], total: 0 };
-	}
-}
-
-async function fetchLikedTracks(fetchFn: typeof fetch, accessToken: string | null) {
-	try {
-		const api = createApiClient({ fetch: fetchFn, accessToken: accessToken ?? undefined });
-		const { data } = await api.GET('/likes', {
-			params: { query: { pageNumber: 1, pageSize: LIKED_TRACKS_PAGE_SIZE } }
-		});
-		return (data?.items ?? []).map(toLikedTrack);
-	} catch {
-		return [];
-	}
-}
-
-async function fetchLastPlayedTrack(
-	fetchFn: typeof fetch,
-	accessToken: string | null,
-	userId: string
-) {
-	try {
-		const api = createApiClient({ fetch: fetchFn, accessToken: accessToken ?? undefined });
-		const { data } = await api.GET('/users/{id}/last-listened-track', {
-			params: { path: { id: userId } }
-		});
-		return data ? toTrack(data) : null;
-	} catch {
-		return null;
-	}
+function orFallback<T>(load: Promise<T>, fallback: T): Promise<T> {
+	return load.catch(() => fallback);
 }
 
 export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 	const allowAnonymousListening = await getAllowAnonymousListening(fetch);
 
 	if (!locals.user && !allowAnonymousListening && !PUBLIC_PATHS.has(url.pathname)) {
-		redirect(302, `/auth?returnTo=${encodeURIComponent(url.pathname + url.search)}`);
+		loginRedirect(url);
 	}
 
 	const accountUrl = `${authConfig.issuer.replace(/\/+$/, '')}/ui/console`;
@@ -76,10 +32,38 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 		};
 	}
 
+	const api = apiFor({ fetch, locals });
+	const userId = locals.user.sub;
+
 	const [userPlaylists, likedTracks, lastPlayedTrack] = await Promise.all([
-		fetchUserPlaylists(fetch, locals.accessToken, locals.user.sub),
-		fetchLikedTracks(fetch, locals.accessToken),
-		fetchLastPlayedTrack(fetch, locals.accessToken, locals.user.sub)
+		orFallback(
+			api
+				.GET('/playlists/users/{userId}', {
+					params: {
+						path: { userId },
+						query: { pageNumber: 1, pageSize: PLAYLIST_PICKER_PAGE_SIZE }
+					}
+				})
+				.then(({ data }) => ({
+					items: (data?.items ?? []).map(toPlaylist),
+					total: Number(data?.totalItemCount ?? 0)
+				})),
+			{ items: [], total: 0 }
+		),
+		orFallback(
+			api
+				.GET('/likes', {
+					params: { query: { pageNumber: 1, pageSize: LIKED_TRACKS_PAGE_SIZE } }
+				})
+				.then(({ data }) => (data?.items ?? []).map(toLikedTrack)),
+			[]
+		),
+		orFallback(
+			api
+				.GET('/users/{id}/last-listened-track', { params: { path: { id: userId } } })
+				.then(({ data }) => (data ? toTrack(data) : null)),
+			null
+		)
 	]);
 
 	return {

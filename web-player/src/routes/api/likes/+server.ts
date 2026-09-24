@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { createApiClient } from '$lib/server/api';
+import { apiFor } from '$lib/server/api';
 
 export const POST: RequestHandler = async ({ request, locals, fetch }) => {
 	if (!locals.accessToken) return json({ message: 'Inicia sesión.' }, { status: 401 });
@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ request, locals, fetch }) => {
 	if (typeof trackId !== 'string' || trackId === '')
 		return json({ message: 'Canción inválida.' }, { status: 400 });
 
-	const api = createApiClient({ fetch, accessToken: locals.accessToken });
+	const api = apiFor({ fetch, locals });
 	const result = await api.POST('/likes/toggle', { body: { trackId } });
 
 	if (result.error || result.data === undefined)

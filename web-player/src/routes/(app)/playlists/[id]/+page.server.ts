@@ -1,12 +1,15 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
-	createApiClient,
+	apiFor,
+	authedAction,
+	failOnError,
+	formFile,
+	formString,
 	optionalUser,
-	requireAccessTokenAction,
-	unwrapOrError,
-	unwrapOrFail
+	unwrapOrError
 } from '$lib/server/api';
+import { PLAYLIST_TRACKS_PAGE_SIZE } from '$lib/config';
 import { toDatedTrack, toPlaylist } from '$lib/server/mappers';
 import { uploadPresignedImage } from '$lib/server/upload';
 
@@ -15,12 +18,15 @@ const MAX_NAME = 100;
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const user = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [playlistRes, tracksRes] = await Promise.all([
 		api.GET('/playlists/{id}', { params: { path: { id: params.id } } }),
 		api.GET('/playlists/{playlistId}/tracks', {
-			params: { path: { playlistId: params.id }, query: { pageNumber: 1, pageSize: 200 } }
+			params: {
+				path: { playlistId: params.id },
+				query: { pageNumber: 1, pageSize: PLAYLIST_TRACKS_PAGE_SIZE }
+			}
 		})
 	]);
 
@@ -33,37 +39,27 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 };
 
 export const actions: Actions = {
-	removeTrack: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-		const trackId = String((await request.formData()).get('trackId') ?? '');
+	removeTrack: authedAction(async ({ api, form, params }) => {
+		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const api = createApiClient({ fetch, accessToken });
 		const result = await api.DELETE('/playlists/{playlistId}/tracks/{trackId}', {
 			params: { path: { playlistId: params.id, trackId } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo quitar la canción.');
-		if (failure) return failure;
-		return { removed: true };
-	},
+		return failOnError(result, 'No se pudo quitar la canción.') ?? { removed: true };
+	}),
 
-	rename: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-		const form = await request.formData();
-		const name = String(form.get('name') ?? '').trim();
-		const description = String(form.get('description') ?? '').trim();
-		const newVisibility = form.get('visibility') === 'public' ? 'Public' : 'Private';
-		const cover = form.get('cover');
+	edit: authedAction(async ({ api, form, params }) => {
+		const name = formString(form, 'name').trim();
+		const description = formString(form, 'description').trim();
+		const newVisibility = formString(form, 'visibility') === 'public' ? 'Public' : 'Private';
 		if (name === '' || name.length > MAX_NAME) {
 			return fail(400, { message: 'El nombre es obligatorio (máx. 100 caracteres).' });
 		}
 
-		const api = createApiClient({ fetch, accessToken });
-
 		let newPictureIntentId: string | null = null;
-		if (cover instanceof File && cover.size > 0) {
+		const cover = formFile(form, 'cover');
+		if (cover) {
 			const result = await uploadPresignedImage(
 				(args) => api.POST('/playlists/upload-picture', { body: args }),
 				cover
@@ -78,21 +74,15 @@ export const actions: Actions = {
 			params: { path: { playlistId: params.id } },
 			body: { newName: name, newDescription: description, newPictureIntentId, newVisibility }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo actualizar la playlist.');
-		if (failure) return failure;
-		return { renamed: true };
-	},
+		return failOnError(result, 'No se pudo actualizar la playlist.') ?? { edited: true };
+	}),
 
-	delete: async ({ params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const api = createApiClient({ fetch, accessToken });
+	delete: authedAction(async ({ api, params }) => {
 		const result = await api.DELETE('/playlists/{playlistId}', {
 			params: { path: { playlistId: params.id } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo eliminar la playlist.');
+		const failure = failOnError(result, 'No se pudo eliminar la playlist.');
 		if (failure) return failure;
 		redirect(303, '/playlists');
-	}
+	})
 };

@@ -1,11 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, requireUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, requireUser, unwrapOrError } from '$lib/server/api';
 import { toMix } from '$lib/server/mappers';
 import { addTrackAction } from '$lib/server/playlistActions';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	requireUser(locals, url);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const mixRes = await api.GET('/mixes/{id}', { params: { path: { id: params.id } } });
 

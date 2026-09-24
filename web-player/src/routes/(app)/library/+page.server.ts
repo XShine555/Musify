@@ -2,20 +2,20 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
 import { toDatedTrack, toPage } from '$lib/server/mappers';
 import {
-	createApiClient,
-	requireAccessTokenAction,
+	apiFor,
+	authedAction,
+	failOnError,
+	formString,
 	requireUser,
-	unwrapOrError,
-	unwrapOrFail
+	unwrapOrError
 } from '$lib/server/api';
-
-const PAGE_SIZE = 50;
+import { LIBRARY_PAGE_SIZE } from '$lib/config';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 	const result = await api.GET('/tracks/users/{userId}', {
-		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: PAGE_SIZE } }
+		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: LIBRARY_PAGE_SIZE } }
 	});
 
 	return {
@@ -24,18 +24,13 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 };
 
 export const actions: Actions = {
-	deleteTrack: async ({ request, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-		const trackId = String((await request.formData()).get('trackId') ?? '');
+	deleteTrack: authedAction(async ({ api, form }) => {
+		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const api = createApiClient({ fetch, accessToken });
 		const result = await api.DELETE('/tracks/{trackId}', {
 			params: { path: { trackId } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo borrar la canción.');
-		if (failure) return failure;
-		return { deleted: true };
-	}
+		return failOnError(result, 'No se pudo borrar la canción.') ?? { deleted: true };
+	})
 };

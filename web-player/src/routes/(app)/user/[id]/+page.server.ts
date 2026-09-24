@@ -1,14 +1,13 @@
 import type { PageServerLoad, Actions } from './$types';
-import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, optionalUser, unwrapOrError } from '$lib/server/api';
 import { toPlaylistSummary } from '$lib/server/mappers';
+import { COUNT_ONLY_PAGE_SIZE, PROFILE_PLAYLISTS_PAGE_SIZE } from '$lib/config';
 import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
-
-const PROFILE_PLAYLISTS_PAGE_SIZE = 50;
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const viewer = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [profileRes, playlistsRes] = await Promise.all([
 		api.GET('/users/{id}/profile', { params: { path: { id: params.id } } }),
@@ -27,7 +26,10 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		playlistItems.map((playlist) =>
 			api
 				.GET('/playlists/{playlistId}/tracks', {
-					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 1 } }
+					params: {
+						path: { playlistId: playlist.id },
+						query: { pageNumber: 1, pageSize: COUNT_ONLY_PAGE_SIZE }
+					}
 				})
 				.then((res) => Number(res.data?.totalItemCount ?? 0))
 		)

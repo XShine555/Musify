@@ -1,11 +1,13 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import {
-	createApiClient,
+	apiFor,
+	authedAction,
+	failOnError,
+	formFile,
+	formString,
 	optionalUser,
-	requireAccessTokenAction,
-	unwrapOrError,
-	unwrapOrFail
+	unwrapOrError
 } from '$lib/server/api';
 import { toAlbum, toTrack } from '$lib/server/mappers';
 import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
@@ -15,7 +17,7 @@ import { uploadPresignedImage } from '$lib/server/upload';
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
 	const user = optionalUser(locals, url, allowAnonymousListening);
-	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
+	const api = apiFor({ fetch, locals });
 
 	const [albumRes, tracksRes, libraryRes] = await Promise.all([
 		api.GET('/albums/{id}', { params: { path: { id: params.id } } }),
@@ -49,51 +51,33 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 };
 
 export const actions: Actions = {
-	addTrack: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const trackId = String((await request.formData()).get('trackId') ?? '');
+	addTrack: authedAction(async ({ api, form, params }) => {
+		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const api = createApiClient({ fetch, accessToken });
 		const result = await api.POST('/albums/{albumId}/tracks/{trackId}', {
 			params: { path: { albumId: params.id, trackId } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo añadir la canción.');
-		if (failure) return failure;
-		return { added: true };
-	},
+		return failOnError(result, 'No se pudo añadir la canción.') ?? { added: true };
+	}),
 
-	removeTrack: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const trackId = String((await request.formData()).get('trackId') ?? '');
+	removeTrack: authedAction(async ({ api, form, params }) => {
+		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const api = createApiClient({ fetch, accessToken });
 		const result = await api.DELETE('/albums/{albumId}/tracks/{trackId}', {
 			params: { path: { albumId: params.id, trackId } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo quitar la canción.');
-		if (failure) return failure;
-		return { removed: true };
-	},
+		return failOnError(result, 'No se pudo quitar la canción.') ?? { removed: true };
+	}),
 
-	edit: async ({ request, params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const form = await request.formData();
+	edit: authedAction(async ({ api, form, params }) => {
 		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
-		const api = createApiClient({ fetch, accessToken });
-
 		let newPictureIntentId: string | null = null;
-		const cover = form.get('cover');
-		if (cover instanceof File && cover.size > 0) {
+		const cover = formFile(form, 'cover');
+		if (cover) {
 			const uploaded = await uploadPresignedImage(
 				(args) => api.POST('/albums/upload-picture', { body: args }),
 				cover
@@ -113,21 +97,15 @@ export const actions: Actions = {
 				newPictureIntentId
 			}
 		});
-		const failure = unwrapOrFail(result, 'No se pudo actualizar el álbum.');
-		if (failure) return failure;
-		return { edited: true };
-	},
+		return failOnError(result, 'No se pudo actualizar el álbum.') ?? { edited: true };
+	}),
 
-	delete: async ({ params, locals, fetch }) => {
-		const accessToken = requireAccessTokenAction(locals);
-		if (typeof accessToken !== 'string') return accessToken;
-
-		const api = createApiClient({ fetch, accessToken });
+	delete: authedAction(async ({ api, params }) => {
 		const result = await api.DELETE('/albums/{albumId}', {
 			params: { path: { albumId: params.id } }
 		});
-		const failure = unwrapOrFail(result, 'No se pudo eliminar el álbum.');
+		const failure = failOnError(result, 'No se pudo eliminar el álbum.');
 		if (failure) return failure;
 		redirect(303, '/albums');
-	}
+	})
 };
