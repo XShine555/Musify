@@ -1,9 +1,7 @@
 import { browser } from '$app/environment';
-import { accent } from '$lib/theme/accent.svelte';
 import { dialog } from '$lib/state/dialog.svelte';
 import type { Track } from '$lib/types';
 import { readStorage, writeStorage } from '$lib/utils/storage';
-import { trackCover } from '$lib/utils/hrefs';
 import { ListenTracker } from './listenTracker';
 import { mediaSession } from './mediaSession';
 import { ProgressClock } from './progressClock';
@@ -140,7 +138,6 @@ class PlayerState {
 	}
 
 	#announce(track: Track) {
-		accent.follow(trackCover(track.id, 'small'), () => this.currentId === track.id);
 		mediaSession.setTrack(track);
 	}
 

@@ -12,6 +12,8 @@
 	import { queuePanel } from '$lib/state/panels.svelte';
 	import { liked } from '$lib/state/liked.svelte';
 	import { createPlaylistModal } from '$lib/state/panels.svelte';
+	import { accent } from '$lib/theme/accent.svelte';
+	import { trackCover } from '$lib/utils/hrefs';
 	import { trackNavigation } from '$lib/state/history.svelte';
 	import { restoreScroll } from '$lib/state/scroll';
 	import { page } from '$app/state';
@@ -34,6 +36,11 @@
 
 	$effect(() => {
 		if (data.lastPlayedTrack) player.hydrate(data.lastPlayedTrack);
+	});
+
+	$effect(() => {
+		const id = player.currentId;
+		if (id) accent.follow(trackCover(id, 'small'), () => player.currentId === id);
 	});
 
 	let queueAutoOpened = false;
