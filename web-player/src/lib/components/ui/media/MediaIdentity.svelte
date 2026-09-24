@@ -5,11 +5,11 @@
 	import ArtistLink from './ArtistLink.svelte';
 
 	interface Props {
-		trackId?: string | number;
-		trackIds?: (string | number)[];
+		trackId?: string;
+		trackIds?: string[];
 		title: string;
 		artist?: string | null;
-		ownerUserId?: string | number | null;
+		ownerUserId?: string | null;
 		coverSrc?: string | null;
 		size?: 'xs' | 'sm' | 'lg';
 		explicit?: boolean;

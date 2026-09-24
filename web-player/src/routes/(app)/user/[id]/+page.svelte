@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { playlistCover } from '$lib/utils/hrefs';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
@@ -62,9 +63,7 @@
 						title={playlist.name}
 						subtitle={playlistMeta(playlist.trackCount)}
 						trackIds={playlist.coverTrackIds}
-						src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
-							playlist.updatedAt
-						)}"
+						src={playlistCover(playlist, 'large')}
 						index={i}
 					/>
 				{/each}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findTopResult } from './search';
+import { findTopResult, searchChips } from './search';
 
 const empty = { tracks: [], albums: [], playlists: [], users: [] };
 
@@ -24,5 +24,19 @@ describe('findTopResult', () => {
 	});
 	it('returns null without results', () => {
 		expect(findTopResult({ ...empty, query: 'x' })).toBeNull();
+	});
+});
+
+describe('searchChips', () => {
+	it('adds an "all" chip with the total', () => {
+		const chips = searchChips({ tracks: 3, albums: 2, playlists: 0, users: 1 });
+		expect(chips.map((chip) => [chip.filter, chip.count])).toEqual([
+			['all', 6],
+			['tracks', 3],
+			['albums', 2],
+			['playlists', 0],
+			['users', 1]
+		]);
+		expect(chips[0].label).toBe('Todo');
 	});
 });

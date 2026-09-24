@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import type { SessionUser } from '$lib/types';
 	import { SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '$lib/config';
-	import { searchHref } from '$lib/state/navigation.svelte';
+	import { searchHref } from '$lib/utils/hrefs';
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';

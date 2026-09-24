@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Shuffle from '@lucide/svelte/icons/shuffle';
-	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
+	import { isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/actions';
 	import { fmtTime, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';

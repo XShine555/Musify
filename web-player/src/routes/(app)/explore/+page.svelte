@@ -18,19 +18,21 @@
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
-	import { genreHref } from '$lib/state/navigation.svelte';
+	import { genreHref, playlistCover } from '$lib/utils/hrefs';
 	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import ContextMenu, { contextMenuPosition } from '$lib/components/ui/overlay/ContextMenu.svelte';
+	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
+	import { contextMenuPosition } from '$lib/utils/menuPosition';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import ListEnd from '@lucide/svelte/icons/list-end';
-	import { appendUnique } from '$lib/data/collections';
+	import { appendUnique } from '$lib/utils/collections';
 	import { genreInfo, genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,
 		showGroup,
 		capped,
 		matchPlaylists,
-		searchCounts,
+		SEARCH_LABELS,
+		searchTotal,
 		searchChips,
 		findTopResult
 	} from '$lib/data/search';
@@ -48,7 +50,7 @@
 
 	const trackMenu = createTrackMenu();
 	let albumMenu = $state<AlbumMenuState | null>(null);
-	let sfilter = $state<SearchFilter>('Todo');
+	let sfilter = $state<SearchFilter>('all');
 
 	let localItems = $state<Track[]>([]);
 	let localPage = $state(1);
@@ -58,7 +60,7 @@
 	$effect(() => {
 		trackMenu.close();
 		albumMenu = null;
-		sfilter = data.genre ? 'Canciones' : 'Todo';
+		sfilter = data.genre ? 'tracks' : 'all';
 		localItems = data.tracks.items;
 		localPage = data.tracks.pageNumber;
 		hasMore = data.tracks.hasNextPage;
@@ -82,18 +84,14 @@
 		!!data.query && items.length === 0 && !hasAlbums && !hasUsers && !hasPlaylists
 	);
 
-	const counts = $derived(
-		searchCounts({
-			tracks: data.tracks.totalItemCount,
-			albums: data.albumsTotal,
-			playlists: playlistMatches.length,
-			users: data.usersTotal
-		})
-	);
+	const counts = $derived({
+		tracks: data.tracks.totalItemCount,
+		albums: data.albumsTotal,
+		playlists: playlistMatches.length,
+		users: data.usersTotal
+	});
 	const chips = $derived(searchChips(counts));
-	const totalHits = $derived(
-		counts.Canciones + counts.Álbumes + counts.Playlists + counts.Usuarios
-	);
+	const totalHits = $derived(searchTotal(counts));
 
 	type TopResult = NonNullable<
 		ReturnType<
@@ -107,7 +105,7 @@
 	>;
 
 	const topResult = $derived<TopResult | null>(
-		sfilter === 'Todo' && data.query
+		sfilter === 'all' && data.query
 			? findTopResult({
 					query: data.query,
 					tracks: items,
@@ -135,6 +133,7 @@
 	}
 
 	function openAlbumMenu(event: MouseEvent, albumId: string) {
+		event.preventDefault();
 		albumMenu = { ...contextMenuPosition(event), albumId };
 	}
 
@@ -206,11 +205,11 @@
 		/>
 
 		<div class="mb-7 flex flex-wrap gap-2 sm:mb-8">
-			{#each chips as chip (chip.label)}
+			{#each chips as chip (chip.filter)}
 				<Chip
-					selected={sfilter === chip.label}
+					selected={sfilter === chip.filter}
 					count={chip.count}
-					onclick={() => (sfilter = chip.label)}
+					onclick={() => (sfilter = chip.filter)}
 				>
 					{chip.label}
 				</Chip>
@@ -230,9 +229,7 @@
 					<Artwork trackIds={topResult.album.coverTrackIds} size="xl" class="shrink-0" />
 				{:else if topResult.kind === 'playlist'}
 					<Artwork
-						src="/api/playlists/{topResult.playlist.id}/cover?size=large&v={encodeURIComponent(
-							topResult.playlist.updatedAt
-						)}"
+						src={playlistCover(topResult.playlist, 'large')}
 						trackIds={topResult.playlist.coverTrackIds}
 						size="xl"
 						class="shrink-0"
@@ -322,10 +319,10 @@
 
 	{#if (data.query || data.genre) && !nothingFound}
 		<div class="mt-9 flex flex-col gap-9">
-			{#if showGroup(sfilter, 'Canciones')}
+			{#if showGroup(sfilter, 'tracks')}
 				<div>
 					{#if items.length > 0}
-						<SectionHeading title="Canciones" count={counts.Canciones} />
+						<SectionHeading title={SEARCH_LABELS.tracks} count={counts.tracks} />
 						<ul class="flex flex-col gap-1">
 							{#each capped(sfilter, items) as track, i (track.id)}
 								<li>
@@ -355,7 +352,7 @@
 							{/each}
 						</ul>
 
-						{#if sfilter === 'Canciones' && hasMore}
+						{#if sfilter === 'tracks' && hasMore}
 							<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
 						{/if}
 					{:else}
@@ -369,9 +366,9 @@
 				</div>
 			{/if}
 
-			{#if hasAlbums && showGroup(sfilter, 'Álbumes')}
+			{#if hasAlbums && showGroup(sfilter, 'albums')}
 				<div>
-					<SectionHeading title="Álbumes" count={counts.Álbumes} />
+					<SectionHeading title={SEARCH_LABELS.albums} count={counts.albums} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, albums) as album (album.id)}
 							<li>
@@ -394,9 +391,9 @@
 				</div>
 			{/if}
 
-			{#if hasUsers && showGroup(sfilter, 'Usuarios')}
+			{#if hasUsers && showGroup(sfilter, 'users')}
 				<div>
-					<SectionHeading title="Usuarios" count={counts.Usuarios} />
+					<SectionHeading title={SEARCH_LABELS.users} count={counts.users} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, users) as u (u.id)}
 							<li>
@@ -407,9 +404,9 @@
 				</div>
 			{/if}
 
-			{#if hasPlaylists && showGroup(sfilter, 'Playlists')}
+			{#if hasPlaylists && showGroup(sfilter, 'playlists')}
 				<div>
-					<SectionHeading title="Playlists" count={counts.Playlists} />
+					<SectionHeading title={SEARCH_LABELS.playlists} count={counts.playlists} />
 					<ul class="flex flex-col gap-1">
 						{#each capped(sfilter, playlistMatches) as playlist (playlist.id)}
 							<li>
@@ -418,9 +415,7 @@
 									subtitle={playlist.description}
 									href="/playlists/{playlist.id}"
 									size="lg"
-									coverSrc="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
-										playlist.updatedAt
-									)}"
+									coverSrc={playlistCover(playlist, 'medium')}
 									trackIds={playlist.coverTrackIds}
 								/>
 							</li>

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { isSectionActive, appNavLinks } from '$lib/state/navigation.svelte';
+	import { appNavLinks, isNavActive } from './navLinks';
+	import { playlistCover } from '$lib/utils/hrefs';
 	import { liked } from '$lib/player/liked.svelte';
-	import { createPlaylistModal } from '$lib/state/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/panels.svelte';
 	import type { SessionUser } from '$lib/types';
 	import ListRow from '../ui/media/ListRow.svelte';
 	import IconButton from '../ui/primitives/IconButton.svelte';
@@ -14,7 +15,7 @@
 	interface SidebarPlaylist {
 		id: string;
 		name: string;
-		coverTrackIds: (string | number)[];
+		coverTrackIds: string[];
 		updatedAt: string;
 	}
 
@@ -29,10 +30,6 @@
 	const visiblePlaylists = $derived(playlists.slice(0, SIDEBAR_PLAYLISTS_LIMIT));
 
 	const navLinks = $derived(appNavLinks(user, { playlists: playlistCount, liked: liked.count }));
-
-	function isActive(href: string) {
-		return isSectionActive(href, page.url.pathname, page.data.section);
-	}
 </script>
 
 <aside
@@ -45,7 +42,7 @@
 
 	<nav class="flex flex-col gap-1">
 		{#each navLinks as link (link.href)}
-			{@const active = isActive(link.href)}
+			{@const active = isNavActive(link.href)}
 			<a
 				href={link.href}
 				aria-current={active ? 'page' : undefined}
@@ -86,9 +83,7 @@
 					{active}
 					size="xs"
 					title={playlist.name}
-					coverSrc="/api/playlists/{playlist.id}/cover?size=small&v={encodeURIComponent(
-						playlist.updatedAt
-					)}"
+					coverSrc={playlistCover(playlist, 'small')}
 					trackIds={playlist.coverTrackIds}
 					class="px-3 py-2"
 				/>

@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { playlistCover } from '$lib/utils/hrefs';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
-	import { createPlaylistModal } from '$lib/state/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/panels.svelte';
 	import { fmtDurationLong, plural, playlistMeta } from '$lib/utils/format';
 
 	let { data } = $props();
@@ -42,9 +43,7 @@
 					title={playlist.name}
 					subtitle={playlistMeta(playlist.trackCount)}
 					trackIds={playlist.coverTrackIds}
-					src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
-						playlist.updatedAt
-					)}"
+					src={playlistCover(playlist, 'large')}
 					index={i}
 				/>
 			{/each}

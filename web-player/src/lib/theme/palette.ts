@@ -1,5 +1,4 @@
 import { browser } from '$app/environment';
-import { ACCENT_LIGHTNESS } from './color';
 
 function srgbToLinear(channel: number): number {
 	const c = channel / 255;
@@ -40,7 +39,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 
 const BUCKETS = 36;
 
-export async function extractAccent(url: string): Promise<string | null> {
+export async function extractAccentHue(url: string): Promise<number | null> {
 	if (!browser) return null;
 
 	let img: HTMLImageElement;
@@ -68,7 +67,6 @@ export async function extractAccent(url: string): Promise<string | null> {
 	const weight = new Array(BUCKETS).fill(0);
 	const hueSin = new Array(BUCKETS).fill(0);
 	const hueCos = new Array(BUCKETS).fill(0);
-	const chromaSum = new Array(BUCKETS).fill(0);
 
 	for (let i = 0; i < pixels.length; i += 4) {
 		if (pixels[i + 3] < 128) continue;
@@ -81,7 +79,6 @@ export async function extractAccent(url: string): Promise<string | null> {
 		weight[bucket] += w;
 		hueSin[bucket] += Math.sin(rad) * w;
 		hueCos[bucket] += Math.cos(rad) * w;
-		chromaSum[bucket] += C * w;
 	}
 
 	let best = -1;
@@ -94,11 +91,5 @@ export async function extractAccent(url: string): Promise<string | null> {
 	}
 	if (best < 0) return null;
 
-	const hue = ((Math.atan2(hueSin[best], hueCos[best]) * 180) / Math.PI + 360) % 360;
-	const chroma = Math.min(0.11, Math.max(0.045, chromaSum[best] / weight[best]));
-
-	const h = hue.toFixed(1);
-	const c = chroma.toFixed(3);
-
-	return `oklch(${ACCENT_LIGHTNESS}% ${c} ${h})`;
+	return ((Math.atan2(hueSin[best], hueCos[best]) * 180) / Math.PI + 360) % 360;
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { albumCover } from '$lib/utils/hrefs';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Disc from '@lucide/svelte/icons/disc-3';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -42,7 +43,7 @@
 					title={album.title}
 					subtitle={albumMeta(album.releaseYear, album.trackCount)}
 					trackIds={album.coverTrackIds}
-					src="/api/albums/{album.id}/cover?size=large"
+					src={albumCover(album.id, 'large')}
 					index={i}
 				/>
 			{/each}

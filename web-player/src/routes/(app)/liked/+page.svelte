@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Heart from '@lucide/svelte/icons/heart';
 	import X from '@lucide/svelte/icons/x';
-	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
+	import { isQueueCurrent, playAllOrToggle } from '$lib/player/actions';
 	import { liked } from '$lib/player/liked.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';

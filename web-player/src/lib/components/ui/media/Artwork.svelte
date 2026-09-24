@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { trackCover } from '$lib/utils/hrefs';
 
 	type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'hero' | 'fill';
 
 	interface Props {
 		src?: string | null;
-		trackIds?: (string | number)[];
+		trackIds?: string[];
 		size: Size;
 		shape?: 'auto' | 'round';
 		imageSize?: 'small' | 'medium' | 'large';
@@ -76,7 +77,6 @@
 	const showSrc = $derived(!!src && !srcFailed);
 	const showMosaic = $derived(!showSrc && trackIds.length >= 4);
 	const singleId = $derived(!showSrc && !showMosaic && trackIds.length > 0 ? trackIds[0] : null);
-	const showSingle = $derived(singleId !== null && !singleFailed);
 </script>
 
 <div class="relative overflow-hidden {DIMENSION[size]} {radius} {klass}">
@@ -94,7 +94,7 @@
 		<div class="grid h-full w-full grid-cols-2 grid-rows-2">
 			{#each trackIds.slice(0, 4) as id (id)}
 				<img
-					src="/api/tracks/{id}/cover?size=small"
+					src={trackCover(id, 'small')}
 					alt=""
 					loading="lazy"
 					decoding="async"
@@ -104,9 +104,9 @@
 				/>
 			{/each}
 		</div>
-	{:else if showSingle}
+	{:else if singleId !== null && !singleFailed}
 		<img
-			src="/api/tracks/{singleId}/cover?size={resolvedImageSize}"
+			src={trackCover(singleId, resolvedImageSize)}
 			{alt}
 			loading="lazy"
 			decoding="async"

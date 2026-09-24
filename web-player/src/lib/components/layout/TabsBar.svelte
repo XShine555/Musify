@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { isSectionActive, appNavLinks } from '$lib/state/navigation.svelte';
+	import { appNavLinks, isNavActive } from './navLinks';
 	import type { SessionUser } from '$lib/types';
 
 	interface Props {
@@ -11,10 +10,6 @@
 	let { user, class: klass = '' }: Props = $props();
 
 	const links = $derived(appNavLinks(user).filter((link) => link.primary));
-
-	function isActive(href: string) {
-		return isSectionActive(href, page.url.pathname, page.data.section);
-	}
 </script>
 
 <nav
@@ -22,7 +17,7 @@
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}
-		{@const active = isActive(link.href)}
+		{@const active = isNavActive(link.href)}
 		<a
 			href={link.href}
 			aria-current={active ? 'page' : undefined}

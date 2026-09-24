@@ -1,24 +1,6 @@
-<script lang="ts" module>
-	import { MENU_WIDTH, SUBMENU_WIDTH } from '$lib/config';
-
-	export interface MenuPosition {
-		x: number;
-		y: number;
-		openLeft: boolean;
-	}
-
-	export function contextMenuPosition(event: MouseEvent): MenuPosition {
-		event.preventDefault();
-		return {
-			x: Math.max(8, Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8)),
-			y: Math.max(8, Math.min(event.clientY, window.innerHeight - 60)),
-			openLeft: event.clientX + MENU_WIDTH + SUBMENU_WIDTH + 16 > window.innerWidth
-		};
-	}
-</script>
-
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { playlistCover } from '$lib/utils/hrefs';
 	import type { LucideIcon } from '@lucide/svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import MediaIdentity from '../media/MediaIdentity.svelte';
@@ -32,7 +14,7 @@
 		onClose: () => void;
 		items: { icon: LucideIcon; label: string; onclick: () => void }[];
 		playlistAction?: { action: string; fields: Record<string, string>; label: string };
-		playlists?: { id: string; name: string }[];
+		playlists?: { id: string; name: string; updatedAt: string }[];
 	}
 
 	let { x, y, openLeft, onClose, items, playlistAction, playlists = [] }: Props = $props();
@@ -97,7 +79,7 @@
 								>
 									<MediaIdentity
 										title={playlist.name}
-										coverSrc="/api/playlists/{playlist.id}/cover?size=small"
+										coverSrc={playlistCover(playlist, 'small')}
 										size="xs"
 										titleClass="text-fg-2"
 									/>

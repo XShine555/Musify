@@ -1,7 +1,4 @@
-import {
-	contextMenuPosition,
-	type MenuPosition
-} from '$lib/components/ui/overlay/ContextMenu.svelte';
+import { contextMenuPosition, type MenuPosition } from '$lib/utils/menuPosition';
 import { player } from '$lib/player/player.svelte';
 import type { Track } from '$lib/types';
 
@@ -15,6 +12,7 @@ export function createTrackMenu() {
 			return state;
 		},
 		open(event: MouseEvent, track: Track) {
+			event.preventDefault();
 			state = { track, ...contextMenuPosition(event) };
 		},
 		close() {

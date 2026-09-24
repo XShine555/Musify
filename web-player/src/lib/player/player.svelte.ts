@@ -1,36 +1,14 @@
 import { browser } from '$app/environment';
-import { DEFAULT_ACCENT } from '$lib/theme/color';
-import { extractAccent } from '$lib/theme/palette';
-import { shuffle } from '$lib/data/collections';
+import { accent } from '$lib/theme/accent.svelte';
 import { dialog } from '$lib/state/dialog.svelte';
-import { ListenTracker } from './listenTracker';
-import { readStorage, writeStorage } from '$lib/utils/storage';
 import type { Track } from '$lib/types';
+import { readStorage, writeStorage } from '$lib/utils/storage';
+import { trackCover } from '$lib/utils/hrefs';
+import { ListenTracker } from './listenTracker';
+import { mediaSession } from './mediaSession';
+import { ProgressClock } from './progressClock';
 import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
-
-export function isQueueCurrent(items: { id: string }[]): boolean {
-	return items.some((item) => item.id === player.currentId);
-}
-
-export function playAllOrToggle(items: Track[]) {
-	if (items.length === 0) return;
-	if (isQueueCurrent(items)) player.toggle();
-	else player.playQueue(items, 0);
-}
-
-export function playShuffled(items: Track[]) {
-	if (items.length === 0) return;
-	player.playQueue(shuffle(items), 0);
-}
-
-async function readErrorMessage(res: Response): Promise<string> {
-	try {
-		const body = (await res.json()) as { message?: string };
-		return body?.message || `Error ${res.status}`;
-	} catch {
-		return `Error ${res.status}`;
-	}
-}
+import { resolveStream } from './stream';
 
 const RECENT_LIMIT = 15;
 const DEFAULT_VOLUME = 100;
@@ -60,16 +38,15 @@ class PlayerState {
 	shuffle = $state(false);
 	repeat = $state(false);
 
-	accentColor = $state<string | null>(null);
-
 	#audio: HTMLAudioElement | null = null;
 	#loadToken = 0;
-	#accentCache = new Map<string, string>();
-	#rafId: number | null = null;
 	#listen = new ListenTracker();
+	#clock = new ProgressClock(
+		() => this.#audio,
+		(value) => (this.progress = value)
+	);
 
 	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? null);
-	accent = $derived(this.accentColor ?? DEFAULT_ACCENT);
 	duration = $derived(this.current?.duration ?? 0);
 	progressPercent = $derived(
 		this.duration > 0 ? Math.min(100, (this.progress / this.duration) * 100) : 0
@@ -92,18 +69,18 @@ class PlayerState {
 		audio.addEventListener('play', () => {
 			this.#listen.resync(audio.currentTime);
 			this.playing = true;
-			this.#startProgressLoop();
-			this.#syncMediaSessionPlaybackState();
+			this.#clock.start();
+			mediaSession.setPlaying(true);
 		});
 		audio.addEventListener('pause', () => {
 			this.#listen.interrupt();
 			this.#listen.flush();
 			this.playing = false;
-			this.#stopProgressLoop();
-			this.#syncMediaSessionPlaybackState();
+			this.#clock.stop();
+			mediaSession.setPlaying(false);
 		});
 		audio.addEventListener('ended', () => {
-			this.#stopProgressLoop();
+			this.#clock.stop();
 			this.#listen.tick(audio.currentTime);
 			this.#listen.begin(null);
 			if (this.repeat) {
@@ -119,7 +96,7 @@ class PlayerState {
 			this.next();
 		});
 		audio.addEventListener('error', () => {
-			this.#stopProgressLoop();
+			this.#clock.stop();
 			this.loading = false;
 			this.playing = false;
 			this.#fail();
@@ -129,7 +106,12 @@ class PlayerState {
 			if (document.visibilityState === 'hidden') this.#listen.flush();
 		});
 		window.addEventListener('pagehide', () => this.#listen.flush());
-		this.#setupMediaSession(audio);
+		mediaSession.setup({
+			play: () => audio.play().catch(() => {}),
+			pause: () => audio.pause(),
+			previous: () => this.previous(),
+			next: () => this.next()
+		});
 		return audio;
 	}
 
@@ -137,56 +119,7 @@ class PlayerState {
 		audio.currentTime = 0;
 		this.progress = 0;
 		this.playing = false;
-		this.#syncMediaSessionPlaybackState();
-	}
-
-	#setupMediaSession(audio: HTMLAudioElement) {
-		if (!('mediaSession' in navigator)) return;
-		navigator.mediaSession.setActionHandler('play', () => audio.play().catch(() => {}));
-		navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-		navigator.mediaSession.setActionHandler('previoustrack', () => this.previous());
-		navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
-	}
-
-	#syncMediaSessionPlaybackState() {
-		if (!browser || !('mediaSession' in navigator)) return;
-		navigator.mediaSession.playbackState = this.playing ? 'playing' : 'paused';
-	}
-
-	#syncMediaSessionMetadata(track: Track) {
-		if (!browser || !('mediaSession' in navigator)) return;
-		navigator.mediaSession.metadata = new MediaMetadata({
-			title: track.title,
-			artist: track.artist ?? '',
-			artwork: [{ src: `/api/tracks/${track.id}/cover?size=small`, sizes: '256x256' }]
-		});
-	}
-
-	#clockTime = 0;
-	#clockStamp = 0;
-
-	#tickProgress = (now: number) => {
-		const audio = this.#audio;
-		if (!audio) return;
-		if (audio.currentTime !== this.#clockTime) {
-			this.#clockTime = audio.currentTime;
-			this.#clockStamp = now;
-		}
-		const elapsed = Math.min(0.25, (now - this.#clockStamp) / 1000);
-		const smooth = this.#clockTime + (audio.paused ? 0 : elapsed * audio.playbackRate);
-		this.progress = Math.min(smooth, Number.isFinite(audio.duration) ? audio.duration : smooth);
-		this.#rafId = requestAnimationFrame(this.#tickProgress);
-	};
-
-	#startProgressLoop() {
-		if (this.#rafId !== null) return;
-		this.#rafId = requestAnimationFrame(this.#tickProgress);
-	}
-
-	#stopProgressLoop() {
-		if (this.#rafId === null) return;
-		cancelAnimationFrame(this.#rafId);
-		this.#rafId = null;
+		mediaSession.setPlaying(false);
 	}
 
 	#syncDuration(value: number) {
@@ -206,20 +139,9 @@ class PlayerState {
 		);
 	}
 
-	async #applyAccent(id: string) {
-		const cached = this.#accentCache.get(id);
-		if (cached) {
-			this.accentColor = cached;
-			return;
-		}
-		const result = await extractAccent(`/api/tracks/${id}/cover?size=small`);
-		if (this.currentId !== id) return;
-		if (result) {
-			this.#accentCache.set(id, result);
-			this.accentColor = result;
-		} else {
-			this.accentColor = null;
-		}
+	#announce(track: Track) {
+		accent.follow(trackCover(track.id, 'small'), () => this.currentId === track.id);
+		mediaSession.setTrack(track);
 	}
 
 	async #loadCurrent() {
@@ -227,14 +149,13 @@ class PlayerState {
 		if (!audio || this.currentId === null) return;
 		const id = this.currentId;
 		const track = this.tracks.find((t) => t.id === id);
-		this.#applyAccent(id);
-		if (track) this.#syncMediaSessionMetadata(track);
+		if (track) this.#announce(track);
 		this.#listen.begin(null);
 		const token = ++this.#loadToken;
 		this.loading = true;
 		this.progress = 0;
 		try {
-			const { src, listenId } = await this.#resolveLocalSrc(String(id));
+			const { src, listenId } = await resolveStream(id);
 			if (token !== this.#loadToken) return;
 			audio.src = src;
 			audio.volume = this.volume / 100;
@@ -260,42 +181,22 @@ class PlayerState {
 		);
 	}
 
-	async #resolveLocalSrc(id: string): Promise<{ src: string; listenId: string | null }> {
-		const res = await fetch(`/api/tracks/${id}/stream`);
-		if (!res.ok) throw new Error(await readErrorMessage(res));
-		const { manifestUrl, ticket, listenId } = (await res.json()) as {
-			manifestUrl: string;
-			ticket: string;
-			listenId?: string | null;
-		};
-		return { src: this.#withTicket(manifestUrl, ticket), listenId: listenId ?? null };
-	}
-
 	async #beginRepeatListen() {
 		const id = this.currentId;
 		if (id === null) return;
 		try {
-			const res = await fetch(`/api/tracks/${id}/stream`);
-			if (!res.ok) return;
-			const { listenId } = (await res.json()) as { listenId?: string | null };
-			if (this.currentId === id) this.#listen.begin(listenId ?? null);
+			const { listenId } = await resolveStream(id);
+			if (this.currentId === id) this.#listen.begin(listenId);
 		} catch {
 			return;
 		}
-	}
-
-	#withTicket(url: string, ticket: string): string {
-		if (!ticket) return url;
-		const sep = url.includes('?') ? '&' : '?';
-		return `${url}${sep}t=${encodeURIComponent(ticket)}`;
 	}
 
 	hydrate(track: Track) {
 		if (this.currentId !== null || this.tracks.length > 0) return;
 		this.tracks = [track];
 		this.currentId = track.id;
-		this.#applyAccent(track.id);
-		this.#syncMediaSessionMetadata(track);
+		this.#announce(track);
 	}
 
 	playQueue(list: Track[], startIndex = 0) {

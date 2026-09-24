@@ -1,5 +1,5 @@
 interface Identified {
-	id: string | number;
+	id: string;
 }
 
 export function insertNext<T extends Identified>(

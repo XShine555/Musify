@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { playlistCover } from '$lib/utils/hrefs';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import X from '@lucide/svelte/icons/x';
-	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
+	import { isQueueCurrent, playAllOrToggle } from '$lib/player/actions';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import Modal from '$lib/components/ui/overlay/Modal.svelte';
@@ -56,9 +58,7 @@
 	>
 		{#snippet cover()}
 			<Artwork
-				src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
-					playlist.updatedAt
-				)}"
+				src={playlistCover(playlist, 'large')}
 				trackIds={tracks.map((t) => t.id)}
 				size="hero"
 				alt={playlist.name}
@@ -110,9 +110,7 @@
 		initialName={playlist.name}
 		initialDescription={playlist.description ?? ''}
 		initialVisibility={playlist.visibility === 'Public' ? 'public' : 'private'}
-		coverFallbackUrl="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
-			playlist.updatedAt
-		)}"
+		coverFallbackUrl={playlistCover(playlist, 'medium')}
 		formMessage={form?.message}
 		submitLabel="Guardar"
 		submittingLabel="Guardando…"

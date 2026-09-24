@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import type { LayoutData } from './$types';
 	import '@fontsource-variable/sora/index.css';
 	import '@fontsource-variable/plus-jakarta-sans/index.css';
 	import '$lib/theme/theme.css';
@@ -13,16 +15,23 @@
 	import DialogHost from '$lib/components/ui/overlay/DialogHost.svelte';
 	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';
-	import { queuePanel } from '$lib/player/queuePanel.svelte';
+	import { queuePanel } from '$lib/state/panels.svelte';
 	import { liked } from '$lib/player/liked.svelte';
-	import { createPlaylistModal } from '$lib/state/playlists.svelte';
+	import { createPlaylistModal } from '$lib/state/panels.svelte';
 	import { ACCENT_HUE } from '$lib/theme/color';
-	import { buildThemeTokens, applyThemeTokens, tokensToCss } from '$lib/theme/tokens';
+	import { buildThemeTokens, tokensToCss } from '$lib/theme/tokens';
+	import { accent, animateThemeHue } from '$lib/theme/accent.svelte';
 	import { themeMode } from '$lib/theme/mode.svelte';
-	import { trackNavigation, restoreScroll } from '$lib/state/navigation.svelte';
+	import { trackNavigation } from '$lib/state/history.svelte';
+	import { restoreScroll } from '$lib/state/scroll';
 	import { page } from '$app/state';
 
-	let { children, data } = $props();
+	interface Props {
+		children: Snippet;
+		data: LayoutData;
+	}
+
+	let { children, data }: Props = $props();
 
 	let scroller = $state<HTMLElement>();
 
@@ -60,35 +69,7 @@
 		player.toggle();
 	}
 
-	function parseHue(value: string): number | null {
-		const m = /oklch\(\s*[\d.]+%?\s+[\d.]+\s+([\d.]+)/.exec(value);
-		return m ? parseFloat(m[1]) : null;
-	}
-
-	let displayedHue = ACCENT_HUE;
-	let rafId = 0;
-
-	$effect(() => {
-		const targetHue = parseHue(player.accent) ?? ACCENT_HUE;
-		const mode = themeMode.current;
-		cancelAnimationFrame(rafId);
-		const fromHue = displayedHue;
-		let dh = targetHue - fromHue;
-		if (dh > 180) dh -= 360;
-		else if (dh < -180) dh += 360;
-		const start = performance.now();
-		const duration = 2000 + Math.random() * 2000;
-		const tick = (now: number) => {
-			const t = Math.min(1, (now - start) / duration);
-			const eased = 1 - Math.pow(1 - t, 3);
-			const hue = (((fromHue + dh * eased) % 360) + 360) % 360;
-			displayedHue = hue;
-			applyThemeTokens(buildThemeTokens(hue, mode));
-			if (t < 1) rafId = requestAnimationFrame(tick);
-		};
-		rafId = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(rafId);
-	});
+	$effect(() => animateThemeHue(accent.hue, themeMode.current));
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />

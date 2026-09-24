@@ -1,38 +1,40 @@
-export const SEARCH_FILTERS = ['Todo', 'Canciones', 'Álbumes', 'Playlists', 'Usuarios'] as const;
-export type SearchFilter = (typeof SEARCH_FILTERS)[number];
+export const SEARCH_KINDS = ['tracks', 'albums', 'playlists', 'users'] as const;
+export type SearchKind = (typeof SEARCH_KINDS)[number];
+export type SearchFilter = 'all' | SearchKind;
 export const SEARCH_GROUP_PREVIEW = 4;
 
-export function showGroup(filter: SearchFilter, label: Exclude<SearchFilter, 'Todo'>) {
-	return filter === 'Todo' || filter === label;
+export const SEARCH_LABELS: Record<SearchFilter, string> = {
+	all: 'Todo',
+	tracks: 'Canciones',
+	albums: 'Álbumes',
+	playlists: 'Playlists',
+	users: 'Usuarios'
+};
+
+export function showGroup(filter: SearchFilter, kind: SearchKind) {
+	return filter === 'all' || filter === kind;
 }
 
 export function capped<T>(filter: SearchFilter, list: T[]) {
-	return filter === 'Todo' ? list.slice(0, SEARCH_GROUP_PREVIEW) : list;
+	return filter === 'all' ? list.slice(0, SEARCH_GROUP_PREVIEW) : list;
 }
 
 export function matchPlaylists<T extends { name: string }>(playlists: T[], query: string): T[] {
 	return query ? playlists.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())) : [];
 }
 
-export function searchCounts(counts: {
-	tracks: number;
-	albums: number;
-	playlists: number;
-	users: number;
-}) {
-	return {
-		Canciones: counts.tracks,
-		Álbumes: counts.albums,
-		Playlists: counts.playlists,
-		Usuarios: counts.users
-	};
+export type SearchCounts = Record<SearchKind, number>;
+
+export function searchTotal(counts: SearchCounts): number {
+	return SEARCH_KINDS.reduce((sum, kind) => sum + counts[kind], 0);
 }
 
-export function searchChips(counts: ReturnType<typeof searchCounts>) {
-	const total = counts.Canciones + counts.Álbumes + counts.Playlists + counts.Usuarios;
-	return SEARCH_FILTERS.map((label) => ({
-		label,
-		count: label === 'Todo' ? total : counts[label]
+export function searchChips(counts: SearchCounts) {
+	const filters: SearchFilter[] = ['all', ...SEARCH_KINDS];
+	return filters.map((filter) => ({
+		filter,
+		label: SEARCH_LABELS[filter],
+		count: filter === 'all' ? searchTotal(counts) : counts[filter]
 	}));
 }
 

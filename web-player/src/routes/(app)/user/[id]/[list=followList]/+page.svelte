@@ -6,7 +6,7 @@
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
 	import UserRow from '$lib/components/ui/media/UserRow.svelte';
-	import { appendUnique } from '$lib/data/collections';
+	import { appendUnique } from '$lib/utils/collections';
 	import { plural } from '$lib/utils/format';
 
 	let { data } = $props();

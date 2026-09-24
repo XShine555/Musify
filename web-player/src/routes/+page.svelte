@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { playlistCover } from '$lib/utils/hrefs';
 	import { goto } from '$app/navigation';
 	import History from '@lucide/svelte/icons/history';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import ListMusic from '@lucide/svelte/icons/list-music';
-	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
+	import { isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/actions';
 	import type { Track } from '$lib/types';
 	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
 	import { fetchPlaylistTracks } from '$lib/data/albums';
@@ -165,9 +167,7 @@
 								class="flex w-fit items-center gap-5 self-start sm:gap-6"
 							>
 								<Artwork
-									src="/api/playlists/{spotlight.id}/cover?size=large&v={encodeURIComponent(
-										spotlight.updatedAt
-									)}"
+									src={playlistCover(spotlight, 'large')}
 									trackIds={spotlight.coverTrackIds}
 									size="2xl"
 									alt={spotlight.name}
@@ -261,9 +261,7 @@
 							variant="card"
 							title={playlist.name}
 							subtitle={playlist.description}
-							coverSrc="/api/playlists/{playlist.id}/cover?size=medium&v={encodeURIComponent(
-								playlist.updatedAt
-							)}"
+							coverSrc={playlistCover(playlist, 'medium')}
 							trackIds={playlist.coverTrackIds}
 							style="--i:{i}"
 						/>

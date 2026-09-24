@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import { albumCover } from '$lib/utils/hrefs';
+	import { player } from '$lib/player/player.svelte';
+	import { isQueueCurrent, playAllOrToggle } from '$lib/player/actions';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -59,7 +61,7 @@
 	>
 		{#snippet cover()}
 			<Artwork
-				src="/api/albums/{album.id}/cover?size=large"
+				src={albumCover(album.id, 'large')}
 				trackIds={tracks.map((track) => track.id)}
 				size="hero"
 				alt={album.title}
@@ -116,7 +118,7 @@
 		initialTitle={album.title}
 		initialDescription={album.description ?? ''}
 		initialReleaseYear={album.releaseYear ?? undefined}
-		coverFallbackUrl="/api/albums/{album.id}/cover?size=medium"
+		coverFallbackUrl={albumCover(album.id, 'medium')}
 		formMessage={form?.message}
 		submitLabel="Guardar"
 		submittingLabel="Guardando…"

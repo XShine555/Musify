@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
 
 const t = (id: string) => ({ id });
-const ids = (queue: { id: string | number }[]) => queue.map((item) => item.id);
+const ids = (queue: { id: string }[]) => queue.map((item) => item.id);
 
 describe('insertNext', () => {
 	it('inserts right after the current track without mutating', () => {

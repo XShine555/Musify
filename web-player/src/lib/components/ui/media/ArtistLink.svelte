@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
 		name?: string | null;
-		ownerUserId?: string | number | null;
+		ownerUserId?: string | null;
 		class?: string;
 	}
 

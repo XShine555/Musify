@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
-	import { queuePanel } from '$lib/player/queuePanel.svelte';
+	import { queuePanel } from '$lib/state/panels.svelte';
 	import MediaIdentity from '$lib/components/ui/media/MediaIdentity.svelte';
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';
 	import IconButton from '$lib/components/ui/primitives/IconButton.svelte';
