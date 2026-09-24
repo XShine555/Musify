@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using Musify.Api.Endpoints;
 using Musify.Api.Extensions;
-using Musify.Api.Serialization;
 using Musify.Infrastructure.Observability;
 using Scalar.AspNetCore;
 
@@ -12,9 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    options.SerializerOptions.Converters.Add(new LongAsStringConverter());
-    options.SerializerOptions.Converters.Add(new NullableLongAsStringConverter());
-});
+    options.SerializerOptions.NumberHandling =
+        JsonNumberHandling.AllowReadingFromString |
+        JsonNumberHandling.WriteAsString;
+} );
 
 builder.Services
     .AddApplicationServices(builder.Configuration)
