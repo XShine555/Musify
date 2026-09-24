@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 
 /**
- * Declared in AndroidManifest.xml with an intent-filter for `musify://callback`.
+ * Declared in AndroidManifest.xml with an intent-filter for `cat.ikerdemo.musify:/callback`.
  * Chrome Custom Tabs redirects here once Zitadel finishes the login/register
  * flow; this activity just forwards the URL to [AndroidAuthBridge] and closes.
  */

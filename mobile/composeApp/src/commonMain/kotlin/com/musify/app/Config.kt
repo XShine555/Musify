@@ -9,7 +9,8 @@ package com.musify.app
  * `nativeRedirectUri` is the OAuth redirect registered for the "Musify
  * Native" Zitadel app (see deploy/compose.yml, zitadel-init): a fixed
  * loopback port on Desktop (RFC 8252 native-app loopback flow), and the
- * `musify://callback` custom scheme on Android/iOS.
+ * `cat.ikerdemo.musify:/callback` reverse-domain custom scheme on Android/iOS
+ * (RFC 8252 §7.1: based on a domain we own, so no other app plausibly claims it).
  */
 expect object AppConfig {
     val apiBaseUrl: String

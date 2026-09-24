@@ -18,7 +18,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Catches the `musify://callback` redirect Zitadel sends after login/register.
+        <!-- Catches the `cat.ikerdemo.musify:/callback` redirect Zitadel sends after
+             login/register. The URI has no host, so the filter matches on the scheme
+             alone.
              See BrowserAuthLauncher.android.kt and AppConfig.nativeRedirectUri. -->
         <activity
             android:name=".auth.AuthCallbackActivity"
@@ -29,7 +31,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="musify" android:host="callback" />
+                <data android:scheme="cat.ikerdemo.musify" />
             </intent-filter>
         </activity>
     </application>

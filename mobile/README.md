@@ -54,7 +54,7 @@ al patrón que ya usa Scalar para probar la API — ver `deploy/compose.yml` (`z
 
 Redirect URIs registrados:
 - Desktop: `http://127.0.0.1:17453/callback` (RFC 8252, loopback con puerto fijo).
-- Android / iOS: `musify://callback` (custom scheme).
+- Android / iOS: `cat.ikerdemo.musify:/callback` (custom scheme con dominio invertido, RFC 8252 §7.1).
 
 `mobile/gradle.properties` controla a qué backend apunta Android/Desktop:
 
@@ -125,13 +125,13 @@ Kotlin/Native (`iosMain/`) sigue las APIs estándar de interop (`AVFoundation`, 
 
 1. Genera un proyecto Xcode con el asistente "Kotlin Multiplatform" de Android Studio, o crea uno vacío
    e importa `composeApp` como framework (`./gradlew :composeApp:embedAndSignAppleFrameworkForXcode`).
-2. Registra el scheme `musify` en `Info.plist`:
+2. Registra el scheme `cat.ikerdemo.musify` en `Info.plist`:
    ```xml
    <key>CFBundleURLTypes</key>
    <array>
      <dict>
        <key>CFBundleURLSchemes</key>
-       <array><string>musify</string></array>
+       <array><string>cat.ikerdemo.musify</string></array>
      </dict>
    </array>
    ```

@@ -259,27 +259,38 @@ services:
         fi
 
         echo "==> native app (KMP client: desktop loopback + mobile custom scheme)"
+        # Loopback (desktop) and a reverse-domain custom scheme (Android/iOS,
+        # RFC 8252 §7.1) are both valid for a NATIVE app without devMode, so
+        # dev and prod share the same config. Unlike the other apps, an
+        # existing one is also updated, so a change here reaches instances
+        # created before it.
         NATIVE_APP_NAME="Musify Native"
+        NATIVE_CONFIG='{
+          "redirectUris": ["http://127.0.0.1:17453/callback", "cat.ikerdemo.musify:/callback"],
+          "postLogoutRedirectUris": ["http://127.0.0.1:17453/logout", "cat.ikerdemo.musify:/logout"],
+          "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
+          "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
+          "appType": "OIDC_APP_TYPE_NATIVE",
+          "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
+          "devMode": false,
+          "accessTokenType": "OIDC_TOKEN_TYPE_JWT",
+          "accessTokenRoleAssertion": true,
+          "idTokenRoleAssertion": true,
+          "idTokenUserinfoAssertion": true
+        }'
         NATIVE_APP_ID=$$(find_app "$$NATIVE_APP_NAME")
         if [ -n "$$NATIVE_APP_ID" ]; then
           NATIVE_CLIENT_ID=$$(api_call GET "/projects/$$PROJECT_ID/apps/$$NATIVE_APP_ID" | jq -r '.app.oidcConfig.clientId')
-          echo "  reused (clientId $$NATIVE_CLIENT_ID)"
+          # Zitadel answers 400 "No changes" when the config already matches.
+          RESULT=$$(curl -sS -X PUT "$$MGMT/projects/$$PROJECT_ID/apps/$$NATIVE_APP_ID/oidc_config" \
+            -H "Authorization: Bearer $$PAT" -H "Content-Type: application/json" -d "$$NATIVE_CONFIG")
+          case "$$RESULT" in
+            *'"details"'*'"changeDate"'*) echo "  reused (clientId $$NATIVE_CLIENT_ID, config updated)" ;;
+            *COMMAND-1m88i*) echo "  reused (clientId $$NATIVE_CLIENT_ID)" ;;
+            *) echo "could not update the native app config: $$RESULT" >&2; exit 1 ;;
+          esac
         else
-          NATIVE_CLIENT_ID=$$(api_call POST "/projects/$$PROJECT_ID/apps/oidc" '{
-            "name": "Musify Native",
-            "redirectUris": ["http://127.0.0.1:17453/callback", "musify://callback"],
-            "postLogoutRedirectUris": ["http://127.0.0.1:17453/logout", "musify://logout"],
-            "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
-            "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
-            "appType": "OIDC_APP_TYPE_NATIVE",
-            "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
-            "version": "OIDC_VERSION_1_0",
-            "devMode": true,
-            "accessTokenType": "OIDC_TOKEN_TYPE_JWT",
-            "accessTokenRoleAssertion": true,
-            "idTokenRoleAssertion": true,
-            "idTokenUserinfoAssertion": true
-          }' | jq -r '.clientId')
+          NATIVE_CLIENT_ID=$$(api_call POST "/projects/$$PROJECT_ID/apps/oidc" "$$(echo "$$NATIVE_CONFIG" | jq --arg name "$$NATIVE_APP_NAME" '. + {name: $$name, version: "OIDC_VERSION_1_0"}')" | jq -r '.clientId')
           echo "  created (clientId $$NATIVE_CLIENT_ID)"
         fi
 

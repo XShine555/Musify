@@ -9,5 +9,5 @@ actual object AppConfig {
 
     // Matches the AuthCallbackActivity intent-filter in AndroidManifest.xml and
     // the redirect URI registered for the "Musify Native" app in Zitadel.
-    actual val nativeRedirectUri: String = "musify://callback"
+    actual val nativeRedirectUri: String = "cat.ikerdemo.musify:/callback"
 }

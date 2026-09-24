@@ -23,14 +23,15 @@ private class PresentationContextProvider : NSObject(), ASWebAuthenticationPrese
 /**
  * `ASWebAuthenticationSession` owns the whole round trip: it opens a system
  * browser sheet at [authorizeUrl] (Zitadel's hosted login, with its
- * "Regístrate" link) and intercepts the `musify://` redirect itself, no app
+ * "Regístrate" link) and intercepts the `cat.ikerdemo.musify:` redirect itself, no app
  * delegate / `onOpenURL` wiring required.
  */
 @OptIn(ExperimentalForeignApi::class)
 actual class BrowserAuthLauncher actual constructor() {
     actual suspend fun launch(authorizeUrl: String, redirectUri: String): String =
         suspendCancellableCoroutine { continuation ->
-            val scheme = redirectUri.substringBefore("://")
+            // `scheme:/path` (RFC 8252 private-use scheme): everything before the first ':'.
+            val scheme = redirectUri.substringBefore(":")
             val contextProvider = PresentationContextProvider()
 
             val session = ASWebAuthenticationSession(

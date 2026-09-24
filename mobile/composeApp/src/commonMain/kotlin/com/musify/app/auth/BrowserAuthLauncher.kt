@@ -12,7 +12,7 @@ package com.musify.app.auth
  *  - Desktop: a one-shot loopback HTTP server on the fixed port registered in
  *    Zitadel (RFC 8252 §7.3), opened via the OS default browser.
  *  - Android: Chrome Custom Tabs; the redirect is caught by
- *    [AuthCallbackActivity] via the `musify://callback` intent filter.
+ *    [AuthCallbackActivity] via the `cat.ikerdemo.musify:/callback` intent filter.
  *  - iOS: `ASWebAuthenticationSession`, which owns the whole round trip.
  */
 expect class BrowserAuthLauncher() {
