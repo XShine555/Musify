@@ -10,7 +10,6 @@ export const ALBUM_EARLIEST_YEAR = 1877;
 export const LIBRARY_PICKER_PAGE_SIZE = 50;
 export const EXPLORE_ALBUMS_PAGE_SIZE = 10;
 export const EXPLORE_ALBUMS_LIMIT = 18;
-export const HOME_LATEST_PAGE_SIZE = 10;
 export const HOME_MIXES_LIMIT = 6;
 export const HOME_SHELF_LIMIT = 6;
 export const HOME_CONTINUE_LIMIT = 10;

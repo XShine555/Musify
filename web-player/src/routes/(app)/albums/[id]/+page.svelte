@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -28,15 +28,15 @@
 	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	function playAll() {
-		playAllOrToggle(toQueueItems(tracks));
+		playAllOrToggle(tracks);
 	}
 
 	function playTrackFrom(index: number) {
-		player.playOrToggle(toQueueItems(tracks), index);
+		player.playOrToggle(tracks, index);
 	}
 
 	function playLibraryFrom(index: number) {
-		player.playOrToggle(toQueueItems(library), index);
+		player.playOrToggle(library, index);
 	}
 </script>
 
@@ -55,10 +55,7 @@
 		eyebrow="Álbum"
 		title={album.title}
 		description={album.description ?? undefined}
-		meta={albumMeta(
-			album.releaseYear === null ? undefined : Number(album.releaseYear),
-			tracks.length
-		)}
+		meta={albumMeta(album.releaseYear, tracks.length)}
 	>
 		{#snippet cover()}
 			<Artwork
@@ -118,7 +115,7 @@
 		action="?/edit"
 		initialTitle={album.title}
 		initialDescription={album.description ?? ''}
-		initialReleaseYear={album.releaseYear === null ? undefined : Number(album.releaseYear)}
+		initialReleaseYear={album.releaseYear ?? undefined}
 		coverFallbackUrl="/api/albums/{album.id}/cover?size=medium"
 		formMessage={form?.message}
 		submitLabel="Guardar"

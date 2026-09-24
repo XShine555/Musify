@@ -40,10 +40,7 @@
 				<MediaCard
 					href="/albums/{album.id}"
 					title={album.title}
-					subtitle={albumMeta(
-						album.releaseYear === null ? undefined : Number(album.releaseYear),
-						Number(album.trackCount)
-					)}
+					subtitle={albumMeta(album.releaseYear, album.trackCount)}
 					trackIds={album.coverTrackIds}
 					src="/api/albums/{album.id}/cover?size=large"
 					index={i}

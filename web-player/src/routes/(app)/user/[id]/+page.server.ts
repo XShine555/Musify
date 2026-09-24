@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
+import { toPlaylistSummary } from '$lib/server/mappers';
 import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
 
 const PROFILE_PLAYLISTS_PAGE_SIZE = 50;
@@ -32,14 +33,19 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		)
 	);
 
-	const playlists = playlistItems.map((playlist, i) => ({
-		...playlist,
-		trackCount: tracksByPlaylist[i]
-	}));
+	const playlists = playlistItems.map((playlist, i) =>
+		toPlaylistSummary(playlist, tracksByPlaylist[i])
+	);
 
 	const isOwnProfile = viewer !== null && viewer.sub === params.id;
 
-	return { profile, playlists, isOwnProfile, isAnonymous: viewer === null };
+	return {
+		profile,
+		followersCount: Number(profile.followersCount),
+		playlists,
+		isOwnProfile,
+		isAnonymous: viewer === null
+	};
 };
 
 export const actions: Actions = {

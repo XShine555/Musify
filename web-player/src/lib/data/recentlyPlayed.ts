@@ -1,21 +1,14 @@
-import { player, toQueueItems, type ApiTrackLike, type QueueItem } from '$lib/player/player.svelte';
+import { player } from '$lib/player/player.svelte';
+import type { Track } from '$lib/types';
 
-export function mergeRecentlyPlayed(history: ApiTrackLike[], limit: number): QueueItem[] {
+export function mergeRecentlyPlayed(history: Track[], limit: number): Track[] {
 	const seen = new Set<string>();
-	const merged: QueueItem[] = [];
+	const merged: Track[] = [];
 
-	for (const t of player.recentlyPlayed) {
-		const id = String(t.id);
-		if (seen.has(id)) continue;
-		seen.add(id);
-		merged.push({ ...t, id });
-	}
-
-	for (const item of toQueueItems(history)) {
-		const id = String(item.id);
-		if (seen.has(id)) continue;
-		seen.add(id);
-		merged.push({ ...item, id });
+	for (const track of [...player.recentlyPlayed, ...history]) {
+		if (seen.has(track.id)) continue;
+		seen.add(track.id);
+		merged.push(track);
 	}
 
 	return merged.slice(0, limit);

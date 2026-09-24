@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { createApiClient, unwrapOrError } from '$lib/server/api';
+import { toPage, toTrack } from '$lib/server/mappers';
 import { ALBUM_TRACKS_PAGE_SIZE } from '$lib/config';
 
 export const GET: RequestHandler = async ({ params, locals, fetch }) => {
@@ -12,5 +13,5 @@ export const GET: RequestHandler = async ({ params, locals, fetch }) => {
 		}
 	});
 
-	return json(unwrapOrError(result, 'No se pudo cargar el álbum.'));
+	return json(toPage(unwrapOrError(result, 'No se pudo cargar el álbum.'), toTrack));
 };

@@ -2,7 +2,7 @@
 	import Upload from '@lucide/svelte/icons/upload';
 	import X from '@lucide/svelte/icons/x';
 	import Music from '@lucide/svelte/icons/music';
-	import { player, toQueueItems } from '$lib/player/player.svelte';
+	import { player } from '$lib/player/player.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
@@ -14,13 +14,12 @@
 	let { data } = $props();
 
 	const items = $derived(data.tracks.items);
-	const total = $derived(Number(data.tracks.totalItemCount));
-	const listTracks = $derived(items.map((track) => ({ ...track, uploadedAt: track.createdAt })));
+	const total = $derived(data.tracks.totalItemCount);
 
 	let deleting = $state<(typeof items)[number] | null>(null);
 
 	function togglePlay(index: number) {
-		player.playOrToggle(toQueueItems(items), index);
+		player.playOrToggle(items, index);
 	}
 </script>
 
@@ -46,7 +45,7 @@
 
 	{#if items.length > 0}
 		<TrackList
-			tracks={listTracks}
+			tracks={items}
 			columns={['uploaded', 'plays']}
 			onPlay={togglePlay}
 			rowAction={{

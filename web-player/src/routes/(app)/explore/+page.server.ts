@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, unwrapOrError } from '$lib/server/api';
+import { toAlbum, toPage, toTrack } from '$lib/server/mappers';
 import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/playlistActions';
 import {
 	EXPLORE_ALBUMS_PAGE_SIZE,
@@ -48,14 +49,16 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		usersPromise
 	]);
 
-	const tracks = unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.');
+	const tracks = toPage(unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.'), (item) =>
+		toTrack(item.track)
+	);
 
 	return {
 		query,
 		genre,
 		genres,
 		tracks,
-		albums: (albumsRes?.data?.items ?? []).map((item) => item.album),
+		albums: (albumsRes?.data?.items ?? []).map((item) => toAlbum(item.album)),
 		albumsTotal: Number(albumsRes?.data?.totalItemCount ?? 0),
 		users: usersRes?.data?.items ?? [],
 		usersTotal: Number(usersRes?.data?.totalItemCount ?? 0),

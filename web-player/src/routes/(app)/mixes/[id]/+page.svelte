@@ -1,12 +1,6 @@
 <script lang="ts">
 	import Shuffle from '@lucide/svelte/icons/shuffle';
-	import {
-		player,
-		isQueueCurrent,
-		playAllOrToggle,
-		playShuffled,
-		toQueueItem
-	} from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
 	import { fmtTime, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
@@ -18,33 +12,19 @@
 	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import { mixItemTrack } from '$lib/data/mixes';
 
 	let { data, form } = $props();
 
 	const mix = $derived(data.mix);
-	const items = $derived(mix.items);
-	const tracks = $derived(items.map(mixItemTrack));
-	const queue = $derived(tracks.map(toQueueItem));
-	const listTracks = $derived(
-		items.map((item) => ({
-			id: item.trackId,
-			title: item.title,
-			artist: item.artist,
-			duration: item.durationSeconds,
-			listensCount: item.listensCount
-		}))
-	);
+	const tracks = $derived(mix.tracks);
 
-	const totalSeconds = $derived(
-		items.reduce((total, item) => total + Number(item.durationSeconds), 0)
-	);
-	const isCurrentQueue = $derived(isQueueCurrent(queue));
+	const totalSeconds = $derived(tracks.reduce((total, track) => total + track.duration, 0));
+	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	const trackMenu = createTrackMenu();
 
 	function playFrom(index: number) {
-		player.playOrToggle(queue, index);
+		player.playOrToggle(tracks, index);
 	}
 </script>
 
@@ -60,18 +40,18 @@
 		eyebrow="Mezcla"
 		title={mix.title}
 		description={mix.subtitle ?? undefined}
-		meta="{plural(items.length, 'canción', 'canciones')} · {fmtTime(totalSeconds)}"
+		meta="{plural(tracks.length, 'canción', 'canciones')} · {fmtTime(totalSeconds)}"
 	>
 		{#snippet cover()}
 			<Artwork
-				trackIds={items.map((item) => item.trackId)}
+				trackIds={tracks.map((track) => track.id)}
 				size="hero"
 				alt={mix.title}
 				class="shrink-0"
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={() => playAllOrToggle(queue)} disabled={queue.length === 0}>
+			<Button size="sm" onclick={() => playAllOrToggle(tracks)} disabled={tracks.length === 0}>
 				{#if isCurrentQueue && player.playing}
 					Pausar
 				{:else}
@@ -81,8 +61,8 @@
 			<Button
 				variant="secondary"
 				size="sm"
-				onclick={() => playShuffled(queue)}
-				disabled={queue.length === 0}
+				onclick={() => playShuffled(tracks)}
+				disabled={tracks.length === 0}
 			>
 				<Shuffle class="size-4" />
 				Aleatorio
@@ -95,7 +75,7 @@
 	{/if}
 
 	<TrackList
-		tracks={listTracks}
+		{tracks}
 		columns={['plays']}
 		onPlay={playFrom}
 		oncontextmenu={(e, _track, i) => trackMenu.open(e, tracks[i])}
@@ -113,7 +93,7 @@
 		]}
 		playlistAction={{
 			action: '?/addTrack',
-			fields: { trackId: String(trackMenu.state.track.id) },
+			fields: { trackId: trackMenu.state.track.id },
 			label: 'Añadir a una playlist'
 		}}
 		playlists={data.userPlaylists}

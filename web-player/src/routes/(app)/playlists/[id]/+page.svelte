@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import X from '@lucide/svelte/icons/x';
-	import { player, toQueueItems, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle } from '$lib/player/player.svelte';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import Modal from '$lib/components/ui/overlay/Modal.svelte';
@@ -19,7 +19,6 @@
 	const playlist = $derived(data.playlist);
 	const tracks = $derived(data.tracks);
 	const isOwner = $derived(data.isOwner);
-	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.createdAt })));
 
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
@@ -27,11 +26,11 @@
 	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	function playAll() {
-		playAllOrToggle(toQueueItems(tracks));
+		playAllOrToggle(tracks);
 	}
 
 	function playFrom(index: number) {
-		player.playOrToggle(toQueueItems(tracks), index);
+		player.playOrToggle(tracks, index);
 	}
 </script>
 
@@ -85,7 +84,7 @@
 
 	{#if tracks.length > 0}
 		<TrackList
-			tracks={listTracks}
+			{tracks}
 			columns={['added', 'plays']}
 			onPlay={playFrom}
 			rowAction={isOwner

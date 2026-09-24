@@ -3,20 +3,10 @@
 	import History from '@lucide/svelte/icons/history';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import ListMusic from '@lucide/svelte/icons/list-music';
-	import {
-		player,
-		isQueueCurrent,
-		playAllOrToggle,
-		playShuffled,
-		toQueueItem,
-		toQueueItems,
-		trackFromQueueItem,
-		type ApiTrackLike,
-		type QueueItem
-	} from '$lib/player/player.svelte';
+	import { player, isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/player.svelte';
+	import type { Track } from '$lib/types';
 	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
-	import { mixItemTrack } from '$lib/data/mixes';
-	import { fetchPlaylistQueueItems } from '$lib/data/albums';
+	import { fetchPlaylistTracks } from '$lib/data/albums';
 	import { fmtTime, fmtDurationLong, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
@@ -43,32 +33,25 @@
 	function playContinue(index: number) {
 		player.playOrToggle(continueItems, index);
 	}
-	function playSpotlightTrack(items: QueueItem[], index: number) {
+	function playSpotlightTrack(items: Track[], index: number) {
 		player.playOrToggle(items, index);
 	}
-	async function playSpotlight(previewItems: QueueItem[]) {
+	async function playSpotlight(previewItems: Track[]) {
 		if (!spotlight) return;
 		if (isQueueCurrent(previewItems)) {
 			player.toggle();
 			return;
 		}
-		playAllOrToggle(await fetchPlaylistQueueItems(spotlight.id));
+		playAllOrToggle(await fetchPlaylistTracks(spotlight.id));
 	}
 	async function shuffleSpotlight() {
 		if (!spotlight) return;
-		playShuffled(await fetchPlaylistQueueItems(spotlight.id));
-	}
-
-	function openContextMenu(event: MouseEvent, track: ApiTrackLike) {
-		trackMenu.open(event, track);
+		playShuffled(await fetchPlaylistTracks(spotlight.id));
 	}
 
 	function playMix(mix: (typeof mixes)[number], event: MouseEvent) {
 		event.preventDefault();
-		player.playQueue(
-			mix.items.map((item) => toQueueItem(mixItemTrack(item))),
-			0
-		);
+		player.playQueue(mix.tracks, 0);
 	}
 </script>
 
@@ -105,8 +88,7 @@
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
 					{#if spotlight}
-						{#await data.spotlightTracks then { items }}
-							{@const previewItems = toQueueItems(items)}
+						{#await data.spotlightTracks then { items: previewItems }}
 							<Button variant="primary" onclick={() => playSpotlight(previewItems)}>
 								{isQueueCurrent(previewItems) && player.playing ? 'Pausar' : 'Reanudar'}
 								{spotlight.name}
@@ -121,7 +103,7 @@
 				{@const statsList = [
 					{ value: stats.tracksThisWeek, label: 'Canciones nuevas escuchadas esta semana' },
 					{
-						value: fmtDurationLong(Number(stats.secondsThisWeek)),
+						value: fmtDurationLong(stats.secondsThisWeek),
 						label: 'Tiempo de escucha esta semana'
 					},
 					{ value: stats.streakDays, label: 'Días consecutivos escuchando' }
@@ -144,10 +126,10 @@
 			{#if continueItems.length > 0}
 				<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
 					{#each continueItems as item, i (item.id)}
-						{@const isCurrent = player.current.id === item.id}
+						{@const isCurrent = player.currentId === item.id}
 						<ListRow
 							onclick={() => playContinue(i)}
-							oncontextmenu={(e) => openContextMenu(e, trackFromQueueItem(item))}
+							oncontextmenu={(e) => trackMenu.open(e, item)}
 							active={isCurrent}
 							size="lg"
 							variant="card"
@@ -168,8 +150,7 @@
 
 		{#if spotlight}
 			<section>
-				{#await data.spotlightTracks then { items, totalCount }}
-					{@const previewItems = toQueueItems(items)}
+				{#await data.spotlightTracks then { items: previewItems, totalCount }}
 					{@const visibilityLabel = spotlight.visibility === 'Public' ? 'Pública' : 'Privada'}
 					{@const meta =
 						totalCount === 0
@@ -211,15 +192,15 @@
 							</div>
 						</div>
 						<div class="flex flex-col gap-2 p-5.5 sm:p-6">
-							{#each items as track, i (track.id)}
+							{#each previewItems as track, i (track.id)}
 								<ListRow
 									onclick={() => playSpotlightTrack(previewItems, i)}
-									active={player.current.id === track.id}
+									active={player.currentId === track.id}
 									size="sm"
 									title={track.title}
 									subtitle={track.artist}
 									subtitleHref={track.ownerUserId}
-									explicit={track.isExplicit}
+									explicit={track.explicit}
 								>
 									{#snippet leading()}
 										<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"
@@ -228,7 +209,7 @@
 									{/snippet}
 									{#snippet trailing()}
 										<span class="shrink-0 text-xs text-fg-2 tabular-nums"
-											>{fmtTime(Number(track.duration))}</span
+											>{fmtTime(track.duration)}</span
 										>
 									{/snippet}
 								</ListRow>
@@ -250,7 +231,7 @@
 							href="/mixes/{mix.id}"
 							title={mix.title}
 							subtitle={mix.subtitle}
-							trackIds={mix.items.map((item) => item.trackId)}
+							trackIds={mix.tracks.map((track) => track.id)}
 							onPlay={(event) => playMix(mix, event)}
 							index={i}
 						/>
@@ -314,7 +295,7 @@
 		]}
 		playlistAction={{
 			action: '?/addTrack',
-			fields: { trackId: String(trackMenu.state.track.id) },
+			fields: { trackId: trackMenu.state.track.id },
 			label: 'Añadir a una playlist'
 		}}
 		playlists={data.userPlaylists}

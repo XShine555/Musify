@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { createApiClient, unwrapOrError } from '$lib/server/api';
+import { toPage, toTrack } from '$lib/server/mappers';
 import { EXPLORE_PAGE_SIZE, MAX_PAGE_SIZE } from '$lib/config';
 
 export const GET: RequestHandler = async ({ url, locals, fetch }) => {
@@ -17,5 +18,9 @@ export const GET: RequestHandler = async ({ url, locals, fetch }) => {
 		params: { query: { name, genre, pageNumber, pageSize } }
 	});
 
-	return json(unwrapOrError(result, 'No se pudieron cargar las canciones.'));
+	return json(
+		toPage(unwrapOrError(result, 'No se pudieron cargar las canciones.'), (item) =>
+			toTrack(item.track)
+		)
+	);
 };

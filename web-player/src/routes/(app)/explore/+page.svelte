@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
-	import { player, toQueueItem } from '$lib/player/player.svelte';
-	import { fetchAlbumQueueItems } from '$lib/data/albums';
+	import { player } from '$lib/player/player.svelte';
+	import { fetchAlbumTracks } from '$lib/data/albums';
+	import type { Track } from '$lib/types';
 	import { fmtTime, fmtPlays, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
@@ -49,9 +50,7 @@
 	let albumMenu = $state<AlbumMenuState | null>(null);
 	let sfilter = $state<SearchFilter>('Todo');
 
-	type LocalTrack = (typeof data.tracks.items)[number]['track'];
-
-	let localItems = $state<LocalTrack[]>([]);
+	let localItems = $state<Track[]>([]);
 	let localPage = $state(1);
 	let hasMore = $state(false);
 	let loadingMore = $state(false);
@@ -60,19 +59,12 @@
 		trackMenu.close();
 		albumMenu = null;
 		sfilter = data.genre ? 'Canciones' : 'Todo';
-		localItems = data.tracks.items.map((item) => item.track);
-		localPage = Number(data.tracks.pageNumber);
+		localItems = data.tracks.items;
+		localPage = data.tracks.pageNumber;
 		hasMore = data.tracks.hasNextPage;
 	});
 
-	const songRows = $derived(
-		localItems.map((track) => ({
-			track,
-			seconds: Number(track.duration)
-		}))
-	);
-
-	const items = $derived(songRows.map((row) => row.track));
+	const items = $derived(localItems);
 
 	const tiles = $derived(genreTiles(data.genres));
 	const activeGenre = $derived(data.genre ? genreInfo(data.genre) : null);
@@ -92,7 +84,7 @@
 
 	const counts = $derived(
 		searchCounts({
-			tracks: Number(data.tracks.totalItemCount),
+			tracks: data.tracks.totalItemCount,
 			albums: data.albumsTotal,
 			playlists: playlistMatches.length,
 			users: data.usersTotal
@@ -106,7 +98,7 @@
 	type TopResult = NonNullable<
 		ReturnType<
 			typeof findTopResult<
-				LocalTrack,
+				Track,
 				(typeof albums)[number],
 				(typeof playlistMatches)[number],
 				(typeof users)[number]
@@ -128,7 +120,7 @@
 
 	function playTopResult() {
 		if (topResult?.kind !== 'track') return;
-		player.playOrToggle([toQueueItem(topResult.track)], 0);
+		player.playOrToggle([topResult.track], 0);
 	}
 
 	const topResultHref = $derived.by(() => {
@@ -139,11 +131,7 @@
 	});
 
 	function togglePlay(index: number) {
-		player.playOrToggle(items.map(toQueueItem), index);
-	}
-
-	function openContextMenu(event: MouseEvent, track: LocalTrack) {
-		trackMenu.open(event, track);
+		player.playOrToggle(items, index);
 	}
 
 	function openAlbumMenu(event: MouseEvent, albumId: string) {
@@ -154,14 +142,14 @@
 		if (!albumMenu) return;
 		const { albumId } = albumMenu;
 		albumMenu = null;
-		player.playNext(await fetchAlbumQueueItems(albumId));
+		player.playNext(await fetchAlbumTracks(albumId));
 	}
 
 	async function albumAddToQueue() {
 		if (!albumMenu) return;
 		const { albumId } = albumMenu;
 		albumMenu = null;
-		player.appendToQueue(await fetchAlbumQueueItems(albumId));
+		player.appendToQueue(await fetchAlbumTracks(albumId));
 	}
 
 	async function loadMore() {
@@ -177,12 +165,8 @@
 			const res = await fetch(`/api/tracks?${params}`);
 			if (!res.ok) throw new Error(String(res.status));
 			const next = (await res.json()) as typeof data.tracks;
-			localItems = appendUnique(
-				localItems,
-				next.items.map((item) => item.track),
-				(track) => track.id
-			);
-			localPage = Number(next.pageNumber);
+			localItems = appendUnique(localItems, next.items, (track) => track.id);
+			localPage = next.pageNumber;
 			hasMore = next.hasNextPage;
 		} catch {
 			hasMore = false;
@@ -340,30 +324,30 @@
 		<div class="mt-9 flex flex-col gap-9">
 			{#if showGroup(sfilter, 'Canciones')}
 				<div>
-					{#if songRows.length > 0}
+					{#if items.length > 0}
 						<SectionHeading title="Canciones" count={counts.Canciones} />
 						<ul class="flex flex-col gap-1">
-							{#each capped(sfilter, songRows) as { track, seconds }, i (track.id)}
+							{#each capped(sfilter, items) as track, i (track.id)}
 								<li>
 									<ListRow
 										title={track.title}
 										subtitle={track.artist}
 										subtitleHref={track.ownerUserId}
-										explicit={track.isExplicit}
-										active={player.current.id === track.id}
+										explicit={track.explicit}
+										active={player.currentId === track.id}
 										size="lg"
 										trackId={track.id}
 										onclick={() => togglePlay(i)}
-										oncontextmenu={(e) => openContextMenu(e, track)}
+										oncontextmenu={(e) => trackMenu.open(e, track)}
 									>
 										{#snippet overlay()}
-											{#if player.current.id === track.id}
+											{#if player.currentId === track.id}
 												<EqBars overlay paused={!player.playing} />
 											{/if}
 										{/snippet}
 										{#snippet trailing()}
 											<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
-												{fmtTime(seconds)} · {fmtPlays(track.listensCount)}
+												{fmtTime(track.duration)} · {fmtPlays(track.listensCount)}
 											</span>
 										{/snippet}
 									</ListRow>
@@ -400,7 +384,7 @@
 								>
 									{#snippet trailing()}
 										<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
-											{plural(Number(album.trackCount), 'canción', 'canciones')}
+											{plural(album.trackCount, 'canción', 'canciones')}
 										</span>
 									{/snippet}
 								</ListRow>
@@ -459,7 +443,7 @@
 		]}
 		playlistAction={{
 			action: '?/addTrack',
-			fields: { trackId: String(trackMenu.state.track.id) },
+			fields: { trackId: trackMenu.state.track.id },
 			label: 'Añadir a una playlist'
 		}}
 		playlists={data.userPlaylists}

@@ -53,7 +53,7 @@
 			</IconButton>
 		</div>
 
-		{#if player.current.id}
+		{#if player.current}
 			<p class="mb-3 text-eyebrow text-fg-2">Reproduciendo</p>
 			<div class="mb-6 surface-active rounded-control p-2.5">
 				<MediaIdentity

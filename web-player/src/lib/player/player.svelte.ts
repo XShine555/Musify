@@ -5,77 +5,20 @@ import { shuffle } from '$lib/data/collections';
 import { dialog } from '$lib/state/dialog.svelte';
 import { ListenTracker } from './listenTracker';
 import { readStorage, writeStorage } from '$lib/utils/storage';
+import type { Track } from '$lib/types';
 import { append, insertNext, isLastIndex, move, nextIndex, previousIndex } from './queue';
 
-export interface PlayerTrack {
-	id: string | number;
-	title: string;
-	artist: string;
-	duration: number;
-	explicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
+export function isQueueCurrent(items: { id: string }[]): boolean {
+	return items.some((item) => item.id === player.currentId);
 }
 
-export interface QueueItem {
-	id: string | number;
-	title: string;
-	artist?: string;
-	duration?: number | string;
-	explicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
-}
-
-export interface ApiTrackLike {
-	id: string | number;
-	title: string;
-	artist?: string | null;
-	duration?: number | string;
-	isExplicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
-}
-
-export function toQueueItems(tracks: ApiTrackLike[]): QueueItem[] {
-	return tracks.map((track) => ({
-		id: track.id,
-		title: track.title,
-		artist: track.artist ?? undefined,
-		duration: track.duration,
-		explicit: track.isExplicit,
-		ownerUserId: track.ownerUserId,
-		listensCount: track.listensCount
-	}));
-}
-
-export function toQueueItem(track: ApiTrackLike): QueueItem {
-	return toQueueItems([track])[0];
-}
-
-export function trackFromQueueItem(item: QueueItem): ApiTrackLike {
-	return {
-		id: item.id,
-		title: item.title,
-		artist: item.artist,
-		duration: item.duration,
-		isExplicit: item.explicit,
-		ownerUserId: item.ownerUserId,
-		listensCount: item.listensCount
-	};
-}
-
-export function isQueueCurrent(items: { id: string | number }[]): boolean {
-	return items.some((item) => item.id === player.current.id);
-}
-
-export function playAllOrToggle(items: QueueItem[]) {
+export function playAllOrToggle(items: Track[]) {
 	if (items.length === 0) return;
 	if (isQueueCurrent(items)) player.toggle();
 	else player.playQueue(items, 0);
 }
 
-export function playShuffled(items: QueueItem[]) {
+export function playShuffled(items: Track[]) {
 	if (items.length === 0) return;
 	player.playQueue(shuffle(items), 0);
 }
@@ -105,34 +48,15 @@ function loadVolume(): number {
 	return Number.isFinite(parsed) ? clampVolume(parsed) : DEFAULT_VOLUME;
 }
 
-const EMPTY: PlayerTrack = {
-	id: '',
-	title: '',
-	artist: '',
-	duration: 0
-};
-
-function toTrack(item: QueueItem): PlayerTrack {
-	return {
-		id: item.id,
-		title: item.title,
-		artist: item.artist ?? '',
-		duration: Number(item.duration) || 0,
-		explicit: item.explicit,
-		ownerUserId: item.ownerUserId,
-		listensCount: item.listensCount
-	};
-}
-
 class PlayerState {
-	tracks = $state<PlayerTrack[]>([]);
-	currentId = $state<string | number | null>(null);
+	tracks = $state<Track[]>([]);
+	currentId = $state<string | null>(null);
 	playing = $state(false);
 	progress = $state(0);
 	volume = $state(browser ? loadVolume() : DEFAULT_VOLUME);
 	muted = $state(browser ? readStorage(MUTED_KEY) === 'true' : false);
 	loading = $state(false);
-	recentlyPlayed = $state<PlayerTrack[]>([]);
+	recentlyPlayed = $state<Track[]>([]);
 	shuffle = $state(false);
 	repeat = $state(false);
 
@@ -144,10 +68,11 @@ class PlayerState {
 	#rafId: number | null = null;
 	#listen = new ListenTracker();
 
-	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? EMPTY);
+	current = $derived(this.tracks.find((t) => t.id === this.currentId) ?? null);
 	accent = $derived(this.accentColor ?? DEFAULT_ACCENT);
+	duration = $derived(this.current?.duration ?? 0);
 	progressPercent = $derived(
-		this.current.duration > 0 ? Math.min(100, (this.progress / this.current.duration) * 100) : 0
+		this.duration > 0 ? Math.min(100, (this.progress / this.duration) * 100) : 0
 	);
 
 	#audioEl(): HTMLAudioElement | null {
@@ -228,15 +153,11 @@ class PlayerState {
 		navigator.mediaSession.playbackState = this.playing ? 'playing' : 'paused';
 	}
 
-	#syncMediaSessionMetadata(track: PlayerTrack) {
+	#syncMediaSessionMetadata(track: Track) {
 		if (!browser || !('mediaSession' in navigator)) return;
-		if (!track.id) {
-			navigator.mediaSession.metadata = null;
-			return;
-		}
 		navigator.mediaSession.metadata = new MediaMetadata({
 			title: track.title,
-			artist: track.artist,
+			artist: track.artist ?? '',
 			artwork: [{ src: `/api/tracks/${track.id}/cover?size=small`, sizes: '256x256' }]
 		});
 	}
@@ -278,17 +199,15 @@ class PlayerState {
 		return this.tracks.findIndex((t) => t.id === this.currentId);
 	}
 
-	#pushRecent(track: PlayerTrack) {
-		if (!track.id) return;
+	#pushRecent(track: Track) {
 		this.recentlyPlayed = [track, ...this.recentlyPlayed.filter((t) => t.id !== track.id)].slice(
 			0,
 			RECENT_LIMIT
 		);
 	}
 
-	async #applyAccent(id: string | number) {
-		const key = String(id);
-		const cached = this.#accentCache.get(key);
+	async #applyAccent(id: string) {
+		const cached = this.#accentCache.get(id);
 		if (cached) {
 			this.accentColor = cached;
 			return;
@@ -296,7 +215,7 @@ class PlayerState {
 		const result = await extractAccent(`/api/tracks/${id}/cover?size=small`);
 		if (this.currentId !== id) return;
 		if (result) {
-			this.#accentCache.set(key, result);
+			this.#accentCache.set(id, result);
 			this.accentColor = result;
 		} else {
 			this.accentColor = null;
@@ -322,7 +241,7 @@ class PlayerState {
 			this.#listen.begin(listenId);
 			await audio.play();
 			this.loading = false;
-			this.#pushRecent(this.current);
+			if (track) this.#pushRecent(track);
 		} catch (exception) {
 			console.error('playback failed', exception);
 			if (token !== this.#loadToken) return;
@@ -375,60 +294,44 @@ class PlayerState {
 		return `${url}${sep}t=${encodeURIComponent(ticket)}`;
 	}
 
-	hydrate(item: ApiTrackLike) {
+	hydrate(track: Track) {
 		if (this.currentId !== null || this.tracks.length > 0) return;
-		const track = toTrack(toQueueItem(item));
 		this.tracks = [track];
 		this.currentId = track.id;
 		this.#applyAccent(track.id);
 		this.#syncMediaSessionMetadata(track);
 	}
 
-	playQueue(list: QueueItem[], startIndex = 0) {
+	playQueue(list: Track[], startIndex = 0) {
 		if (list.length === 0) return;
-		this.tracks = list.map(toTrack);
+		this.tracks = [...list];
 		const start = this.tracks[startIndex] ?? this.tracks[0];
 		this.currentId = start.id;
 		this.#loadCurrent();
 	}
 
-	playOrToggle(list: QueueItem[], index: number) {
+	playOrToggle(list: Track[], index: number) {
 		if (index < 0 || index >= list.length) return;
 		if (this.currentId === list[index].id) this.toggle();
 		else this.playQueue(list, index);
 	}
 
-	playNext(items: QueueItem[]) {
+	playNext(items: Track[]) {
 		if (items.length === 0) return;
 		if (this.currentId === null) {
 			this.playQueue(items, 0);
 			return;
 		}
-		this.tracks = insertNext(this.tracks, this.#index(), items.map(toTrack));
+		this.tracks = insertNext(this.tracks, this.#index(), items);
 	}
 
-	appendToQueue(items: QueueItem[]) {
+	appendToQueue(items: Track[]) {
 		if (items.length === 0) return;
 		if (this.currentId === null) {
 			this.playQueue(items, 0);
 			return;
 		}
-		this.tracks = append(this.tracks, items.map(toTrack));
-	}
-
-	playTrack(id: string | number) {
-		if (this.currentId === id) {
-			this.toggle();
-			return;
-		}
-		const known =
-			this.tracks.find((t) => t.id === id) ?? this.recentlyPlayed.find((t) => t.id === id);
-		if (known && !this.tracks.some((t) => t.id === id)) {
-			this.tracks = [known];
-		}
-		if (!this.tracks.some((t) => t.id === id)) return;
-		this.currentId = id;
-		this.#loadCurrent();
+		this.tracks = append(this.tracks, items);
 	}
 
 	toggle() {
@@ -485,7 +388,7 @@ class PlayerState {
 	}
 
 	clearUpcoming() {
-		this.tracks = this.currentId === null ? [] : [this.current];
+		this.tracks = this.current ? [this.current] : [];
 	}
 
 	previous() {
@@ -503,7 +406,7 @@ class PlayerState {
 	seekFraction(fraction: number) {
 		const audio = this.#audioEl();
 		const clamped = Math.min(1, Math.max(0, fraction));
-		const target = clamped * this.current.duration;
+		const target = clamped * this.duration;
 		this.progress = target;
 		if (audio && Number.isFinite(audio.duration)) audio.currentTime = target;
 	}

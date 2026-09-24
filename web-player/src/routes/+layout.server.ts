@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { getAllowAnonymousListening } from '$lib/server/playbackConfig';
 import { createApiClient } from '$lib/server/api';
+import { toLikedTrack, toPlaylist, toTrack } from '$lib/server/mappers';
 import { authConfig } from '$lib/server/config';
 import { LIKED_TRACKS_PAGE_SIZE, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
@@ -20,7 +21,7 @@ async function fetchUserPlaylists(
 				query: { pageNumber: 1, pageSize: PLAYLIST_PICKER_PAGE_SIZE }
 			}
 		});
-		return { items: data?.items ?? [], total: Number(data?.totalItemCount ?? 0) };
+		return { items: (data?.items ?? []).map(toPlaylist), total: Number(data?.totalItemCount ?? 0) };
 	} catch {
 		return { items: [], total: 0 };
 	}
@@ -32,7 +33,7 @@ async function fetchLikedTracks(fetchFn: typeof fetch, accessToken: string | nul
 		const { data } = await api.GET('/likes', {
 			params: { query: { pageNumber: 1, pageSize: LIKED_TRACKS_PAGE_SIZE } }
 		});
-		return data?.items ?? [];
+		return (data?.items ?? []).map(toLikedTrack);
 	} catch {
 		return [];
 	}
@@ -48,7 +49,7 @@ async function fetchLastPlayedTrack(
 		const { data } = await api.GET('/users/{id}/last-listened-track', {
 			params: { path: { id: userId } }
 		});
-		return data ?? null;
+		return data ? toTrack(data) : null;
 	} catch {
 		return null;
 	}

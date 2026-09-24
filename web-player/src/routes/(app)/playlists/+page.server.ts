@@ -6,6 +6,7 @@ import {
 	requireUser,
 	unwrapOrError
 } from '$lib/server/api';
+import { toPlaylistSummary, toTrack } from '$lib/server/mappers';
 import { uploadPresignedImage } from '$lib/server/upload';
 
 const MAX_NAME = 100;
@@ -25,24 +26,21 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 				.GET('/playlists/{playlistId}/tracks', {
 					params: { path: { playlistId: playlist.id }, query: { pageNumber: 1, pageSize: 500 } }
 				})
-				.then((res) => res.data?.items ?? [])
+				.then((res) => (res.data?.items ?? []).map(toTrack))
 		)
 	);
 
-	const items = data.items.map((playlist, i) => {
-		const tracks = tracksByPlaylist[i];
-		const trackCount = tracks.length;
-		const durationSeconds = tracks.reduce((sum, t) => sum + Number(t.duration || 0), 0);
-		return { ...playlist, trackCount, durationSeconds };
-	});
+	const items = data.items.map((playlist, i) =>
+		toPlaylistSummary(playlist, tracksByPlaylist[i].length)
+	);
 
 	const totals = {
 		playlistCount: items.length,
-		trackCount: items.reduce((sum, p) => sum + p.trackCount, 0),
-		durationSeconds: items.reduce((sum, p) => sum + p.durationSeconds, 0)
+		trackCount: items.reduce((sum, playlist) => sum + playlist.trackCount, 0),
+		durationSeconds: tracksByPlaylist.flat().reduce((sum, track) => sum + track.duration, 0)
 	};
 
-	return { playlists: { ...data, items }, totals };
+	return { playlists: items, totals };
 };
 
 export const actions: Actions = {

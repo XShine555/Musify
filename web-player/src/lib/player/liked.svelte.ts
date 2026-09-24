@@ -1,24 +1,4 @@
-import { toQueueItems, type ApiTrackLike } from './player.svelte';
-
-export interface LikedTrack {
-	id: string;
-	title: string;
-	artist?: string;
-	explicit?: boolean;
-	ownerUserId?: string | number | null;
-	listensCount?: number | string;
-	duration?: number | string;
-	likedAt: number;
-}
-
-type LikeToggleInput = {
-	id: string | number;
-	title: string;
-	artist?: string;
-	explicit?: boolean;
-	ownerUserId?: string | number | null;
-	duration?: number | string;
-};
+import type { LikedTrack, Track } from '$lib/types';
 
 class LikedStore {
 	entries = $state<Record<string, LikedTrack>>({});
@@ -27,35 +7,23 @@ class LikedStore {
 	count = $derived(Object.keys(this.entries).length);
 	list = $derived(Object.values(this.entries).sort((a, b) => b.likedAt - a.likedAt));
 
-	hydrate(tracks: (ApiTrackLike & { createdAt: string; duration: number | string })[]) {
+	hydrate(tracks: LikedTrack[]) {
 		if (this.hydrated) return;
 		this.hydrated = true;
-
-		const items = toQueueItems(tracks);
-		const next: Record<string, LikedTrack> = {};
-		items.forEach((item, i) => {
-			const id = String(item.id);
-			next[id] = {
-				...item,
-				id,
-				duration: tracks[i].duration,
-				likedAt: new Date(tracks[i].createdAt).getTime()
-			};
-		});
-		this.entries = next;
+		this.entries = Object.fromEntries(tracks.map((track) => [track.id, track]));
 	}
 
-	isLiked(id: string | number): boolean {
-		return String(id) in this.entries;
+	isLiked(id: string): boolean {
+		return id in this.entries;
 	}
 
-	async toggle(track: LikeToggleInput) {
-		const id = String(track.id);
+	async toggle(track: Track) {
+		const id = track.id;
 		const before = this.entries;
 		const wasLiked = id in before;
 		const next = { ...before };
 		if (wasLiked) delete next[id];
-		else next[id] = { ...track, id, likedAt: Date.now() };
+		else next[id] = { ...track, likedAt: Date.now() };
 		this.entries = next;
 
 		try {

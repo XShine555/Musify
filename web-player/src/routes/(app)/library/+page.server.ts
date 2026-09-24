@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
+import { toDatedTrack, toPage } from '$lib/server/mappers';
 import {
 	createApiClient,
 	requireAccessTokenAction,
@@ -17,7 +18,9 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: PAGE_SIZE } }
 	});
 
-	return { tracks: unwrapOrError(result, 'No se pudo cargar tu biblioteca.') };
+	return {
+		tracks: toPage(unwrapOrError(result, 'No se pudo cargar tu biblioteca.'), toDatedTrack)
+	};
 };
 
 export const actions: Actions = {

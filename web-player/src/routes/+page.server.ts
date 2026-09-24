@@ -1,13 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { createApiClient, requireUser } from '$lib/server/api';
+import { toMix, toPlaylist, toTrack } from '$lib/server/mappers';
 import { addTrackAction } from '$lib/server/playlistActions';
-import {
-	HOME_LATEST_PAGE_SIZE,
-	HOME_MIXES_LIMIT,
-	HOME_SHELF_LIMIT,
-	HOME_SPOTLIGHT_TRACKS_LIMIT
-} from '$lib/config';
+import { HOME_MIXES_LIMIT, HOME_SHELF_LIMIT, HOME_SPOTLIGHT_TRACKS_LIMIT } from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
@@ -15,9 +11,6 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
-	const latestPromise = api.GET('/tracks', {
-		params: { query: { pageNumber: 1, pageSize: HOME_LATEST_PAGE_SIZE } }
-	});
 	const playlistsPromise = api.GET('/playlists/users/{userId}', {
 		params: {
 			path: { userId: user.sub },
@@ -30,17 +23,19 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	});
 	const listeningStatsPromise = api
 		.GET('/users/{id}/listening-stats', { params: { path: { id: user.sub } } })
-		.then((res) => res.data ?? { tracksThisWeek: 0, secondsThisWeek: 0, streakDays: 0 })
+		.then((res) => ({
+			tracksThisWeek: Number(res.data?.tracksThisWeek ?? 0),
+			secondsThisWeek: Number(res.data?.secondsThisWeek ?? 0),
+			streakDays: Number(res.data?.streakDays ?? 0)
+		}))
 		.catch(() => ({ tracksThisWeek: 0, secondsThisWeek: 0, streakDays: 0 }));
 
-	const [latest, playlists, mixes, recentlyPlayed] = await Promise.all([
-		latestPromise,
+	const [playlists, mixes, recentlyPlayed] = await Promise.all([
 		playlistsPromise,
 		mixesPromise,
 		recentlyPlayedPromise
 	]);
-	const playlistItems = playlists.data?.items ?? [];
-	const latestItems = (latest.data?.items ?? []).map((item) => item.track);
+	const playlistItems = (playlists.data?.items ?? []).map(toPlaylist);
 
 	const spotlightPlaylist = playlistItems[0] ?? null;
 	const spotlightTracksPromise = spotlightPlaylist
@@ -52,7 +47,7 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 					}
 				})
 				.then((res) => ({
-					items: res.data?.items ?? [],
+					items: (res.data?.items ?? []).map(toTrack),
 					totalCount: Number(res.data?.totalItemCount ?? 0)
 				}))
 				.catch(() => ({ items: [], totalCount: 0 }))
@@ -60,11 +55,10 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 
 	return {
 		greeting: pickGreeting(new Date()),
-		recentlyPlayed: recentlyPlayed.data ?? [],
-		mixes: (mixes.data ?? []).slice(0, HOME_MIXES_LIMIT),
+		recentlyPlayed: (recentlyPlayed.data ?? []).map(toTrack),
+		mixes: (mixes.data ?? []).slice(0, HOME_MIXES_LIMIT).map(toMix),
 		playlists: playlistItems.slice(0, HOME_SHELF_LIMIT),
 		playlistsHasMore: playlistItems.length > HOME_SHELF_LIMIT,
-		newReleases: latestItems,
 		spotlightPlaylist,
 		spotlightTracks: spotlightTracksPromise,
 		listeningStats: listeningStatsPromise

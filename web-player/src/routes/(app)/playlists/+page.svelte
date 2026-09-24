@@ -10,7 +10,7 @@
 
 	let { data } = $props();
 
-	const items = $derived(data.playlists.items);
+	const items = $derived(data.playlists);
 	const totals = $derived(data.totals);
 	const summary = $derived(
 		`${plural(totals.playlistCount, 'playlist', 'playlists')} · ${plural(totals.trackCount, 'canción', 'canciones')} · ${fmtDurationLong(totals.durationSeconds)}`
@@ -40,7 +40,7 @@
 				<MediaCard
 					href="/playlists/{playlist.id}"
 					title={playlist.name}
-					subtitle={playlistMeta(Number(playlist.trackCount))}
+					subtitle={playlistMeta(playlist.trackCount)}
 					trackIds={playlist.coverTrackIds}
 					src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
 						playlist.updatedAt

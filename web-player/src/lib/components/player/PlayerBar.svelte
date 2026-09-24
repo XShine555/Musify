@@ -12,7 +12,7 @@
 	import ListMusic from '@lucide/svelte/icons/list-music';
 
 	function seek(value: number) {
-		if (player.current.duration > 0) player.seekFraction(value / player.current.duration);
+		if (player.duration > 0) player.seekFraction(value / player.duration);
 	}
 </script>
 
@@ -39,13 +39,13 @@
 			</span>
 			<Slider
 				value={player.progress}
-				max={player.current.duration}
+				max={player.duration}
 				label="Barra de progreso"
 				oninput={seek}
 				variant="seek"
 			/>
 			<span class="min-w-8 text-xs text-fg-2 tabular-nums">
-				{fmtTime(player.current.duration)}
+				{fmtTime(player.duration)}
 			</span>
 		</div>
 	</div>

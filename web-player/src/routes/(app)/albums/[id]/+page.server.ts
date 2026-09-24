@@ -7,6 +7,7 @@ import {
 	unwrapOrError,
 	unwrapOrFail
 } from '$lib/server/api';
+import { toAlbum, toTrack } from '$lib/server/mappers';
 import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/albumForm';
 import { uploadPresignedImage } from '$lib/server/upload';
@@ -34,11 +35,13 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 			: Promise.resolve(null)
 	]);
 
-	const album = unwrapOrError(albumRes, 'Álbum no encontrado.', 404);
+	const album = toAlbum(unwrapOrError(albumRes, 'Álbum no encontrado.', 404));
 
-	const tracks = tracksRes.data?.items ?? [];
+	const tracks = (tracksRes.data?.items ?? []).map(toTrack);
 	const inAlbum = new Set(tracks.map((track) => track.id));
-	const library = (libraryRes?.data?.items ?? []).filter((track) => !inAlbum.has(track.id));
+	const library = (libraryRes?.data?.items ?? [])
+		.filter((track) => !inAlbum.has(track.id))
+		.map(toTrack);
 
 	const isOwner = user !== null && String(album.ownerUserId) === user.sub;
 

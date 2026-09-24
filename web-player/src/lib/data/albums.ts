@@ -1,15 +1,12 @@
-import { toQueueItems, type ApiTrackLike, type QueueItem } from '$lib/player/player.svelte';
+import type { Paged, Track } from '$lib/types';
 
-export async function fetchAlbumQueueItems(albumId: string): Promise<QueueItem[]> {
-	const res = await fetch(`/api/albums/${albumId}/tracks`);
+async function fetchTracks(url: string): Promise<Track[]> {
+	const res = await fetch(url);
 	if (!res.ok) return [];
-	const data = (await res.json()) as { items: ApiTrackLike[] };
-	return toQueueItems(data.items ?? []);
+	return ((await res.json()) as Paged<Track>).items;
 }
 
-export async function fetchPlaylistQueueItems(playlistId: string): Promise<QueueItem[]> {
-	const res = await fetch(`/api/playlists/${playlistId}/tracks`);
-	if (!res.ok) return [];
-	const data = (await res.json()) as { items: ApiTrackLike[] };
-	return toQueueItems(data.items ?? []);
-}
+export const fetchAlbumTracks = (albumId: string) => fetchTracks(`/api/albums/${albumId}/tracks`);
+
+export const fetchPlaylistTracks = (playlistId: string) =>
+	fetchTracks(`/api/playlists/${playlistId}/tracks`);

@@ -11,7 +11,7 @@
 	import TrackList from '$lib/components/ui/media/TrackList.svelte';
 
 	const tracks = $derived(liked.list);
-	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.likedAt })));
+	const listTracks = $derived(tracks.map((track) => ({ ...track, date: track.likedAt })));
 	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	function playFrom(index: number) {
@@ -55,7 +55,7 @@
 			columns={['added', 'plays']}
 			onPlay={playFrom}
 			rowAction={{
-				onclick: (track) => liked.toggle({ ...track, artist: track.artist ?? undefined }),
+				onclick: (track) => liked.toggle(track),
 				icon: X,
 				label: 'Quitar de Me gusta'
 			}}

@@ -1,18 +1,9 @@
 <script lang="ts" module>
+	import type { Track } from '$lib/types';
+
 	export type TrackListColumn = 'added' | 'uploaded' | 'plays';
 
-	export interface TrackListTrack {
-		id: string | number;
-		title: string;
-		artist?: string | null;
-		ownerUserId?: string | number | null;
-		isExplicit?: boolean;
-		explicit?: boolean;
-		duration?: number | string;
-		listensCount?: number | string;
-		addedAt?: string | number;
-		uploadedAt?: string | number;
-	}
+	export type TrackListTrack = Track & { date?: string | number };
 
 	const COLUMN_PRESET: Record<TrackListColumn, { label: string; width: string }> = {
 		added: { label: 'Añadida', width: '124px' },
@@ -108,7 +99,7 @@
 	</div>
 	<div class="mt-1 flex flex-col gap-0.5" role="list">
 		{#each tracks as track, i (track.id)}
-			{@const active = player.current.id === track.id}
+			{@const active = player.currentId === track.id}
 
 			<div
 				role="listitem"
@@ -145,7 +136,7 @@
 						title={track.title}
 						artist={track.artist}
 						ownerUserId={track.ownerUserId}
-						explicit={track.isExplicit ?? track.explicit ?? false}
+						explicit={track.explicit}
 						{active}
 					>
 						{#snippet overlay()}
@@ -158,16 +149,14 @@
 				{#each columns as column (column)}
 					<span class="hidden truncate text-center text-xs text-fg-2 tabular-nums sm:block">
 						{#if column === 'plays'}
-							{Number(track.listensCount ?? 0)}
-						{:else if column === 'added' && track.addedAt}
-							{fmtDate(track.addedAt)}
-						{:else if column === 'uploaded' && track.uploadedAt}
-							{fmtDate(track.uploadedAt)}
+							{track.listensCount}
+						{:else if track.date}
+							{fmtDate(track.date)}
 						{/if}
 					</span>
 				{/each}
 				<span class="truncate text-center text-xs text-fg-2 tabular-nums">
-					{fmtTime(Number(track.duration))}
+					{fmtTime(track.duration)}
 				</span>
 				{#if rowAction}
 					{#if rowAction.action}

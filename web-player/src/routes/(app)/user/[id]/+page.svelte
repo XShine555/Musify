@@ -26,7 +26,7 @@
 {/snippet}
 
 {#snippet followStats()}
-	{@const followers = plural(Number(profile.followersCount), 'seguidor', 'seguidores')}
+	{@const followers = plural(data.followersCount, 'seguidor', 'seguidores')}
 	{#if data.isOwnProfile || profile.canViewFollowers}
 		<a href="/user/{profile.id}/followers" class="transition-colors hover:text-fg">{followers}</a>
 	{:else}
@@ -60,7 +60,7 @@
 					<MediaCard
 						href="/playlists/{playlist.id}"
 						title={playlist.name}
-						subtitle={playlistMeta(Number(playlist.trackCount))}
+						subtitle={playlistMeta(playlist.trackCount)}
 						trackIds={playlist.coverTrackIds}
 						src="/api/playlists/{playlist.id}/cover?size=large&v={encodeURIComponent(
 							playlist.updatedAt

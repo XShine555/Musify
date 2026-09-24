@@ -20,13 +20,13 @@
 
 	$effect(() => {
 		items = data.users?.items ?? [];
-		page = Number(data.users?.pageNumber ?? 1);
+		page = data.users?.pageNumber ?? 1;
 		hasMore = data.users?.hasNextPage ?? false;
 	});
 
 	const isFollowers = $derived(data.list === 'followers');
 	const title = $derived(isFollowers ? 'Seguidores' : 'Siguiendo');
-	const total = $derived(Number(data.users?.totalItemCount ?? 0));
+	const total = $derived(data.users?.totalItemCount ?? 0);
 
 	async function loadMore() {
 		if (loadingMore) return;
@@ -36,7 +36,7 @@
 			if (!res.ok) throw new Error(String(res.status));
 			const next = (await res.json()) as NonNullable<typeof data.users>;
 			items = appendUnique(items, next.items, (u) => u.id);
-			page = Number(next.pageNumber);
+			page = next.pageNumber;
 			hasMore = next.hasNextPage;
 		} catch {
 			hasMore = false;

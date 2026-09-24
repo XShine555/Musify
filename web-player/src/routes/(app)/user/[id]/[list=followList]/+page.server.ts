@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { createApiClient, optionalUser, unwrapOrError } from '$lib/server/api';
+import { toPage } from '$lib/server/mappers';
 import { fetchFollowList } from '$lib/server/follows';
 import { FOLLOW_LIST_PAGE_SIZE } from '$lib/config';
 
@@ -19,7 +20,9 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	return {
 		list: params.list,
 		profile,
-		users: forbidden ? null : unwrapOrError(listRes, 'No se pudo cargar la lista.'),
+		users: forbidden
+			? null
+			: toPage(unwrapOrError(listRes, 'No se pudo cargar la lista.'), (item) => item),
 		forbidden,
 		viewerId: viewer?.sub ?? null
 	};

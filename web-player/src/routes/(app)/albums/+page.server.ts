@@ -6,6 +6,7 @@ import {
 	requireUser,
 	unwrapOrError
 } from '$lib/server/api';
+import { toAlbum, toPage } from '$lib/server/mappers';
 import { ALBUMS_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/albumForm';
 import { uploadPresignedImage } from '$lib/server/upload';
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 		params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: ALBUMS_PAGE_SIZE } }
 	});
 
-	const albums = unwrapOrError(result, 'No se pudieron cargar tus álbumes.');
+	const albums = toPage(unwrapOrError(result, 'No se pudieron cargar tus álbumes.'), toAlbum);
 
 	return { albums };
 };

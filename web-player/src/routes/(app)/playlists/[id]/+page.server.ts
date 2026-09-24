@@ -7,6 +7,7 @@ import {
 	unwrapOrError,
 	unwrapOrFail
 } from '$lib/server/api';
+import { toDatedTrack, toPlaylist } from '$lib/server/mappers';
 import { uploadPresignedImage } from '$lib/server/upload';
 
 const MAX_NAME = 100;
@@ -23,8 +24,8 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		})
 	]);
 
-	const playlist = unwrapOrError(playlistRes, 'Playlist no encontrada.', 404);
-	const tracks = tracksRes.data?.items ?? [];
+	const playlist = toPlaylist(unwrapOrError(playlistRes, 'Playlist no encontrada.', 404));
+	const tracks = (tracksRes.data?.items ?? []).map(toDatedTrack);
 
 	const isOwner = user !== null && String(playlist.ownerUserId) === user.sub;
 
