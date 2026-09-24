@@ -27,6 +27,12 @@
 
 	let scroller = $state<HTMLElement>();
 
+	const transitionKey = $derived(
+		page.url.pathname === '/library' || page.url.pathname.startsWith('/library/')
+			? '/library'
+			: page.url.pathname
+	);
+
 	trackNavigation();
 	restoreScroll(() => scroller);
 
@@ -81,7 +87,7 @@
 				<MobileHeader user={data.user} accountUrl={data.accountUrl} />
 				<TopBar user={data.user} accountUrl={data.accountUrl} />
 				<main class="flex-1">
-					{#key page.url.pathname}
+					{#key transitionKey}
 						<div class="animate-fade">{@render children()}</div>
 					{/key}
 				</main>

@@ -9,7 +9,6 @@
 		subtitle?: string | null;
 		src?: string | null;
 		trackIds?: string[];
-		onclick?: (event: MouseEvent) => void;
 		onPlay?: (event: MouseEvent) => void;
 		art?: Snippet;
 		oncontextmenu?: (event: MouseEvent) => void;
@@ -22,7 +21,6 @@
 		subtitle,
 		src,
 		trackIds = [],
-		onclick,
 		onPlay,
 		art,
 		oncontextmenu,
@@ -32,7 +30,6 @@
 
 <a
 	{href}
-	{onclick}
 	class="group animate-enter min-w-0 rounded-panel p-2.5 text-left transition-colors hover:bg-hover"
 	style="--i:{index}"
 	{oncontextmenu}

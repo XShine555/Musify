@@ -6,6 +6,7 @@
 		value?: string;
 		placeholder?: string;
 		label?: string;
+		size?: 'sm' | 'md';
 		oninput?: () => void;
 		onclear?: () => void;
 		class?: string;
@@ -15,10 +16,16 @@
 		value = $bindable(''),
 		placeholder = 'Buscar',
 		label = placeholder,
+		size = 'md',
 		oninput,
 		onclear,
 		class: klass = ''
 	}: Props = $props();
+
+	const SIZE = {
+		sm: { text: 'text-xs', icon: 'size-icon-xs' },
+		md: { text: 'text-sm', icon: 'size-icon-sm' }
+	};
 
 	let input: HTMLInputElement | undefined = $state();
 
@@ -32,7 +39,7 @@
 <label
 	class="flex h-9.5 min-w-0 items-center gap-2.5 rounded-control bg-surface-2 px-3.5 transition focus-within:bg-surface-hover {klass}"
 >
-	<Search class="size-icon-xs shrink-0 text-fg-2" />
+	<Search class="{SIZE[size].icon} shrink-0 text-fg-2" />
 	<input
 		type="text"
 		bind:this={input}
@@ -40,7 +47,8 @@
 		{oninput}
 		{placeholder}
 		aria-label={label}
-		class="w-full min-w-0 bg-transparent text-xs text-fg placeholder:text-fg-2 focus:outline-none"
+		class="w-full min-w-0 bg-transparent {SIZE[size]
+			.text} text-fg placeholder:text-fg-2 focus:outline-none"
 	/>
 	{#if value}
 		<button

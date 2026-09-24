@@ -47,5 +47,7 @@
 <Page>
 	<PageHeader title="Gestionar música" description={current.description} />
 	<Tabs label="Secciones de la biblioteca" {tabs} />
-	{@render children()}
+	{#key page.url.pathname}
+		<div class="animate-fade">{@render children()}</div>
+	{/key}
 </Page>

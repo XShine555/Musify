@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findConflict, genreHue } from './genres';
+import { findConflict, genreHue, genreLabels } from './genres';
 
 describe('genreHue', () => {
 	it('is stable and within 0-359', () => {
@@ -24,5 +24,12 @@ describe('findConflict', () => {
 	it('returns undefined when compatible or unknown', () => {
 		expect(findConflict(['a', 'c'], options)).toBeUndefined();
 		expect(findConflict(['x', 'y'], options)).toBeUndefined();
+	});
+});
+
+describe('genreLabels', () => {
+	it('joins the labels and falls back to a dash', () => {
+		expect(genreLabels(['HipHop', 'Rock'])).toBe('Hip hop, Rock');
+		expect(genreLabels([])).toBe('-');
 	});
 });

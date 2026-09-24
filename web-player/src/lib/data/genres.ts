@@ -1,3 +1,5 @@
+import type { GenreOption } from '$lib/types';
+
 const GENRE_INFO: Record<string, { label: string; tagline: string }> = {
 	Pop: { label: 'Pop', tagline: 'Éxitos que suenan en todas partes' },
 	Rock: { label: 'Rock', tagline: 'Guitarras, actitud y ruido' },
@@ -45,6 +47,10 @@ export function genreHue(genre: string): number {
 	return hash;
 }
 
+export function genreLabels(genres: string[]): string {
+	return genres.map((genre) => genreInfo(genre).label).join(', ') || '-';
+}
+
 export function genreTiles(genres: { genre: string }[]) {
 	return genres.map(({ genre }) => ({
 		genre,
@@ -53,7 +59,7 @@ export function genreTiles(genres: { genre: string }[]) {
 	}));
 }
 
-export function genreOptions(genres: { genre: string; incompatibleWith: string[] }[]) {
+export function genreOptions(genres: GenreOption[]) {
 	return genres.map(({ genre, incompatibleWith }) => ({
 		genre,
 		incompatibleWith,
@@ -61,10 +67,7 @@ export function genreOptions(genres: { genre: string; incompatibleWith: string[]
 	}));
 }
 
-export function findConflict(
-	tags: string[],
-	options: { genre: string; incompatibleWith: string[] }[]
-): [string, string] | undefined {
+export function findConflict(tags: string[], options: GenreOption[]): [string, string] | undefined {
 	const byGenre = new Map(options.map((option) => [option.genre, option.incompatibleWith]));
 	for (let i = 0; i < tags.length; i++) {
 		for (let j = i + 1; j < tags.length; j++) {
