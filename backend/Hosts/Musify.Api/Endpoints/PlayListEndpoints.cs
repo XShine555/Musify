@@ -19,11 +19,6 @@ public static class PlayListEndpoints
         var group = app.MapGroup("/playlists")
             .WithTags("PlayLists");
 
-        group.MapGet("/", GetPlayLists)
-            .WithName("GetPlayLists")
-            .WithSummary("Get Paginated PlayLists.")
-            .Produces<PaginatedResponse<PlayListApplicationResponse>>();
-
         group.MapGet("/{id}", GetPlayListById)
             .WithName("GetPlayListById")
             .WithSummary("Get A PlayList By Id.")
@@ -32,7 +27,7 @@ public static class PlayListEndpoints
 
         group.MapGet("/users/{userId}", GetPlayListsByUserId)
             .WithName("GetPlayListsByUserId")
-            .WithSummary("Get Paginated PlayLists For A User.")
+            .WithSummary("Get Paginated PlayLists For A User. Private PlayLists Are Only Returned To Their Owner.")
             .Produces<PaginatedResponse<PlayListApplicationResponse>>();
 
         group.MapGet("/{playlistId}/tracks", GetPlayListTracks)
@@ -105,16 +100,6 @@ public static class PlayListEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetPlayLists(
-        IMediator mediator,
-        CancellationToken cancellationToken,
-        int pageNumber = 1,
-        int pageSize = 10)
-    {
-        var result = await mediator.Send(new GetPlayListsQuery(pageNumber, pageSize), cancellationToken);
-        return result.ToHttpResult();
-    }
-
     private static async Task<IResult> GetPlayListById(
         IMediator mediator,
         CurrentUser currentUser,
@@ -127,25 +112,26 @@ public static class PlayListEndpoints
 
     private static async Task<IResult> GetPlayListsByUserId(
         IMediator mediator,
+        CurrentUser currentUser,
         long userId,
         CancellationToken cancellationToken,
         string? name,
         int pageNumber = 1,
-        int pageSize = 10,
-        bool onlyPublic = false)
+        int pageSize = 10)
     {
-        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize, onlyPublic), cancellationToken);
+        var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, pageNumber, pageSize, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetPlayListTracks(
         IMediator mediator,
+        CurrentUser currentUser,
         Guid playlistId,
         CancellationToken cancellationToken,
         int pageNumber = 1,
         int pageSize = 10)
     {
-        var result = await mediator.Send(new GetPlayListTracksQuery(playlistId, pageNumber, pageSize), cancellationToken);
+        var result = await mediator.Send(new GetPlayListTracksQuery(playlistId, pageNumber, pageSize, currentUser.Id), cancellationToken);
         return result.ToHttpResult();
     }
 

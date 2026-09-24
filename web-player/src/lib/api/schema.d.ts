@@ -279,24 +279,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/playlists": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Paginated PlayLists. */
-        get: operations["GetPlayLists"];
-        put?: never;
-        /** Create A New PlayList. */
-        post: operations["CreatePlayList"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/playlists/{id}": {
         parameters: {
             query?: never;
@@ -321,7 +303,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Paginated PlayLists For A User. */
+        /** Get Paginated PlayLists For A User. Private PlayLists Are Only Returned To Their Owner. */
         get: operations["GetPlayListsByUserId"];
         put?: never;
         post?: never;
@@ -360,6 +342,23 @@ export interface paths {
         get: operations["GetPlayListCover"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create A New PlayList. */
+        post: operations["CreatePlayList"];
         delete?: never;
         options?: never;
         head?: never;
@@ -565,8 +564,7 @@ export interface paths {
         /** Get Paginated Users. */
         get: operations["GetUsers"];
         put?: never;
-        /** Create A New User. */
-        post: operations["CreateUser"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -810,13 +808,6 @@ export interface components {
             /** @default false */
             isExplicit: boolean;
         };
-        CreateUserRequest: {
-            /** Format: int64 */
-            id: number | string;
-            name: string;
-            firstName: null | string;
-            secondName: null | string;
-        };
         /** @enum {unknown} */
         Genre: "Pop" | "Rock" | "HipHop" | "RnB" | "Jazz" | "Blues" | "Classical" | "Electronic" | "House" | "Techno" | "Trance" | "Dubstep" | "DrumAndBass" | "Metal" | "Punk" | "Reggae" | "Reggaeton" | "Country" | "Folk" | "Indie" | "KPop" | "Latin" | "Soul" | "Funk" | "Ambient" | "Lofi";
         GenreResponse: {
@@ -903,19 +894,6 @@ export interface components {
         };
         PaginatedResponseOfUserSummaryResponse: {
             items: components["schemas"]["UserSummaryResponse"][];
-            /** Format: int32 */
-            pageNumber: number | string;
-            /** Format: int32 */
-            pageSize: number | string;
-            /** Format: int32 */
-            pageCount: number | string;
-            /** Format: int32 */
-            totalItemCount: number | string;
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-        };
-        PaginatedResponseOfUserApplicationResponse: {
-            items: components["schemas"]["UserApplicationResponse"][];
             /** Format: int32 */
             pageNumber: number | string;
             /** Format: int32 */
@@ -1729,76 +1707,6 @@ export interface operations {
             };
         };
     };
-    GetPlayLists: {
-        parameters: {
-            query?: {
-                pageNumber?: number | string;
-                pageSize?: number | string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponseOfPlayListApplicationResponse"];
-                };
-            };
-        };
-    };
-    CreatePlayList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePlayListRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlayListApplicationResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     GetPlayListById: {
         parameters: {
             query?: never;
@@ -1834,7 +1742,6 @@ export interface operations {
                 name?: string;
                 pageNumber?: number | string;
                 pageSize?: number | string;
-                onlyPublic?: boolean;
             };
             header?: never;
             path: {
@@ -1949,6 +1856,53 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreatePlayList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePlayListRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayListApplicationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2493,46 +2447,6 @@ export interface operations {
             };
         };
     };
-    CreateUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserApplicationResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     GetUserById: {
         parameters: {
             query?: never;
@@ -2610,6 +2524,20 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ListeningStatsResponse"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

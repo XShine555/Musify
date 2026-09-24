@@ -70,7 +70,7 @@ public class UpdatePlayListCommandHandler(
         {
             var validation = await uploadIntentValidator.ValidateAndLoadAsync(
                 uploadIntentConfiguration,
-                request.NewPictureIntentId.Value, request.UserId, cancellationToken);
+                request.NewPictureIntentId.Value, request.UserId, UploadIntentPurpose.PlayListPicture, cancellationToken);
             if (validation.IsError)
                 return validation.Errors;
 

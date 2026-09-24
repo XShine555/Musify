@@ -15,7 +15,7 @@ public record GetPlayListsByUserIdQuery(
     string? Name,
     int PageNumber,
     int PageSize,
-    bool OnlyPublic = false)
+    long? ViewerId = null)
     : IQuery<ErrorOr<PaginatedResponse<PlayListApplicationResponse>>>;
 
 public class GetPlayListsByUserIdQueryHandler(IDatabase database)
@@ -25,12 +25,8 @@ public class GetPlayListsByUserIdQueryHandler(IDatabase database)
     {
         var playListsQuery = database.PlayLists
             .AsNoTracking()
-            .Where(p => p.UserId == request.UserId);
-
-        if (request.OnlyPublic)
-        {
-            playListsQuery = playListsQuery.Where(p => p.Visibility == PlaylistVisibility.Public);
-        }
+            .Where(p => p.UserId == request.UserId
+                && (p.Visibility == PlaylistVisibility.Public || p.UserId == request.ViewerId));
 
         if (!string.IsNullOrEmpty(request.Name))
         {

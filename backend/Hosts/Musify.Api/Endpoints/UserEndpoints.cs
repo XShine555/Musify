@@ -1,8 +1,6 @@
 using Mediator;
 using Musify.Api.Authentication;
-using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Extensions;
-using Musify.Api.Filters;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
@@ -38,7 +36,10 @@ public static class UserEndpoints
         group.MapGet("/{id}/listening-stats", GetListeningStats)
             .WithName("GetListeningStats")
             .WithSummary("Get A User'S Listening Stats For The Current Week And Streak.")
-            .Produces<ListeningStatsResponse>();
+            .RequireAuthorization()
+            .Produces<ListeningStatsResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapGet("/{id}/last-listened-track", GetLastTrackListenedByUserId)
             .WithName("GetLastTrackListenedByUserId")
@@ -88,14 +89,6 @@ public static class UserEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized);
 
-        group.MapPost("/", CreateUser)
-            .WithName("CreateUser")
-            .WithSummary("Create A New User.")
-            .AddEndpointFilter<ValidationFilter<CreateUserRequest>>()
-            .Produces<UserApplicationResponse>(StatusCodes.Status201Created)
-            .ProducesValidationProblem()
-            .Produces(StatusCodes.Status409Conflict);
-
         return app;
     }
 
@@ -128,12 +121,16 @@ public static class UserEndpoints
         return await mediator.Send(new GetListeningHistoryQuery(id), cancellationToken);
     }
 
-    private static async Task<ListeningStatsResponse> GetListeningStats(
+    private static async Task<IResult> GetListeningStats(
         IMediator mediator,
+        CurrentUser currentUser,
         long id,
         CancellationToken cancellationToken)
     {
-        return await mediator.Send(new GetListeningStatsQuery(id), cancellationToken);
+        if (currentUser.RequiredId != id)
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+        return Results.Ok(await mediator.Send(new GetListeningStatsQuery(id), cancellationToken));
     }
 
     private static async Task<IResult> GetLastTrackListenedByUserId(
@@ -206,17 +203,5 @@ public static class UserEndpoints
     {
         var result = await mediator.Send(new UnfollowUserCommand(currentUser.RequiredId, id), cancellationToken);
         return result.ToHttpResult();
-    }
-
-    private static async Task<IResult> CreateUser(
-        IMediator mediator,
-        CreateUserRequest request,
-        CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(
-            new CreateUserCommand(request.Id, request.Name, request.FirstName, request.SecondName),
-            cancellationToken);
-
-        return result.ToCreatedResult(user => $"/users/{user.Id}");
     }
 }

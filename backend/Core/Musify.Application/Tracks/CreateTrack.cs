@@ -59,15 +59,18 @@ public class CreateTrackCommandHandler(
             return Error.Validation(description: $"Tags '{conflict.First}' and '{conflict.Second}' are not compatible.");
         }
 
+        if (request.PictureIntentId == request.AudioIntentId)
+            return Error.Validation(description: "Picture and audio must use different upload intents.");
+
         var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
             uploadIntentConfiguration,
-            request.PictureIntentId, request.UserId, cancellationToken);
+            request.PictureIntentId, request.UserId, UploadIntentPurpose.TrackPicture, cancellationToken);
         if (pictureValidation.IsError)
             return pictureValidation.Errors;
 
         var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
             uploadIntentConfiguration,
-            request.AudioIntentId, request.UserId, cancellationToken);
+            request.AudioIntentId, request.UserId, UploadIntentPurpose.TrackAudio, cancellationToken);
         if (audioValidation.IsError)
             return audioValidation.Errors;
 

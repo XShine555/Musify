@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using Musify.Api.DataTransferObjects.Albums;
-using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
@@ -13,14 +12,7 @@ namespace Musify.Api.Tests.Endpoints;
 [Collection(ApiCollection.Name)]
 public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
 {
-    private async Task<long> CreateUserAsync()
-    {
-        var userId = Random.Shared.NextInt64(1, long.MaxValue);
-        var response = await fixture.CreateAnonymousClient()
-            .PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null));
-        response.EnsureSuccessStatusCode();
-        return userId;
-    }
+    private Task<long> CreateUserAsync() => fixture.SeedUserAsync();
 
     private async Task<Guid> CreatePictureIntentAsync(HttpClient client)
     {

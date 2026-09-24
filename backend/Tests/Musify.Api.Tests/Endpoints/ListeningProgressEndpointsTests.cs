@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Api.DataTransferObjects.Tracks;
-using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Tests.TestSupport;
 using Musify.Domain.Entities;
 using Musify.Infrastructure.Persistence;
@@ -14,14 +13,7 @@ namespace Musify.Api.Tests.Endpoints;
 [Collection(ApiCollection.Name)]
 public sealed class ListeningProgressEndpointsTests(ApiTestFixture fixture)
 {
-    private async Task<long> CreateUserAsync()
-    {
-        var userId = Random.Shared.NextInt64(1, long.MaxValue);
-        var response = await fixture.CreateAnonymousClient().PostAsJsonAsync(
-            "/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
-        response.EnsureSuccessStatusCode();
-        return userId;
-    }
+    private Task<long> CreateUserAsync() => fixture.SeedUserAsync();
 
     private async Task<Guid> SeedListenAsync(long userId, double durationSeconds)
     {

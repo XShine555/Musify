@@ -37,6 +37,7 @@ public sealed class UploadIntentValidator(
         UploadIntentConfiguration config,
         Guid intentId,
         long userId,
+        UploadIntentPurpose purpose,
         CancellationToken cancellationToken)
     {
         var intent = await database.UploadIntents
@@ -44,6 +45,9 @@ public sealed class UploadIntentValidator(
 
         if (intent == null || intent.UserId != userId)
             return Error.NotFound(description: "Upload intent not found or not accessible.");
+
+        if (intent.Purpose != purpose)
+            return Error.Validation(description: "Upload intent was issued for a different purpose.");
 
         if (intent.IsConsumed)
             return Error.Conflict(description: "Upload intent has already been consumed.");

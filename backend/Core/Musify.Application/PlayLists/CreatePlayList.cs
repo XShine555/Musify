@@ -92,7 +92,7 @@ public class CreatePlayListCommandHandler(
         }
 
         var validation = await uploadIntentValidator.ValidateAndLoadAsync(
-            uploadIntentConfiguration, request.PictureIntentId.Value, request.UserId, cancellationToken);
+            uploadIntentConfiguration, request.PictureIntentId.Value, request.UserId, UploadIntentPurpose.PlayListPicture, cancellationToken);
 
         if (validation.IsError)
             return validation.Errors;

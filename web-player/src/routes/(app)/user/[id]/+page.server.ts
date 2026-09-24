@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 		api.GET('/playlists/users/{userId}', {
 			params: {
 				path: { userId: params.id },
-				query: { pageNumber: 1, pageSize: PROFILE_PLAYLISTS_PAGE_SIZE, onlyPublic: true }
+				query: { pageNumber: 1, pageSize: PROFILE_PLAYLISTS_PAGE_SIZE }
 			}
 		})
 	]);

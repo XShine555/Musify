@@ -1,30 +1,29 @@
 using FluentValidation;
 using Musify.Api.DataTransferObjects.Tracks;
+using Musify.Application.Configuration;
 
 namespace Musify.Api.Validators.Tracks;
 
 public sealed class RequestTrackUploadUrlsRequestValidator : AbstractValidator<RequestTrackUploadUrlsRequest>
 {
-    public RequestTrackUploadUrlsRequestValidator()
+    public RequestTrackUploadUrlsRequestValidator(UploadIntentConfiguration uploadConfiguration)
     {
         RuleFor(x => x.PictureFileType)
-            .NotEmpty();
+            .MustBeFileType(Uploads.PictureFileTypes);
 
         RuleFor(x => x.PictureContentType)
-            .NotEmpty();
+            .MustBeContentType(Uploads.PictureContentTypes);
 
         RuleFor(x => x.AudioFileType)
-            .NotEmpty();
+            .MustBeFileType(Uploads.AudioFileTypes);
 
         RuleFor(x => x.AudioContentType)
-            .NotEmpty();
+            .MustBeContentType(Uploads.AudioContentTypes);
 
         RuleFor(x => x.ExpectedPictureSizeBytes)
-            .GreaterThan(0)
-            .When(x => x.ExpectedPictureSizeBytes.HasValue);
+            .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
 
         RuleFor(x => x.ExpectedAudioSizeBytes)
-            .GreaterThan(0)
-            .When(x => x.ExpectedAudioSizeBytes.HasValue);
+            .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
     }
 }

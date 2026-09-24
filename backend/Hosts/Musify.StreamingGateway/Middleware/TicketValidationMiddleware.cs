@@ -61,7 +61,7 @@ public sealed class TicketValidationMiddleware(
         if (validation.MaxBytes is { } maxBytes && !TryClampRange(context, maxBytes))
         {
             logger.LogInformation(
-                "Rejected media request {ObjectKey}: requested range starts beyond the {MaxBytes}-byte preview limit",
+                "Rejected media request {ObjectKey}: requested range is a suffix range or starts beyond the {MaxBytes}-byte preview limit",
                 objectKey, maxBytes);
             context.Response.StatusCode = StatusCodes.Status416RangeNotSatisfiable;
             context.Response.Headers[HeaderNames.ContentRange] = $"bytes */{maxBytes}";
@@ -81,11 +81,19 @@ public sealed class TicketValidationMiddleware(
             return true;
         }
 
-        if (!RangeHeaderValue.TryParse(rangeHeader.ToString(), out var range) || range.Ranges.Count != 1)
+        if (!RangeHeaderValue.TryParse(rangeHeader.ToString(), out var range)
+            || range.Ranges.Count != 1
+            || !string.Equals(range.Unit.ToString(), "bytes", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Request.Headers.Range = $"bytes=0-{maxBytes - 1}";
             return true;
+        }
 
         var requested = range.Ranges.Single();
-        var start = requested.From ?? 0;
+        if (requested.From is null)
+            return false;
+
+        var start = requested.From.Value;
         if (start >= maxBytes)
             return false;
 

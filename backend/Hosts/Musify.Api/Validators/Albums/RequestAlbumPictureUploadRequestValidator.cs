@@ -1,20 +1,20 @@
 using FluentValidation;
 using Musify.Api.DataTransferObjects.Albums;
+using Musify.Application.Configuration;
 
 namespace Musify.Api.Validators.Albums;
 
 public sealed class RequestAlbumPictureUploadRequestValidator : AbstractValidator<RequestAlbumPictureUploadRequest>
 {
-    public RequestAlbumPictureUploadRequestValidator()
+    public RequestAlbumPictureUploadRequestValidator(UploadIntentConfiguration uploadConfiguration)
     {
         RuleFor(x => x.FileType)
-            .NotEmpty();
+            .MustBeFileType(Uploads.PictureFileTypes);
 
         RuleFor(x => x.ContentType)
-            .NotEmpty();
+            .MustBeContentType(Uploads.PictureContentTypes);
 
         RuleFor(x => x.ExpectedSizeBytes)
-            .GreaterThan(0)
-            .When(x => x.ExpectedSizeBytes.HasValue);
+            .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
     }
 }

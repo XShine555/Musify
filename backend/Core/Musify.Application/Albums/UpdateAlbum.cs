@@ -62,7 +62,7 @@ public class UpdateAlbumCommandHandler(
         {
             var validation = await uploadIntentValidator.ValidateAndLoadAsync(
                 uploadIntentConfiguration,
-                request.NewPictureIntentId.Value, request.UserId, cancellationToken);
+                request.NewPictureIntentId.Value, request.UserId, UploadIntentPurpose.AlbumPicture, cancellationToken);
             if (validation.IsError)
                 return validation.Errors;
 

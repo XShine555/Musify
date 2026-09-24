@@ -36,6 +36,19 @@ public sealed class CreateTrackCommandHandlerTests : HandlerTestBase
          TestEntities.UploadIntent(userId, UploadIntentPurpose.TrackAudio, objectName: "song.mp3"));
 
     [Fact]
+    public async Task Handle_SameIntentForPictureAndAudio_ReturnsValidationError()
+    {
+        var user = TestEntities.User();
+        var (picture, audio) = SeedIntents(user.Id);
+        await SeedAsync(user, picture, audio);
+
+        var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, picture.Id, [Genre.Pop]);
+        var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+    }
+
+    [Fact]
     public async Task Handle_ValidIntents_CreatesTrackAndPublishesEvent()
     {
         var user = TestEntities.User();

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
+using Musify.Domain.ValueObjects;
 using X.PagedList;
 using X.PagedList.EF;
 
@@ -12,7 +13,8 @@ namespace Musify.Application.PlayLists;
 public record GetPlayListTracksQuery(
     Guid PlayListId,
     int PageNumber,
-    int PageSize)
+    int PageSize,
+    long? ViewerId = null)
     : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse>>>;
 
 public class GetPlayListTracksQueryHandler(IDatabase database)
@@ -22,7 +24,10 @@ public class GetPlayListTracksQueryHandler(IDatabase database)
     {
         var playListExists = await database.PlayLists
             .AsNoTracking()
-            .AnyAsync(p => p.Id == request.PlayListId, cancellationToken);
+            .AnyAsync(
+                p => p.Id == request.PlayListId
+                    && (p.Visibility == PlaylistVisibility.Public || p.UserId == request.ViewerId),
+                cancellationToken);
         if (!playListExists)
             return Error.NotFound();
 

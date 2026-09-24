@@ -216,4 +216,37 @@ public sealed class TicketValidationMiddlewareTests : IDisposable
         Assert.True(wasNextCalled());
         Assert.Equal("bytes=1000-2000", context.Request.Headers.Range.ToString());
     }
+
+    [Theory]
+    [InlineData("bytes=0-10,20-30")]
+    [InlineData("garbage")]
+    [InlineData("items=0-10")]
+    public async Task InvokeAsync_TicketWithMaxBytes_MultiOrInvalidRange_ReplacesItWithBoundedRange(string requestedRange)
+    {
+        var (middleware, wasNextCalled) = CreateMiddleware();
+        var context = new DefaultHttpContext();
+        context.Request.Path = $"/media/{Prefix}/audio.m4a";
+        context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+        context.Request.Headers.Range = requestedRange;
+
+        await middleware.InvokeAsync(context);
+
+        Assert.True(wasNextCalled());
+        Assert.Equal("bytes=0-479999", context.Request.Headers.Range.ToString());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_TicketWithMaxBytes_SuffixRange_ReturnsRangeNotSatisfiable()
+    {
+        var (middleware, wasNextCalled) = CreateMiddleware();
+        var context = new DefaultHttpContext();
+        context.Request.Path = $"/media/{Prefix}/audio.m4a";
+        context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+        context.Request.Headers.Range = "bytes=-500";
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(wasNextCalled());
+        Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, context.Response.StatusCode);
+    }
 }

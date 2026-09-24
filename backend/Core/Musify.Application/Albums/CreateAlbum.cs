@@ -43,7 +43,7 @@ public class CreateAlbumCommandHandler(
         }
 
         var pictureIntent = await uploadIntentValidator.ValidateAndLoadAsync(
-            uploadIntentConfiguration, request.PictureIntentId, request.UserId, cancellationToken);
+            uploadIntentConfiguration, request.PictureIntentId, request.UserId, UploadIntentPurpose.AlbumPicture, cancellationToken);
         if (pictureIntent.IsError)
             return pictureIntent.Errors;
 

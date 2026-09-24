@@ -20,7 +20,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
             TestEntities.PlayList(owner.Id, "Being removed", lifeCycleStatus: LifeCycleStatus.Removing),
             TestEntities.PlayList(other.Id, "Theirs"));
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var playList = Assert.Single(result.Value.Items);
@@ -28,7 +28,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
     }
 
     [Fact]
-    public async Task Handle_OnlyPublic_ReturnsOnlyPublicPlayLists()
+    public async Task Handle_AnotherViewer_ReturnsOnlyPublicPlayLists()
     {
         var owner = TestEntities.User();
         await SeedAsync(
@@ -36,11 +36,26 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
             TestEntities.PlayList(owner.Id, "Public one", visibility: PlaylistVisibility.Public),
             TestEntities.PlayList(owner.Id, "Private one", visibility: PlaylistVisibility.Private));
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, OnlyPublic: true), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: 999), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var playList = Assert.Single(result.Value.Items);
         Assert.Equal("Public one", playList.Name);
+    }
+
+    [Fact]
+    public async Task Handle_Owner_SeesPrivatePlayLists()
+    {
+        var owner = TestEntities.User();
+        await SeedAsync(
+            owner,
+            TestEntities.PlayList(owner.Id, "Public one", visibility: PlaylistVisibility.Public),
+            TestEntities.PlayList(owner.Id, "Private one", visibility: PlaylistVisibility.Private));
+
+        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsError);
+        Assert.Equal(2, result.Value.Items.Count);
     }
 
     [Fact]
@@ -49,7 +64,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(owner, TestEntities.PlayList(owner.Id, "Road Trip"), TestEntities.PlayList(owner.Id, "Study Focus"));
 
-        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
         var playList = Assert.Single(result.Value.Items);

@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Users.Responses;
@@ -45,40 +44,13 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
     }
 
     [Fact]
-    public async Task PostUsers_NewUser_ReturnsCreatedWithLocationHeader()
-    {
-        var client = fixture.CreateAnonymousClient();
-        var userId = Random.Shared.NextInt64(1, long.MaxValue);
-
-        var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Jane Doe", "Jane", "Doe"), TestContext.Current.CancellationToken);
-
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal($"/users/{userId}", response.Headers.Location?.OriginalString);
-        var body = await response.Content.ReadFromJsonAsync<UserApplicationResponse>(TestContext.Current.CancellationToken);
-        Assert.NotNull(body);
-        Assert.Equal("Jane Doe", body.Name);
-    }
-
-    [Fact]
-    public async Task PostUsers_BlankName_ReturnsValidationProblem()
+    public async Task PostUsers_IsNotExposed()
     {
         var client = fixture.CreateAnonymousClient();
 
-        var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(Random.Shared.NextInt64(1, long.MaxValue), "", null, null), TestContext.Current.CancellationToken);
+        var response = await client.PostAsJsonAsync("/users", new { id = 1, name = "Intruder" }, TestContext.Current.CancellationToken);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task PostUsers_DuplicateId_ReturnsConflict()
-    {
-        var client = fixture.CreateAnonymousClient();
-        var userId = Random.Shared.NextInt64(1, long.MaxValue);
-        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "First", null, null), TestContext.Current.CancellationToken);
-
-        var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Second", null, null), TestContext.Current.CancellationToken);
-
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.True(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed);
     }
 
     [Fact]
@@ -86,7 +58,7 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
     {
         var client = fixture.CreateAnonymousClient();
         var userId = Random.Shared.NextInt64(1, long.MaxValue);
-        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Findable User", null, null), TestContext.Current.CancellationToken);
+        await fixture.SeedUserAsync(userId, "Findable User");
 
         var response = await client.GetAsync($"/users/{userId}", TestContext.Current.CancellationToken);
 
@@ -110,7 +82,7 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
     {
         var client = fixture.CreateAnonymousClient();
         var userId = Random.Shared.NextInt64(1, long.MaxValue);
-        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+        await fixture.SeedUserAsync(userId);
         await SeedListenAsync(userId, "Older listen", DateTime.UtcNow.AddMinutes(-10));
         await SeedListenAsync(userId, "Newer listen", DateTime.UtcNow);
 
@@ -126,7 +98,7 @@ public sealed class UserEndpointsTests(ApiTestFixture fixture)
     {
         var client = fixture.CreateAnonymousClient();
         var userId = Random.Shared.NextInt64(1, long.MaxValue);
-        await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+        await fixture.SeedUserAsync(userId);
 
         var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
 
