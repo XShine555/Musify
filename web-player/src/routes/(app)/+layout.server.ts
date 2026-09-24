@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from './$types';
 import { getAllowAnonymousListening } from '$lib/server/playbackConfig';
 import { apiFor } from '$lib/server/api';
 import { loginRedirect } from '$lib/server/guards';
-import { toLikedTrack, toPlaylist, toTrack } from '$lib/server/mappers';
+import { toCount, toLikedTrack, toPlaylist, toTrack } from '$lib/server/mappers';
 import { authConfig } from '$lib/server/config';
 import { LIKED_TRACKS_PAGE_SIZE, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
@@ -45,7 +45,7 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 				})
 				.then(({ data }) => ({
 					items: (data?.items ?? []).map(toPlaylist),
-					total: Number(data?.totalItemCount ?? 0)
+					total: toCount(data?.totalItemCount)
 				})),
 			{ items: [], total: 0 }
 		),

@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { apiFor, unwrapOrError } from '$lib/server/api';
 import { getGenres } from '$lib/server/genres';
-import { toAlbum, toPage, toTrack } from '$lib/server/mappers';
+import { toAlbum, toCount, toPage, toTrack } from '$lib/server/mappers';
 import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/actions/playlist';
 import { EXPLORE_ALBUMS_PAGE_SIZE, EXPLORE_PAGE_SIZE, EXPLORE_USERS_LIMIT } from '$lib/config';
 
@@ -56,9 +56,9 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		genres,
 		tracks,
 		albums: (albumsRes?.data?.items ?? []).map((item) => toAlbum(item.album)),
-		albumsTotal: Number(albumsRes?.data?.totalItemCount ?? 0),
+		albumsTotal: toCount(albumsRes?.data?.totalItemCount),
 		users: usersRes?.data?.items ?? [],
-		usersTotal: Number(usersRes?.data?.totalItemCount ?? 0),
+		usersTotal: toCount(usersRes?.data?.totalItemCount),
 		viewerId: user?.sub ?? null
 	};
 };

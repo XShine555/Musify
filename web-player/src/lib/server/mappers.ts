@@ -82,6 +82,26 @@ export function toPlaylist(dto: PlaylistDto): Playlist {
 	};
 }
 
+type ListeningStatsDto = components['schemas']['ListeningStatsResponse'];
+
+export interface ListeningStats {
+	tracksThisWeek: number;
+	secondsThisWeek: number;
+	streakDays: number;
+}
+
+export function toCount(value: number | string | null | undefined): number {
+	return Number(value ?? 0) || 0;
+}
+
+export function toListeningStats(dto: ListeningStatsDto | null | undefined): ListeningStats {
+	return {
+		tracksThisWeek: toCount(dto?.tracksThisWeek),
+		secondsThisWeek: toCount(dto?.secondsThisWeek),
+		streakDays: toCount(dto?.streakDays)
+	};
+}
+
 export function toPage<D, T>(dto: PageDto<D>, map: (item: D) => T): Paged<T> {
 	return {
 		items: dto.items.map(map),

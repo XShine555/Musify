@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { components } from '$lib/api/schema';
-import { toAlbum, toDatedTrack, toLikedTrack, toMix, toPage, toPlaylist, toTrack } from './mappers';
+import {
+	toAlbum,
+	toCount,
+	toDatedTrack,
+	toLikedTrack,
+	toListeningStats,
+	toMix,
+	toPage,
+	toPlaylist,
+	toTrack
+} from './mappers';
 
 const trackDto: components['schemas']['TrackApplicationResponse'] = {
 	id: 't1',
@@ -127,5 +137,31 @@ describe('toPage', () => {
 				(n) => n * 2
 			)
 		).toEqual({ items: [2, 4], pageNumber: 2, hasNextPage: true, totalItemCount: 10 });
+	});
+});
+
+describe('toCount', () => {
+	it('normalizes numbers, numeric strings and missing values', () => {
+		expect(toCount(4)).toBe(4);
+		expect(toCount('12')).toBe(12);
+		expect(toCount(undefined)).toBe(0);
+		expect(toCount(null)).toBe(0);
+		expect(toCount('abc')).toBe(0);
+	});
+});
+
+describe('toListeningStats', () => {
+	it('converts string counters to numbers', () => {
+		expect(
+			toListeningStats({ tracksThisWeek: '5', secondsThisWeek: 300, streakDays: '2' })
+		).toEqual({ tracksThisWeek: 5, secondsThisWeek: 300, streakDays: 2 });
+	});
+
+	it('falls back to zeros without data', () => {
+		expect(toListeningStats(undefined)).toEqual({
+			tracksThisWeek: 0,
+			secondsThisWeek: 0,
+			streakDays: 0
+		});
 	});
 });

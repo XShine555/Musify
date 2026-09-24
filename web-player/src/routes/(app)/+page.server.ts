@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { apiFor } from '$lib/server/api';
 import { requireUser } from '$lib/server/guards';
-import { toMix, toPlaylist, toTrack } from '$lib/server/mappers';
+import { toCount, toListeningStats, toMix, toPlaylist, toTrack } from '$lib/server/mappers';
 import { addTrackAction } from '$lib/server/actions/playlist';
 import { HOME_MIXES_LIMIT, HOME_SHELF_LIMIT, HOME_SPOTLIGHT_TRACKS_LIMIT } from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
@@ -24,12 +24,8 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	});
 	const listeningStatsPromise = api
 		.GET('/users/{id}/listening-stats', { params: { path: { id: user.sub } } })
-		.then((res) => ({
-			tracksThisWeek: Number(res.data?.tracksThisWeek ?? 0),
-			secondsThisWeek: Number(res.data?.secondsThisWeek ?? 0),
-			streakDays: Number(res.data?.streakDays ?? 0)
-		}))
-		.catch(() => ({ tracksThisWeek: 0, secondsThisWeek: 0, streakDays: 0 }));
+		.then((res) => toListeningStats(res.data))
+		.catch(() => toListeningStats(null));
 
 	const [playlists, mixes, recentlyPlayed] = await Promise.all([
 		playlistsPromise,
@@ -49,7 +45,7 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 				})
 				.then((res) => ({
 					items: (res.data?.items ?? []).map(toTrack),
-					totalCount: Number(res.data?.totalItemCount ?? 0)
+					totalCount: toCount(res.data?.totalItemCount)
 				}))
 				.catch(() => ({ items: [], totalCount: 0 }))
 		: Promise.resolve({ items: [], totalCount: 0 });

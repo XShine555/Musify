@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { apiFor, unwrapOrError } from '$lib/server/api';
 import { optionalUser } from '$lib/server/guards';
-import { toPlaylist } from '$lib/server/mappers';
+import { toCount, toPlaylist } from '$lib/server/mappers';
 import { PROFILE_PLAYLISTS_PAGE_SIZE } from '$lib/config';
 import { followUserAction, unfollowUserAction } from '$lib/server/actions/follow';
 
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 
 	return {
 		profile,
-		followersCount: Number(profile.followersCount),
+		followersCount: toCount(profile.followersCount),
 		playlists,
 		isOwnProfile,
 		isAnonymous: viewer === null
