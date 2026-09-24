@@ -1,39 +1,43 @@
 using Mediator;
 using Musify.Application.Genres;
+using Musify.Application.Genres.Responses;
 
-namespace Musify.Api.Endpoints;
-
-public static class GenreEndpoints
+namespace Musify.Api.Endpoints
 {
-    public static IEndpointRouteBuilder MapGenreEndpoints(this IEndpointRouteBuilder app)
+    public static class GenreEndpoints
     {
-        var group = app.MapGroup("/genres")
-            .WithTags("Genres");
+        public static IEndpointRouteBuilder MapGenreEndpoints(this IEndpointRouteBuilder app)
+        {
+            var group = app.MapGroup("/genres")
+                .WithTags("Genres");
 
-        group.MapGet("/", GetGenres)
-            .WithName("GetGenres")
-            .WithSummary("Get The Genres That Have At Least One Track, Most Populated First. Works Anonymously.")
-            .Produces<IReadOnlyList<GenreResponse>>();
+            group.MapGet("/", GetGenres)
+                .WithName("GetGenres")
+                .WithSummary("Get the genres that have at least one track, most populated first. Works anonymously")
+                .Produces<IReadOnlyList<GenreResponse>>();
 
-        group.MapGet("/available", GetAvailableGenres)
-            .WithName("GetAvailableGenres")
-            .WithSummary("Get Every Genre A Track Can Be Tagged With, Including The Genres It Cannot Be Combined With. Works Anonymously.")
-            .Produces<IReadOnlyList<AvailableGenreResponse>>();
+            group.MapGet("/available", GetAvailableGenres)
+                .WithName("GetAvailableGenres")
+                .WithSummary("Get every genre a track can be tagged with, including the genres it cannot be combined with. Works anonymously")
+                .Produces<IReadOnlyList<AvailableGenreResponse>>();
 
-        return app;
-    }
+            return app;
+        }
 
-    private static async Task<IReadOnlyList<AvailableGenreResponse>> GetAvailableGenres(
-        IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        return await mediator.Send(new GetAvailableGenresQuery(), cancellationToken);
-    }
+        private static async Task<IResult> GetAvailableGenres(
+            IMediator mediator,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new GetAvailableGenresQuery(), cancellationToken);
+            return Results.Ok(result);
+        }
 
-    private static async Task<IReadOnlyList<GenreResponse>> GetGenres(
-        IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        return await mediator.Send(new GetGenresQuery(), cancellationToken);
+        private static async Task<IResult> GetGenres(
+            IMediator mediator,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new GetGenresQuery(), cancellationToken);
+            return Results.Ok(result);
+        }
     }
 }

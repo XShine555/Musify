@@ -1,5 +1,6 @@
 using Musify.Application.Mixes;
 using Musify.Application.Tests.TestSupport;
+using Musify.Domain.ValueObjects;
 using Xunit;
 
 namespace Musify.Application.Tests.Mixes
@@ -13,15 +14,13 @@ namespace Musify.Application.Tests.Mixes
         {
             var owner = TestEntities.User(1, "owner");
             var other = TestEntities.User(2, "other");
-            var second = TestEntities.Mix(owner.Id, "Second", position: 1);
-            var first = TestEntities.Mix(owner.Id, "First", position: 0);
-            var theirs = TestEntities.Mix(other.Id, "Theirs");
+            var second = TestEntities.Mix(owner.Id, MixKind.Daily, position: 1);
+            var first = TestEntities.Mix(owner.Id, MixKind.Discovery, position: 0);
+            var theirs = TestEntities.Mix(other.Id);
             await SeedAsync(owner, other, second, first, theirs);
 
             var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
-
-            Assert.False(result.IsError);
-            Assert.Equal(["First", "Second"], result.Value.Select(mix => mix.Title));
+            Assert.Equal([MixKind.Discovery, MixKind.Daily], result.Select(mix => mix.Kind));
         }
 
         [Fact]
@@ -31,9 +30,7 @@ namespace Musify.Application.Tests.Mixes
             await SeedAsync(owner);
 
             var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
-
-            Assert.False(result.IsError);
-            Assert.Empty(result.Value);
+            Assert.Empty(result);
         }
     }
 }

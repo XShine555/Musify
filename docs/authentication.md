@@ -15,7 +15,7 @@ Login and token issuance are handled by **Zitadel**, not the API. The API is a *
 ## `sub` is numeric → `User.Id` is `long`
 
 Zitadel's `sub` is a 64-bit integer encoded as a string (e.g. `371953080444977155`), **not a GUID**. Because of that:
-- `User.Id` and every user-related FK (`PlayList.UserId`, `UserHasTrack.UserId`, `UploadIntent.UserId`) are **`long`**.
+- `User.Id` and every user-related FK (`PlayList.OwnerUserId`, `Track.OwnerUserId`, `UploadIntent.UserId`) are **`long`**.
 - `User.Id` has `[DatabaseGenerated(None)]` so EF doesn't autogenerate it: it's assigned from the `sub`.
 - `CurrentUser.Id` is `long?` (parsed with `long.TryParse`); `RequiredId` throws if it's missing.
 

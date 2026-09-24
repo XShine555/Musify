@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Musify.Application.Configuration;
 using Musify.Infrastructure.Configuration;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
@@ -12,29 +12,23 @@ namespace Musify.Infrastructure.Observability
 {
     public static class OpenTelemetryDependencyInjection
     {
-        public static IServiceCollection AddObservability(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
         {
-            serviceDescriptors
-                .AddOptionsWithValidateOnStart<OpenTelemetryConfiguration>()
-                .Bind(configuration.GetRequiredSection(OpenTelemetryConfiguration.SectionName))
-                .ValidateDataAnnotations();
+            services.AddValidatedOptions<OpenTelemetryConfiguration>(configuration);
 
-            serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<OpenTelemetryConfiguration>>().Value);
-
-            serviceDescriptors
+            services
                 .AddOptions<OtlpExporterOptions>()
                 .Configure<OpenTelemetryConfiguration>((exporterOptions, openTelemetryConfiguration) =>
                 {
                     exporterOptions.Endpoint = new Uri(openTelemetryConfiguration.OtlpEndpoint);
-                } );
+                });
 
-            serviceDescriptors
+            services
                 .AddOpenTelemetry()
                 .ConfigureResource(resource =>
                 {
                     resource.AddService("Musify");
-                } )
+                })
                 .WithTracing(tracing =>
                     tracing.AddSource("MassTransit")
                         .AddAspNetCoreInstrumentation()
@@ -54,7 +48,7 @@ namespace Musify.Infrastructure.Observability
                     logging.AddOtlpExporter()
                 );
 
-            return serviceDescriptors;
+            return services;
         }
     }
 }

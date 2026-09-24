@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Sagas;
@@ -10,92 +11,55 @@ namespace Musify.Infrastructure.MassTransit
 {
     public static partial class MassTransitDependencyInjection
     {
-        public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddMassTransitClient(this IServiceCollection services, IConfiguration configuration)
         {
-            RegisterValidatedOptions<MassTransitConfiguration>(
-                serviceDescriptors,
-                configuration,
-                MassTransitConfiguration.SectionName);
+            services.AddValidatedOptions<MassTransitConfiguration>(configuration);
+            services.AddScoped<IEventBus, MassTransitEventBus>();
 
-            serviceDescriptors.AddScoped<IEventBus, MassTransitEventBus>();
-            serviceDescriptors.AddMassTransit(options =>
+            services.AddMassTransit(options =>
             {
-                options.AddEntityFrameworkOutbox<Database>(outbox =>
-                {
-                    outbox.UsePostgres();
-                    outbox.UseBusOutbox();
-
-                    outbox.QueryDelay = TimeSpan.FromSeconds(1);
-                    outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
-                } );
+                AddOutbox(options);
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                     ConfigureRabbitMqHost(
                         busFactoryConfigurator,
                         busRegistrationContext.GetRequiredService<MassTransitConfiguration>()));
-            } );
+            });
 
-            return serviceDescriptors;
+            return services;
         }
 
-        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddMassTransitConsumers(this IServiceCollection services, IConfiguration configuration)
         {
-            RegisterValidatedOptions<MassTransitConfiguration>(
-                serviceDescriptors,
-                configuration,
-                MassTransitConfiguration.SectionName);
+            services.AddValidatedOptions<MassTransitConfiguration>(configuration);
 
-            RegisterValidatedOptions<WorkerConfiguration>(
-                serviceDescriptors,
-                configuration,
-                WorkerConfiguration.SectionName);
+            services.AddValidatedOptions<WorkerConfiguration>(configuration);
+            services.AddScoped<IEventBus, MassTransitEventBus>();
 
-            RegisterRoutingSlipBuilders(serviceDescriptors);
+            RegisterRoutingSlipBuilders(services);
 
-            serviceDescriptors.AddMassTransit(options =>
+            services.AddMassTransit(options =>
             {
-                options.AddEntityFrameworkOutbox<Database>(outbox =>
-                {
-                    outbox.UsePostgres();
-                    outbox.UseBusOutbox();
-
-                    outbox.QueryDelay = TimeSpan.FromSeconds(1);
-                    outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
-                } );
+                AddOutbox(options);
 
                 options.SetKebabCaseEndpointNameFormatter();
 
                 RegisterConsumersAndActivities(options);
 
                 options.AddSagaStateMachine<TrackProcessingStateMachine, TrackProcessingState>()
-                    .EntityFrameworkRepository(repository =>
-                    {
-                        repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
-                        repository.ExistingDbContext<Database>();
-                        repository.UsePostgres();
-                    } );
+                    .EntityFrameworkRepository(ConfigureSagaRepository<TrackProcessingState>);
 
                 options.AddSagaStateMachine<PlayListProcessingStateMachine, PlayListProcessingState>()
-                    .EntityFrameworkRepository(repository =>
-                    {
-                        repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
-                        repository.ExistingDbContext<Database>();
-                        repository.UsePostgres();
-                    } );
+                    .EntityFrameworkRepository(ConfigureSagaRepository<PlayListProcessingState>);
 
                 options.AddSagaStateMachine<AlbumProcessingStateMachine, AlbumProcessingState>()
-                    .EntityFrameworkRepository(repository =>
-                    {
-                        repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
-                        repository.ExistingDbContext<Database>();
-                        repository.UsePostgres();
-                    } );
+                    .EntityFrameworkRepository(ConfigureSagaRepository<AlbumProcessingState>);
 
                 options.AddConfigureEndpointsCallback((registrationContext, _, endpointConfigurator) =>
                 {
                     UseStandardRetry(endpointConfigurator);
                     endpointConfigurator.UseEntityFrameworkOutbox<Database>(registrationContext);
-                } );
+                });
 
                 options.UsingRabbitMq((busRegistrationContext, busFactoryConfigurator) =>
                 {
@@ -104,13 +68,31 @@ namespace Musify.Infrastructure.MassTransit
                         busRegistrationContext.GetRequiredService<MassTransitConfiguration>());
 
                     busFactoryConfigurator.ConfigureEndpoints(busRegistrationContext);
-                } );
-            } );
+                });
+            });
 
-            return serviceDescriptors;
+            return services;
         }
 
-        static void UseStandardRetry(IReceiveEndpointConfigurator endpointConfigurator) =>
+        private static void AddOutbox(IBusRegistrationConfigurator options) =>
+            options.AddEntityFrameworkOutbox<Database>(outbox =>
+            {
+                outbox.UsePostgres();
+                outbox.UseBusOutbox();
+
+                outbox.QueryDelay = TimeSpan.FromSeconds(1);
+                outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(30);
+            });
+
+        private static void ConfigureSagaRepository<TSaga>(IEntityFrameworkSagaRepositoryConfigurator<TSaga> repository)
+            where TSaga : class, ISaga
+        {
+            repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+            repository.ExistingDbContext<Database>();
+            repository.UsePostgres();
+        }
+
+        private static void UseStandardRetry(IReceiveEndpointConfigurator endpointConfigurator) =>
             endpointConfigurator.UseMessageRetry(retryConfigurator =>
                 retryConfigurator.Exponential(
                     retryLimit: 5,
@@ -118,7 +100,7 @@ namespace Musify.Infrastructure.MassTransit
                     maxInterval: TimeSpan.FromSeconds(30),
                     intervalDelta: TimeSpan.FromSeconds(2)));
 
-        static void ConfigureRabbitMqHost(
+        private static void ConfigureRabbitMqHost(
             IRabbitMqBusFactoryConfigurator busFactoryConfigurator,
             MassTransitConfiguration massTransitConfiguration)
         {
@@ -126,7 +108,7 @@ namespace Musify.Infrastructure.MassTransit
             {
                 options.Username(massTransitConfiguration.Username);
                 options.Password(massTransitConfiguration.Password);
-            } );
+            });
         }
     }
 }

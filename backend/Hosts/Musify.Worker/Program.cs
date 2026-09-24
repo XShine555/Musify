@@ -1,51 +1,28 @@
-using Hangfire;
-using Musify.Application.Configuration;
-using Musify.Infrastructure.Jobs;
+using Musify.Application;
 using Musify.Infrastructure.MassTransit;
+using Musify.Infrastructure.Observability;
 using Musify.Infrastructure.Persistence;
 using Musify.Infrastructure.Services;
 
-var builder = Host.CreateApplicationBuilder();
+var builder = Host.CreateApplicationBuilder(args);
 
 builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProviderOptions
 {
-    ValidateOnBuild = false,
+    ValidateOnBuild = true,
     ValidateScopes = true
 }));
 
-var configuration = builder.Configuration;
-
-var services = builder.Services;
-
-services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
-services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
-services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
-services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
-services.AddStorageService(configuration);
-services.AddAudioTranscoder(configuration);
-services.AddHttpClient();
-services.AddPictureService(configuration);
-services.AddDatabase(configuration);
-services.AddMassTransitConsumers(configuration);
-services.AddUploadIntentJobs(configuration);
-services.AddMediator();
-services.AddDailyMixGenerationJob(configuration);
+builder.Services
+    .AddApplication(builder.Configuration)
+    .AddObservability(builder.Configuration)
+    .AddDatabase(builder.Configuration)
+    .AddStorageService(builder.Configuration)
+    .AddAudioTranscoder(builder.Configuration)
+    .AddStreamTicketService(builder.Configuration)
+    .AddPictureService()
+    .AddMassTransitConsumers(builder.Configuration)
+    .AddJobs();
 
 var host = builder.Build();
-
-using (var scope = host.Services.CreateScope())
-{
-    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-    recurringJobManager.AddOrUpdate<DailyMixGenerationJob>(
-        "daily-mix-generation",
-        job => job.RunAsync(CancellationToken.None),
-        Cron.Daily(),
-        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
-    recurringJobManager.AddOrUpdate<ListeningHistoryCleanupJob>(
-        "listening-history-cleanup",
-        job => job.RunAsync(CancellationToken.None),
-        Cron.Daily(3),
-        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
-}
 
 host.Run();

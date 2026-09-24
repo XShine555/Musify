@@ -4,7 +4,8 @@ import { apiFor } from '$lib/server/api';
 import { loginRedirect } from '$lib/server/guards';
 import { toCount, toLikedTrack, toPlaylist, toTrack } from '$lib/server/mappers';
 import { authConfig } from '$lib/server/config';
-import { LIKED_TRACKS_PAGE_SIZE, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
+import { fetchAllPages } from '$lib/server/pagination';
+import { LIKED_TRACKS_LIMIT, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
 function orFallback<T>(load: Promise<T>, fallback: T): Promise<T> {
 	return load.catch(() => fallback);
@@ -50,11 +51,11 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 			{ items: [], total: 0 }
 		),
 		orFallback(
-			api
-				.GET('/likes', {
-					params: { query: { pageNumber: 1, pageSize: LIKED_TRACKS_PAGE_SIZE } }
-				})
-				.then(({ data }) => (data?.items ?? []).map(toLikedTrack)),
+			fetchAllPages(
+				async (pageNumber, pageSize) =>
+					(await api.GET('/likes', { params: { query: { pageNumber, pageSize } } })).data,
+				LIKED_TRACKS_LIMIT
+			).then((items) => items.map(toLikedTrack)),
 			[]
 		),
 		orFallback(

@@ -13,26 +13,28 @@ App bucket: **`webapi-storage`** (`ApplicationStorage:Bucket`). Important: the A
 
 ## Key layout
 
-- `temp/{userId}/Tracks/{guid}.{ext}`: temporary uploads, the target of presigned PUTs, before the intent is consumed.
-- `uploads/{userId}/Tracks/OriginalPictures|OriginalAudios/...`: originals that have already been consumed.
-- `Tracks/SmallPictures|MediumPictures|LargePictures/...`: generated thumbnails.
+The layout is configured per owner (the `Track`, `PlayList` and `Album` sections, `Routes`); `ParentFolder` is `Tracks`, `PlayLists` or `Albums`.
+
+- `{TempRootPrefix}/{userId}/{ParentFolder}/{guid}.{ext}`: temporary uploads, the target of presigned PUTs, before the intent is consumed (`UploadIntent:TempRootPrefix`, default `temp`; objects under the old `temporal/` prefix from earlier versions may need a one-off clean-up).
+- `uploads/{userId}/{ParentFolder}/OriginalPictures|OriginalAudios/...`: originals that have already been consumed.
+- `{ParentFolder}/SmallPictures|MediumPictures|LargePictures/...`: generated thumbnails.
 - `Tracks/ProcessedAudios/{AudioFolderName}/`: transcoded audio (`audio.m4a`, AAC with faststart).
 
 Keys are always built with the `StorageKey.Combine(...)` helper (in `Application/Shared`), which joins segments with `/` and trims stray spaces and slashes. It's centralized to keep the logic consistent and avoid repeating it.
 
-> In the filer, S3 objects live under `/buckets/{bucket}/{key}`, which is why the gateway rewrites `/media/{key}` → `/buckets/webapi-storage/{key}`.
+> In the filer, S3 objects live under `/buckets/{bucket}/{key}`, which is why the gateway rewrites `/media/{key}` → `/buckets/{bucket}/{key}` (the bucket comes from the compose override `S3_BUCKET`; the default in the gateway's `appsettings.json` is the placeholder `CHANGE_ME`).
 
 ## Presigned URLs
 
 To **avoid** routing large files through the API, the client talks to S3 directly using short-lived signed URLs:
 
-- **Uploads (PUT)**: `RequestTrackUploadUrls` / `RequestPlayListPictureUpload` generate presigned PUTs (with signed `Content-Type` and `If-None-Match: *`, ~120s expiry). The client uploads straight to S3.
+- **Uploads (PUT)**: `RequestTrackUploadUrls` / `RequestAlbumPictureUpload` / `RequestPlayListPictureUpload` (issued by `UploadIntentIssuer`) generate presigned PUTs (with signed `Content-Type` and `If-None-Match: *`, ~120s expiry). The client uploads straight to S3.
 - **Images (GET)**: thumbnails are served via presigned GETs (one object = one URL).
 
 **Why presigned instead of proxying**: routing a ~100 MB audio file through the API would burn memory and bandwidth on the application servers and wouldn't scale well. A direct presigned PUT to S3 is the standard, correct pattern here.
 
 ### Upload intents and quota
-Every `upload-urls` call creates **UploadIntents** (reservations in the `Issued` state) and returns the URLs. They're **consumed** when the track/playlist is created. There's a per-user quota (`MaxActiveUploadIntentsPerUser`, byte limits…) to prevent abuse. The `UploadIntentExpirationJob` (in the Worker) marks expired intents and frees up quota. If that job isn't running, stale intents pile up and block new uploads.
+Every `upload-urls` call creates **UploadIntents** (reservations in the `Issued` state) and returns the URLs. They're **consumed** when the track/playlist is created. There's a per-user quota (`MaxActiveUploadIntentsPerUser`, byte limits…) to prevent abuse. The `UploadIntentExpirationJob` (a Hangfire job on the Worker) marks expired intents and frees up quota, and `TempUploadsCleanupJob` deletes abandoned temporary objects. If the Worker isn't running, stale intents pile up and block new uploads. An intent is bound to its purpose (track picture/audio, album picture, playlist picture) and the same intent can't be used for two files.
 
 ## What's public and what's private (deployment)
 

@@ -16,9 +16,9 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 
 	const [albumRes, tracksRes, libraryRes] = await Promise.all([
 		api.GET('/albums/{id}', { params: { path: { id: params.id } } }),
-		api.GET('/albums/{albumId}/tracks', {
+		api.GET('/albums/{id}/tracks', {
 			params: {
-				path: { albumId: params.id },
+				path: { id: params.id },
 				query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE }
 			}
 		}),
@@ -50,8 +50,9 @@ export const actions: Actions = {
 		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const result = await api.POST('/albums/{albumId}/tracks/{trackId}', {
-			params: { path: { albumId: params.id, trackId } }
+		const result = await api.POST('/albums/{id}/tracks', {
+			params: { path: { id: params.id } },
+			body: { trackIds: [trackId] }
 		});
 		return failOnError(result, 'No se pudo añadir la canción.') ?? { added: true };
 	}),
@@ -60,8 +61,8 @@ export const actions: Actions = {
 		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const result = await api.DELETE('/albums/{albumId}/tracks/{trackId}', {
-			params: { path: { albumId: params.id, trackId } }
+		const result = await api.DELETE('/albums/{id}/tracks/{trackId}', {
+			params: { path: { id: params.id, trackId } }
 		});
 		return failOnError(result, 'No se pudo quitar la canción.') ?? { removed: true };
 	}),
@@ -75,21 +76,21 @@ export const actions: Actions = {
 			return fail(502, { message: cover.failMessage, detail: cover.detail });
 		}
 
-		const result = await api.PUT('/albums/{albumId}', {
-			params: { path: { albumId: params.id } },
+		const result = await api.PUT('/albums/{id}', {
+			params: { path: { id: params.id } },
 			body: {
-				newTitle: parsed.body.title,
-				newDescription: parsed.body.description,
-				newReleaseYear: parsed.body.releaseYear,
-				newPictureIntentId: cover.intentId
+				title: parsed.body.title,
+				description: parsed.body.description,
+				releaseYear: parsed.body.releaseYear,
+				pictureIntentId: cover.intentId
 			}
 		});
 		return failOnError(result, 'No se pudo actualizar el álbum.') ?? { edited: true };
 	}),
 
 	delete: authedAction(async ({ api, params }) => {
-		const result = await api.DELETE('/albums/{albumId}', {
-			params: { path: { albumId: params.id } }
+		const result = await api.DELETE('/albums/{id}', {
+			params: { path: { id: params.id } }
 		});
 		const failure = failOnError(result, 'No se pudo eliminar el álbum.');
 		if (failure) return failure;

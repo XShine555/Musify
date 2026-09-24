@@ -3,13 +3,13 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Shared;
+using Musify.Application.Contracts;
 using Musify.Application.Events;
+using Musify.Application.Pictures;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Services;
-using Musify.Domain.Entities;
+using Musify.Application.Shared;
 using Musify.Domain.ValueObjects;
-using Musify.Application.Contracts;
 
 namespace Musify.Application.PlayLists
 {
@@ -19,7 +19,7 @@ namespace Musify.Application.PlayLists
         string? NewName,
         string? NewDescription,
         Guid? NewPictureIntentId,
-        PlaylistVisibility? NewVisibility = null)
+        PlayListVisibility? NewVisibility = null)
         : ICommand<ErrorOr<PlayListApplicationResponse>>;
 
     public class UpdatePlayListCommandHandler(
@@ -27,144 +27,55 @@ namespace Musify.Application.PlayLists
         IDatabase database,
         UploadIntentValidator uploadIntentValidator,
         ILogger<UpdatePlayListCommandHandler> logger,
-        ApplicationStorageConfiguration storageConfiguration,
-        PlayListConfiguration playListConfiguration,
-        UploadIntentConfiguration uploadIntentConfiguration)
+        PlayListConfiguration playListConfiguration)
         : ICommandHandler<UpdatePlayListCommand, ErrorOr<PlayListApplicationResponse>>
     {
         public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(UpdatePlayListCommand request, CancellationToken cancellationToken)
         {
-            var playListEntity = await database.PlayLists.SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
-            if (playListEntity == null)
-            {
-                logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
-                return Error.NotFound();
-            }
+            var found = await database.PlayLists.FindOwnedAsync(request.PlayListId, request.UserId, cancellationToken);
+            if (found.IsError)
+                return found.Errors;
 
-            if (playListEntity.UserId != request.UserId)
-            {
-                logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-                return Error.Unauthorized();
-            }
+            var playList = found.Value;
 
             if (!string.IsNullOrWhiteSpace(request.NewName))
             {
-                playListEntity.Name = request.NewName;
-                playListEntity.NormalizedName = request.NewName.Trim().ToUpperInvariant();
+                playList.Name = request.NewName.Trim();
+                playList.NormalizedName = TextNormalizer.Normalize(request.NewName);
             }
 
-            if (!string.IsNullOrWhiteSpace(request.NewDescription))
+            // null means "unchanged"; a blank description clears it.
+            if (request.NewDescription != null)
+                playList.Description = string.IsNullOrWhiteSpace(request.NewDescription) ? null : request.NewDescription.Trim();
+
+            if (request.NewVisibility is { } visibility)
+                playList.Visibility = visibility;
+
+            if (request.NewPictureIntentId is { } intentId)
             {
-                playListEntity.Description = request.NewDescription;
-            }
+                var prepared = await PictureSourceChange.PrepareAsync(
+                    uploadIntentValidator, intentId, request.UserId, UploadIntentPurpose.PlayListPicture, playListConfiguration, cancellationToken);
+                if (prepared.IsError)
+                    return prepared.Errors;
 
-            if (request.NewVisibility.HasValue)
-            {
-                playListEntity.Visibility = request.NewVisibility.Value;
-            }
+                var picture = prepared.Value;
+                playList.Pictures = picture.Pictures;
 
-            UploadIntent? pictureIntent = null;
-            string? finalPictureKey = null;
-
-            if (request.NewPictureIntentId.HasValue)
-            {
-                var validation = await uploadIntentValidator.ValidateAndLoadAsync(
-                    uploadIntentConfiguration,
-                    request.NewPictureIntentId.Value, request.UserId, cancellationToken);
-                if (validation.IsError)
-                    return validation.Errors;
-
-                pictureIntent = validation.Value;
-                playListEntity.Pictures = new PlayListPictures
-                {
-                    OriginalName = pictureIntent.ObjectName,
-                    SmallName = pictureIntent.ObjectName,
-                    MediumName = pictureIntent.ObjectName,
-                    LargeName = pictureIntent.ObjectName
-                };
-                finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
-            }
-
-            if (pictureIntent != null && finalPictureKey != null)
-            {
-                var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(
-                    playListEntity.Id, pictureIntent, finalPictureKey, cancellationToken);
-                if (publishResult.IsError)
-                    return publishResult.Errors;
-            }
-
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to update playlist {PlayListId}", playListEntity.Id);
-                return Error.Failure(description: $"Failed to update playlist {playListEntity.Id}");
-            }
-
-            var coverTrackIds = await database.PlayListHasTracks
-                .AsNoTracking()
-                .Where(plt => plt.PlayListId == playListEntity.Id)
-                .OrderBy(plt => plt.Position)
-                .Take(PlayListApplicationResponse.CoverTrackCount)
-                .Select(plt => plt.TrackId)
-                .ToListAsync(cancellationToken);
-
-            logger.LogInformation("Updated playlist {PlayListId}", playListEntity.Id);
-            var totals = await database.PlayListHasTracks
-                .AsNoTracking()
-                .Where(plt => plt.PlayListId == playListEntity.Id)
-                .GroupBy(plt => plt.PlayListId)
-                .Select(group => new
-                {
-                    TrackCount = group.Count(),
-                    DurationSeconds = group.Sum(plt => plt.Track.DurationSeconds)
-                })
-                .SingleOrDefaultAsync(cancellationToken);
-
-            return PlayListApplicationResponse.FromEntity(
-                playListEntity,
-                totals?.TrackCount ?? 0,
-                totals?.DurationSeconds ?? 0,
-                coverTrackIds);
-        }
-
-        private async Task<ErrorOr<Success>> PublishUpdatePlayListPictureSourceEventAsync(
-            Guid playListId,
-            UploadIntent pictureIntent,
-            string finalPictureKey,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
                 await eventBus.PublishAsync(
                     new UpdatePlayListPictureSourceEvent(
-                        playListId,
-                        pictureIntent.Id,
-                        storageConfiguration.Bucket,
-                        pictureIntent.Key,
-                        finalPictureKey,
-                        new ImageSize(
-                            playListConfiguration.Routes.SmallPicturesPath,
-                            playListConfiguration.PicturesSizes.SmallPictureWidth,
-                            playListConfiguration.PicturesSizes.SmallPictureHeight),
-                        new ImageSize(
-                            playListConfiguration.Routes.MediumPicturesPath,
-                            playListConfiguration.PicturesSizes.MediumPictureWidth,
-                            playListConfiguration.PicturesSizes.MediumPictureHeight),
-                        new ImageSize(
-                            playListConfiguration.Routes.LargePicturesPath,
-                            playListConfiguration.PicturesSizes.LargePictureWidth,
-                            playListConfiguration.PicturesSizes.LargePictureHeight)),
+                        playList.Id, picture.Intent.Id, picture.Intent.Bucket, picture.Intent.Key, picture.FinalKey, picture.Sizes),
                     cancellationToken);
-                return new Success();
             }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to publish update playlist picture source event for playlist {PlayListId}", playListId);
-                return Error.Failure(description: $"Failed to publish update playlist picture source event for playlist {playListId}");
-            }
+
+            await database.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Updated playlist {PlayListId}", playList.Id);
+
+            return await database.PlayLists
+                .AsNoTracking()
+                .Where(p => p.Id == playList.Id)
+                .SelectResponse()
+                .SingleAsync(cancellationToken);
         }
     }
 }

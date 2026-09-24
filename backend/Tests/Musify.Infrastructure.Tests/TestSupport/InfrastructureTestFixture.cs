@@ -1,13 +1,13 @@
 using System.Text.Json;
 using Amazon.S3;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
 using Xunit;
 
 namespace Musify.Infrastructure.Tests.TestSupport
@@ -17,6 +17,8 @@ namespace Musify.Infrastructure.Tests.TestSupport
         public const string S3AccessKey = "musify-test";
         public const string S3SecretKey = "musify-test-secret";
         public const string S3Bucket = "musify-test-bucket";
+
+        private static readonly string[] S3Actions = ["Admin", "Read", "Write"];
 
         private readonly PostgreSqlContainer postgres = new PostgreSqlBuilder("postgres:17-alpine")
             .WithDatabase("musify_test")
@@ -83,17 +85,17 @@ namespace Musify.Infrastructure.Tests.TestSupport
                     {
                         name = "musify-test",
                         credentials = new[] { new { accessKey = S3AccessKey, secretKey = S3SecretKey } },
-                        actions = new[] { "Admin", "Read", "Write" }
+                        actions = S3Actions
                     }
                 }
             });
 
             return $"""
-                cat > /tmp/s3.conf <<'JSON'
-                {identity}
-                JSON
-                exec weed server -ip.bind=0.0.0.0 -dir=/data -master.volumeSizeLimitMB=1024 -volume.max=0 -filer -s3 -s3.config=/tmp/s3.conf
-                """;
+            cat > /tmp/s3.conf <<'JSON'
+            {identity}
+            JSON
+            exec weed server -ip.bind=0.0.0.0 -dir=/data -master.volumeSizeLimitMB=1024 -volume.max=0 -filer -s3 -s3.config=/tmp/s3.conf
+            """;
         }
     }
 

@@ -1,3 +1,4 @@
-namespace Musify.Api.DataTransferObjects.Tracks;
-
-public record RecordListeningProgressRequest(double PlayedSeconds);
+namespace Musify.Api.DataTransferObjects.Tracks
+{
+    public record RecordListeningProgressRequest(double PlayedSeconds);
+}

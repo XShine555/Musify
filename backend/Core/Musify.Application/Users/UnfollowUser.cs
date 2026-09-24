@@ -19,14 +19,14 @@ namespace Musify.Application.Users
                 .SingleOrDefaultAsync(f => f.FollowerId == request.FollowerId && f.FollowedId == request.FollowedId, cancellationToken);
 
             if (follow == null)
-                return new Success();
+                return Result.Success;
 
             database.UserFollows.Remove(follow);
             await database.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("User {FollowerId} unfollowed user {FollowedId}", request.FollowerId, request.FollowedId);
 
-            return new Success();
+            return Result.Success;
         }
     }
 }

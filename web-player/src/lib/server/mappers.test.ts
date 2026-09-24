@@ -56,11 +56,11 @@ describe('toMix', () => {
 	it('maps items into tracks', () => {
 		const mix = toMix({
 			id: 'm1',
-			title: 'Mix',
-			subtitle: null,
+			kind: 'Daily',
 			itemCount: 1,
 			items: [{ trackId: 't1', title: 'Song', artist: 'A', durationSeconds: '60', listensCount: 3 }]
 		});
+		expect(mix.title).toBe('Tu mezcla diaria');
 		expect(mix.tracks).toEqual([
 			{
 				id: 't1',

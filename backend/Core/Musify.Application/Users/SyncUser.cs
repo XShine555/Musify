@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Users
@@ -29,7 +30,7 @@ namespace Musify.Application.Users
                 {
                     Id = request.Id,
                     Name = request.Name,
-                    NormalizedName = request.Name.ToUpperInvariant(),
+                    NormalizedName = TextNormalizer.Normalize(request.Name),
                     FirstName = request.FirstName,
                     SecondName = request.SecondName,
                     ProfilePictureUrl = request.ProfilePictureUrl
@@ -38,11 +39,11 @@ namespace Musify.Application.Users
                 await database.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("Provisioned user {UserId}", request.Id);
 
-                return new Success();
+                return Result.Success;
             }
 
             user.Name = request.Name;
-            user.NormalizedName = request.Name.ToUpperInvariant();
+            user.NormalizedName = TextNormalizer.Normalize(request.Name);
             user.FirstName = request.FirstName;
             user.SecondName = request.SecondName;
             user.ProfilePictureUrl = request.ProfilePictureUrl;
@@ -51,7 +52,7 @@ namespace Musify.Application.Users
             if (written > 0)
                 logger.LogInformation("Synced profile for user {UserId}", request.Id);
 
-            return new Success();
+            return Result.Success;
         }
     }
 }

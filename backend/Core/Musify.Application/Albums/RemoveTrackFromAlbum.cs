@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Albums
 {
@@ -16,20 +17,9 @@ namespace Musify.Application.Albums
     {
         public async ValueTask<ErrorOr<Success>> Handle(RemoveTrackFromAlbumCommand request, CancellationToken cancellationToken)
         {
-            var album = await database.Albums
-                .AsNoTracking()
-                .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
-            if (album == null)
-            {
-                logger.LogInformation("Album {AlbumId} not found", request.AlbumId);
-                return Error.NotFound();
-            }
-
-            if (album.OwnerUserId != request.UserId)
-            {
-                logger.LogWarning("User {UserId} is not the owner of album {AlbumId}", request.UserId, request.AlbumId);
-                return Error.Unauthorized();
-            }
+            var album = await database.Albums.FindOwnedAsync(request.AlbumId, request.UserId, cancellationToken);
+            if (album.IsError)
+                return album.Errors;
 
             var albumTracks = await database.AlbumHasTracks
                 .Where(albumTrack => albumTrack.AlbumId == request.AlbumId)
@@ -38,10 +28,7 @@ namespace Musify.Application.Albums
 
             var link = albumTracks.SingleOrDefault(albumTrack => albumTrack.TrackId == request.TrackId);
             if (link == null)
-            {
-                logger.LogInformation("Track {TrackId} not in album {AlbumId}", request.TrackId, request.AlbumId);
-                return Error.NotFound(description: "Track is not in the album.");
-            }
+                return Error.NotFound("Album.TrackNotFound", "Track is not in the album.");
 
             database.AlbumHasTracks.Remove(link);
 
@@ -53,7 +40,7 @@ namespace Musify.Application.Albums
 
             logger.LogInformation("Removed track {TrackId} from album {AlbumId}", request.TrackId, request.AlbumId);
 
-            return new Success();
+            return Result.Success;
         }
     }
 }

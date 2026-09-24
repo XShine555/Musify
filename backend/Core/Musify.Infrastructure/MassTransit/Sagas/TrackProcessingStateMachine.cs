@@ -19,10 +19,26 @@ namespace Musify.Infrastructure.MassTransit.Sagas
             InstanceState(state => state.CurrentState);
 
             Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.TrackId));
-            Event(() => PictureProcessed, config => config.CorrelateById(context => context.Message.TrackId));
-            Event(() => AudioProcessed, config => config.CorrelateById(context => context.Message.TrackId));
-            Event(() => PictureFailed, config => config.CorrelateById(context => context.Message.TrackId));
-            Event(() => AudioFailed, config => config.CorrelateById(context => context.Message.TrackId));
+            Event(() => PictureProcessed, config =>
+            {
+                config.CorrelateById(context => context.Message.TrackId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
+            Event(() => AudioProcessed, config =>
+            {
+                config.CorrelateById(context => context.Message.TrackId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
+            Event(() => PictureFailed, config =>
+            {
+                config.CorrelateById(context => context.Message.TrackId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
+            Event(() => AudioFailed, config =>
+            {
+                config.CorrelateById(context => context.Message.TrackId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
 
             Initially(
                 When(ProcessingStarted)
@@ -33,7 +49,7 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                         context.Saga.Bucket = context.Message.Bucket;
                         context.Saga.PictureKey = context.Message.PictureDestinationKey;
                         context.Saga.AudioKey = context.Message.AudioDestinationKey;
-                    } )
+                    })
                     .TransitionTo(Processing));
 
             During(Processing,
@@ -42,14 +58,14 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                     {
                         context.Saga.PictureProcessed = true;
                         context.Saga.UpdatedAt = DateTime.UtcNow;
-                    } )
+                    })
                     .If(context => context.Saga.AudioProcessed, binder => binder.Finalize()),
                 When(AudioProcessed)
                     .Then(context =>
                     {
                         context.Saga.AudioProcessed = true;
                         context.Saga.UpdatedAt = DateTime.UtcNow;
-                    } )
+                    })
                     .If(context => context.Saga.PictureProcessed, binder => binder.Finalize()),
                 When(PictureFailed)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)

@@ -19,8 +19,10 @@ namespace Musify.Domain.ValueObjects
             var mellow = new[] { Genre.Classical, Genre.Ambient, Genre.Lofi };
 
             foreach (var intenseGenre in intense)
+            {
                 foreach (var mellowGenre in mellow)
                     Add(intenseGenre, mellowGenre);
+            }
 
             return pairs;
         }

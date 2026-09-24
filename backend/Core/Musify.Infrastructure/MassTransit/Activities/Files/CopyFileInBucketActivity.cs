@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
     internal class CopyFileInBucketActivity(
-        IStorageService storageHandler,
+        IStorageService storageService,
         ILogger<CopyFileInBucketActivity> logger)
         : IActivity<CopyFileInBucketArguments, CopyFileInBucketLog>
     {
@@ -15,35 +15,23 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
 
         public async Task<ExecutionResult> Execute(ExecuteContext<CopyFileInBucketArguments> executeContext)
         {
-            try
-            {
-                await storageHandler.CopyFileAsync(
-                    executeContext.Arguments.SourceBucket,
-                    executeContext.Arguments.SourceKey,
-                    executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationKey,
-                    executeContext.CancellationToken);
+            await storageService.CopyFileAsync(
+                executeContext.Arguments.SourceBucket,
+                executeContext.Arguments.SourceKey,
+                executeContext.Arguments.DestinationBucket,
+                executeContext.Arguments.DestinationKey,
+                executeContext.CancellationToken);
 
-                return executeContext.Completed(new CopyFileInBucketLog(
-                    executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationKey));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to copy {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
-                    executeContext.Arguments.SourceBucket,
-                    executeContext.Arguments.SourceKey,
-                    executeContext.Arguments.DestinationBucket,
-                    executeContext.Arguments.DestinationKey);
-                throw;
-            }
+            return executeContext.Completed(new CopyFileInBucketLog(
+                executeContext.Arguments.DestinationBucket,
+                executeContext.Arguments.DestinationKey));
         }
 
         public async Task<CompensationResult> Compensate(CompensateContext<CopyFileInBucketLog> compensateContext)
         {
             try
             {
-                await storageHandler.RemoveFileAsync(
+                await storageService.RemoveFileAsync(
                     compensateContext.Log.DestinationBucket,
                     compensateContext.Log.DestinationKey,
                     compensateContext.CancellationToken);

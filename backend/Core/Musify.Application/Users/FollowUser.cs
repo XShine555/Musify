@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.Users
@@ -23,16 +24,13 @@ namespace Musify.Application.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Id == request.FollowedId, cancellationToken);
             if (!followedExists)
-            {
-                logger.LogInformation("User {FollowedId} not found", request.FollowedId);
-                return Error.NotFound(description: $"User {request.FollowedId} not found");
-            }
+                return AppErrors.NotFound("User", request.FollowedId);
 
             var alreadyFollowing = await database.UserFollows
                 .AsNoTracking()
                 .AnyAsync(f => f.FollowerId == request.FollowerId && f.FollowedId == request.FollowedId, cancellationToken);
             if (alreadyFollowing)
-                return new Success();
+                return Result.Success;
 
             await database.UserFollows.AddAsync(new UserFollow
             {
@@ -40,11 +38,15 @@ namespace Musify.Application.Users
                 FollowedId = request.FollowedId
             }, cancellationToken);
 
-            await database.SaveChangesAsync(cancellationToken);
+            // A concurrent double click can hit the unique index; already following is a successful no-op.
+            var saved = await database.TrySaveChangesAsync(
+                AppErrors.Conflict("UserFollow.Duplicate", "Already following this user."), cancellationToken);
+            if (saved.IsError)
+                return Result.Success;
 
             logger.LogInformation("User {FollowerId} followed user {FollowedId}", request.FollowerId, request.FollowedId);
 
-            return new Success();
+            return Result.Success;
         }
     }
 }

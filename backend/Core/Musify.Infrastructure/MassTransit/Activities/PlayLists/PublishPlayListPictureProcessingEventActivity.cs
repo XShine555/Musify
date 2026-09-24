@@ -21,9 +21,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
                     arguments.PlayListId,
                     arguments.Bucket,
                     arguments.FinalPictureKey,
-                    arguments.Small,
-                    arguments.Medium,
-                    arguments.Large),
+                    arguments.Sizes),
                 executeContext.CancellationToken);
 
             logger.LogInformation("Published picture processing event for playlist {PlayListId}", arguments.PlayListId);

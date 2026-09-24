@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Albums
 {
@@ -16,23 +17,14 @@ namespace Musify.Application.Albums
         {
             var album = await database.Albums
                 .AsNoTracking()
+                .Active()
                 .Where(a => a.Id == request.Id)
-                .Select(a => new
-                {
-                    Album = a,
-                    TrackCount = a.AlbumTracks.Count,
-                    CoverTrackIds = a.AlbumTracks
-                        .OrderBy(albumTrack => albumTrack.TrackNumber)
-                        .Take(AlbumApplicationResponse.CoverTrackCount)
-                        .Select(albumTrack => albumTrack.TrackId)
-                        .ToList()
-                })
+                .SelectResponse()
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (album == null)
-                return Error.NotFound();
-
-            return AlbumApplicationResponse.FromEntity(album.Album, album.TrackCount, album.CoverTrackIds);
+            return album == null
+                ? AppErrors.NotFound("Album", request.Id)
+                : album;
         }
     }
 }

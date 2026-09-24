@@ -24,8 +24,8 @@ export const actions: Actions = {
 		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const result = await api.DELETE('/tracks/{trackId}', {
-			params: { path: { trackId } }
+		const result = await api.DELETE('/tracks/{id}', {
+			params: { path: { id: trackId } }
 		});
 		return failOnError(result, 'No se pudo borrar la canción.') ?? { deleted: true };
 	})

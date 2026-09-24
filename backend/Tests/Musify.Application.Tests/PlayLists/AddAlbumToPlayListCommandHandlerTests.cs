@@ -63,7 +63,7 @@ namespace Musify.Application.Tests.PlayLists
         }
 
         [Fact]
-        public async Task Handle_NotOwner_ReturnsUnauthorized()
+        public async Task Handle_NotOwner_ReturnsForbidden()
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
@@ -73,7 +73,7 @@ namespace Musify.Application.Tests.PlayLists
 
             var result = await CreateHandler().Handle(new AddAlbumToPlayListCommand(stranger.Id, playList.Id, album.Id), TestContext.Current.CancellationToken);
 
-            Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+            Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
         }
 
         [Fact]

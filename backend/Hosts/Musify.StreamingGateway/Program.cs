@@ -1,20 +1,25 @@
+using Microsoft.Extensions.Options;
 using Musify.StreamingGateway.Authentication;
 using Musify.StreamingGateway.Configuration;
 using Musify.StreamingGateway.Middleware;
 
-var builder = WebApplication.CreateBuilder();
+const string CorsPolicy = "media-clients";
+
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddOptions<StreamTicketValidationOptions>()
-    .Bind(builder.Configuration.GetRequiredSection(StreamTicketValidationOptions.SectionName))
+    .AddOptions<StreamTicketValidationConfiguration>()
+    .Bind(builder.Configuration.GetRequiredSection(StreamTicketValidationConfiguration.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddSingleton(serviceProvider =>
+    serviceProvider.GetRequiredService<IOptions<StreamTicketValidationConfiguration>>().Value);
+
 builder.Services.AddSingleton<TicketValidator>();
 
-const string corsPolicy = "media-clients";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-builder.Services.AddCors(options => options.AddPolicy(corsPolicy, policy =>
+builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
 {
     if (builder.Environment.IsDevelopment())
         policy.AllowAnyOrigin();
@@ -24,7 +29,7 @@ builder.Services.AddCors(options => options.AddPolicy(corsPolicy, policy =>
     policy.AllowAnyHeader()
         .WithMethods("GET", "HEAD")
         .WithExposedHeaders("Content-Range", "Accept-Ranges", "Content-Length");
-} ));
+}));
 
 builder.Services
     .AddReverseProxy()
@@ -33,9 +38,9 @@ builder.Services
 var app = builder.Build();
 
 app.MapGet("/health", () => Results.Ok("healthy"))
-    .WithSummary("Health Check Endpoint");
+    .WithSummary("Health check endpoint");
 
-app.UseCors(corsPolicy);
+app.UseCors(CorsPolicy);
 app.UseMiddleware<TicketValidationMiddleware>();
 app.MapReverseProxy();
 

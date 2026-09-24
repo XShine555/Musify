@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
     internal class DownloadFileFromBucketActivity(
-        IStorageService storageHandler,
+        IStorageService storageService,
         ILogger<DownloadFileFromBucketActivity> logger)
         : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
     {
@@ -16,34 +16,27 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
         public async Task<ExecutionResult> Execute(ExecuteContext<DownloadFileFromBucketArguments> executeContext)
         {
             var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
-            ArgumentNullException.ThrowIfNull(destinationPath, nameof(destinationPath));
+            ArgumentNullException.ThrowIfNull(destinationPath);
 
-            try
-            {
-                using var fileStream = await storageHandler.GetFileAsync(
-                    executeContext.Arguments.Bucket,
-                    executeContext.Arguments.Key,
-                    executeContext.CancellationToken);
+            using var fileStream = await storageService.GetFileAsync(
+                executeContext.Arguments.Bucket,
+                executeContext.Arguments.Key,
+                executeContext.CancellationToken)
+                ?? throw new FileNotFoundException($"Object {executeContext.Arguments.Bucket}/{executeContext.Arguments.Key} was not found.");
 
-                var destinationDirectory = Path.GetDirectoryName(destinationPath);
-                if (!string.IsNullOrWhiteSpace(destinationDirectory))
-                    Directory.CreateDirectory(destinationDirectory);
+            var destinationDirectory = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrWhiteSpace(destinationDirectory))
+                Directory.CreateDirectory(destinationDirectory);
 
-                if (fileStream.CanSeek)
-                    fileStream.Position = 0;
+            if (fileStream.CanSeek)
+                fileStream.Position = 0;
 
-                using var destinationStream = File.Create(destinationPath);
-                await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
-                return executeContext.Completed(new DownloadFileFromBucketLog(
-                    executeContext.Arguments.Bucket,
-                    executeContext.Arguments.Key,
-                    destinationPath));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to download file from bucket");
-                throw;
-            }
+            using var destinationStream = File.Create(destinationPath);
+            await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
+            return executeContext.Completed(new DownloadFileFromBucketLog(
+                executeContext.Arguments.Bucket,
+                executeContext.Arguments.Key,
+                destinationPath));
         }
 
         public Task<CompensationResult> Compensate(CompensateContext<DownloadFileFromBucketLog> compensateContext)

@@ -1,37 +1,36 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
 
-namespace Musify.Api.Authentication;
-
-public sealed class JwtBearerOptionsSetup(IOptions<AuthenticationConfiguration> options)
-    : IConfigureNamedOptions<JwtBearerOptions>
+namespace Musify.Api.Authentication
 {
-    private readonly AuthenticationConfiguration _configuration = options.Value;
-
-    public void Configure(string? name, JwtBearerOptions options)
+    public sealed class JwtBearerOptionsSetup(IOptions<AuthenticationConfiguration> options)
+        : IConfigureNamedOptions<JwtBearerOptions>
     {
-        if (name != JwtBearerDefaults.AuthenticationScheme)
+        private readonly AuthenticationConfiguration configuration = options.Value;
+
+        public void Configure(string? name, JwtBearerOptions options)
         {
-            return;
+            if (name != JwtBearerDefaults.AuthenticationScheme)
+                return;
+
+            Configure(options);
         }
 
-        Configure(options);
-    }
-
-    public void Configure(JwtBearerOptions options)
-    {
-        options.MetadataAddress = _configuration.MetadataAddress;
-        options.RequireHttpsMetadata = _configuration.RequireHttpsMetadata;
-        options.Audience = _configuration.AudienceAddress;
-        options.TokenValidationParameters = new TokenValidationParameters
+        public void Configure(JwtBearerOptions options)
         {
-            ValidIssuer = _configuration.IssuerAddress,
-            ValidAudience = _configuration.AudienceAddress,
-            RoleClaimType = ClaimTypes.Role,
-            NameClaimType = ClaimTypes.Name,
-        };
-        options.EventsType = typeof(JwtBearerEventsHandler);
+            options.MetadataAddress = configuration.MetadataAddress;
+            options.RequireHttpsMetadata = configuration.RequireHttpsMetadata;
+            options.Audience = configuration.AudienceAddress;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidIssuer = configuration.IssuerAddress,
+                ValidAudience = configuration.AudienceAddress,
+                RoleClaimType = ClaimTypes.Role,
+                NameClaimType = ClaimTypes.Name,
+            };
+            options.EventsType = typeof(JwtBearerEventsHandler);
+        }
     }
 }

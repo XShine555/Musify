@@ -1,8 +1,10 @@
 using ErrorOr;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Events;
+using Musify.Application.Shared;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums
 {
@@ -11,40 +13,25 @@ namespace Musify.Application.Albums
 
     public class DeleteAlbumCommandHandler(
         IDatabase database,
+        IEventBus eventBus,
         ILogger<DeleteAlbumCommandHandler> logger)
         : ICommandHandler<DeleteAlbumCommand, ErrorOr<Success>>
     {
         public async ValueTask<ErrorOr<Success>> Handle(DeleteAlbumCommand request, CancellationToken cancellationToken)
         {
-            var album = await database.Albums
-                .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
-            if (album == null)
-            {
-                logger.LogDebug("Album {AlbumId} not found", request.AlbumId);
-                return Error.NotFound();
-            }
+            var found = await database.Albums.FindOwnedAsync(request.AlbumId, request.UserId, cancellationToken);
+            if (found.IsError)
+                return found.Errors;
 
-            if (album.OwnerUserId != request.UserId)
-            {
-                logger.LogWarning("Album {AlbumId} does not belong to user {UserId}", request.AlbumId, request.UserId);
-                return Error.Unauthorized();
-            }
+            var album = found.Value;
+            album.LifeCycleStatus = LifeCycleStatus.Removing;
 
-            database.Albums.Remove(album);
+            await eventBus.PublishAsync(new DeleteAlbumEvent(album.Id, request.UserId), cancellationToken);
+            await database.SaveChangesAsync(cancellationToken);
 
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to delete album {AlbumId}", request.AlbumId);
-                return Error.Failure(description: $"Failed to delete album {request.AlbumId}");
-            }
+            logger.LogInformation("Marked album {AlbumId} as removing", request.AlbumId);
 
-            logger.LogInformation("Deleted album {AlbumId} for user {UserId}", request.AlbumId, request.UserId);
-
-            return new Success();
+            return Result.Success;
         }
     }
 }

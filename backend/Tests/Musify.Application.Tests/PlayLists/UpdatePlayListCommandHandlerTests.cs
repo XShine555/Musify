@@ -16,11 +16,9 @@ namespace Musify.Application.Tests.PlayLists
         private UpdatePlayListCommandHandler CreateHandler() => new(
             eventBus,
             Database,
-            new UploadIntentValidator(Database, storageService),
+            new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
             NoOpLogger<UpdatePlayListCommandHandler>(),
-            TestConfigurations.Storage(),
-            TestConfigurations.PlayList(),
-            TestConfigurations.UploadIntent());
+            TestConfigurations.PlayList());
 
         [Fact]
         public async Task Handle_Owner_RenamesPlayList()
@@ -48,7 +46,7 @@ namespace Musify.Application.Tests.PlayLists
         }
 
         [Fact]
-        public async Task Handle_NotOwner_ReturnsUnauthorized()
+        public async Task Handle_NotOwner_ReturnsForbidden()
         {
             var owner = TestEntities.User(1, "owner");
             var stranger = TestEntities.User(2, "stranger");
@@ -59,7 +57,7 @@ namespace Musify.Application.Tests.PlayLists
 
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
-            Assert.Equal(ErrorType.Unauthorized, result.FirstError.Type);
+            Assert.Equal(ErrorType.Forbidden, result.FirstError.Type);
         }
 
         [Fact]
@@ -69,19 +67,19 @@ namespace Musify.Application.Tests.PlayLists
             var playList = TestEntities.PlayList(owner.Id);
             await SeedAsync(owner, playList);
 
-            var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, null, Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+            var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, null, Musify.Domain.ValueObjects.PlayListVisibility.Public);
 
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
             Assert.False(result.IsError);
-            Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+            Assert.Equal(Musify.Domain.ValueObjects.PlayListVisibility.Public, result.Value.Visibility);
         }
 
         [Fact]
         public async Task Handle_NoVisibilitySpecified_LeavesItUnchanged()
         {
             var owner = TestEntities.User();
-            var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+            var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Public);
             await SeedAsync(owner, playList);
 
             var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
@@ -89,11 +87,11 @@ namespace Musify.Application.Tests.PlayLists
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
             Assert.False(result.IsError);
-            Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+            Assert.Equal(Musify.Domain.ValueObjects.PlayListVisibility.Public, result.Value.Visibility);
         }
 
         [Fact]
-        public async Task Handle_BlankNameAndDescription_LeavesThemUnchanged()
+        public async Task Handle_BlankName_LeavesItUnchangedAndBlankDescriptionClearsIt()
         {
             var owner = TestEntities.User();
             var playList = TestEntities.PlayList(owner.Id, "Original Name", "Original description");
@@ -105,7 +103,7 @@ namespace Musify.Application.Tests.PlayLists
 
             Assert.False(result.IsError);
             Assert.Equal("Original Name", result.Value.Name);
-            Assert.Equal("Original description", result.Value.Description);
+            Assert.Null(result.Value.Description);
         }
 
         [Fact]
@@ -126,7 +124,7 @@ namespace Musify.Application.Tests.PlayLists
             var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
             Assert.False(result.IsError);
-            Assert.Equal("new-cover.webp", result.Value.SmallImageKeyName);
+            Assert.Null(result.Value.SmallImageKeyName);
             var stored = await Database.PlayLists.FindAsync([playList.Id], TestContext.Current.CancellationToken);
             Assert.NotNull(stored);
             Assert.Equal("new-cover.webp", stored.Pictures?.OriginalName);

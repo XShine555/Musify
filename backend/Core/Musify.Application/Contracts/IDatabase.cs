@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Musify.Domain.Entities;
 
@@ -5,38 +6,38 @@ namespace Musify.Application.Contracts
 {
     public interface IDatabase
     {
-        DbSet<User> Users { get; }
+        public DbSet<User> Users { get; }
 
-        DbSet<PlayList> PlayLists { get; }
+        public DbSet<PlayList> PlayLists { get; }
 
-        DbSet<Album> Albums { get; }
+        public DbSet<Album> Albums { get; }
 
-        DbSet<AlbumHasTrack> AlbumHasTracks { get; }
+        public DbSet<AlbumHasTrack> AlbumHasTracks { get; }
 
-        DbSet<Track> Tracks { get; }
+        public DbSet<Track> Tracks { get; }
 
-        DbSet<UserHasTrack> UserHasTracks { get; }
+        public DbSet<PlayListHasTrack> PlayListHasTracks { get; }
 
-        DbSet<PlayListHasTrack> PlayListHasTracks { get; }
+        public DbSet<Mix> Mixes { get; }
 
-        DbSet<Mix> Mixes { get; }
+        public DbSet<MixItem> MixItems { get; }
 
-        DbSet<MixItem> MixItems { get; }
+        public DbSet<UploadIntent> UploadIntents { get; }
 
-        DbSet<Upload> Uploads { get; }
+        public DbSet<ListeningHistory> ListeningHistories { get; }
 
-        DbSet<UploadIntent> UploadIntents { get; }
+        public DbSet<TrackLike> TrackLikes { get; }
 
-        DbSet<ListeningHistory> ListeningHistories { get; }
+        public DbSet<TrackTag> TrackTags { get; }
 
-        DbSet<TrackLike> TrackLikes { get; }
+        public DbSet<UserFollow> UserFollows { get; }
 
-        DbSet<TrackTag> TrackTags { get; }
+        public Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
 
-        DbSet<UserFollow> UserFollows { get; }
+        public DbSet<TEntity> Set<TEntity>() where TEntity : class;
 
-        Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+        public Task<ErrorOr<Success>> TrySaveChangesAsync(Error onUniqueViolation, CancellationToken cancellationToken);
     }
 }

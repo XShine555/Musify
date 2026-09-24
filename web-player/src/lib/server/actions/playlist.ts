@@ -10,15 +10,12 @@ export const addTrackAction = authedAction(async ({ api, form, params }) => {
 		return fail(400, { message: 'Faltan datos de la canción.' });
 	}
 
-	const { error, response } = await api.POST('/playlists/{playlistId}/tracks', {
-		params: { path: { playlistId } },
-		body: { trackId }
+	const { error } = await api.POST('/playlists/{id}/tracks', {
+		params: { path: { id: playlistId } },
+		body: { trackIds: [trackId] }
 	});
 
 	if (error) {
-		if (response?.status === 409) {
-			return fail(409, { message: 'La canción ya está en esa playlist.', trackId });
-		}
 		return fail(502, { message: 'No se pudo añadir la canción.', trackId });
 	}
 
@@ -33,8 +30,8 @@ export const addAlbumToPlaylistAction = authedAction(async ({ api, form, params 
 		return fail(400, { message: 'Faltan datos del álbum.' });
 	}
 
-	const { data, error } = await api.POST('/playlists/{playlistId}/albums/{albumId}', {
-		params: { path: { playlistId, albumId } }
+	const { data, error } = await api.POST('/playlists/{id}/albums/{albumId}', {
+		params: { path: { id: playlistId, albumId } }
 	});
 
 	if (error || !data) {

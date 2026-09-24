@@ -46,11 +46,21 @@ export function toMixTrack(item: MixItemDto): Track {
 	};
 }
 
+const MIX_TEXTS: Record<MixDto['kind'], { title: string; subtitle: string }> = {
+	Discovery: {
+		title: 'Descubrimiento',
+		subtitle: 'Canciones de tu biblioteca que todavía no has escuchado.'
+	},
+	Daily: {
+		title: 'Tu mezcla diaria',
+		subtitle: 'Lo que más escuchas, con alguna sorpresa de tu biblioteca.'
+	}
+};
+
 export function toMix(dto: MixDto): Mix {
 	return {
 		id: dto.id,
-		title: dto.title,
-		subtitle: dto.subtitle,
+		...MIX_TEXTS[dto.kind],
 		tracks: dto.items.map(toMixTrack)
 	};
 }

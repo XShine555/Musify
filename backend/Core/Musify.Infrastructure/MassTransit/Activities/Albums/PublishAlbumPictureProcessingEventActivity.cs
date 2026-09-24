@@ -21,9 +21,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Albums
                     arguments.AlbumId,
                     arguments.Bucket,
                     arguments.FinalPictureKey,
-                    arguments.Small,
-                    arguments.Medium,
-                    arguments.Large),
+                    arguments.Sizes),
                 executeContext.CancellationToken);
 
             logger.LogInformation("Published picture processing event for album {AlbumId}", arguments.AlbumId);

@@ -1,4 +1,3 @@
-using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,30 +9,30 @@ using Musify.Domain.ValueObjects;
 namespace Musify.Application.Mixes
 {
     public record GenerateMixesForUserCommand(long UserId)
-        : ICommand<ErrorOr<Success>>;
+        : ICommand;
 
     public class GenerateMixesForUserCommandHandler(
         IDatabase database,
         MixConfiguration mixConfiguration,
         ILogger<GenerateMixesForUserCommandHandler> logger)
-        : ICommandHandler<GenerateMixesForUserCommand, ErrorOr<Success>>
+        : ICommandHandler<GenerateMixesForUserCommand>
     {
-        private sealed record MixDraft(string Title, string? Subtitle, IReadOnlyList<Guid> TrackIds);
+        private sealed record MixDraft(MixKind Kind, IReadOnlyList<Guid> TrackIds);
 
-        public async ValueTask<ErrorOr<Success>> Handle(GenerateMixesForUserCommand request, CancellationToken cancellationToken)
+        public async ValueTask<Unit> Handle(GenerateMixesForUserCommand request, CancellationToken cancellationToken)
         {
             var userId = request.UserId;
 
-            var libraryTrackIds = await database.UserHasTracks
+            var libraryTrackIds = await database.Tracks
                 .AsNoTracking()
-                .Where(userTrack => userTrack.UserId == userId && userTrack.Track.LifeCycleStatus == LifeCycleStatus.Active)
-                .Select(userTrack => userTrack.TrackId)
+                .Where(track => track.OwnerUserId == userId && track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Select(track => track.Id)
                 .ToListAsync(cancellationToken);
 
             if (libraryTrackIds.Count == 0)
             {
                 logger.LogInformation("User {UserId} has no tracks yet, skipping mix generation", userId);
-                return new Success();
+                return Unit.Value;
             }
 
             var historyTrackIds = await database.ListeningHistories
@@ -51,41 +50,27 @@ namespace Musify.Application.Mixes
             var discovery = Take(Shuffle(unheardTrackIds));
             if (discovery.Count > 0)
             {
-                drafts.Add(new MixDraft(
-                    "Descubrimiento",
-                    "Canciones de tu biblioteca que todavía no has escuchado.",
-                    discovery));
+                drafts.Add(new MixDraft(MixKind.Discovery, discovery));
             }
 
             var daily = Take(Interleave(Shuffle(historyTrackIds), Shuffle(unheardTrackIds)));
             if (daily.Count > 0)
             {
-                drafts.Add(new MixDraft(
-                    "Tu mezcla diaria",
-                    "Lo que más escuchas, con alguna sorpresa de tu biblioteca.",
-                    daily));
+                drafts.Add(new MixDraft(MixKind.Daily, daily));
             }
 
             if (drafts.Count == 0)
             {
                 logger.LogInformation("No candidate songs found for user {UserId}, skipping mix generation", userId);
-                return new Success();
+                return Unit.Value;
             }
 
             await ReplaceMixesAsync(userId, drafts, cancellationToken);
 
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to generate mixes for user {UserId}", userId);
-                return Error.Failure(description: $"Failed to generate mixes for user {userId}");
-            }
+            await database.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Generated {Count} mixes for user {UserId}", drafts.Count, userId);
-            return new Success();
+            return Unit.Value;
         }
 
         private List<Guid> Take(IEnumerable<Guid> trackIds) =>
@@ -94,7 +79,7 @@ namespace Musify.Application.Mixes
         private static List<Guid> Shuffle(IEnumerable<Guid> trackIds) =>
             [.. trackIds.OrderBy(_ => Guid.NewGuid())];
 
-        private static List<Guid> Interleave(IReadOnlyList<Guid> first, IReadOnlyList<Guid> second)
+        private static List<Guid> Interleave(List<Guid> first, List<Guid> second)
         {
             var merged = new List<Guid>(first.Count + second.Count);
             for (var index = 0; index < Math.Max(first.Count, second.Count); index++)
@@ -116,12 +101,6 @@ namespace Musify.Application.Mixes
 
             if (previousMixes.Count > 0)
             {
-                var previousIds = previousMixes.Select(mix => mix.Id).ToList();
-                var previousItems = await database.MixItems
-                    .Where(item => previousIds.Contains(item.MixId))
-                    .ToListAsync(cancellationToken);
-
-                database.MixItems.RemoveRange(previousItems);
                 database.Mixes.RemoveRange(previousMixes);
             }
 
@@ -131,8 +110,7 @@ namespace Musify.Application.Mixes
                 var mix = new Mix
                 {
                     UserId = userId,
-                    Title = draft.Title,
-                    Subtitle = draft.Subtitle,
+                    Kind = draft.Kind,
                     Position = position
                 };
 

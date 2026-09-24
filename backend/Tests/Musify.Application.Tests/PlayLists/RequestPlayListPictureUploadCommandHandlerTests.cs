@@ -17,17 +17,20 @@ namespace Musify.Application.Tests.PlayLists
         private RequestPlayListPictureUploadCommandHandler CreateHandler(UploadIntentConfiguration? uploadIntentConfig = null)
         {
             storageService
-                .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+                .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
                 .Returns("https://storage.musify.test/presigned-upload");
 
+            var config = uploadIntentConfig ?? TestConfigurations.UploadIntent();
+
             return new RequestPlayListPictureUploadCommandHandler(
-                Database,
-                new UploadIntentValidator(Database, storageService),
-                storageService,
-                NoOpLogger<RequestPlayListPictureUploadCommandHandler>(),
-                TestConfigurations.Storage(),
-                TestConfigurations.PlayList(),
-                uploadIntentConfig ?? TestConfigurations.UploadIntent());
+                new UploadIntentIssuer(
+                    Database,
+                    storageService,
+                    new UploadIntentValidator(Database, storageService, config),
+                    TestConfigurations.Storage(),
+                    config,
+                    NoOpLogger<UploadIntentIssuer>()),
+                TestConfigurations.PlayList());
         }
 
         [Fact]

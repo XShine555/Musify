@@ -1,12 +1,11 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Users
 {
     public record GetListeningStatsQuery(long UserId) : IQuery<ListeningStatsResponse>;
-
-    public record ListeningStatsResponse(int TracksThisWeek, int SecondsThisWeek, int StreakDays);
 
     public class GetListeningStatsQueryHandler(IDatabase database)
         : IQueryHandler<GetListeningStatsQuery, ListeningStatsResponse>
@@ -39,6 +38,9 @@ namespace Musify.Application.Users
             var listenedDateSet = listenedDates.ToHashSet();
             var streakDays = 0;
             var day = DateTime.UtcNow.Date;
+            if (!listenedDateSet.Contains(day))
+                day = day.AddDays(-1);
+
             while (listenedDateSet.Contains(day))
             {
                 streakDays++;

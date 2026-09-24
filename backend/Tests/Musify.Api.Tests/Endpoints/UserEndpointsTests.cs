@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Tracks.Responses;
 using Musify.Application.Users.Responses;
@@ -39,46 +38,20 @@ namespace Musify.Api.Tests.Endpoints
             {
                 UserId = userId,
                 TrackId = track.Id,
-                ListenedAt = listenedAt
+                ListenedAt = listenedAt,
+                IsCounted = true
             });
             await database.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         [Fact]
-        public async Task PostUsers_NewUser_ReturnsCreatedWithLocationHeader()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-
-            var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Jane Doe", "Jane", "Doe"), TestContext.Current.CancellationToken);
-
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            Assert.Equal($"/users/{userId}", response.Headers.Location?.OriginalString);
-            var body = await response.Content.ReadFromJsonAsync<UserApplicationResponse>(TestContext.Current.CancellationToken);
-            Assert.NotNull(body);
-            Assert.Equal("Jane Doe", body.Name);
-        }
-
-        [Fact]
-        public async Task PostUsers_BlankName_ReturnsValidationProblem()
+        public async Task PostUsers_IsNotExposed()
         {
             var client = fixture.CreateAnonymousClient();
 
-            var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(Random.Shared.NextInt64(1, long.MaxValue), "", null, null), TestContext.Current.CancellationToken);
+            var response = await client.PostAsJsonAsync("/users", new { id = 1, name = "Intruder" }, TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task PostUsers_DuplicateId_ReturnsConflict()
-        {
-            var client = fixture.CreateAnonymousClient();
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "First", null, null), TestContext.Current.CancellationToken);
-
-            var response = await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Second", null, null), TestContext.Current.CancellationToken);
-
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.True(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed);
         }
 
         [Fact]
@@ -86,7 +59,7 @@ namespace Musify.Api.Tests.Endpoints
         {
             var client = fixture.CreateAnonymousClient();
             var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, "Findable User", null, null), TestContext.Current.CancellationToken);
+            await fixture.SeedUserAsync(userId, "Findable User");
 
             var response = await client.GetAsync($"/users/{userId}", TestContext.Current.CancellationToken);
 
@@ -110,7 +83,7 @@ namespace Musify.Api.Tests.Endpoints
         {
             var client = fixture.CreateAnonymousClient();
             var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+            await fixture.SeedUserAsync(userId);
             await SeedListenAsync(userId, "Older listen", DateTime.UtcNow.AddMinutes(-10));
             await SeedListenAsync(userId, "Newer listen", DateTime.UtcNow);
 
@@ -122,15 +95,48 @@ namespace Musify.Api.Tests.Endpoints
         }
 
         [Fact]
-        public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNotFound()
+        public async Task GetLastTrackListenedByUserId_NoHistory_ReturnsNoContent()
         {
             var client = fixture.CreateAnonymousClient();
             var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            await client.PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null), TestContext.Current.CancellationToken);
+            await fixture.SeedUserAsync(userId);
 
             var response = await client.GetAsync($"/users/{userId}/last-listened-track", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("pageSize=0")]
+        [InlineData("pageSize=101")]
+        [InlineData("pageNumber=0")]
+        public async Task GetUsers_InvalidPaging_ReturnsBadRequest(string query)
+        {
+            var client = fixture.CreateAnonymousClient();
+
+            var response = await client.GetAsync($"/users?{query}", TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetListeningStats_AnotherUser_ReturnsForbidden()
+        {
+            var userId = await fixture.SeedUserAsync();
+            var other = await fixture.SeedUserAsync();
+            var client = fixture.CreateAuthenticatedClient(userId);
+
+            var response = await client.GetAsync($"/users/{other}/listening-stats", TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetListeningStats_Anonymous_ReturnsUnauthorized()
+        {
+            var response = await fixture.CreateAnonymousClient().GetAsync("/users/1/listening-stats", TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
     }
 }

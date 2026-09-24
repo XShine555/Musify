@@ -2,12 +2,15 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
 using Musify.Application.PlayLists.Responses;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
 
 namespace Musify.Application.PlayLists
 {
+    /// <summary>Appends every track of an album to a playlist in album order, skipping the ones it already has.</summary>
     public record AddAlbumToPlayListCommand(long UserId, Guid PlayListId, Guid AlbumId)
         : ICommand<ErrorOr<AddAlbumToPlayListResponse>>;
 
@@ -18,41 +21,29 @@ namespace Musify.Application.PlayLists
     {
         public async ValueTask<ErrorOr<AddAlbumToPlayListResponse>> Handle(AddAlbumToPlayListCommand request, CancellationToken cancellationToken)
         {
-            var playList = await database.PlayLists
-                .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
-            if (playList == null)
-            {
-                logger.LogInformation("Playlist {PlayListId} not found", request.PlayListId);
-                return Error.NotFound();
-            }
-
-            if (playList.UserId != request.UserId)
-            {
-                logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
-                return Error.Unauthorized();
-            }
+            var playList = await database.PlayLists.FindOwnedAsync(request.PlayListId, request.UserId, cancellationToken);
+            if (playList.IsError)
+                return playList.Errors;
 
             var albumExists = await database.Albums
                 .AsNoTracking()
+                .Active()
                 .AnyAsync(album => album.Id == request.AlbumId, cancellationToken);
             if (!albumExists)
-            {
-                logger.LogInformation("Album {AlbumId} not found", request.AlbumId);
-                return Error.NotFound(description: $"Album {request.AlbumId} not found");
-            }
+                return AppErrors.NotFound("Album", request.AlbumId);
 
             var albumTrackIds = await database.AlbumHasTracks
                 .AsNoTracking()
-                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId)
+                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == Domain.ValueObjects.LifeCycleStatus.Active)
                 .OrderBy(albumTrack => albumTrack.TrackNumber)
                 .Select(albumTrack => albumTrack.TrackId)
                 .ToListAsync(cancellationToken);
 
             var playListTracksQuery = database.PlayListHasTracks
-                .Where(plt => plt.PlayListId == request.PlayListId);
+                .Where(link => link.PlayListId == request.PlayListId);
 
             var existingTrackIds = (await playListTracksQuery
-                .Select(plt => plt.TrackId)
+                .Select(link => link.TrackId)
                 .ToListAsync(cancellationToken)).ToHashSet();
 
             var newTrackIds = albumTrackIds
@@ -62,20 +53,24 @@ namespace Musify.Application.PlayLists
             if (newTrackIds.Count == 0)
                 return new AddAlbumToPlayListResponse(0);
 
-            var nextPosition = existingTrackIds.Count > 0
-                ? await playListTracksQuery.MaxAsync(plt => plt.Position, cancellationToken) + 1
-                : 0;
+            // Playlist positions are internal indexes, so they start at 0.
+            var nextPosition = (await playListTracksQuery
+                .MaxAsync(link => (int?)link.Position, cancellationToken) ?? -1) + 1;
 
-            await database.PlayListHasTracks.AddRangeAsync(
-                newTrackIds.Select((trackId, index) => new PlayListHasTrack
+            foreach (var trackId in newTrackIds)
+            {
+                await database.PlayListHasTracks.AddAsync(new PlayListHasTrack
                 {
                     PlayListId = request.PlayListId,
                     TrackId = trackId,
-                    Position = nextPosition + index
-                }),
-                cancellationToken);
+                    Position = nextPosition++
+                }, cancellationToken);
+            }
 
-            await database.SaveChangesAsync(cancellationToken);
+            var saved = await database.TrySaveChangesAsync(
+                AppErrors.Conflict("PlayList.ConcurrentChange", "The playlist changed while adding tracks. Try again."), cancellationToken);
+            if (saved.IsError)
+                return saved.Errors;
 
             logger.LogInformation("Added {Count} tracks from album {AlbumId} to playlist {PlayListId}",
                 newTrackIds.Count, request.AlbumId, request.PlayListId);

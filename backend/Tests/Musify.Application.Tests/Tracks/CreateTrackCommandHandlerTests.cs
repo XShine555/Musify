@@ -24,16 +24,27 @@ namespace Musify.Application.Tests.Tracks
             return new CreateTrackCommandHandler(
                 Database,
                 eventBus,
-                new UploadIntentValidator(Database, storageService),
+                new UploadIntentValidator(Database, storageService, TestConfigurations.UploadIntent()),
                 NoOpLogger<CreateTrackCommandHandler>(),
-                TestConfigurations.Storage(),
-                TestConfigurations.Track(),
-                TestConfigurations.UploadIntent());
+                TestConfigurations.Track());
         }
 
         private static (Domain.Entities.UploadIntent Picture, Domain.Entities.UploadIntent Audio) SeedIntents(long userId) =>
             (TestEntities.UploadIntent(userId, UploadIntentPurpose.TrackPicture, objectName: "cover.webp"),
              TestEntities.UploadIntent(userId, UploadIntentPurpose.TrackAudio, objectName: "song.mp3"));
+
+        [Fact]
+        public async Task Handle_SameIntentForPictureAndAudio_ReturnsValidationError()
+        {
+            var user = TestEntities.User();
+            var (picture, audio) = SeedIntents(user.Id);
+            await SeedAsync(user, picture, audio);
+
+            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, picture.Id, [Genre.Pop]);
+            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
+        }
 
         [Fact]
         public async Task Handle_ValidIntents_CreatesTrackAndPublishesEvent()
@@ -76,34 +87,6 @@ namespace Musify.Application.Tests.Tracks
             var stored = await Database.Tracks.FindAsync([result.Value.Id], TestContext.Current.CancellationToken);
             Assert.NotNull(stored);
             Assert.Equal(isExplicit, stored.IsExplicit);
-        }
-
-        [Fact]
-        public async Task Handle_NoTags_ReturnsValidationError()
-        {
-            var user = TestEntities.User();
-            var (picture, audio) = SeedIntents(user.Id);
-            await SeedAsync(user, picture, audio);
-
-            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, []);
-
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
-
-            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
-        }
-
-        [Fact]
-        public async Task Handle_IncompatibleTags_ReturnsValidationError()
-        {
-            var user = TestEntities.User();
-            var (picture, audio) = SeedIntents(user.Id);
-            await SeedAsync(user, picture, audio);
-
-            var command = new CreateTrackCommand(user.Id, "My Song", picture.Id, audio.Id, [Genre.Classical, Genre.Metal]);
-
-            var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
-
-            Assert.Equal(ErrorType.Validation, result.FirstError.Type);
         }
 
         [Fact]

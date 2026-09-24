@@ -4,7 +4,8 @@ import { apiFor, failOnError, unwrapOrError } from '$lib/server/api';
 import { optionalUser } from '$lib/server/guards';
 import { formString } from '$lib/server/forms/fields';
 import { authedAction } from '$lib/server/actions/authedAction';
-import { PLAYLIST_TRACKS_PAGE_SIZE } from '$lib/config';
+import { PLAYLIST_TRACKS_LIMIT } from '$lib/config';
+import { fetchAllPages } from '$lib/server/pagination';
 import { toDatedTrack, toPlaylist } from '$lib/server/mappers';
 import { parsePlaylistForm } from '$lib/server/forms/playlistForm';
 import { uploadOptionalCover } from '$lib/server/upload';
@@ -14,18 +15,21 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	const user = optionalUser(locals, url, allowAnonymousListening);
 	const api = apiFor({ fetch, locals });
 
-	const [playlistRes, tracksRes] = await Promise.all([
+	const [playlistRes, trackDtos] = await Promise.all([
 		api.GET('/playlists/{id}', { params: { path: { id: params.id } } }),
-		api.GET('/playlists/{playlistId}/tracks', {
-			params: {
-				path: { playlistId: params.id },
-				query: { pageNumber: 1, pageSize: PLAYLIST_TRACKS_PAGE_SIZE }
-			}
-		})
+		fetchAllPages(
+			async (pageNumber, pageSize) =>
+				(
+					await api.GET('/playlists/{id}/tracks', {
+						params: { path: { id: params.id }, query: { pageNumber, pageSize } }
+					})
+				).data,
+			PLAYLIST_TRACKS_LIMIT
+		)
 	]);
 
 	const playlist = toPlaylist(unwrapOrError(playlistRes, 'Playlist no encontrada.', 404));
-	const tracks = (tracksRes.data?.items ?? []).map(toDatedTrack);
+	const tracks = trackDtos.map(toDatedTrack);
 
 	const isOwner = user !== null && String(playlist.ownerUserId) === user.sub;
 
@@ -37,8 +41,8 @@ export const actions: Actions = {
 		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const result = await api.DELETE('/playlists/{playlistId}/tracks/{trackId}', {
-			params: { path: { playlistId: params.id, trackId } }
+		const result = await api.DELETE('/playlists/{id}/tracks/{trackId}', {
+			params: { path: { id: params.id, trackId } }
 		});
 		return failOnError(result, 'No se pudo quitar la canción.') ?? { removed: true };
 	}),
@@ -53,21 +57,21 @@ export const actions: Actions = {
 			return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
 		}
 
-		const result = await api.PUT('/playlists/{playlistId}', {
-			params: { path: { playlistId: params.id } },
+		const result = await api.PUT('/playlists/{id}', {
+			params: { path: { id: params.id } },
 			body: {
-				newName: name,
-				newDescription: description,
-				newPictureIntentId: uploaded.intentId,
-				newVisibility: visibility
+				name,
+				description,
+				pictureIntentId: uploaded.intentId,
+				visibility
 			}
 		});
 		return failOnError(result, 'No se pudo actualizar la playlist.') ?? { edited: true };
 	}),
 
 	delete: authedAction(async ({ api, params }) => {
-		const result = await api.DELETE('/playlists/{playlistId}', {
-			params: { path: { playlistId: params.id } }
+		const result = await api.DELETE('/playlists/{id}', {
+			params: { path: { id: params.id } }
 		});
 		const failure = failOnError(result, 'No se pudo eliminar la playlist.');
 		if (failure) return failure;

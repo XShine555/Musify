@@ -3,13 +3,13 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
-using Musify.Application.Shared;
+using Musify.Application.Contracts;
 using Musify.Application.Events;
-using Musify.Application.Tracks.Responses;
 using Musify.Application.Services;
+using Musify.Application.Shared;
+using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
-using Musify.Application.Contracts;
 
 namespace Musify.Application.Tracks
 {
@@ -27,9 +27,7 @@ namespace Musify.Application.Tracks
         IEventBus eventBus,
         UploadIntentValidator uploadIntentValidator,
         ILogger<CreateTrackCommandHandler> logger,
-        ApplicationStorageConfiguration storageConfiguration,
-        TrackConfiguration trackConfiguration,
-        UploadIntentConfiguration uploadIntentConfiguration)
+        TrackConfiguration trackConfiguration)
         : ICommandHandler<CreateTrackCommand, ErrorOr<TrackApplicationResponse>>
     {
         public async ValueTask<ErrorOr<TrackApplicationResponse>> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
@@ -43,31 +41,17 @@ namespace Musify.Application.Tracks
             }
 
             var distinctTags = request.Tags.Distinct().ToList();
-            if (distinctTags.Count == 0)
-            {
-                logger.LogWarning("Track {Title} was submitted without any tags", request.Title);
-                return Error.Validation(description: "At least one tag is required.");
-            }
 
-            var tagConflicts = GenreCompatibility.FindConflicts(distinctTags);
-            if (tagConflicts.Count > 0)
-            {
-                var conflict = tagConflicts.First();
-                logger.LogWarning(
-                    "Track {Title} was submitted with incompatible tags {First} and {Second}",
-                    request.Title, conflict.First, conflict.Second);
-                return Error.Validation(description: $"Tags '{conflict.First}' and '{conflict.Second}' are not compatible.");
-            }
+            if (request.PictureIntentId == request.AudioIntentId)
+                return Error.Validation(description: "Picture and audio must use different upload intents.");
 
             var pictureValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-                uploadIntentConfiguration,
-                request.PictureIntentId, request.UserId, cancellationToken);
+                request.PictureIntentId, request.UserId, UploadIntentPurpose.TrackPicture, cancellationToken);
             if (pictureValidation.IsError)
                 return pictureValidation.Errors;
 
             var audioValidation = await uploadIntentValidator.ValidateAndLoadAsync(
-                uploadIntentConfiguration,
-                request.AudioIntentId, request.UserId, cancellationToken);
+                request.AudioIntentId, request.UserId, UploadIntentPurpose.TrackAudio, cancellationToken);
             if (audioValidation.IsError)
                 return audioValidation.Errors;
 
@@ -80,8 +64,8 @@ namespace Musify.Application.Tracks
 
             var trackEntity = new Track
             {
-                Title = request.Title,
-                NormalizedTitle = request.Title.ToUpperInvariant(),
+                Title = request.Title.Trim(),
+                NormalizedTitle = TextNormalizer.Normalize(request.Title),
                 OwnerUserId = user.Id,
                 Owner = user,
                 IsExplicit = request.IsExplicit,
@@ -106,54 +90,23 @@ namespace Musify.Application.Tracks
 
             await database.Tracks.AddAsync(trackEntity, cancellationToken);
 
-            await database.UserHasTracks.AddAsync(new UserHasTrack
-            {
-                UserId = request.UserId,
-                TrackId = trackEntity.Id
-            }, cancellationToken);
 
-            try
-            {
-                await eventBus.PublishAsync(
-                    new CreateTrackResourcesEvent(
-                        trackEntity.Id,
-                        pictureIntent.Id,
-                        audioIntent.Id,
-                        storageConfiguration.Bucket,
-                        pictureIntent.Key,
-                        finalPictureKey,
-                        audioIntent.Key,
-                        finalAudioKey,
-                        audioProcessedFolderKey,
-                        new ImageSize(
-                            trackConfiguration.Routes.SmallPicturesPath,
-                            trackConfiguration.PicturesSizes.SmallPictureWidth,
-                            trackConfiguration.PicturesSizes.SmallPictureHeight),
-                        new ImageSize(
-                            trackConfiguration.Routes.MediumPicturesPath,
-                            trackConfiguration.PicturesSizes.MediumPictureWidth,
-                            trackConfiguration.PicturesSizes.MediumPictureHeight),
-                        new ImageSize(
-                            trackConfiguration.Routes.LargePicturesPath,
-                            trackConfiguration.PicturesSizes.LargePictureWidth,
-                            trackConfiguration.PicturesSizes.LargePictureHeight)),
-                    cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to publish create track event for track {TrackId}", trackEntity.Id);
-                return Error.Failure(description: $"Failed to create track for {request.Title}");
-            }
+            var sizes = trackConfiguration.PicturesSizes.ToImageSizes(trackConfiguration.Routes);
+            await eventBus.PublishAsync(
+                new CreateTrackResourcesEvent(
+                    trackEntity.Id,
+                    pictureIntent.Id,
+                    audioIntent.Id,
+                    pictureIntent.Bucket,
+                    pictureIntent.Key,
+                    finalPictureKey,
+                    audioIntent.Key,
+                    finalAudioKey,
+                    audioProcessedFolderKey,
+                    sizes),
+                cancellationToken);
 
-            try
-            {
-                await database.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to save track {Title}", request.Title);
-                return Error.Failure(description: $"Failed to create track for {request.Title}");
-            }
+            await database.SaveChangesAsync(cancellationToken);
 
             return TrackApplicationResponse.FromEntity(trackEntity, listensCount: 0);
         }

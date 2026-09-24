@@ -1,9 +1,10 @@
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
-using Musify.Infrastructure.MassTransit.Activities.Pictures;
 using Musify.Infrastructure.MassTransit.Activities.Albums;
 using Musify.Infrastructure.MassTransit.Activities.Audio;
 using Musify.Infrastructure.MassTransit.Activities.Files;
+using Musify.Infrastructure.MassTransit.Activities.LifeCycle;
+using Musify.Infrastructure.MassTransit.Activities.Pictures;
 using Musify.Infrastructure.MassTransit.Activities.PlayLists;
 using Musify.Infrastructure.MassTransit.Activities.Tracks;
 using Musify.Infrastructure.MassTransit.Activities.UploadIntents;
@@ -16,62 +17,59 @@ namespace Musify.Infrastructure.MassTransit
 {
     public static partial class MassTransitDependencyInjection
     {
-        static void RegisterRoutingSlipBuilders(IServiceCollection services)
+        private static void RegisterRoutingSlipBuilders(IServiceCollection services)
         {
             services.AddScoped<AudioWorkflowRoutingSlipBuilder>();
-            services.AddScoped<PictureWorkflowRoutingSlipBuilder>();
-            services.AddScoped<DeleteTrackRoutingSlipBuilder>();
-            services.AddScoped<DeletePlayListRoutingSlipBuilder>();
             services.AddScoped<CreateTrackRoutingSlipBuilder>();
-            services.AddScoped<PlayListPictureSourceRoutingSlipBuilder>();
-            services.AddScoped<AlbumPictureSourceRoutingSlipBuilder>();
+            services.AddScoped<DeleteRoutingSlipBuilder>();
+            services.AddScoped<PictureSourceRoutingSlipBuilder>();
+            services.AddScoped<PictureWorkflowRoutingSlipBuilder>();
         }
 
-        static void RegisterConsumersAndActivities(IBusRegistrationConfigurator options)
+        private static void RegisterConsumersAndActivities(IBusRegistrationConfigurator options)
         {
-            options.AddConsumer<UpdatePlayListPictureConsumer>();
-            options.AddConsumer<UpdateTrackPictureConsumer>();
-            options.AddConsumer<RoutingSlipCleanUpConsumer>();
-            options.AddConsumer<UpdateTrackAudioConsumer>();
-            options.AddConsumer<DeleteTrackConsumer>();
-            options.AddConsumer<DeletePlayListConsumer>();
-            options.AddConsumer<CreateTrackConsumer>();
-            options.AddConsumer<CreatePlayListConsumer>();
-            options.AddConsumer<UpdatePlayListPictureSourceConsumer>();
-            options.AddConsumer<ProcessingSlipFaultConsumer>();
-            options.AddConsumer<TrackProcessingFailedConsumer>();
-            options.AddConsumer<PlayListProcessingFailedConsumer>();
-            options.AddConsumer<CreateAlbumConsumer>();
-            options.AddConsumer<UpdateAlbumPictureSourceConsumer>();
-            options.AddConsumer<UpdateAlbumPictureConsumer>();
             options.AddConsumer<AlbumProcessingFailedConsumer>();
+            options.AddConsumer<CreateAlbumConsumer>();
+            options.AddConsumer<CreatePlayListConsumer>();
+            options.AddConsumer<CreateTrackConsumer>();
+            options.AddConsumer<DeleteAlbumConsumer>();
+            options.AddConsumer<DeletePlayListConsumer>();
+            options.AddConsumer<DeleteTrackConsumer>();
+            options.AddConsumer<PlayListProcessingFailedConsumer>();
+            options.AddConsumer<ProcessingSlipFaultConsumer>();
+            options.AddConsumer<RoutingSlipCleanUpConsumer>();
+            options.AddConsumer<TrackProcessingFailedConsumer>();
+            options.AddConsumer<UpdateAlbumPictureConsumer>();
+            options.AddConsumer<UpdateAlbumPictureSourceConsumer>();
+            options.AddConsumer<UpdatePlayListPictureConsumer>();
+            options.AddConsumer<UpdatePlayListPictureSourceConsumer>();
+            options.AddConsumer<UpdateTrackAudioConsumer>();
+            options.AddConsumer<UpdateTrackPictureConsumer>();
 
-            options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
+            options.AddExecuteActivity<DeleteAlbumActivity, DeleteEntityArguments>();
+            options.AddExecuteActivity<DeletePlayListActivity, DeleteEntityArguments>();
+            options.AddExecuteActivity<DeleteTrackActivity, DeleteEntityArguments>();
             options.AddExecuteActivity<GenerateAudioWorkflowPathsActivity, GenerateAudioWorkflowPathsArguments>();
             options.AddExecuteActivity<GeneratePictureWorkflowPathsActivity, GeneratePictureWorkflowPathsArguments>();
-            options.AddExecuteActivity<MarkTrackAsRemovingActivity, MarkTrackAsRemovingArguments>();
-            options.AddExecuteActivity<DeleteTrackFromDbActivity, DeleteTrackFromDbArguments>();
-            options.AddExecuteActivity<MarkPlayListAsRemovingActivity, MarkPlayListAsRemovingArguments>();
-            options.AddExecuteActivity<DeletePlayListFromDbActivity, DeletePlayListFromDbArguments>();
-            options.AddExecuteActivity<PublishTrackProcessingEventsActivity, PublishTrackProcessingEventsArguments>();
-            options.AddExecuteActivity<PublishPlayListPictureProcessingEventActivity, PublishPlayListPictureProcessingEventArguments>();
-            options.AddExecuteActivity<MarkTrackAsFailedActivity, MarkTrackAsFailedArguments>();
-            options.AddExecuteActivity<MarkPlayListAsFailedActivity, MarkPlayListAsFailedArguments>();
-            options.AddExecuteActivity<MarkAlbumAsFailedActivity, MarkAlbumAsFailedArguments>();
+            options.AddExecuteActivity<MarkAlbumLifeCycleActivity, MarkLifeCycleArguments>();
+            options.AddExecuteActivity<MarkPlayListLifeCycleActivity, MarkLifeCycleArguments>();
+            options.AddExecuteActivity<MarkTrackLifeCycleActivity, MarkLifeCycleArguments>();
             options.AddExecuteActivity<PublishAlbumPictureProcessingEventActivity, PublishAlbumPictureProcessingEventArguments>();
+            options.AddExecuteActivity<PublishPlayListPictureProcessingEventActivity, PublishPlayListPictureProcessingEventArguments>();
+            options.AddExecuteActivity<PublishTrackProcessingEventsActivity, PublishTrackProcessingEventsArguments>();
+            options.AddExecuteActivity<RemoveFileFromBucketActivity, RemoveFileFromBucketArguments>();
 
-            options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
-            options.AddActivity<UpdatePlayListPictureActivity, UpdatePlayListPictureArguments, UpdatePlayListPictureLog>();
-            options.AddActivity<UpdateAlbumPictureActivity, UpdateAlbumPictureArguments, UpdateAlbumPictureLog>();
-            options.AddActivity<UpdateTrackPictureActivity, UpdateTrackPictureArguments, UpdateTrackPictureLog>();
+            options.AddActivity<ConsumeUploadIntentsActivity, ConsumeUploadIntentsArguments, ConsumeUploadIntentsLog>();
+            options.AddActivity<CopyFileInBucketActivity, CopyFileInBucketArguments, CopyFileInBucketLog>();
             options.AddActivity<DownloadFileFromBucketActivity, DownloadFileFromBucketArguments, DownloadFileFromBucketLog>();
+            options.AddActivity<ResizePictureActivity, ResizePictureLocalArguments, ResizePictureLog>();
             options.AddActivity<TranscodeAudioActivity, TranscodeAudioArguments, TranscodeAudioLog>();
             options.AddActivity<TransferFilesToBucketActivity, TransferFilesToBucketArguments, TransferFilesToBucketLog>();
+            options.AddActivity<UpdateAlbumPictureActivity, UpdatePicturesArguments, UpdatePicturesLog>();
+            options.AddActivity<UpdatePlayListPictureActivity, UpdatePicturesArguments, UpdatePicturesLog>();
             options.AddActivity<UpdateTrackAudioActivity, UpdateTrackAudioArguments, UpdateTrackAudioLog>();
+            options.AddActivity<UpdateTrackPictureActivity, UpdatePicturesArguments, UpdatePicturesLog>();
             options.AddActivity<UploadFileToBucketActivity, UploadFileToBucketArguments, UploadFileToBucketLog>();
-            options.AddActivity<CopyFileInBucketActivity, CopyFileInBucketArguments, CopyFileInBucketLog>();
-            options.AddActivity<ConsumeUploadIntentsActivity, ConsumeUploadIntentsArguments, ConsumeUploadIntentsLog>();
-            options.AddActivity<DownloadFileFromUrlActivity, DownloadFileFromUrlArguments, DownloadFileFromUrlLog>();
         }
     }
 }

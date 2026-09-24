@@ -1,7 +1,7 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Musify.StreamingGateway.Authentication;
@@ -17,12 +17,12 @@ namespace Musify.StreamingGateway.Tests.Middleware
 
         private readonly string publicKeyPath = Path.GetTempFileName();
         private readonly RSA rsa = RSA.Create(2048);
-        private readonly StreamTicketValidationOptions options;
+        private readonly StreamTicketValidationConfiguration options;
 
         public TicketValidationMiddlewareTests()
         {
             File.WriteAllText(publicKeyPath, rsa.ExportSubjectPublicKeyInfoPem());
-            options = new StreamTicketValidationOptions
+            options = new StreamTicketValidationConfiguration
             {
                 PublicKeyPath = publicKeyPath,
                 Audience = "media-gateway",
@@ -40,7 +40,7 @@ namespace Musify.StreamingGateway.Tests.Middleware
         {
             var claims = new Dictionary<string, object> { ["prefix"] = prefix };
             if (maxBytes != null)
-                claims["maxBytes"] = maxBytes.Value.ToString();
+                claims["maxBytes"] = maxBytes.Value.ToString(CultureInfo.InvariantCulture);
 
             return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
             {
@@ -57,8 +57,8 @@ namespace Musify.StreamingGateway.Tests.Middleware
         {
             var nextCalled = false;
             RequestDelegate next = _ => { nextCalled = true; return Task.CompletedTask; };
-            var validator = new TicketValidator(Options.Create(options));
-            var middleware = new TicketValidationMiddleware(next, validator, Options.Create(options), NullLogger<TicketValidationMiddleware>.Instance);
+            var validator = new TicketValidator(options);
+            var middleware = new TicketValidationMiddleware(next, validator, options, NullLogger<TicketValidationMiddleware>.Instance);
             return (middleware, () => nextCalled);
         }
 
@@ -215,6 +215,39 @@ namespace Musify.StreamingGateway.Tests.Middleware
 
             Assert.True(wasNextCalled());
             Assert.Equal("bytes=1000-2000", context.Request.Headers.Range.ToString());
+        }
+
+        [Theory]
+        [InlineData("bytes=0-10,20-30")]
+        [InlineData("garbage")]
+        [InlineData("items=0-10")]
+        public async Task InvokeAsync_TicketWithMaxBytes_MultiOrInvalidRange_ReplacesItWithBoundedRange(string requestedRange)
+        {
+            var (middleware, wasNextCalled) = CreateMiddleware();
+            var context = new DefaultHttpContext();
+            context.Request.Path = $"/media/{Prefix}/audio.m4a";
+            context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+            context.Request.Headers.Range = requestedRange;
+
+            await middleware.InvokeAsync(context);
+
+            Assert.True(wasNextCalled());
+            Assert.Equal("bytes=0-479999", context.Request.Headers.Range.ToString());
+        }
+
+        [Fact]
+        public async Task InvokeAsync_TicketWithMaxBytes_SuffixRange_ReturnsRangeNotSatisfiable()
+        {
+            var (middleware, wasNextCalled) = CreateMiddleware();
+            var context = new DefaultHttpContext();
+            context.Request.Path = $"/media/{Prefix}/audio.m4a";
+            context.Request.QueryString = new QueryString($"?t={IssueValidToken(maxBytes: 480_000)}");
+            context.Request.Headers.Range = "bytes=-500";
+
+            await middleware.InvokeAsync(context);
+
+            Assert.False(wasNextCalled());
+            Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, context.Response.StatusCode);
         }
     }
 }

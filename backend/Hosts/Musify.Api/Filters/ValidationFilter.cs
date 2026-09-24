@@ -1,20 +1,21 @@
 using FluentValidation;
 
-namespace Musify.Api.Filters;
-
-public sealed class ValidationFilter<T>(IValidator<T> validator) : IEndpointFilter where T : class
+namespace Musify.Api.Filters
 {
-    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    public sealed class ValidationFilter<T>(IValidator<T> validator) : IEndpointFilter where T : class
     {
-        var argument = context.Arguments.OfType<T>().FirstOrDefault();
+        public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+        {
+            var argument = context.Arguments.OfType<T>().FirstOrDefault();
 
-        if (argument == null)
-            return await next(context);
+            if (argument == null)
+                return await next(context);
 
-        var result = await validator.ValidateAsync(argument, context.HttpContext.RequestAborted);
+            var result = await validator.ValidateAsync(argument, context.HttpContext.RequestAborted);
 
-        return result.IsValid
-            ? await next(context)
-            : Results.ValidationProblem(result.ToDictionary());
+            return result.IsValid
+                ? await next(context)
+                : Results.ValidationProblem(result.ToDictionary());
+        }
     }
 }

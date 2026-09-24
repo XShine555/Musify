@@ -2,27 +2,24 @@ namespace Musify.Application.Contracts
 {
     public interface IStorageService
     {
-        Task<Stream> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
+        /// <summary>Opens an object for reading, or returns null when it does not exist.</summary>
+        public Task<Stream?> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
-        Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
+        public Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
 
-        Task<string> GetUrlAsync(string bucket, string key, TimeSpan ExpirationTime, CancellationToken cancellationToken);
+        public Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, bool preventOverwrite = true, CancellationToken cancellationToken = default);
 
-        Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, CancellationToken cancellationToken, bool preventOverwrite = true);
+        public Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken);
 
-        Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken);
+        public Task UploadFileAsync(Stream sourceStream, string contentType, string bucket, string key, CancellationToken cancellationToken);
 
-        Task UploadFileAsync(Stream sourceStream, string contentType, string bucket, string key, CancellationToken cancellationToken);
+        public Task<IReadOnlyList<string>> TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<string>> TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken);
+        public Task RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
-        Task RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken);
-
-        Task CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey,
+        public Task CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey,
             CancellationToken cancellationToken);
 
-        Task RemoveFolderAsync(string bucket, string folderKey, CancellationToken cancellationToken);
-        
-        IAsyncEnumerable<StorageObject> ListObjectsAsync(string bucket, string prefix, CancellationToken cancellationToken);
+        public IAsyncEnumerable<StorageObject> ListObjectsAsync(string bucket, string prefix, CancellationToken cancellationToken);
     }
 }

@@ -1,4 +1,5 @@
 using Musify.Application.Genres;
+using Musify.Application.Genres.Responses;
 using Musify.Domain.ValueObjects;
 using Xunit;
 

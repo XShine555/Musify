@@ -1,19 +1,24 @@
 using FluentValidation;
 using Musify.Api.DataTransferObjects.PlayLists;
 
-namespace Musify.Api.Validators.PlayLists;
-
-public sealed class UpdatePlayListRequestValidator : AbstractValidator<UpdatePlayListRequest>
+namespace Musify.Api.Validators.PlayLists
 {
-    public UpdatePlayListRequestValidator()
+    public sealed class UpdatePlayListRequestValidator : AbstractValidator<UpdatePlayListRequest>
     {
-        RuleFor(x => x.NewName)
-            .NotEmpty()
-            .MaximumLength(50)
-            .When(x => x.NewName != null);
+        public UpdatePlayListRequestValidator()
+        {
+            RuleFor(x => x.Name)
+                .NotEmpty()
+                .MaximumLength(Limits.PlayListName)
+                .When(x => x.Name != null);
 
-        RuleFor(x => x.NewDescription)
-            .MaximumLength(256)
-            .When(x => x.NewDescription != null);
+            RuleFor(x => x.Description)
+                .MaximumLength(Limits.Description)
+                .When(x => x.Description != null);
+
+            RuleFor(x => x.Visibility)
+                .IsInEnum()
+                .When(x => x.Visibility != null);
+        }
     }
 }

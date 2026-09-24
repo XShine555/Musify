@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Musify.Domain.Abstractions;
 
@@ -11,11 +11,9 @@ namespace Musify.Domain.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public required long Id { get; set; }
 
-        [Required]
         [MaxLength(48)]
         public required string Name { get; set; }
 
-        [Required]
         [MaxLength(48)]
         public required string NormalizedName { get; set; }
 
@@ -28,13 +26,9 @@ namespace Musify.Domain.Entities
         [MaxLength(2048)]
         public string? ProfilePictureUrl { get; set; }
 
-        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        public ICollection<UserHasTrack> UserTracks { get; set; } = new List<UserHasTrack>();
 
         public ICollection<PlayList> PlayLists { get; set; } = new List<PlayList>();
 

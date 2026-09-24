@@ -1,10 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using Musify.Api.DataTransferObjects;
 using Musify.Api.DataTransferObjects.Albums;
-using Musify.Api.DataTransferObjects.Users;
 using Musify.Api.Tests.TestSupport;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
+using Musify.Application.Pictures.Responses;
 using NSubstitute;
 using Xunit;
 
@@ -13,19 +14,12 @@ namespace Musify.Api.Tests.Endpoints
     [Collection(ApiCollection.Name)]
     public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     {
-        private async Task<long> CreateUserAsync()
-        {
-            var userId = Random.Shared.NextInt64(1, long.MaxValue);
-            var response = await fixture.CreateAnonymousClient()
-                .PostAsJsonAsync("/users", new CreateUserRequest(userId, $"user-{userId}", null, null));
-            response.EnsureSuccessStatusCode();
-            return userId;
-        }
+        private Task<long> CreateUserAsync() => fixture.SeedUserAsync();
 
         private async Task<Guid> CreatePictureIntentAsync(HttpClient client)
         {
             fixture.StorageService
-                .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+                .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
                 .Returns("https://storage.musify.test/presigned-upload");
             fixture.StorageService
                 .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -33,11 +27,11 @@ namespace Musify.Api.Tests.Endpoints
 
             var response = await client.PostAsJsonAsync(
                 "/albums/upload-picture",
-                new RequestAlbumPictureUploadRequest("webp", "image/webp"),
+                new PictureUploadRequest("webp", "image/webp"),
                 TestContext.Current.CancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var body = await response.Content.ReadFromJsonAsync<AlbumPictureUploadResponse>(TestContext.Current.CancellationToken);
+            var body = await response.Content.ReadFromJsonAsync<PictureUploadResponse>(TestContext.Current.CancellationToken);
             return body!.IntentId;
         }
 
@@ -103,7 +97,7 @@ namespace Musify.Api.Tests.Endpoints
         }
 
         [Fact]
-        public async Task DeleteAlbum_NotTheOwner_ReturnsUnauthorized()
+        public async Task DeleteAlbum_NotTheOwner_ReturnsForbidden()
         {
             var owner = await CreateUserAsync();
             var stranger = await CreateUserAsync();
@@ -114,7 +108,7 @@ namespace Musify.Api.Tests.Endpoints
 
             var response = await fixture.CreateAuthenticatedClient(stranger).DeleteAsync($"/albums/{created!.Id}", TestContext.Current.CancellationToken);
 
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [Fact]

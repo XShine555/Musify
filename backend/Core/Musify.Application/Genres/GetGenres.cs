@@ -1,13 +1,12 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Genres.Responses;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Genres
 {
     public record GetGenresQuery : IQuery<IReadOnlyList<GenreResponse>>;
-
-    public record GenreResponse(Genre Genre, int TrackCount);
 
     public class GetGenresQueryHandler(IDatabase database)
         : IQueryHandler<GetGenresQuery, IReadOnlyList<GenreResponse>>
@@ -16,7 +15,7 @@ namespace Musify.Application.Genres
         {
             var rows = await database.TrackTags
                 .AsNoTracking()
-                .Where(tag => database.UserHasTracks.Any(userTrack => userTrack.TrackId == tag.TrackId))
+                .Where(tag => tag.Track.LifeCycleStatus == LifeCycleStatus.Active)
                 .GroupBy(tag => tag.Tag)
                 .Select(group => new { Genre = group.Key, TrackCount = group.Select(tag => tag.TrackId).Distinct().Count() })
                 .ToListAsync(cancellationToken);

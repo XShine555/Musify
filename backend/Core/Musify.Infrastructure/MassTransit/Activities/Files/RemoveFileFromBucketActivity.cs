@@ -1,14 +1,14 @@
-using MassTransit;
-using Amazon.S3;
-using Microsoft.Extensions.Logging;
-using Musify.Infrastructure.MassTransit.Arguments;
 using System.Net;
+using Amazon.S3;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Infrastructure.MassTransit.Arguments;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
     internal class RemoveFileFromBucketActivity(
-        IStorageService storageHandler,
+        IStorageService storageService,
         ILogger<RemoveFileFromBucketActivity> logger)
         : IExecuteActivity<RemoveFileFromBucketArguments>
     {
@@ -18,7 +18,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
         {
             try
             {
-                await storageHandler.RemoveFileAsync(
+                await storageService.RemoveFileAsync(
                     executeContext.Arguments.Bucket,
                     executeContext.Arguments.Key,
                     executeContext.CancellationToken);
@@ -33,13 +33,6 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
                     executeContext.Arguments.Key,
                     executeContext.Arguments.Bucket);
                 return executeContext.Completed();
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to remove {Key} from bucket {Bucket}",
-                    executeContext.Arguments.Key,
-                    executeContext.Arguments.Bucket);
-                throw;
             }
         }
     }

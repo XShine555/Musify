@@ -2,6 +2,7 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Users
@@ -20,10 +21,9 @@ namespace Musify.Application.Users
                 .Select(u => UserApplicationResponse.FromEntity(u))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (user == null)
-                return Error.NotFound();
-
-            return user;
+            return user == null
+                ? AppErrors.NotFound("User", request.Id)
+                : user;
         }
     }
 }

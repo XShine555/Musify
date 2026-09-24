@@ -17,8 +17,16 @@ namespace Musify.Infrastructure.MassTransit.Sagas
             InstanceState(state => state.CurrentState);
 
             Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.AlbumId));
-            Event(() => PictureProcessed, config => config.CorrelateById(context => context.Message.AlbumId));
-            Event(() => PictureFailed, config => config.CorrelateById(context => context.Message.AlbumId));
+            Event(() => PictureProcessed, config =>
+            {
+                config.CorrelateById(context => context.Message.AlbumId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
+            Event(() => PictureFailed, config =>
+            {
+                config.CorrelateById(context => context.Message.AlbumId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
 
             Initially(
                 When(ProcessingStarted)
@@ -28,7 +36,7 @@ namespace Musify.Infrastructure.MassTransit.Sagas
                         context.Saga.UpdatedAt = DateTime.UtcNow;
                         context.Saga.Bucket = context.Message.Bucket;
                         context.Saga.PictureKey = context.Message.PictureDestinationKey;
-                    } )
+                    })
                     .TransitionTo(Processing));
 
             During(Processing,

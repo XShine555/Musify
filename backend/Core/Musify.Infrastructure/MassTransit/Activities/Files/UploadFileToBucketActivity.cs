@@ -6,7 +6,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
-    internal class UploadFileToBucketActivity(IStorageService storageHandler,
+    internal class UploadFileToBucketActivity(IStorageService storageService,
         ILogger<UploadFileToBucketActivity> logger)
         : IActivity<UploadFileToBucketArguments, UploadFileToBucketLog>
     {
@@ -15,35 +15,27 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
         public async Task<ExecutionResult> Execute(ExecuteContext<UploadFileToBucketArguments> executeContext)
         {
             var sourceFilePath = executeContext.GetVariable<string>(executeContext.Arguments.FilePathVariable);
-            ArgumentNullException.ThrowIfNull(sourceFilePath, nameof(sourceFilePath));
+            ArgumentNullException.ThrowIfNull(sourceFilePath);
             var fileName = Path.GetFileName(sourceFilePath);
             var destinationKey = string.Join('/', new[] { executeContext.Arguments.DestinationRoute, fileName }
                 .Where(static s => !string.IsNullOrWhiteSpace(s))
                 .Select(static s => s.Trim().Trim('/', '\\')));
 
-            try
-            {
-                await storageHandler.UploadFileAsync(
-                    sourceFilePath,
-                    executeContext.Arguments.DestinationBucket,
-                    destinationKey,
-                    executeContext.CancellationToken);
-                return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
-                    executeContext.Arguments.DestinationBucket,
-                    destinationKey));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to upload file to bucket");
-                throw;
-            }
+            await storageService.UploadFileAsync(
+                sourceFilePath,
+                executeContext.Arguments.DestinationBucket,
+                destinationKey,
+                executeContext.CancellationToken);
+            return executeContext.CompletedWithVariables(new UploadFileToBucketLog(
+                executeContext.Arguments.DestinationBucket,
+                destinationKey));
         }
 
         public async Task<CompensationResult> Compensate(CompensateContext<UploadFileToBucketLog> compensateContext)
         {
             try
             {
-                await storageHandler.RemoveFileAsync(
+                await storageService.RemoveFileAsync(
                     compensateContext.Log.DestinationBucket,
                     compensateContext.Log.DestinationKey,
                     compensateContext.CancellationToken);

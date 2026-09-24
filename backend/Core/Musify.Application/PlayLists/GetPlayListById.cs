@@ -1,9 +1,9 @@
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-using Musify.Application.PlayLists.Responses;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
-using Musify.Domain.ValueObjects;
+using Musify.Application.PlayLists.Responses;
+using Musify.Application.Shared;
 
 namespace Musify.Application.PlayLists
 {
@@ -15,30 +15,17 @@ namespace Musify.Application.PlayLists
     {
         public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(GetPlayListByIdQuery request, CancellationToken cancellationToken)
         {
-            var entry = await database.PlayLists
+            var playList = await database.PlayLists
                 .AsNoTracking()
+                .Active()
+                .VisibleTo(request.RequestingUserId)
                 .Where(p => p.Id == request.Id)
-                .Select(p => new
-                {
-                    PlayList = p,
-                    TrackCount = p.PlayListTracks.Count,
-                    DurationSeconds = p.PlayListTracks.Sum(plt => (double?)plt.Track.DurationSeconds) ?? 0,
-                    CoverTrackIds = p.PlayListTracks
-                        .OrderBy(plt => plt.Position)
-                        .Take(PlayListApplicationResponse.CoverTrackCount)
-                        .Select(plt => plt.TrackId)
-                        .ToList()
-                })
+                .SelectResponse()
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (entry == null)
-                return Error.NotFound();
-
-            if (entry.PlayList.Visibility == PlaylistVisibility.Private
-                && entry.PlayList.UserId != request.RequestingUserId)
-                return Error.NotFound();
-
-            return PlayListApplicationResponse.FromEntity(entry.PlayList, entry.TrackCount, entry.DurationSeconds, entry.CoverTrackIds);
+            return playList == null
+                ? AppErrors.NotFound("PlayList", request.Id)
+                : playList;
         }
     }
 }

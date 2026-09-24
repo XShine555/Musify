@@ -18,9 +18,5 @@ export const GET: RequestHandler = async ({ url, locals, fetch }) => {
 		params: { query: { name, genre, pageNumber, pageSize } }
 	});
 
-	return json(
-		toPage(unwrapOrError(result, 'No se pudieron cargar las canciones.'), (item) =>
-			toTrack(item.track)
-		)
-	);
+	return json(toPage(unwrapOrError(result, 'No se pudieron cargar las canciones.'), toTrack));
 };

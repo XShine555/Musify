@@ -7,7 +7,7 @@ using Musify.Infrastructure.MassTransit.Logs;
 namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
     internal class TransferFilesToBucketActivity(
-        IStorageService storageHandler,
+        IStorageService storageService,
         ILogger<TransferFilesToBucketActivity> logger)
         : IActivity<TransferFilesToBucketArguments, TransferFilesToBucketLog>
     {
@@ -16,29 +16,19 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
         public async Task<ExecutionResult> Execute(ExecuteContext<TransferFilesToBucketArguments> executeContext)
         {
             var folderPath = executeContext.GetVariable<string>(executeContext.Arguments.SourceDirectoryVariable);
-            ArgumentNullException.ThrowIfNull(folderPath, nameof(folderPath));
+            ArgumentNullException.ThrowIfNull(folderPath);
             var destinationKey = executeContext.Arguments.DestinationKey;
-            ArgumentNullException.ThrowIfNull(destinationKey, nameof(destinationKey));
+            ArgumentNullException.ThrowIfNull(destinationKey);
 
-            try
-            {
-                var uploadedKeys = await storageHandler.TransferFilesAsync(
-                    folderPath,
-                    executeContext.Arguments.DestinationBucket,
-                    destinationKey,
-                    executeContext.CancellationToken);
+            var uploadedKeys = await storageService.TransferFilesAsync(
+                folderPath,
+                executeContext.Arguments.DestinationBucket,
+                destinationKey,
+                executeContext.CancellationToken);
 
-                return executeContext.Completed(new TransferFilesToBucketLog(
-                    executeContext.Arguments.DestinationBucket,
-                    uploadedKeys.ToArray()));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Failed to transfer files from {FolderPath} to {DestinationBucket}",
-                    folderPath,
-                    executeContext.Arguments.DestinationBucket);
-                throw;
-            }
+            return executeContext.Completed(new TransferFilesToBucketLog(
+                executeContext.Arguments.DestinationBucket,
+                uploadedKeys.ToArray()));
         }
 
         public async Task<CompensationResult> Compensate(CompensateContext<TransferFilesToBucketLog> compensateContext)
@@ -47,7 +37,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Files
             {
                 foreach (var uploadedKey in compensateContext.Log.UploadedKeys)
                 {
-                    await storageHandler.RemoveFileAsync(
+                    await storageService.RemoveFileAsync(
                         compensateContext.Log.DestinationBucket,
                         uploadedKey,
                         compensateContext.CancellationToken);

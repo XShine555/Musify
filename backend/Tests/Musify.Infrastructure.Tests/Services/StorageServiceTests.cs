@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musify.Infrastructure.Configuration;
-using Musify.Infrastructure.Persistence;
 using Musify.Infrastructure.Services;
 using Musify.Infrastructure.Tests.TestSupport;
 using Xunit;
@@ -13,12 +12,10 @@ namespace Musify.Infrastructure.Tests.Services
     [Collection(InfrastructureCollection.Name)]
     public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAsyncLifetime
     {
-        private Database database = null!;
         private StorageService service = null!;
 
         public ValueTask InitializeAsync()
         {
-            database = fixture.CreateDatabase();
             var storageConfiguration = new InfrastructureStorageConfiguration
             {
                 Address = fixture.S3ServiceUrl,
@@ -27,11 +24,11 @@ namespace Musify.Infrastructure.Tests.Services
                 ForcePathStyle = true,
                 UseHttp = true,
             };
-            service = new StorageService(database, fixture.CreateS3Client(), NullLogger<StorageService>.Instance, storageConfiguration);
+            service = new StorageService(fixture.CreateS3Client(), NullLogger<StorageService>.Instance, storageConfiguration);
             return ValueTask.CompletedTask;
         }
 
-        public ValueTask DisposeAsync() => database.DisposeAsync();
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         [Fact]
         public async Task UploadThenGetFile_RoundTripsTheSameBytes()
@@ -42,10 +39,19 @@ namespace Musify.Infrastructure.Tests.Services
             await service.UploadFileAsync(new MemoryStream(content), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
 
             await using var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+            Assert.NotNull(stream);
             using var reader = new StreamReader(stream, Encoding.UTF8);
             var readBack = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal("hello seaweedfs", readBack);
+        }
+
+        [Fact]
+        public async Task GetFileAsync_MissingObject_ReturnsNull()
+        {
+            var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, $"tests/{Guid.NewGuid():N}/missing.txt", TestContext.Current.CancellationToken);
+
+            Assert.Null(stream);
         }
 
         [Fact]
@@ -106,27 +112,12 @@ namespace Musify.Infrastructure.Tests.Services
         }
 
         [Fact]
-        public async Task RemoveFolderAsync_DeletesEveryObjectUnderThePrefix()
-        {
-            var prefix = $"tests/{Guid.NewGuid():N}";
-            await service.UploadFileAsync(new MemoryStream("a"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/a.txt", TestContext.Current.CancellationToken);
-            await service.UploadFileAsync(new MemoryStream("b"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/nested/b.txt", TestContext.Current.CancellationToken);
-
-            await service.RemoveFolderAsync(InfrastructureTestFixture.S3Bucket, prefix, TestContext.Current.CancellationToken);
-
-            var remaining = new List<string>();
-            await foreach (var item in service.ListObjectsAsync(InfrastructureTestFixture.S3Bucket, prefix, TestContext.Current.CancellationToken))
-                remaining.Add(item.Key);
-            Assert.Empty(remaining);
-        }
-
-        [Fact]
         public async Task GetUploadUrlAsync_PresignedPut_CanActuallyUploadTheObject()
         {
             var key = $"tests/{Guid.NewGuid():N}/presigned.txt";
 
             var uploadUrl = await service.GetUploadUrlAsync(
-                InfrastructureTestFixture.S3Bucket, key, "text/plain", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
+                InfrastructureTestFixture.S3Bucket, key, "text/plain", TimeSpan.FromMinutes(5), cancellationToken: TestContext.Current.CancellationToken);
 
             using var httpClient = new HttpClient();
             using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl)

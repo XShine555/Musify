@@ -1,6 +1,4 @@
-using System.Text.Json.Serialization;
 using Musify.Domain.Entities;
-using Musify.Application.Serialization;
 
 namespace Musify.Application.Albums.Responses
 {
@@ -9,7 +7,7 @@ namespace Musify.Application.Albums.Responses
         string Title,
         string? Description,
         int? ReleaseYear,
-        [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
+        long OwnerUserId,
         int TrackCount,
         string? SmallImageKeyName,
         string? MediumImageKeyName,
@@ -18,7 +16,7 @@ namespace Musify.Application.Albums.Responses
         DateTime UpdatedAt,
         IReadOnlyList<Guid> CoverTrackIds)
     {
-        public const int CoverTrackCount = 4;
+        public const int CoverTrackCount = AlbumProjections.CoverTrackCount;
 
         public static AlbumApplicationResponse FromEntity(
             Album album,

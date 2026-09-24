@@ -19,8 +19,6 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
     <PackageReference Include="MimeMapping" />
-    <PackageReference Include="X.PagedList" />
-    <PackageReference Include="X.PagedList.EF" />
   </ItemGroup>
 
   <ItemGroup>

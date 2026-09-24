@@ -6,7 +6,5 @@ namespace Musify.Application.Events
         Guid AlbumId,
         string Bucket,
         string SourceKey,
-        ImageSize Small,
-        ImageSize Medium,
-        ImageSize Large);
+        ImageSizes Sizes);
 }

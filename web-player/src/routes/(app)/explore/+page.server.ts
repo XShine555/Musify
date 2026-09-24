@@ -46,16 +46,14 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 	const genre = genres.find((item) => item.genre === genreParam)?.genre ?? null;
 	const tracksRes = genre === genreParam ? firstTracksRes : await tracksFor(genre);
 
-	const tracks = toPage(unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.'), (item) =>
-		toTrack(item.track)
-	);
+	const tracks = toPage(unwrapOrError(tracksRes, 'No se pudieron cargar las canciones.'), toTrack);
 
 	return {
 		query,
 		genre,
 		genres,
 		tracks,
-		albums: (albumsRes?.data?.items ?? []).map((item) => toAlbum(item.album)),
+		albums: (albumsRes?.data?.items ?? []).map(toAlbum),
 		albumsTotal: toCount(albumsRes?.data?.totalItemCount),
 		users: usersRes?.data?.items ?? [],
 		usersTotal: toCount(usersRes?.data?.totalItemCount),

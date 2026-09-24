@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Musify.Domain\Domain.csproj" />
     <ProjectReference Include="..\..\Core\Musify.Application\Application.csproj" />
+    <ProjectReference Include="..\..\Core\Musify.Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

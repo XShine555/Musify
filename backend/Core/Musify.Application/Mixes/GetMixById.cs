@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Mixes.Responses;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Mixes
 {
@@ -20,12 +21,12 @@ namespace Musify.Application.Mixes
                 .SingleOrDefaultAsync(mix => mix.Id == request.MixId && mix.UserId == request.UserId, cancellationToken);
 
             if (mix == null)
-                return Error.NotFound(description: $"Mix {request.MixId} was not found");
+                return AppErrors.NotFound("Mix", request.MixId);
 
             var orderedItems = mix.Items.OrderBy(item => item.Position).ToList();
             var items = await MixItemMapper.ToResponsesAsync(database, orderedItems, cancellationToken);
 
-            return new MixApplicationResponse(mix.Id, mix.Title, mix.Subtitle, items.Count, items);
+            return new MixApplicationResponse(mix.Id, mix.Kind, items.Count, items);
         }
     }
 }

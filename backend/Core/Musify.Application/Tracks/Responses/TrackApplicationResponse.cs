@@ -1,7 +1,5 @@
-using Musify.Application.Serialization;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
-using System.Text.Json.Serialization;
 
 namespace Musify.Application.Tracks.Responses
 {
@@ -14,7 +12,7 @@ namespace Musify.Application.Tracks.Responses
         int ListensCount,
         DateTime CreatedAt,
         DateTime UpdatedAt,
-        [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
+        long OwnerUserId,
         IReadOnlyCollection<Genre> Tags,
         bool IsExplicit)
     {

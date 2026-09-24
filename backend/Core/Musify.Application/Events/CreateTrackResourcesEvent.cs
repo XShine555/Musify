@@ -12,7 +12,5 @@ namespace Musify.Application.Events
         string AudioSourceKey,
         string AudioDestinationKey,
         string AudioProcessedFolderKey,
-        ImageSize Small,
-        ImageSize Medium,
-        ImageSize Large);
+        ImageSizes Sizes);
 }

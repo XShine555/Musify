@@ -79,7 +79,7 @@ namespace Musify.Application.Tests.TestSupport
             return track;
         }
 
-        public static PlayListPictures PlayListPictures() => new()
+        public static EntityPictures PlayListPictures() => new()
         {
             OriginalName = "original.webp",
             SmallName = "small.webp",
@@ -91,12 +91,12 @@ namespace Musify.Application.Tests.TestSupport
             long userId,
             string name = "Test Playlist",
             string? description = null,
-            PlayListPictures? pictures = null,
+            EntityPictures? pictures = null,
             LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active,
-            PlaylistVisibility visibility = PlaylistVisibility.Private) =>
+            PlayListVisibility visibility = PlayListVisibility.Private) =>
             new()
             {
-                UserId = userId,
+                OwnerUserId = userId,
                 Name = name,
                 NormalizedName = name.ToUpperInvariant(),
                 Description = description,
@@ -105,7 +105,7 @@ namespace Musify.Application.Tests.TestSupport
                 Visibility = visibility
             };
 
-        public static AlbumPictures AlbumPictures() => new()
+        public static EntityPictures AlbumPictures() => new()
         {
             OriginalName = "original.webp",
             SmallName = "small.webp",
@@ -118,7 +118,7 @@ namespace Musify.Application.Tests.TestSupport
             string title = "Test Album",
             string? description = null,
             int? releaseYear = 2024,
-            AlbumPictures? pictures = null) =>
+            EntityPictures? pictures = null) =>
             new()
             {
                 Title = title,
@@ -154,14 +154,12 @@ namespace Musify.Application.Tests.TestSupport
 
         public static Mix Mix(
             long userId,
-            string title = "Test Mix",
-            string? subtitle = null,
+            MixKind kind = MixKind.Discovery,
             int position = 0) =>
             new()
             {
                 UserId = userId,
-                Title = title,
-                Subtitle = subtitle,
+                Kind = kind,
                 Position = position
             };
 

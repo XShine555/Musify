@@ -1,4 +1,4 @@
-﻿namespace Musify.Domain.ValueObjects
+namespace Musify.Domain.ValueObjects
 {
     public enum ProcessingStatus
     {

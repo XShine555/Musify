@@ -1,4 +1,4 @@
-﻿namespace Musify.Application.Events
+namespace Musify.Application.Events
 {
     public record UpdateTrackAudioEvent(
         Guid TrackId,

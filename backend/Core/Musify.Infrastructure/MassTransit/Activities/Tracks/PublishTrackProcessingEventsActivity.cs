@@ -21,9 +21,7 @@ namespace Musify.Infrastructure.MassTransit.Activities.Tracks
                     arguments.TrackId,
                     arguments.Bucket,
                     arguments.FinalPictureKey,
-                    arguments.Small,
-                    arguments.Medium,
-                    arguments.Large),
+                    arguments.Sizes),
                 executeContext.CancellationToken);
 
             await publishEndpoint.Publish(

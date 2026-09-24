@@ -304,17 +304,11 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Position")
+                    b.Property<int>("Kind")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Subtitle")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -379,11 +373,12 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<long>("OwnerUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("UserId");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("Visibility")
                         .ValueGeneratedOnAdd()
@@ -392,7 +387,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerUserId");
 
                     b.ToTable("PlayLists");
                 });
@@ -417,9 +412,10 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlayListId");
-
                     b.HasIndex("TrackId");
+
+                    b.HasIndex("PlayListId", "TrackId")
+                        .IsUnique();
 
                     b.ToTable("PlayListHasTrack");
                 });
@@ -508,35 +504,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("TrackTags");
-                });
-
-            modelBuilder.Entity("Musify.Domain.Entities.Upload", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Bucket")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("State")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Upload");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.UploadIntent", b =>
@@ -653,27 +620,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.ToTable("UserFollows");
                 });
 
-            modelBuilder.Entity("Musify.Domain.Entities.UserHasTrack", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TrackId")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TrackId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserHasTrack");
-                });
-
             modelBuilder.Entity("Musify.Infrastructure.MassTransit.Sagas.AlbumProcessingState", b =>
                 {
                     b.Property<Guid>("CorrelationId")
@@ -784,19 +730,17 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Musify.Domain.ValueObjects.AlbumPictures", "Pictures", b1 =>
+                    b.OwnsOne("Musify.Domain.ValueObjects.EntityPictures", "Pictures", b1 =>
                         {
                             b1.Property<Guid>("AlbumId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("LargeName")
-                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("LargePictureName");
 
                             b1.Property<string>("MediumName")
-                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("MediumPictureName");
@@ -808,7 +752,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasColumnName("OriginalPictureName");
 
                             b1.Property<string>("SmallName")
-                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("SmallPictureName");
@@ -896,13 +839,13 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Musify.Domain.Entities.PlayList", b =>
                 {
-                    b.HasOne("Musify.Domain.Entities.User", "User")
+                    b.HasOne("Musify.Domain.Entities.User", "Owner")
                         .WithMany("PlayLists")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("OwnerUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("Musify.Domain.ValueObjects.PlayListPictures", "Pictures", b1 =>
+                    b.OwnsOne("Musify.Domain.ValueObjects.EntityPictures", "Pictures", b1 =>
                         {
                             b1.Property<Guid>("PlayListId")
                                 .HasColumnType("uuid");
@@ -935,9 +878,9 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("PlayListId");
                         });
 
-                    b.Navigation("Pictures");
+                    b.Navigation("Owner");
 
-                    b.Navigation("User");
+                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.PlayListHasTrack", b =>
@@ -972,27 +915,15 @@ namespace Musify.Infrastructure.Persistence.Migrations
                             b1.Property<Guid>("TrackId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<bool>("DownloadRequested")
-                                .HasColumnType("boolean")
-                                .HasColumnName("DownloadRequested");
-
                             b1.Property<string>("FolderName")
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("AudioFolderName");
 
-                            b1.Property<DateTime?>("LastRetryAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("LastRetryAt");
-
                             b1.Property<string>("OriginalName")
                                 .HasMaxLength(64)
                                 .HasColumnType("character varying(64)")
                                 .HasColumnName("OriginalAudioName");
-
-                            b1.Property<int>("RetryCount")
-                                .HasColumnType("integer")
-                                .HasColumnName("RetryCount");
 
                             b1.Property<int>("TranscodeStatus")
                                 .HasColumnType("integer")
@@ -1112,25 +1043,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("Follower");
                 });
 
-            modelBuilder.Entity("Musify.Domain.Entities.UserHasTrack", b =>
-                {
-                    b.HasOne("Musify.Domain.Entities.Track", "Track")
-                        .WithMany("UserTracks")
-                        .HasForeignKey("TrackId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Musify.Domain.Entities.User", "User")
-                        .WithMany("UserTracks")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Track");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Musify.Domain.Entities.Album", b =>
                 {
                     b.Navigation("AlbumTracks");
@@ -1155,8 +1067,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("PlayListTracks");
 
                     b.Navigation("Tags");
-
-                    b.Navigation("UserTracks");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.User", b =>
@@ -1164,8 +1074,6 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.Navigation("ListeningHistories");
 
                     b.Navigation("PlayLists");
-
-                    b.Navigation("UserTracks");
                 });
 #pragma warning restore 612, 618
         }

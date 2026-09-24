@@ -23,14 +23,7 @@ namespace Musify.Infrastructure.Jobs
             logger.LogInformation("Starting daily mix generation for {Count} users", userIds.Count);
 
             foreach (var userId in userIds)
-            {
-                var result = await mediator.Send(new GenerateMixesForUserCommand(userId), cancellationToken);
-                if (result.IsError)
-                {
-                    logger.LogWarning("Failed to generate mixes for user {UserId}: {Error}",
-                        userId, result.FirstError.Description);
-                }
-            }
+                await mediator.Send(new GenerateMixesForUserCommand(userId), cancellationToken);
 
             logger.LogInformation("Finished daily mix generation");
         }

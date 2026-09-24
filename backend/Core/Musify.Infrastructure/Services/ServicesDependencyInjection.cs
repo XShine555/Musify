@@ -3,28 +3,20 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Musify.Application.Configuration;
+using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.Jobs;
-using Musify.Application.Contracts;
 
 namespace Musify.Infrastructure.Services
 {
     public static class ServicesDependencyInjection
     {
-        public static IServiceCollection AddStorageService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddStorageService(this IServiceCollection services, IConfiguration configuration)
         {
-            serviceDescriptors
-                .AddOptionsWithValidateOnStart<InfrastructureStorageConfiguration>()
-                .Bind(configuration.GetRequiredSection(InfrastructureStorageConfiguration.SectionName))
-                .ValidateDataAnnotations();
+            services.AddValidatedOptions<InfrastructureStorageConfiguration>(configuration);
 
-            serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<InfrastructureStorageConfiguration>>().Value);
-
-            serviceDescriptors.AddSingleton<IAmazonS3>(serviceProvider =>
+            services.AddSingleton<IAmazonS3>(serviceProvider =>
             {
                 var configuration = serviceProvider.GetRequiredService<InfrastructureStorageConfiguration>();
                 var s3Configuration = new AmazonS3Config
@@ -34,77 +26,51 @@ namespace Musify.Infrastructure.Services
                     UseHttp = configuration.UseHttp,
                 };
                 return new AmazonS3Client(configuration.AccessKey, configuration.SecretAccessKey, s3Configuration);
-            } );
+            });
 
-            serviceDescriptors.AddScoped<IStorageService, StorageService>();
-            return serviceDescriptors;
+            services.AddSingleton<IStorageService, StorageService>();
+            return services;
         }
 
-        public static IServiceCollection AddPictureService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddPictureService(this IServiceCollection services)
         {
-            serviceDescriptors.AddScoped<IPictureService, PictureService>();
-            return serviceDescriptors;
+            services.AddScoped<IPictureService, PictureService>();
+            return services;
         }
 
-        public static IServiceCollection AddUploadIntentConfiguration(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddJobs(this IServiceCollection services)
         {
-            serviceDescriptors.AddValidatedOptions<UploadIntentConfiguration>(configuration, UploadIntentConfiguration.SectionName);
-
-            return serviceDescriptors;
-        }
-
-        public static IServiceCollection AddUploadIntentJobs(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddUploadIntentConfiguration(configuration);
-
-            serviceDescriptors.AddHostedService<UploadIntentExpirationJob>();
-            serviceDescriptors.AddHostedService<TemporalUploadsCleanUpJob>();
-
-            return serviceDescriptors;
-        }
-
-        public static IServiceCollection AddDailyMixGenerationJob(this IServiceCollection serviceDescriptors, IConfiguration configuration)
-        {
-            serviceDescriptors.AddHangfire((serviceProvider, hangfireConfiguration) =>
+            services.AddHangfire((serviceProvider, hangfireConfiguration) =>
             {
                 var databaseConfiguration = serviceProvider.GetRequiredService<DatabaseConfiguration>();
                 hangfireConfiguration.UsePostgreSqlStorage(options =>
                     options.UseNpgsqlConnection(databaseConfiguration.ConnectionString));
             });
 
-            serviceDescriptors.AddHangfireServer();
-            serviceDescriptors.AddScoped<DailyMixGenerationJob>();
-            serviceDescriptors.AddScoped<ListeningHistoryCleanupJob>();
+            services.AddHangfireServer();
+            services.AddScoped<DailyMixGenerationJob>();
+            services.AddScoped<ListeningHistoryCleanupJob>();
+            services.AddScoped<UploadIntentExpirationJob>();
+            services.AddScoped<TempUploadsCleanupJob>();
+            services.AddHostedService<RecurringJobsRegistrar>();
 
-            return serviceDescriptors;
+            return services;
         }
 
-        public static IServiceCollection AddStreamTicketService(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddStreamTicketService(this IServiceCollection services, IConfiguration configuration)
         {
-            serviceDescriptors
-                .AddOptionsWithValidateOnStart<StreamTicketConfiguration>()
-                .Bind(configuration.GetRequiredSection(StreamTicketConfiguration.SectionName))
-                .ValidateDataAnnotations();
+            services.AddValidatedOptions<StreamTicketConfiguration>(configuration);
 
-            serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<StreamTicketConfiguration>>().Value);
-
-            serviceDescriptors.AddSingleton<IStreamTicketService, StreamTicketService>();
-            return serviceDescriptors;
+            services.AddSingleton<IStreamTicketService, StreamTicketService>();
+            return services;
         }
 
-        public static IServiceCollection AddAudioTranscoder(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+        public static IServiceCollection AddAudioTranscoder(this IServiceCollection services, IConfiguration configuration)
         {
-            serviceDescriptors
-                .AddOptionsWithValidateOnStart<AudioConfiguration>()
-                .Bind(configuration.GetRequiredSection(AudioConfiguration.SectionName))
-                .ValidateDataAnnotations();
+            services.AddValidatedOptions<AudioConfiguration>(configuration);
 
-            serviceDescriptors.AddSingleton(serviceProvider =>
-                serviceProvider.GetRequiredService<IOptions<AudioConfiguration>>().Value);
-
-            serviceDescriptors.AddScoped<IAudioTranscoderService, AudioService>();
-            return serviceDescriptors;
+            services.AddScoped<IAudioTranscoderService, AudioTranscoderService>();
+            return services;
         }
     }
 }

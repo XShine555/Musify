@@ -3,7 +3,9 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Likes
 {
@@ -19,12 +21,9 @@ namespace Musify.Application.Likes
         {
             var trackExists = await database.Tracks
                 .AsNoTracking()
-                .AnyAsync(t => t.Id == request.TrackId, cancellationToken);
+                .AnyAsync(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active, cancellationToken);
             if (!trackExists)
-            {
-                logger.LogInformation("Track {TrackId} not found", request.TrackId);
-                return Error.NotFound(description: $"Track {request.TrackId} not found");
-            }
+                return AppErrors.NotFound("Track", request.TrackId);
 
             var existingLike = await database.TrackLikes
                 .SingleOrDefaultAsync(like => like.UserId == request.UserId && like.TrackId == request.TrackId, cancellationToken);
@@ -45,7 +44,11 @@ namespace Musify.Application.Likes
                 nowLiked = true;
             }
 
-            await database.SaveChangesAsync(cancellationToken);
+            // A concurrent double click can hit the unique index; the outcome is already in place, so treat it as a no-op.
+            var saved = await database.TrySaveChangesAsync(
+                AppErrors.Conflict("TrackLike.Duplicate", "Track is already liked."), cancellationToken);
+            if (saved.IsError)
+                return true;
 
             logger.LogInformation("User {UserId} {Action} track {TrackId}",
                 request.UserId, nowLiked ? "liked" : "unliked", request.TrackId);

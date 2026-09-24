@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -44,10 +45,27 @@ namespace Musify.Api.Tests.TestSupport
 
         public HttpClient CreateAnonymousClient() => CreateClient();
 
+        public async Task<long> SeedUserAsync(long? userId = null, string? name = null)
+        {
+            var id = userId ?? Random.Shared.NextInt64(1, long.MaxValue);
+            var userName = name ?? $"user-{id}";
+
+            using var scope = Services.CreateScope();
+            var database = scope.ServiceProvider.GetRequiredService<Musify.Infrastructure.Persistence.Database>();
+            database.Users.Add(new Musify.Domain.Entities.User
+            {
+                Id = id,
+                Name = userName,
+                NormalizedName = userName.ToUpperInvariant()
+            });
+            await database.SaveChangesAsync();
+            return id;
+        }
+
         public HttpClient CreateAuthenticatedClient(long userId, string userName = "test-user")
         {
             var client = CreateClient();
-            client.DefaultRequestHeaders.Add(FakeAuthenticationHandler.UserIdHeader, userId.ToString());
+            client.DefaultRequestHeaders.Add(FakeAuthenticationHandler.UserIdHeader, userId.ToString(CultureInfo.InvariantCulture));
             client.DefaultRequestHeaders.Add("X-Test-User-Name", userName);
             return client;
         }

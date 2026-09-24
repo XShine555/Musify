@@ -2,6 +2,7 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Tracks
 {
@@ -16,15 +17,12 @@ namespace Musify.Application.Tracks
     {
         public async ValueTask<ErrorOr<Success>> Handle(RecordListeningProgressCommand request, CancellationToken cancellationToken)
         {
-            if (!double.IsFinite(request.PlayedSeconds) || request.PlayedSeconds < 0)
-                return Error.Validation(description: "playedSeconds must be a non-negative number.");
-
             var listen = await database.ListeningHistories
                 .Include(l => l.Track)
                 .SingleOrDefaultAsync(l => l.Id == request.ListenId && l.UserId == request.UserId, cancellationToken);
 
             if (listen == null)
-                return Error.NotFound();
+                return AppErrors.NotFound("Listen", request.ListenId);
 
             var now = DateTime.UtcNow;
             var durationCap = listen.Track.DurationSeconds + ListeningRules.DurationToleranceSeconds;

@@ -6,7 +6,5 @@ namespace Musify.Infrastructure.MassTransit.Arguments
         Guid PlayListId,
         string Bucket,
         string FinalPictureKey,
-        ImageSize Small,
-        ImageSize Medium,
-        ImageSize Large);
+        ImageSizes Sizes);
 }

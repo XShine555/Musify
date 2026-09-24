@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration
 {
-    public class UploadIntentConfiguration
+    public class UploadIntentConfiguration : IConfigurationOptions
     {
-        public const string SectionName = "UploadIntent";
+        public static string SectionName => "UploadIntent";
 
         [Range(10, 3600)]
         public int UploadUrlExpiresInSeconds { get; set; } = 120;
@@ -31,12 +31,12 @@ namespace Musify.Application.Configuration
         public int ExpiredIntentsRetentionDays { get; set; } = 7;
 
         [Required, MinLength(1)]
-        public string TemporalRootPrefix { get; set; } = "temporal";
+        public string TempRootPrefix { get; set; } = "temp";
 
         [Range(1, 30)]
-        public int TemporalUploadsRetentionDays { get; set; } = 3;
+        public int TempUploadsRetentionDays { get; set; } = 3;
 
         [Range(60, 86400)]
-        public int TemporalCleanUpJobIntervalSeconds { get; set; } = 3600;
+        public int TempCleanupJobIntervalSeconds { get; set; } = 3600;
     }
 }
