@@ -331,6 +331,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/playlists/{playlistId}/albums/{albumId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add All The Tracks Of An Album To One Of Your PlayLists, Skipping Those Already In It. */
+        post: operations["AddAlbumToPlayList"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/playlists/{playlistId}/tracks": {
         parameters: {
             query?: never;
@@ -731,6 +748,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddAlbumToPlayListResponse: {
+            /** Format: int32 */
+            addedCount: number | string;
+        };
         AddPlayListTrackRequest: {
             /** Format: uuid */
             trackId: string;
@@ -1882,6 +1903,43 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PaginatedResponseOfTrackApplicationResponse"];
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AddAlbumToPlayList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                playlistId: string;
+                albumId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddAlbumToPlayListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {

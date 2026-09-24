@@ -47,5 +47,4 @@ Each page loads its data in `+page.server.ts` through the typed API client, and 
 ## Pending backend work
 
 - Sorting playlists by last listen (`lastPlayedAt`) for a "recently played playlists" shelf.
-- A bulk endpoint to add several tracks to a playlist at once (adding an album currently posts one track at a time).
 - An endpoint returning the most listened tracks, to bring back a "popular" section on Home.

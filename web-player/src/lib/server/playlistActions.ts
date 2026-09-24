@@ -1,6 +1,5 @@
 import { fail } from '@sveltejs/kit';
 import { authedAction, formString } from '$lib/server/api';
-import { ALBUM_TRACKS_PAGE_SIZE } from '$lib/config';
 
 export const addTrackAction = authedAction(async ({ api, form, params }) => {
 	const playlistId = formString(form, 'playlistId') || (params.id ?? '');
@@ -33,22 +32,14 @@ export const addAlbumToPlaylistAction = authedAction(async ({ api, form, params 
 		return fail(400, { message: 'Faltan datos del álbum.' });
 	}
 
-	const { data: tracks, error: tracksError } = await api.GET('/albums/{albumId}/tracks', {
-		params: { path: { albumId }, query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE } }
+	const { data, error } = await api.POST('/playlists/{playlistId}/albums/{albumId}', {
+		params: { path: { playlistId, albumId } }
 	});
 
-	if (tracksError || !tracks) {
-		return fail(502, { message: 'No se pudo cargar el álbum.', albumId });
+	if (error || !data) {
+		return fail(502, { message: 'No se pudo añadir el álbum.', albumId });
 	}
 
-	let added = 0;
-	for (const track of tracks.items) {
-		const { error } = await api.POST('/playlists/{playlistId}/tracks', {
-			params: { path: { playlistId } },
-			body: { trackId: track.id }
-		});
-		if (!error) added++;
-	}
-
+	const added = Number(data.addedCount);
 	return { addedAlbum: true, albumId, playlistId, added };
 });
