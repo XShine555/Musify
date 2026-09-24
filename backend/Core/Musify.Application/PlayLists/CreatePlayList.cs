@@ -17,7 +17,7 @@ public record CreatePlayListCommand(
     string Name,
     string? Description,
     Guid? PictureIntentId,
-    PlaylistVisibility Visibility = PlaylistVisibility.Private)
+    PlayListVisibility Visibility = PlayListVisibility.Private)
     : ICommand<ErrorOr<PlayListApplicationResponse>>;
 
 public class CreatePlayListCommandHandler(
@@ -30,7 +30,7 @@ public class CreatePlayListCommandHandler(
     UploadIntentConfiguration uploadIntentConfiguration)
     : ICommandHandler<CreatePlayListCommand, ErrorOr<PlayListApplicationResponse>>
 {
-    private sealed record ResolvedPlayListPictures(PlayListPictures? Pictures, UploadIntent? Intent);
+    private sealed record ResolvedPlayListPictures(EntityPictures? Pictures, UploadIntent? Intent);
 
     public async ValueTask<ErrorOr<PlayListApplicationResponse>> Handle(CreatePlayListCommand request, CancellationToken cancellationToken)
     {
@@ -51,7 +51,7 @@ public class CreatePlayListCommandHandler(
 
         var playList = new PlayList
         {
-            UserId = request.UserId,
+            OwnerUserId = request.UserId,
             Name = request.Name.Trim(),
             NormalizedName = request.Name.Trim().ToUpperInvariant(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
@@ -96,7 +96,7 @@ public class CreatePlayListCommandHandler(
         if (validation.IsError)
             return validation.Errors;
 
-        return new ResolvedPlayListPictures(PlayListPictures.Pending(validation.Value.ObjectName), validation.Value);
+        return new ResolvedPlayListPictures(EntityPictures.Pending(validation.Value.ObjectName), validation.Value);
     }
 
     private async Task<ErrorOr<Success>> PublishCreatePlayListEventAsync(

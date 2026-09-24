@@ -14,7 +14,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     public async Task Handle_ExistingPlayList_ReturnsItWithCoverTrackIds()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Public);
         var track = TestEntities.Track(owner);
         await SeedAsync(owner, playList, track, new PlayListHasTrack { PlayListId = playList.Id, TrackId = track.Id, Position = 0 });
 
@@ -37,7 +37,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     public async Task Handle_PrivatePlayList_RequestedByOwner_ReturnsIt()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Private);
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Private);
         await SeedAsync(owner, playList);
 
         var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id, owner.Id), TestContext.Current.CancellationToken);
@@ -50,7 +50,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     {
         var owner = TestEntities.User(1, "owner");
         var stranger = TestEntities.User(2, "stranger");
-        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Private);
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Private);
         await SeedAsync(owner, stranger, playList);
 
         var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id, stranger.Id), TestContext.Current.CancellationToken);
@@ -62,7 +62,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     public async Task Handle_PrivatePlayList_RequestedAnonymously_ReturnsNotFound()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Private);
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Private);
         await SeedAsync(owner, playList);
 
         var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id, RequestingUserId: null), TestContext.Current.CancellationToken);
@@ -74,7 +74,7 @@ public sealed class GetPlayListByIdQueryHandlerTests : HandlerTestBase
     public async Task Handle_PublicPlayList_RequestedAnonymously_ReturnsIt()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Public);
         await SeedAsync(owner, playList);
 
         var result = await CreateHandler().Handle(new GetPlayListByIdQuery(playList.Id, RequestingUserId: null), TestContext.Current.CancellationToken);

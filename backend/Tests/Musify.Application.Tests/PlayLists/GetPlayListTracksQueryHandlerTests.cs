@@ -41,7 +41,7 @@ public sealed class GetPlayListTracksQueryHandlerTests : HandlerTestBase
     public async Task Handle_PrivatePlayListOfAnotherUser_ReturnsNotFound()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: PlaylistVisibility.Private);
+        var playList = TestEntities.PlayList(owner.Id, visibility: PlayListVisibility.Private);
         await SeedAsync(owner, playList);
 
         var result = await CreateHandler().Handle(new GetPlayListTracksQuery(playList.Id, PageNumber: 1, PageSize: 10, ViewerId: 999), TestContext.Current.CancellationToken);
@@ -53,7 +53,7 @@ public sealed class GetPlayListTracksQueryHandlerTests : HandlerTestBase
     public async Task Handle_PrivatePlayListOfViewer_ReturnsTracks()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: PlaylistVisibility.Private);
+        var playList = TestEntities.PlayList(owner.Id, visibility: PlayListVisibility.Private);
         await SeedAsync(owner, playList);
 
         var result = await CreateHandler().Handle(new GetPlayListTracksQuery(playList.Id, PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);

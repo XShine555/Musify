@@ -24,7 +24,7 @@ public class GetPlayListCoverQueryHandler(
     {
         var owned = await database.PlayLists.AsNoTracking()
             .Where(e => e.Id == request.PlayListId && e.LifeCycleStatus == LifeCycleStatus.Active)
-            .Select(e => new { OwnerUserId = e.UserId, e.Pictures })
+            .Select(e => new { OwnerUserId = e.OwnerUserId, e.Pictures })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (owned?.Pictures == null)

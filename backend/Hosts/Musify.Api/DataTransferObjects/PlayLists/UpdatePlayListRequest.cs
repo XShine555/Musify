@@ -6,4 +6,4 @@ public record UpdatePlayListRequest(
     string? NewName,
     string? NewDescription,
     Guid? NewPictureIntentId,
-    PlaylistVisibility? NewVisibility = null);
+    PlayListVisibility? NewVisibility = null);

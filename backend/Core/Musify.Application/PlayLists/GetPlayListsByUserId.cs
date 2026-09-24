@@ -25,9 +25,9 @@ public class GetPlayListsByUserIdQueryHandler(IDatabase database)
     {
         var playListsQuery = database.PlayLists
             .AsNoTracking()
-            .Where(p => p.UserId == request.UserId
+            .Where(p => p.OwnerUserId == request.UserId
                 && p.LifeCycleStatus == LifeCycleStatus.Active
-                && (p.Visibility == PlaylistVisibility.Public || p.UserId == request.ViewerId));
+                && (p.Visibility == PlayListVisibility.Public || p.OwnerUserId == request.ViewerId));
 
         if (!string.IsNullOrEmpty(request.Name))
         {

@@ -19,7 +19,7 @@ public record UpdatePlayListCommand(
     string? NewName,
     string? NewDescription,
     Guid? NewPictureIntentId,
-    PlaylistVisibility? NewVisibility = null)
+    PlayListVisibility? NewVisibility = null)
     : ICommand<ErrorOr<PlayListApplicationResponse>>;
 
 public class UpdatePlayListCommandHandler(
@@ -41,7 +41,7 @@ public class UpdatePlayListCommandHandler(
             return Error.NotFound();
         }
 
-        if (playListEntity.UserId != request.UserId)
+        if (playListEntity.OwnerUserId != request.UserId)
         {
             logger.LogWarning("User {UserId} is not the owner of playlist {PlayListId}", request.UserId, request.PlayListId);
             return AppErrors.Forbidden("PlayList", request.PlayListId);
@@ -72,7 +72,7 @@ public class UpdatePlayListCommandHandler(
                 return validation.Errors;
 
             var pictureIntent = validation.Value;
-            playListEntity.Pictures = PlayListPictures.Pending(pictureIntent.ObjectName);
+            playListEntity.Pictures = EntityPictures.Pending(pictureIntent.ObjectName);
             var finalPictureKey = playListConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
 
             var publishResult = await PublishUpdatePlayListPictureSourceEventAsync(

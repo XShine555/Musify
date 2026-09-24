@@ -89,7 +89,7 @@ internal class UpdateAlbumPictureActivity(
                 return compensateContext.Compensated();
             }
 
-            album.Pictures = new AlbumPictures
+            album.Pictures = new EntityPictures
             {
                 OriginalName = compensateContext.Log.PreviousOriginalPictureKey,
                 SmallName = compensateContext.Log.PreviousSmallPictureKey,

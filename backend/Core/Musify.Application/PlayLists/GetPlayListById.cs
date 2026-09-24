@@ -32,8 +32,8 @@ public class GetPlayListByIdQueryHandler(IDatabase database)
         if (entry == null)
             return Error.NotFound();
 
-        if (entry.PlayList.Visibility == PlaylistVisibility.Private
-            && entry.PlayList.UserId != request.RequestingUserId)
+        if (entry.PlayList.Visibility == PlayListVisibility.Private
+            && entry.PlayList.OwnerUserId != request.RequestingUserId)
         {
             return Error.NotFound();
         }

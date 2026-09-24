@@ -4,18 +4,16 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Domain.Entities;
 
-#pragma warning disable CS8618
+[Table("TrackTags")]
 public class TrackTag
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    [Required]
     public required Guid TrackId { get; set; }
 
-    [Required]
     public required Genre Tag { get; set; }
 
     [ForeignKey(nameof(TrackId))]
-    public Track Track { get; set; }
+    public Track Track { get; set; } = null!;
 }

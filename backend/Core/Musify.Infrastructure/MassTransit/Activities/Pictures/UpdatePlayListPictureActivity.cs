@@ -89,7 +89,7 @@ internal class UpdatePlayListPictureActivity(
                 return compensateContext.Compensated();
             }
 
-            playList.Pictures = new PlayListPictures
+            playList.Pictures = new EntityPictures
             {
                 OriginalName = compensateContext.Log.PreviousOriginalPictureKey,
                 SmallName = compensateContext.Log.PreviousSmallPictureKey,

@@ -379,11 +379,12 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<long>("OwnerUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("UserId");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("Visibility")
                         .ValueGeneratedOnAdd()
@@ -392,7 +393,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerUserId");
 
                     b.ToTable("PlayLists");
                 });
@@ -756,7 +757,7 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Musify.Domain.ValueObjects.AlbumPictures", "Pictures", b1 =>
+                    b.OwnsOne("Musify.Domain.ValueObjects.EntityPictures", "Pictures", b1 =>
                         {
                             b1.Property<Guid>("AlbumId")
                                 .HasColumnType("uuid");
@@ -865,13 +866,13 @@ namespace Musify.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Musify.Domain.Entities.PlayList", b =>
                 {
-                    b.HasOne("Musify.Domain.Entities.User", "User")
+                    b.HasOne("Musify.Domain.Entities.User", "Owner")
                         .WithMany("PlayLists")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("OwnerUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("Musify.Domain.ValueObjects.PlayListPictures", "Pictures", b1 =>
+                    b.OwnsOne("Musify.Domain.ValueObjects.EntityPictures", "Pictures", b1 =>
                         {
                             b1.Property<Guid>("PlayListId")
                                 .HasColumnType("uuid");
@@ -904,9 +905,9 @@ namespace Musify.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("PlayListId");
                         });
 
-                    b.Navigation("Pictures");
+                    b.Navigation("Owner");
 
-                    b.Navigation("User");
+                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("Musify.Domain.Entities.PlayListHasTrack", b =>

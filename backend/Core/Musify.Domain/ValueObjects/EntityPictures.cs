@@ -2,7 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Domain.ValueObjects;
 
-public class PlayListPictures
+/// <summary>The picture file names of an album or playlist. Resized names stay null until processing finishes.</summary>
+public class EntityPictures
 {
     [Required]
     public required string OriginalName { get; set; }
@@ -13,5 +14,5 @@ public class PlayListPictures
 
     public string? LargeName { get; set; }
 
-    public static PlayListPictures Pending(string originalName) => new() { OriginalName = originalName };
+    public static EntityPictures Pending(string objectName) => new() { OriginalName = objectName };
 }

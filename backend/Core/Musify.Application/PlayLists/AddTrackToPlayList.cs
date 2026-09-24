@@ -24,7 +24,7 @@ public class AddTrackToPlayListCommandHandler(
         if (playList == null)
             return AppErrors.NotFound("PlayList", request.PlayListId);
 
-        if (playList.UserId != request.UserId)
+        if (playList.OwnerUserId != request.UserId)
             return AppErrors.Forbidden("PlayList", request.PlayListId);
 
         var trackExists = await database.Tracks

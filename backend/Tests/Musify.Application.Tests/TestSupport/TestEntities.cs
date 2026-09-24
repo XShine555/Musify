@@ -79,7 +79,7 @@ public static class TestEntities
         return track;
     }
 
-    public static PlayListPictures PlayListPictures() => new()
+    public static EntityPictures PlayListPictures() => new()
     {
         OriginalName = "original.webp",
         SmallName = "small.webp",
@@ -91,12 +91,12 @@ public static class TestEntities
         long userId,
         string name = "Test Playlist",
         string? description = null,
-        PlayListPictures? pictures = null,
+        EntityPictures? pictures = null,
         LifeCycleStatus lifeCycleStatus = LifeCycleStatus.Active,
-        PlaylistVisibility visibility = PlaylistVisibility.Private) =>
+        PlayListVisibility visibility = PlayListVisibility.Private) =>
         new()
         {
-            UserId = userId,
+            OwnerUserId = userId,
             Name = name,
             NormalizedName = name.ToUpperInvariant(),
             Description = description,
@@ -105,7 +105,7 @@ public static class TestEntities
             Visibility = visibility
         };
 
-    public static AlbumPictures AlbumPictures() => new()
+    public static EntityPictures AlbumPictures() => new()
     {
         OriginalName = "original.webp",
         SmallName = "small.webp",
@@ -118,7 +118,7 @@ public static class TestEntities
         string title = "Test Album",
         string? description = null,
         int? releaseYear = 2024,
-        AlbumPictures? pictures = null) =>
+        EntityPictures? pictures = null) =>
         new()
         {
             Title = title,

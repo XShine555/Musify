@@ -33,8 +33,8 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(
             owner,
-            TestEntities.PlayList(owner.Id, "Public one", visibility: PlaylistVisibility.Public),
-            TestEntities.PlayList(owner.Id, "Private one", visibility: PlaylistVisibility.Private));
+            TestEntities.PlayList(owner.Id, "Public one", visibility: PlayListVisibility.Public),
+            TestEntities.PlayList(owner.Id, "Private one", visibility: PlayListVisibility.Private));
 
         var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: 999), TestContext.Current.CancellationToken);
 
@@ -49,8 +49,8 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
         var owner = TestEntities.User();
         await SeedAsync(
             owner,
-            TestEntities.PlayList(owner.Id, "Public one", visibility: PlaylistVisibility.Public),
-            TestEntities.PlayList(owner.Id, "Private one", visibility: PlaylistVisibility.Private));
+            TestEntities.PlayList(owner.Id, "Public one", visibility: PlayListVisibility.Public),
+            TestEntities.PlayList(owner.Id, "Private one", visibility: PlayListVisibility.Private));
 
         var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
 

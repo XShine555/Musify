@@ -52,7 +52,7 @@ public sealed class UploadIntentValidator(
         if (intent.IsConsumed)
             return Error.Conflict(description: "Upload intent has already been consumed.");
 
-        if (intent.IsExpired)
+        if (intent.IsExpiredAt(DateTime.UtcNow))
             return Error.Validation(description: "Upload intent has expired.");
 
         var metadata = await storageService.HeadObjectAsync(intent.Bucket, intent.Key, cancellationToken);

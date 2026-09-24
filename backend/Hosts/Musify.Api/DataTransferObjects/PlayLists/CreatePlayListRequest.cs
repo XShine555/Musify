@@ -6,4 +6,4 @@ public record CreatePlayListRequest(
     string Name,
     string? Description,
     Guid? PictureIntentId,
-    PlaylistVisibility Visibility = PlaylistVisibility.Private);
+    PlayListVisibility Visibility = PlayListVisibility.Private);

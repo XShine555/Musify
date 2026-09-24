@@ -27,7 +27,7 @@ public class DeletePlayListCommandHandler(
             return Error.NotFound();
         }
 
-        if (playList.UserId != request.UserId)
+        if (playList.OwnerUserId != request.UserId)
         {
             logger.LogWarning("Playlist {PlayListId} does not belong to user {UserId}", request.PlayListId, request.UserId);
             return AppErrors.Forbidden("PlayList", request.PlayListId);

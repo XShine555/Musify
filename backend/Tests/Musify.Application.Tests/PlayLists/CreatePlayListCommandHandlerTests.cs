@@ -71,7 +71,7 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Private, result.Value.Visibility);
+        Assert.Equal(Musify.Domain.ValueObjects.PlayListVisibility.Private, result.Value.Visibility);
     }
 
     [Fact]
@@ -80,12 +80,12 @@ public sealed class CreatePlayListCommandHandlerTests : HandlerTestBase
         var user = TestEntities.User();
         await SeedAsync(user);
 
-        var command = new CreatePlayListCommand(user.Id, "My Playlist", null, PictureIntentId: null, Visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        var command = new CreatePlayListCommand(user.Id, "My Playlist", null, PictureIntentId: null, Visibility: Musify.Domain.ValueObjects.PlayListVisibility.Public);
 
         var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+        Assert.Equal(Musify.Domain.ValueObjects.PlayListVisibility.Public, result.Value.Visibility);
     }
 
     [Fact]

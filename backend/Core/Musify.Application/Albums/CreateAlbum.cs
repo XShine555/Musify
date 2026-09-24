@@ -56,7 +56,7 @@ public class CreateAlbumCommandHandler(
             NormalizedTitle = title.ToUpperInvariant(),
             Description = request.Description,
             ReleaseYear = request.ReleaseYear,
-            Pictures = AlbumPictures.Pending(intent.ObjectName)
+            Pictures = EntityPictures.Pending(intent.ObjectName)
         };
 
         await database.Albums.AddAsync(album, cancellationToken);

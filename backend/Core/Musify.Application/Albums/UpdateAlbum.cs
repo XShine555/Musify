@@ -64,7 +64,7 @@ public class UpdateAlbumCommandHandler(
                 return validation.Errors;
 
             var pictureIntent = validation.Value;
-            album.Pictures = AlbumPictures.Pending(pictureIntent.ObjectName);
+            album.Pictures = EntityPictures.Pending(pictureIntent.ObjectName);
             var finalPictureKey = albumConfiguration.Routes.BuildOriginalPicturePath(request.UserId, pictureIntent.ObjectName);
 
             var publishResult = await PublishUpdateAlbumPictureSourceEventAsync(

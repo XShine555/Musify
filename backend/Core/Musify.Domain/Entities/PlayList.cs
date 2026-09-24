@@ -6,43 +6,36 @@ using Musify.Domain.ValueObjects;
 
 namespace Musify.Domain.Entities;
 
-#pragma warning disable CS8618
 [Table("PlayLists")]
-public class PlayList : IAuditable
+public class PlayList : IAuditable, IHasLifeCycle, IOwnedEntity
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    [Required]
-    public required long UserId { get; set; }
+    [Column("UserId")]
+    public required long OwnerUserId { get; set; }
 
-    [Required]
     [MaxLength(50)]
     public required string Name { get; set; }
 
-    [Required]
     [MaxLength(50)]
     public required string NormalizedName { get; set; }
 
     [MaxLength(256)]
     public string? Description { get; set; }
 
-    public PlayListPictures? Pictures { get; set; }
+    public EntityPictures? Pictures { get; set; }
 
-    [Required]
     public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
 
-    [Required]
-    public PlaylistVisibility Visibility { get; set; } = PlaylistVisibility.Private;
+    public PlayListVisibility Visibility { get; set; } = PlayListVisibility.Private;
 
-    [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [Required]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    [ForeignKey(nameof(UserId))]
-    public User User { get; set; }
+    [ForeignKey(nameof(OwnerUserId))]
+    public User Owner { get; set; } = null!;
 
     public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
 }

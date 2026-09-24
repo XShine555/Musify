@@ -10,7 +10,7 @@ public record PlayListApplicationResponse(
     string? SmallImageKeyName,
     string? MediumImageKeyName,
     string? LargeImageKeyName,
-    PlaylistVisibility Visibility,
+    PlayListVisibility Visibility,
     DateTime CreatedAt,
     DateTime UpdatedAt,
     IReadOnlyList<Guid> CoverTrackIds)

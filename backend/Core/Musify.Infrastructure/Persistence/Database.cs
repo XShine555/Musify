@@ -64,7 +64,7 @@ public class Database(DatabaseConfiguration configuration)
 
         modelBuilder.Entity<PlayList>()
             .Property(playList => playList.Visibility)
-            .HasDefaultValue(PlaylistVisibility.Private);
+            .HasDefaultValue(PlayListVisibility.Private);
 
         modelBuilder.Entity<PlayList>()
             .OwnsOne(playList => playList.Pictures, pictures =>

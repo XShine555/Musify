@@ -69,19 +69,19 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
         var playList = TestEntities.PlayList(owner.Id);
         await SeedAsync(owner, playList);
 
-        var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, null, Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        var command = new UpdatePlayListCommand(owner.Id, playList.Id, null, null, null, Musify.Domain.ValueObjects.PlayListVisibility.Public);
 
         var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+        Assert.Equal(Musify.Domain.ValueObjects.PlayListVisibility.Public, result.Value.Visibility);
     }
 
     [Fact]
     public async Task Handle_NoVisibilitySpecified_LeavesItUnchanged()
     {
         var owner = TestEntities.User();
-        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlaylistVisibility.Public);
+        var playList = TestEntities.PlayList(owner.Id, visibility: Musify.Domain.ValueObjects.PlayListVisibility.Public);
         await SeedAsync(owner, playList);
 
         var command = new UpdatePlayListCommand(owner.Id, playList.Id, "New Name", null, null);
@@ -89,7 +89,7 @@ public sealed class UpdatePlayListCommandHandlerTests : HandlerTestBase
         var result = await CreateHandler().Handle(command, TestContext.Current.CancellationToken);
 
         Assert.False(result.IsError);
-        Assert.Equal(Musify.Domain.ValueObjects.PlaylistVisibility.Public, result.Value.Visibility);
+        Assert.Equal(Musify.Domain.ValueObjects.PlayListVisibility.Public, result.Value.Visibility);
     }
 
     [Fact]

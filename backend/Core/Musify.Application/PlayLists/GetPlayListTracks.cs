@@ -27,7 +27,7 @@ public class GetPlayListTracksQueryHandler(IDatabase database)
             .AnyAsync(
                 p => p.Id == request.PlayListId
                     && p.LifeCycleStatus == LifeCycleStatus.Active
-                    && (p.Visibility == PlaylistVisibility.Public || p.UserId == request.ViewerId),
+                    && (p.Visibility == PlayListVisibility.Public || p.OwnerUserId == request.ViewerId),
                 cancellationToken);
         if (!playListExists)
             return Error.NotFound();
