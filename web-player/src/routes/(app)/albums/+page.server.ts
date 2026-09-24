@@ -7,7 +7,7 @@ import { authedAction } from '$lib/server/actions/authedAction';
 import { toAlbum, toPage } from '$lib/server/mappers';
 import { ALBUMS_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/forms/albumForm';
-import { uploadPresignedImage } from '$lib/server/upload';
+import { createAlbum, uploadAlbumCover } from '$lib/server/albums';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
@@ -27,23 +27,15 @@ export const actions: Actions = {
 		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
-		const cover = formFile(form, 'cover');
-		if (!cover) return fail(400, { message: 'La portada es obligatoria.' });
-
-		const uploaded = await uploadPresignedImage(
-			(args) => api.POST('/albums/upload-picture', { body: args }),
-			cover
-		);
-		if ('failMessage' in uploaded) {
-			return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
+		const cover = await uploadAlbumCover(api, formFile(form, 'cover'));
+		if ('failMessage' in cover) {
+			return fail(502, { message: cover.failMessage, detail: cover.detail });
 		}
+		if (!cover.intentId) return fail(400, { message: 'La portada es obligatoria.' });
 
-		const { data, error } = await api.POST('/albums', {
-			body: { ...parsed.body, pictureIntentId: uploaded.intentId }
-		});
+		const created = await createAlbum(api, parsed.body, cover.intentId);
+		if ('failMessage' in created) return fail(502, { message: created.failMessage });
 
-		if (error || !data) return fail(502, { message: 'No se pudo crear el álbum.' });
-
-		redirect(303, `/albums/${data.id}`);
+		redirect(303, `/albums/${created.id}`);
 	})
 };

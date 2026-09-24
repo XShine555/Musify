@@ -2,7 +2,8 @@ import type { Actions, PageServerLoad } from './$types';
 import { apiFor, unwrapOrError } from '$lib/server/api';
 import { requireUser } from '$lib/server/guards';
 import { toAlbum } from '$lib/server/mappers';
-import { deleteAlbum, loadLibraryTracks, saveAlbum, trackIdsByAlbum } from '$lib/server/albums';
+import { loadLibraryTracks, trackIdsByAlbum } from '$lib/server/albums';
+import { removeAlbum, saveAlbum } from '$lib/server/actions/libraryAlbum';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	const user = requireUser(locals, url);
@@ -16,4 +17,4 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	return { album, tracks, memberIds: memberIds[album.id] ?? [] };
 };
 
-export const actions: Actions = { saveAlbum, deleteAlbum };
+export const actions: Actions = { saveAlbum, deleteAlbum: removeAlbum };

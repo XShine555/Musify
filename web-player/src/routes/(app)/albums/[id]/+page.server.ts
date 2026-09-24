@@ -1,13 +1,13 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { apiFor, failOnError, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
 import { optionalUser } from '$lib/server/guards';
 import { formFile, formString } from '$lib/server/forms/fields';
 import { authedAction } from '$lib/server/actions/authedAction';
 import { toAlbum, toTrack } from '$lib/server/mappers';
 import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/forms/albumForm';
-import { uploadOptionalCover } from '$lib/server/upload';
+import { deleteAlbum, syncAlbumTracks, updateAlbum, uploadAlbumCover } from '$lib/server/albums';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
@@ -50,62 +50,30 @@ export const actions: Actions = {
 		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const result = await api.POST('/albums/{id}/tracks', {
-			params: { path: { id: params.id } },
-			body: { trackIds: [trackId] }
-		});
-		return failOnError(result, 'No se pudo añadir la canción.') ?? { added: true };
+		return (await syncAlbumTracks(api, params.id, [trackId], [])) ?? { added: true };
 	}),
 
 	removeTrack: authedAction(async ({ api, form, params }) => {
 		const trackId = formString(form, 'trackId');
 		if (!trackId) return fail(400, { message: 'Falta la canción.' });
 
-		const result = await api.DELETE('/albums/{id}/tracks/{trackId}', {
-			params: { path: { id: params.id, trackId } }
-		});
-		return failOnError(result, 'No se pudo quitar la canción.') ?? { removed: true };
+		return (await syncAlbumTracks(api, params.id, [], [trackId])) ?? { removed: true };
 	}),
 
 	edit: authedAction(async ({ api, form, params }) => {
 		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
-		const result = await api.PUT('/albums/{id}', {
-			params: { path: { id: params.id } },
-			body: {
-				title: parsed.body.title,
-				description: parsed.body.description,
-				releaseYear: parsed.body.releaseYear
-			}
-		});
-		const failure = failOnError(result, 'No se pudo actualizar el álbum.');
-		if (failure) return failure;
-
-		const coverFile = formFile(form, 'cover');
-		if (coverFile) {
-			const cover = await uploadOptionalCover(api, '/albums/upload-picture', coverFile);
-			if ('failMessage' in cover) {
-				return fail(502, { message: cover.failMessage, detail: cover.detail });
-			}
-			if (cover.intentId) {
-				const pictureResult = await api.PUT('/albums/{id}/picture', {
-					params: { path: { id: params.id } },
-					body: { pictureIntentId: cover.intentId }
-				});
-				const pictureFailure = failOnError(pictureResult, 'No se pudo actualizar la portada.');
-				if (pictureFailure) return pictureFailure;
-			}
+		const cover = await uploadAlbumCover(api, formFile(form, 'cover'));
+		if ('failMessage' in cover) {
+			return fail(502, { message: cover.failMessage, detail: cover.detail });
 		}
 
-		return { edited: true };
+		return (await updateAlbum(api, params.id, parsed.body, cover.intentId)) ?? { edited: true };
 	}),
 
 	delete: authedAction(async ({ api, params }) => {
-		const result = await api.DELETE('/albums/{id}', {
-			params: { path: { id: params.id } }
-		});
-		const failure = failOnError(result, 'No se pudo eliminar el álbum.');
+		const failure = await deleteAlbum(api, params.id);
 		if (failure) return failure;
 		redirect(303, '/albums');
 	})

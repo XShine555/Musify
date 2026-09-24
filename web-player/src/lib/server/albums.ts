@@ -1,11 +1,8 @@
-import { fail, isActionFailure, redirect } from '@sveltejs/kit';
 import type { Album } from '$lib/types';
 import { toAlbum, toLibraryTrack, toPage } from '$lib/server/mappers';
 import { failOnError, unwrapOrError, type ApiClient } from '$lib/server/api';
-import { formFile, formString } from '$lib/server/forms/fields';
-import { parseAlbumForm } from '$lib/server/forms/albumForm';
 import { uploadOptionalCover } from '$lib/server/upload';
-import { authedAction, type ActionContext } from '$lib/server/actions/authedAction';
+import type { AlbumFormBody } from '$lib/server/forms/albumForm';
 import { ALBUMS_PAGE_SIZE, ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PAGE_SIZE } from '$lib/config';
 
 export const ALBUMS_SECTION_URL = '/library/albums';
@@ -54,80 +51,64 @@ export async function loadLibraryTracks(api: ApiClient, userId: string) {
 	);
 }
 
-export function formIds(form: FormData, key: string): string[] {
-	return formString(form, key).split(',').filter(Boolean);
+export type CoverUpload = { intentId: string | null } | { failMessage: string; detail?: string };
+
+export function uploadAlbumCover(api: ApiClient, file: File | null): Promise<CoverUpload> {
+	return uploadOptionalCover(api, '/albums/upload-picture', file);
 }
 
-export function tagged<T>(action: string, handler: (context: ActionContext) => Promise<T>) {
-	return authedAction(async (context) => {
-		const result = await handler(context);
-		return isActionFailure(result)
-			? fail(result.status, { ...(result.data as Record<string, unknown> | undefined), action })
-			: { ...result, action };
+export async function createAlbum(
+	api: ApiClient,
+	body: AlbumFormBody,
+	pictureIntentId: string
+): Promise<{ id: string } | { failMessage: string }> {
+	const created = await api.POST('/albums', { body: { ...body, pictureIntentId } });
+	if (created.error || !created.data) return { failMessage: 'No se pudo crear el álbum.' };
+	return { id: created.data.id };
+}
+
+export async function updateAlbum(
+	api: ApiClient,
+	id: string,
+	body: AlbumFormBody,
+	pictureIntentId?: string | null
+) {
+	const updated = await api.PUT('/albums/{id}', { params: { path: { id } }, body });
+	const failure = failOnError(updated, 'No se pudo actualizar el álbum.');
+	if (failure || !pictureIntentId) return failure;
+
+	const picture = await api.PUT('/albums/{id}/picture', {
+		params: { path: { id } },
+		body: { pictureIntentId }
 	});
+	return failOnError(picture, 'No se pudo actualizar la portada.');
 }
 
-export const saveAlbum = tagged('saveAlbum', async ({ api, form }) => {
-	const parsed = parseAlbumForm(form);
-	if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
-
-	const existingId = formString(form, 'albumId');
-	const cover = await uploadOptionalCover(api, '/albums/upload-picture', formFile(form, 'cover'));
-	if ('failMessage' in cover)
-		return fail(502, { message: cover.failMessage, detail: cover.detail });
-
-	let albumId = existingId;
-	if (existingId) {
-		const updated = await api.PUT('/albums/{id}', {
-			params: { path: { id: existingId } },
-			body: parsed.body
-		});
-		const failure = failOnError(updated, 'No se pudo actualizar el álbum.');
-		if (failure) return failure;
-
-		if (cover.intentId) {
-			const picture = await api.PUT('/albums/{id}/picture', {
-				params: { path: { id: existingId } },
-				body: { pictureIntentId: cover.intentId }
-			});
-			const pictureFailure = failOnError(picture, 'No se pudo actualizar la portada.');
-			if (pictureFailure) return pictureFailure;
-		}
-	} else {
-		if (!cover.intentId) return fail(400, { message: 'La portada es obligatoria.' });
-		const created = await api.POST('/albums', {
-			body: { ...parsed.body, pictureIntentId: cover.intentId }
-		});
-		if (created.error || !created.data) return fail(502, { message: 'No se pudo crear el álbum.' });
-		albumId = created.data.id;
-	}
-
-	const addIds = formIds(form, 'addTrackIds');
-	if (addIds.length > 0) {
+export async function syncAlbumTracks(
+	api: ApiClient,
+	albumId: string,
+	add: string[],
+	remove: string[]
+) {
+	if (add.length > 0) {
 		const added = await api.POST('/albums/{id}/tracks', {
 			params: { path: { id: albumId } },
-			body: { trackIds: addIds }
+			body: { trackIds: add }
 		});
 		const failure = failOnError(added, 'No se pudieron añadir las canciones.');
 		if (failure) return failure;
 	}
 
 	const removed = await Promise.all(
-		formIds(form, 'removeTrackIds').map((trackId) =>
+		remove.map((trackId) =>
 			api.DELETE('/albums/{id}/tracks/{trackId}', { params: { path: { id: albumId, trackId } } })
 		)
 	);
 	const removeFailed = removed.find((result) => result.error);
-	const failure = removeFailed && failOnError(removeFailed, 'No se pudieron quitar las canciones.');
-	return failure ?? { saved: true };
-});
+	return removeFailed && failOnError(removeFailed, 'No se pudieron quitar las canciones.');
+}
 
-export const deleteAlbum = tagged('deleteAlbum', async ({ api, form }) => {
-	const albumId = formString(form, 'albumId');
-	if (!albumId) return fail(400, { message: 'Falta el álbum.' });
-
-	const result = await api.DELETE('/albums/{id}', { params: { path: { id: albumId } } });
-	const failure = failOnError(result, 'No se pudo eliminar el álbum.');
-	if (failure) return failure;
-	redirect(303, ALBUMS_SECTION_URL);
-});
+export async function deleteAlbum(api: ApiClient, id: string) {
+	const result = await api.DELETE('/albums/{id}', { params: { path: { id } } });
+	return failOnError(result, 'No se pudo eliminar el álbum.');
+}

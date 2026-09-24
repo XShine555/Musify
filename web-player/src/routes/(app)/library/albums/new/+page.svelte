@@ -3,6 +3,10 @@
 	import LibraryAlbumEditor from '$lib/components/music/library/LibraryAlbumEditor.svelte';
 
 	let { data, form } = $props();
+
+	$effect(() => {
+		if (form && 'albumId' in form) goto(`/library/albums/${form.albumId}`);
+	});
 </script>
 
 <div class="mt-4">

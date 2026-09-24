@@ -1,7 +1,7 @@
 import { formString } from '$lib/server/forms/fields';
 import { ALBUM_EARLIEST_YEAR, LIMITS } from '$lib/validation';
 
-interface AlbumFormBody {
+export interface AlbumFormBody {
 	title: string;
 	description: string | null;
 	releaseYear: number | null;
