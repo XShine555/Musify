@@ -1,6 +1,6 @@
 # Musify: web-player
 
-Musify's public web app (`web-player/` folder). For design and UI recipes, use the **`musify-web`** skill.
+Musify's public web app (`web-player/` folder). Design and UI recipes live in this file and in `src/routes/layout.css`.
 
 ## Stack
 
@@ -15,7 +15,7 @@ npm run dev          # dev server (port 5173)
 npm run build
 npm run check         # svelte-check, must exit 0 errors before closing a change
 npm run format         # prettier --write .
-npm run test            # vitest run (pure functions, mappers, form parsers)
+npm run test            # vitest run (tests live next to the file they test)
 npm run lint            # prettier --check . && eslint . && npm run lint:tokens && npm run test
 npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail (see below)
 ```
@@ -34,22 +34,24 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
 ## Folder structure
 
 - `src/lib/types.ts` holds the domain types (`Track`, `Album`, `Playlist`, `Mix`, `Paged<T>`). Pages and the player only ever see these, never raw API DTOs.
-- `src/lib/player/` is the player: `player.svelte.ts` (state and orchestration), `queue.ts` (pure queue operations), `stream.ts`, `mediaSession.ts`, `progressClock.ts`, `listenTracker.ts`, `liked.svelte.ts`, and `actions.ts` (`playAllOrToggle`, `playShuffled`, `isQueueCurrent`).
-- `src/lib/state/` holds reactive rune state: `panels.svelte.ts` (queue panel, create playlist modal), `history.svelte.ts` (previous page for `BackLink`), `menu.svelte.ts` (`createMenu<T>()`), `pagedList.svelte.ts` (`createPagedList`), `dialog.svelte.ts`, and `scroll.ts`. Nothing in `state/` imports from `components/`.
-- `src/lib/theme/` holds the theme: `accent.svelte.ts` (accent hue per track and the hue fade), `mode.svelte.ts`, `palette.ts`, `tokens.ts`.
-- `src/lib/data/` holds client side domain helpers: albums, genres, recentlyPlayed, search.
+- `src/lib/player/` is the player: `player.svelte.ts` (state and orchestration), `queue.ts` (pure queue operations), `stream.ts`, `mediaSession.ts`, `progressClock.ts`, `listenTracker.ts`, `recentlyPlayed.ts` (merges `player.recentlyPlayed` with the server history), and `actions.ts` (`playAllOrToggle`, `playShuffled`, `isQueueCurrent`).
+- `src/lib/state/` holds reactive rune state: `panels.svelte.ts` (queue panel, create playlist modal), `history.svelte.ts` (previous page for `BackLink`), `menu.svelte.ts` (`createMenu<T>()`), `pagedList.svelte.ts` (`createPagedList`), `dialog.svelte.ts`, `liked.svelte.ts` (the user's liked tracks), `toggle.svelte.ts` (`createToggle`), and `scroll.ts` (`restoreScroll`). Nothing in `state/` imports from `components/`.
+- `src/lib/theme/` holds the theme: `accent.svelte.ts` (accent hue per track and the hue fade), `mode.svelte.ts`, `palette.ts`, `tokens.ts`, and `color.ts` (`ACCENT_HUE`). The player never imports from `theme/`: `(app)/+layout.svelte` follows `player.currentId` and calls `accent.follow`.
+- `src/lib/data/` holds client side domain helpers: albums, genres, search. It never imports from `player/`.
 - `src/lib/utils/` holds generic utilities: `format.ts`, `collections.ts`, `hrefs.ts` (search, genre and cover URLs), `menuPosition.ts`, `storage.ts`, `transitions.ts`.
+- `src/lib/actions/` holds Svelte actions: `clickOutside`, `onEscape`, `pressable`.
 - `src/lib/validation.ts` holds the form limits (`LIMITS`) shared by client forms and server parsers.
 - `src/lib/server/` is server only code (see below).
-- `src/lib/components/layout/` holds the app chrome: Sidebar, TopBar, TabsBar, MobileHeader, and `navLinks.ts`.
+- `src/lib/components/shell/` holds the app shell: Sidebar, TopBar, TabsBar, MobileHeader, AccountMenu, and `navLinks.ts`.
 - `src/lib/components/player/` holds the player UI: PlayerBar, PlayerDock, Queue, TrackInfo, TransportControls.
-- `src/lib/components/ui/` holds the design system components, split into five categories:
+- `src/lib/components/music/` holds the components that connect the UI to app state (the player, album data): TrackList, PlayAllButton, TrackContextMenu, AlbumContextMenu.
+- `src/lib/components/ui/` holds the design system, which is presentation only. ESLint forbids importing `$lib/player/*`, `$lib/data/*`, `$lib/server/*`, `components/music`, `components/shell` and `components/player` from it; it can use `$lib/state/*`, `$lib/utils/*`, `$lib/actions/*`, `$lib/theme/*` and `$lib/types`. It is split into five categories:
   - `primitives/` for generic controls with no music domain knowledge (Button, Input, Chip, Slider, and so on).
-  - `overlay/` for anything that floats above the content (Modal, ContextMenu, TrackContextMenu, AlbumContextMenu, AccountMenu, and so on).
-  - `media/` for music domain display components (Artwork, TrackList, MediaCard, PlayButton, PlayAllButton, and so on).
+  - `overlay/` for anything that floats above the content (Modal, ContextMenu, GlassMenu, ConfirmDialog, and so on).
+  - `media/` for stateless music display components that receive props (Artwork, MediaCard, ListRow, PlayButton, and so on).
   - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
-  - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading). This is different from `components/layout/` above, which is the global app chrome.
-- Everything the user sees after signing in lives under `src/routes/(app)/`, including Home (`(app)/+page.svelte`). Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
+  - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading).
+- The root `+layout.svelte` only holds the globals (fonts, theme, `DialogHost`). Everything the user sees after signing in lives under `src/routes/(app)/`, including Home (`(app)/+page.svelte`); `(app)/+layout.server.ts` guards the group and loads the shell data, and `(app)/+error.svelte` renders inside the shell. Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
 
 ## Naming conventions and glossary
 
@@ -73,7 +75,7 @@ The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utili
 
 ## App shell
 
-The shell in `src/routes/+layout.svelte` is a fixed `h-dvh` frame: Sidebar | (content column over PlayerDock) | Queue. Only the content column (`app-scroll`) scrolls, so nothing ever passes under the dock and the chrome can stay transparent over `app-backdrop`. Because the window never scrolls, scroll reset/restore on navigation is handled by `restoreScroll()` in `$lib/state/navigation.svelte.ts`; don't use `window.scrollTo`/`scrollY`.
+The shell in `src/routes/(app)/+layout.svelte` is a fixed `h-dvh` frame: Sidebar | (content column over PlayerDock) | Queue. Only the content column (`app-scroll`) scrolls, so nothing ever passes under the dock and the chrome can stay transparent over `app-backdrop`. Because the window never scrolls, scroll reset/restore on navigation is handled by `restoreScroll()` in `$lib/state/scroll.ts`; don't use `window.scrollTo`/`scrollY`.
 
 ## Motion
 
@@ -81,7 +83,7 @@ Every animation follows one scale of three durations and one easing curve, all d
 
 Entrances and movement always use `--mf-ease` (`ease-snappy` in Tailwind, `expoOut` in Svelte transitions), which feels immediate because most of the motion happens at the start. Color transitions keep the Tailwind default curve. Overlays must feel instant: the modal backdrop uses `transition:fade={{ duration: 200 }}` and the panel uses a local `pop` transition (opacity + scale + translateY, `expoOut`, 200ms) mirroring `animate-pop`'s keyframes — both directives so the modal fades and pops on close too, not just on open, and the whole thing settles in 200ms. Staggered lists use `--i` with 40ms steps capped at ten items.
 
-The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in `+layout.svelte` (a random 2 to 4 seconds per song change), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
+The only exceptions are looping indicators (equalizer bars, pulse, spin, sheen) and the accent hue crossfade in the root `+layout.svelte` (a random 2 to 4 seconds per song change), which is ambient and meant to be slow. Do not add new durations or curves; if something needs a different feel, pick the closest step of the scale. `prefers-reduced-motion` disables everything globally in `layout.css`.
 
 ## Auth
 
@@ -91,7 +93,7 @@ Environment variables live in `.env` (see `.env.example`): `ZITADEL_*`, `AUTH_RE
 
 ## Backend API
 
-Typed client via `openapi-fetch` over the `Musify.Api` OpenAPI spec. Inside a server `load` or action use the helpers in `$lib/server/api.ts`:
+Typed client via `openapi-fetch` over the `Musify.Api` OpenAPI spec. Inside a server `load` or action use the client in `$lib/server/api.ts`:
 
 ```ts
 const api = apiFor(event); // or apiFor({ fetch, locals }); adds the bearer token when there is a session
@@ -102,8 +104,10 @@ It returns `{ data, error }` (ErrorOr style) and never throws except on network 
 
 Server helpers:
 
-- `mappers.ts` (`toTrack`, `toAlbum`, `toPlaylist`, `toMix`, `toPage`, ...) turn DTOs into the domain types. Every load and `/api` endpoint that returns tracks, albums or playlists goes through them, so `Number()` conversions never reach the client.
-- `authedAction(handler)` wraps a form action: it returns 401 without a token, reads the form and hands `{ api, form, params, locals, url }` to the handler. Use `formString`/`formFile` to read fields, `failOnError(result, message)` to turn an API error into a `fail(...)`, and `requireData(result, message)` when you also need the response data narrowed.
-- `forms/` holds the form parsers (`parseAlbumForm`, `parsePlaylistForm`, `parseTrackUploadForm`); they validate with `LIMITS` from `$lib/validation`. `uploadOptionalCover` handles the optional cover upload.
+- `api.ts` holds the client and error handling: `apiFor`, `unwrapOrError`, `failOnError` (turns an API error into a `fail(...)`), `requireData` (also narrows the response data) and `apiErrorDetail`.
+- `guards.ts` holds `requireUser`, `optionalUser` and `loginRedirect`. Keep them in pages and actions even though the `(app)` layout also redirects: page loads run in parallel with the layout load, and form actions skip it.
+- `mappers.ts` (`toTrack`, `toAlbum`, `toPlaylist`, `toMix`, `toPage`, `toCount`, `toListeningStats`, ...) turn DTOs into the domain types. Every load and `/api` endpoint goes through them, so `Number()` conversions on DTOs never reach routes or the client.
+- `actions/` holds `authedAction(handler)` (returns 401 without a token, reads the form and hands `{ api, form, params, locals, url }` to the handler) plus the shared `follow` and `playlist` actions.
+- `forms/` holds `fields.ts` (`formString`, `formFile`) and the form parsers (`parseAlbumForm`, `parsePlaylistForm`, `parseTrackUploadForm`); they validate with `LIMITS` from `$lib/validation`. `uploadOptionalCover` handles the optional cover upload.
 - `genres.ts` caches the genre list; `playbackConfig.ts` caches the anonymous listening setting.
 - Page sizes come from `$lib/config`; do not hardcode them.

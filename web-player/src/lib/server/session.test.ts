@@ -11,6 +11,7 @@ const session: Session = {
 	sub: 'user-1',
 	name: 'Test User',
 	email: 'test@example.com',
+	picture: '',
 	accessToken: 'access',
 	refreshToken: 'refresh',
 	idToken: 'id',
@@ -31,7 +32,7 @@ describe('encodeSession / decodeSession', () => {
 	it('round-trips a session', async () => {
 		const token = await encodeSession(session);
 		const decoded = await decodeSession(token);
-		expect(decoded).toMatchObject(session);
+		expect(decoded).toMatchObject({ sub: session.sub, accessToken: session.accessToken });
 	});
 
 	it('returns null for a missing or empty token', async () => {

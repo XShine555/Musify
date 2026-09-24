@@ -170,16 +170,16 @@ Fuera de alcance, a propósito: tests de componentes (sobre todo presentación, 
 
 ## Registro
 
-| Parte                           | Estado | PR / notas |
-| ------------------------------- | ------ | ---------- |
-| E1 Layout del grupo (app)       | ⬜     |            |
-| E2 Carpeta shell                | ⬜     |            |
-| E3 Frontera de ui/              | ⬜     |            |
-| E4 Ubicación de estados         | ⬜     |            |
-| E5 Capa de servidor             | ⬜     |            |
-| E6 Explorar en componentes      | ⬜     |            |
-| E7 Acento fuera del reproductor | ⬜     |            |
-| E8 Documentación y restos       | ⬜     |            |
-| E9 Tests                        | ⬜     |            |
+| Parte                           | Estado | PR / notas                               |
+| ------------------------------- | ------ | ---------------------------------------- |
+| E1 Layout del grupo (app)       | ✅     |                                          |
+| E2 Carpeta shell                | ✅     |                                          |
+| E3 Frontera de ui/              | ✅     | Regla de ESLint sobre `components/ui/**` |
+| E4 Ubicación de estados         | ✅     |                                          |
+| E5 Capa de servidor             | ✅     |                                          |
+| E6 Explorar en componentes      | ✅     | `+page.svelte` queda en ~180 líneas      |
+| E7 Acento fuera del reproductor | ✅     |                                          |
+| E8 Documentación y restos       | ✅     |                                          |
+| E9 Tests                        | ✅     | 121 tests, sin `.env` local              |
 
 Leyenda: ⬜ pendiente · 🟡 en curso · ✅ hecho.

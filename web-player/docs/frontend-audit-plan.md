@@ -1,5 +1,7 @@
 # Plan de refactor tras la auditoría del frontend
 
+> **Cerrado.** Todas las partes están hechas; el plan activo es `frontend-structure-plan.md`.
+
 Plan de trabajo derivado de la auditoría del `web-player` (2026-09-24). Cada parte es un PR independiente, revisable por separado, que deja `npm run check` y `npm run lint` en verde. Antes de empezar una parte, mira el **Registro** del final.
 
 Leyenda de tamaño: **S** (< 1 h) · **M** (medio día) · **L** (1 día o más). Las partes marcadas con 🔗 dependen de cambios en `Musify.Api`.

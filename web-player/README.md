@@ -31,5 +31,4 @@ Built and run as a container by the production stack — see
 [../deploy/README.md](../deploy/README.md). There the same variables come from
 `deploy/.env.prod` through compose instead of from `.env`.
 
-Conventions and the design system are documented in [CLAUDE.md](CLAUDE.md) and
-in the `musify-web` skill.
+Conventions and the design system are documented in [CLAUDE.md](CLAUDE.md).
