@@ -61,7 +61,7 @@
 			{/if}
 			<MenuItem
 				icon={themeMode.current === 'dark' ? Sun : Moon}
-				label={themeMode.current === 'dark' ? 'Modo blanco' : 'Modo oscuro'}
+				label={themeMode.current === 'dark' ? 'Modo claro' : 'Modo oscuro'}
 				onclick={() => themeMode.toggle()}
 			/>
 			<form method="POST" action="/auth/logout" data-sveltekit-reload>

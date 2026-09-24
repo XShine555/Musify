@@ -3,12 +3,11 @@ import type { LayoutServerLoad } from './$types';
 import { getAllowAnonymousListening } from '$lib/server/playbackConfig';
 import { createApiClient } from '$lib/server/api';
 import { authConfig } from '$lib/server/config';
-import { LIKED_TRACKS_PAGE_SIZE } from '$lib/config';
+import { LIKED_TRACKS_PAGE_SIZE, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
 const PUBLIC_PATHS = new Set(['/auth']);
-const SIDEBAR_PLAYLISTS_LIMIT = 8;
 
-async function fetchSidebarPlaylists(
+async function fetchUserPlaylists(
 	fetchFn: typeof fetch,
 	accessToken: string | null,
 	userId: string
@@ -18,12 +17,12 @@ async function fetchSidebarPlaylists(
 		const { data } = await api.GET('/playlists/users/{userId}', {
 			params: {
 				path: { userId },
-				query: { pageNumber: 1, pageSize: SIDEBAR_PLAYLISTS_LIMIT }
+				query: { pageNumber: 1, pageSize: PLAYLIST_PICKER_PAGE_SIZE }
 			}
 		});
-		return data?.items ?? [];
+		return { items: data?.items ?? [], total: Number(data?.totalItemCount ?? 0) };
 	} catch {
-		return [];
+		return { items: [], total: 0 };
 	}
 }
 
@@ -70,15 +69,16 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 		return {
 			user: locals.user,
 			allowAnonymousListening,
-			sidebarPlaylists: [],
+			userPlaylists: [],
+			userPlaylistsTotal: 0,
 			likedTracks: [],
 			lastPlayedTrack: null,
 			accountUrl
 		};
 	}
 
-	const [sidebarPlaylists, likedTracks, lastPlayedTrack] = await Promise.all([
-		fetchSidebarPlaylists(fetch, locals.accessToken, locals.user.sub),
+	const [userPlaylists, likedTracks, lastPlayedTrack] = await Promise.all([
+		fetchUserPlaylists(fetch, locals.accessToken, locals.user.sub),
 		fetchLikedTracks(fetch, locals.accessToken),
 		fetchLastPlayedTrack(fetch, locals.accessToken, locals.user.sub)
 	]);
@@ -86,7 +86,8 @@ export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 	return {
 		user: locals.user,
 		allowAnonymousListening,
-		sidebarPlaylists,
+		userPlaylists: userPlaylists.items,
+		userPlaylistsTotal: userPlaylists.total,
 		likedTracks,
 		lastPlayedTrack,
 		accountUrl

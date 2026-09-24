@@ -6,3 +6,10 @@ export async function fetchAlbumQueueItems(albumId: string): Promise<QueueItem[]
 	const data = (await res.json()) as { items: ApiTrackLike[] };
 	return toQueueItems(data.items ?? []);
 }
+
+export async function fetchPlaylistQueueItems(playlistId: string): Promise<QueueItem[]> {
+	const res = await fetch(`/api/playlists/${playlistId}/tracks`);
+	if (!res.ok) return [];
+	const data = (await res.json()) as { items: ApiTrackLike[] };
+	return toQueueItems(data.items ?? []);
+}

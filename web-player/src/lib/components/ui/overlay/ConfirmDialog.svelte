@@ -9,15 +9,19 @@
 		description: string;
 		confirmLabel: string;
 		action: string;
+		fields?: Record<string, string>;
 	}
 
-	let { open, onClose, title, description, confirmLabel, action }: Props = $props();
+	let { open, onClose, title, description, confirmLabel, action, fields = {} }: Props = $props();
 </script>
 
 <Dialog {open} {onClose} {title} {description}>
 	{#snippet actions()}
 		<Button variant="secondary" onclick={onClose}>Cancelar</Button>
 		<form method="POST" {action}>
+			{#each Object.entries(fields) as [name, value] (name)}
+				<input type="hidden" {name} {value} />
+			{/each}
 			<Button type="submit" variant="danger">{confirmLabel}</Button>
 		</form>
 	{/snippet}

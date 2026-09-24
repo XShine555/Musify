@@ -940,6 +940,7 @@ export interface components {
             smallImageKeyName: null | string;
             mediumImageKeyName: null | string;
             largeImageKeyName: null | string;
+            ownerUserId: string;
             visibility: components["schemas"]["PlaylistVisibility"];
             /** Format: date-time */
             createdAt: string;

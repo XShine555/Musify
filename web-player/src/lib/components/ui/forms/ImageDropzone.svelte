@@ -37,9 +37,16 @@
 	function onInput(event: Event) {
 		const file = (event.currentTarget as HTMLInputElement).files?.[0];
 		if (!file) return;
+		releasePreview();
 		preview = URL.createObjectURL(file);
 		onselect?.(file);
 	}
+
+	function releasePreview() {
+		if (preview !== '') URL.revokeObjectURL(preview);
+	}
+
+	$effect(() => releasePreview);
 </script>
 
 <label

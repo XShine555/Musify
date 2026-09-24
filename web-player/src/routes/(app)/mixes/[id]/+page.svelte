@@ -116,6 +116,6 @@
 			fields: { trackId: String(trackMenu.state.track.id) },
 			label: 'Añadir a una playlist'
 		}}
-		playlists={data.playlists}
+		playlists={data.userPlaylists}
 	/>
 {/if}

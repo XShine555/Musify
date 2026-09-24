@@ -108,7 +108,11 @@
 		<div class="app-backdrop"></div>
 		<div class="app-vignette"></div>
 
-		<Sidebar user={data.user} playlists={data.sidebarPlaylists ?? []} />
+		<Sidebar
+			user={data.user}
+			playlists={data.userPlaylists ?? []}
+			playlistCount={data.userPlaylistsTotal ?? 0}
+		/>
 
 		<div class="flex min-w-0 flex-1 flex-col">
 			<div class="flex min-h-0 flex-1">

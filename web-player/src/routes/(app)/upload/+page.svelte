@@ -299,14 +299,9 @@
 			</Surface>
 
 			<Checkbox bind:checked={acceptedTerms}>
-				Acepto los
-				<a
-					href="/terms"
-					class="text-accent-soft underline underline-offset-2 transition hover:brightness-110"
-				>
-					términos y condiciones
-				</a>
-				al subir {title.trim() !== '' ? `«${title}»` : 'esta canción'}.
+				Acepto los términos y condiciones al subir {title.trim() !== ''
+					? `«${title}»`
+					: 'esta canción'}.
 			</Checkbox>
 
 			{#if status === 'uploading'}

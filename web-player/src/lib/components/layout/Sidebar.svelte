@@ -9,6 +9,8 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Logo from '../ui/primitives/Logo.svelte';
 
+	const SIDEBAR_PLAYLISTS_LIMIT = 8;
+
 	interface SidebarPlaylist {
 		id: string;
 		name: string;
@@ -19,11 +21,14 @@
 	interface Props {
 		user: SessionUser | null;
 		playlists: SidebarPlaylist[];
+		playlistCount: number;
 	}
 
-	let { user, playlists }: Props = $props();
+	let { user, playlists, playlistCount }: Props = $props();
 
-	const navLinks = $derived(appNavLinks(user, { playlists: playlists.length, liked: liked.count }));
+	const visiblePlaylists = $derived(playlists.slice(0, SIDEBAR_PLAYLISTS_LIMIT));
+
+	const navLinks = $derived(appNavLinks(user, { playlists: playlistCount, liked: liked.count }));
 
 	function isActive(href: string) {
 		return isSectionActive(href, page.url.pathname, page.data.section);
@@ -61,7 +66,7 @@
 		<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
 		<div class="flex items-center justify-between px-3 pb-1.5">
 			<span class="text-eyebrow text-fg-2">Tus playlists</span>
-			{#if playlists.length > 0}
+			{#if visiblePlaylists.length > 0}
 				<IconButton
 					label="Crear playlist"
 					tone="plain"
@@ -74,7 +79,7 @@
 		</div>
 
 		<div class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto pb-icon-md">
-			{#each playlists as playlist (playlist.id)}
+			{#each visiblePlaylists as playlist (playlist.id)}
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
 				<ListRow
 					href="/playlists/{playlist.id}"

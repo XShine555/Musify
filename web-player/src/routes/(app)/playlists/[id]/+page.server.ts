@@ -13,7 +13,7 @@ const MAX_NAME = 100;
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
-	optionalUser(locals, url, allowAnonymousListening);
+	const user = optionalUser(locals, url, allowAnonymousListening);
 	const api = createApiClient({ fetch, accessToken: locals.accessToken ?? undefined });
 
 	const [playlistRes, tracksRes] = await Promise.all([
@@ -26,7 +26,9 @@ export const load: PageServerLoad = async ({ params, locals, url, fetch, parent 
 	const playlist = unwrapOrError(playlistRes, 'Playlist no encontrada.', 404);
 	const tracks = tracksRes.data?.items ?? [];
 
-	return { playlist, tracks };
+	const isOwner = user !== null && String(playlist.ownerUserId) === user.sub;
+
+	return { playlist, tracks, isOwner, section: isOwner ? '/playlists' : null };
 };
 
 export const actions: Actions = {

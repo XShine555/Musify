@@ -10,7 +10,7 @@
 	<p class="mb-6.5 text-body text-fg-2">
 		{page.status === 404
 			? 'Comprueba el enlace o vuelve al inicio.'
-			: 'La conexión se interrumpió. Lo que tengas descargado seguirá disponible sin conexión.'}
+			: 'Algo salió mal al cargar la página. Inténtalo de nuevo en unos momentos.'}
 	</p>
 	<Button href="/" variant="secondary">Volver</Button>
 </div>

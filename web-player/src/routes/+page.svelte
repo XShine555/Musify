@@ -9,17 +9,18 @@
 		playAllOrToggle,
 		playShuffled,
 		toQueueItem,
+		toQueueItems,
 		trackFromQueueItem,
-		type ApiTrackLike
+		type ApiTrackLike,
+		type QueueItem
 	} from '$lib/player/player.svelte';
-	import { pressable } from '$lib/actions/pressable';
 	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
 	import { mixItemTrack } from '$lib/data/mixes';
-	import { fmtTime, fmtDurationLong, fmtPlays, plural } from '$lib/utils/format';
+	import { fetchPlaylistQueueItems } from '$lib/data/albums';
+	import { fmtTime, fmtDurationLong, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import MediaCard from '$lib/components/ui/media/MediaCard.svelte';
-	import EqBars from '$lib/components/ui/media/EqBars.svelte';
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
@@ -27,80 +28,35 @@
 	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
 	import ListPlus from '@lucide/svelte/icons/list-plus';
 	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import { HOME_CONTINUE_LIMIT, HOME_POPULAR_MAX } from '$lib/config';
+	import { HOME_CONTINUE_LIMIT } from '$lib/config';
 
 	let { data } = $props();
 
 	const trackMenu = createTrackMenu();
 
-	type SpotlightTrack = Awaited<typeof data.spotlightTracks>['items'][number];
-	type SpotlightRow = { track: SpotlightTrack; seconds: number };
-	let spotlightRows = $state<SpotlightRow[]>([]);
-	let spotlightTotal = $state(0);
-
-	$effect(() => {
-		spotlightRows = [];
-		spotlightTotal = 0;
-		let cancelled = false;
-		data.spotlightTracks.then(({ items, totalCount }) => {
-			if (cancelled) return;
-			spotlightRows = items.map((track) => ({
-				track,
-				seconds: Number(track.duration)
-			}));
-			spotlightTotal = totalCount;
-		});
-		return () => {
-			cancelled = true;
-		};
-	});
-
 	const mixes = $derived(data.mixes);
 	const playlists = $derived(data.playlists);
 	const spotlight = $derived(data.spotlightPlaylist);
-	const spotlightItems = $derived(spotlightRows.map((row) => row.track));
-	const spotlightDurationSeconds = $derived(
-		spotlightRows.reduce((sum, row) => sum + row.seconds, 0)
-	);
-	const spotlightTrackCount = $derived(spotlightTotal || spotlightItems.length);
-	const spotlightVisibilityLabel = $derived(
-		spotlight?.visibility === 'Public' ? 'Pública' : 'Privada'
-	);
-	const spotlightMeta = $derived(
-		spotlightTrackCount === 0
-			? spotlightVisibilityLabel
-			: [
-					plural(spotlightTrackCount, 'canción', 'canciones'),
-					fmtDurationLong(spotlightDurationSeconds),
-					spotlightVisibilityLabel
-				].join(' · ')
-	);
 
 	const continueItems = $derived(mergeRecentlyPlayed(data.recentlyPlayed, HOME_CONTINUE_LIMIT));
-	const recentPool = $derived(mergeRecentlyPlayed(data.recentlyPlayed, 24));
-
-	const popularTracks = $derived<ApiTrackLike[]>(
-		recentPool.map(trackFromQueueItem).slice(0, HOME_POPULAR_MAX)
-	);
-
-	const spotlightQueue = $derived(spotlightItems.map(toQueueItem));
-	const spotlightIsCurrent = $derived(isQueueCurrent(spotlightQueue));
-	const heroPlaying = $derived(spotlightIsCurrent && player.playing);
 
 	function playContinue(index: number) {
 		player.playOrToggle(continueItems, index);
 	}
-	function playPopular(index: number) {
-		player.playOrToggle(popularTracks.map(toQueueItem), index);
+	function playSpotlightTrack(items: QueueItem[], index: number) {
+		player.playOrToggle(items, index);
 	}
-	function playSpotlightTrack(index: number) {
-		player.playOrToggle(spotlightQueue, index);
+	async function playSpotlight(previewItems: QueueItem[]) {
+		if (!spotlight) return;
+		if (isQueueCurrent(previewItems)) {
+			player.toggle();
+			return;
+		}
+		playAllOrToggle(await fetchPlaylistQueueItems(spotlight.id));
 	}
-	function playSpotlight() {
-		playAllOrToggle(spotlightQueue);
-	}
-	function shuffleSpotlight() {
-		playShuffled(spotlightQueue);
+	async function shuffleSpotlight() {
+		if (!spotlight) return;
+		playShuffled(await fetchPlaylistQueueItems(spotlight.id));
 	}
 
 	function openContextMenu(event: MouseEvent, track: ApiTrackLike) {
@@ -149,10 +105,13 @@
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
 					{#if spotlight}
-						<Button variant="primary" onclick={playSpotlight}>
-							{heroPlaying ? 'Pausar' : 'Reanudar'}
-							{spotlight.name}
-						</Button>
+						{#await data.spotlightTracks then { items }}
+							{@const previewItems = toQueueItems(items)}
+							<Button variant="primary" onclick={() => playSpotlight(previewItems)}>
+								{isQueueCurrent(previewItems) && player.playing ? 'Pausar' : 'Reanudar'}
+								{spotlight.name}
+							</Button>
+						{/await}
 					{/if}
 					<Button href="/explore" variant="secondary">Explorar música</Button>
 				</div>
@@ -181,7 +140,7 @@
 
 	<div class="mt-10 flex flex-col gap-section">
 		<section>
-			<SectionHeading title="Continuar escuchando" subtitle="Retomalo donde lo dejaste" />
+			<SectionHeading title="Continuar escuchando" subtitle="Retómalo donde lo dejaste" />
 			{#if continueItems.length > 0}
 				<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
 					{#each continueItems as item, i (item.id)}
@@ -209,66 +168,76 @@
 
 		{#if spotlight}
 			<section>
-				<div
-					class="grid spotlight-surface grid-cols-1 overflow-hidden rounded-panel-lg lg:grid-cols-2"
-				>
-					<div class="flex flex-col justify-center p-8 sm:p-9">
-						<div
-							role="button"
-							tabindex="0"
-							use:pressable={() => goto(`/playlists/${spotlight.id}`)}
-							class="flex w-fit items-center gap-5 self-start sm:gap-6"
-						>
-							<Artwork
-								src="/api/playlists/{spotlight.id}/cover?size=large&v={encodeURIComponent(
-									spotlight.updatedAt
-								)}"
-								trackIds={spotlight.coverTrackIds}
-								size="2xl"
-								alt={spotlight.name}
-								class="shrink-0"
-							/>
-							<div class="flex min-w-0 flex-col gap-3">
-								<p class="text-eyebrow text-fg-2">Playlist destacada</p>
-								<h3 class="truncate text-display-2 text-fg">
-									{spotlight.name}
-								</h3>
-								<p class="text-sm text-fg-2">{spotlightMeta}</p>
+				{#await data.spotlightTracks then { items, totalCount }}
+					{@const previewItems = toQueueItems(items)}
+					{@const visibilityLabel = spotlight.visibility === 'Public' ? 'Pública' : 'Privada'}
+					{@const meta =
+						totalCount === 0
+							? visibilityLabel
+							: `${plural(totalCount, 'canción', 'canciones')} · ${visibilityLabel}`}
+					<div
+						class="grid spotlight-surface grid-cols-1 overflow-hidden rounded-panel-lg lg:grid-cols-2"
+					>
+						<div class="flex flex-col justify-center p-8 sm:p-9">
+							<a
+								href="/playlists/{spotlight.id}"
+								class="flex w-fit items-center gap-5 self-start sm:gap-6"
+							>
+								<Artwork
+									src="/api/playlists/{spotlight.id}/cover?size=large&v={encodeURIComponent(
+										spotlight.updatedAt
+									)}"
+									trackIds={spotlight.coverTrackIds}
+									size="2xl"
+									alt={spotlight.name}
+									class="shrink-0"
+								/>
+								<div class="flex min-w-0 flex-col gap-3">
+									<p class="text-eyebrow text-fg-2">Playlist destacada</p>
+									<h3 class="truncate text-display-2 text-fg">
+										{spotlight.name}
+									</h3>
+									<p class="text-sm text-fg-2">{meta}</p>
+								</div>
+							</a>
+							<p class="mt-5 max-w-prose-sm text-sm text-fg-2">
+								{spotlight.description || 'Tu colección, siempre a mano.'}
+							</p>
+							<div class="mt-5 flex gap-2.5">
+								<Button variant="accent" onclick={() => playSpotlight(previewItems)}
+									>Reproducir</Button
+								>
+								<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
 							</div>
 						</div>
-						<p class="mt-5 max-w-prose-sm text-sm text-fg-2">
-							{spotlight.description || 'Tu colección, siempre a mano.'}
-						</p>
-						<div class="mt-5 flex gap-2.5">
-							<Button variant="accent" onclick={playSpotlight}>Reproducir</Button>
-							<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
+						<div class="flex flex-col gap-2 p-5.5 sm:p-6">
+							{#each items as track, i (track.id)}
+								<ListRow
+									onclick={() => playSpotlightTrack(previewItems, i)}
+									active={player.current.id === track.id}
+									size="sm"
+									title={track.title}
+									subtitle={track.artist}
+									subtitleHref={track.ownerUserId}
+									explicit={track.isExplicit}
+								>
+									{#snippet leading()}
+										<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"
+											>{i + 1}</span
+										>
+									{/snippet}
+									{#snippet trailing()}
+										<span class="shrink-0 text-xs text-fg-2 tabular-nums"
+											>{fmtTime(Number(track.duration))}</span
+										>
+									{/snippet}
+								</ListRow>
+							{:else}
+								<p class="p-2 text-sm text-fg-2">Esta playlist todavía no tiene canciones.</p>
+							{/each}
 						</div>
 					</div>
-					<div class="flex flex-col gap-2 p-5.5 sm:p-6">
-						{#each spotlightRows as { track, seconds }, i (track.id)}
-							<ListRow
-								onclick={() => playSpotlightTrack(i)}
-								active={player.current.id === track.id}
-								size="sm"
-								title={track.title}
-								subtitle={track.artist}
-								subtitleHref={track.ownerUserId}
-								explicit={track.isExplicit}
-							>
-								{#snippet leading()}
-									<span class="w-5 shrink-0 text-center text-xs text-fg-2 tabular-nums"
-										>{i + 1}</span
-									>
-								{/snippet}
-								{#snippet trailing()}
-									<span class="shrink-0 text-xs text-fg-2 tabular-nums">{fmtTime(seconds)}</span>
-								{/snippet}
-							</ListRow>
-						{:else}
-							<p class="p-2 text-sm text-fg-2">Esta playlist todavía no tiene canciones.</p>
-						{/each}
-					</div>
-				</div>
+				{/await}
 			</section>
 		{/if}
 
@@ -293,45 +262,6 @@
 					title="Todavía no tienes mezclas"
 					description="Se generan automáticamente a partir de lo que escuchas."
 				/>
-			{/if}
-		</section>
-
-		<section>
-			<SectionHeading title="Populares esta semana" subtitle="Lo más escuchado de tu biblioteca" />
-			{#if popularTracks.length > 0}
-				<div class="grid grid-cols-1 gap-x-8.5 gap-y-1.5 lg:grid-cols-2">
-					{#each popularTracks as track, i (track.id)}
-						{@const isCurrent = player.current.id === track.id}
-						<ListRow
-							onclick={() => playPopular(i)}
-							oncontextmenu={(e) => openContextMenu(e, track)}
-							active={isCurrent}
-							size="sm"
-							title={track.title}
-							subtitle={track.artist}
-							subtitleHref={track.ownerUserId}
-							explicit={track.isExplicit}
-							trackId={track.id}
-						>
-							{#snippet leading()}
-								<span class="flex h-3.5 w-icon-md shrink-0 items-end justify-center">
-									{#if isCurrent}
-										<EqBars size={13} paused={!player.playing} />
-									{:else}
-										<span class="text-xs text-fg-2 tabular-nums">{i + 1}</span>
-									{/if}
-								</span>
-							{/snippet}
-							{#snippet trailing()}
-								<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
-									{fmtPlays(track.listensCount)}
-								</span>
-							{/snippet}
-						</ListRow>
-					{/each}
-				</div>
-			{:else}
-				{@render noListeningHistory()}
 			{/if}
 		</section>
 
@@ -387,6 +317,6 @@
 			fields: { trackId: String(trackMenu.state.track.id) },
 			label: 'Añadir a una playlist'
 		}}
-		{playlists}
+		playlists={data.userPlaylists}
 	/>
 {/if}

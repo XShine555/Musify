@@ -31,12 +31,6 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		}
 	});
 
-	const playlistsPromise = user
-		? api.GET('/playlists/users/{userId}', {
-				params: { path: { userId: user.sub }, query: { pageNumber: 1, pageSize: 50 } }
-			})
-		: Promise.resolve(null);
-
 	const albumsPromise = query
 		? api.GET('/albums', {
 				params: { query: { title: query, pageNumber: 1, pageSize: EXPLORE_ALBUMS_PAGE_SIZE } }
@@ -49,9 +43,8 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 			})
 		: Promise.resolve(null);
 
-	const [tracksRes, playlistsRes, albumsRes, usersRes] = await Promise.all([
+	const [tracksRes, albumsRes, usersRes] = await Promise.all([
 		tracksPromise,
-		playlistsPromise,
 		albumsPromise,
 		usersPromise
 	]);
@@ -64,9 +57,10 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		genres,
 		tracks,
 		albums: (albumsRes?.data?.items ?? []).map((item) => item.album),
+		albumsTotal: Number(albumsRes?.data?.totalItemCount ?? 0),
 		users: usersRes?.data?.items ?? [],
-		viewerId: user?.sub ?? null,
-		playlists: playlistsRes?.data?.items ?? []
+		usersTotal: Number(usersRes?.data?.totalItemCount ?? 0),
+		viewerId: user?.sub ?? null
 	};
 };
 

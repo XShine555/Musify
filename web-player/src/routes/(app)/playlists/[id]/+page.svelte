@@ -9,6 +9,7 @@
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import TrackList from '$lib/components/ui/media/TrackList.svelte';
 	import { playlistMeta } from '$lib/utils/format';
@@ -17,6 +18,7 @@
 
 	const playlist = $derived(data.playlist);
 	const tracks = $derived(data.tracks);
+	const isOwner = $derived(data.isOwner);
 	const listTracks = $derived(tracks.map((track) => ({ ...track, addedAt: track.createdAt })));
 
 	let editing = $state(false);
@@ -39,8 +41,13 @@
 </svelte:head>
 
 <Page>
+	<BackLink
+		href={isOwner ? '/playlists' : '/'}
+		label={isOwner ? 'Volver a tus playlists' : 'Volver al inicio'}
+	/>
+
 	<PageHeader
-		eyebrow="Lista"
+		eyebrow="Playlist"
 		title={playlist.name}
 		description={playlist.description ?? undefined}
 		meta="{playlistMeta(tracks.length)} · {playlist.visibility === 'Public'
@@ -67,10 +74,12 @@
 					Reproducir
 				{/if}
 			</Button>
-			<Button size="sm" variant="secondary" onclick={() => (editing = true)}>Editar</Button>
-			<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
-				Eliminar
-			</Button>
+			{#if isOwner}
+				<Button size="sm" variant="secondary" onclick={() => (editing = true)}>Editar</Button>
+				<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>
+					Eliminar
+				</Button>
+			{/if}
 		{/snippet}
 	</PageHeader>
 
@@ -79,7 +88,9 @@
 			tracks={listTracks}
 			columns={['added', 'plays']}
 			onPlay={playFrom}
-			rowAction={{ action: '?/removeTrack', icon: X, label: 'Quitar de la playlist' }}
+			rowAction={isOwner
+				? { action: '?/removeTrack', icon: X, label: 'Quitar de la playlist' }
+				: undefined}
 		/>
 	{:else}
 		<EmptyState

@@ -8,6 +8,7 @@
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
 	import TrackList from '$lib/components/ui/media/TrackList.svelte';
 
 	let { data } = $props();
@@ -15,6 +16,8 @@
 	const items = $derived(data.tracks.items);
 	const total = $derived(Number(data.tracks.totalItemCount));
 	const listTracks = $derived(items.map((track) => ({ ...track, uploadedAt: track.createdAt })));
+
+	let deleting = $state<(typeof items)[number] | null>(null);
 
 	function togglePlay(index: number) {
 		player.playOrToggle(toQueueItems(items), index);
@@ -46,7 +49,11 @@
 			tracks={listTracks}
 			columns={['uploaded', 'plays']}
 			onPlay={togglePlay}
-			rowAction={{ action: '?/deleteTrack', icon: X, label: 'Borrar canción' }}
+			rowAction={{
+				onclick: (track) => (deleting = items.find((item) => item.id === track.id) ?? null),
+				icon: X,
+				label: 'Borrar canción'
+			}}
 		/>
 	{:else}
 		<EmptyState
@@ -63,3 +70,13 @@
 		</EmptyState>
 	{/if}
 </Page>
+
+<ConfirmDialog
+	open={deleting !== null}
+	onClose={() => (deleting = null)}
+	title="¿Borrar «{deleting?.title ?? ''}»?"
+	description="Esta acción no se puede deshacer, la canción se eliminará de tu biblioteca, de tus álbumes y de las playlists donde esté."
+	confirmLabel="Borrar"
+	action="?/deleteTrack"
+	fields={{ trackId: deleting?.id ?? '' }}
+/>

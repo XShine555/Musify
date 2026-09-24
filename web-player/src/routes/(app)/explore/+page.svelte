@@ -83,7 +83,7 @@
 	const hasAlbums = $derived(albums.length > 0);
 	const hasUsers = $derived(users.length > 0);
 
-	const playlistMatches = $derived(matchPlaylists(data.playlists, data.query));
+	const playlistMatches = $derived(matchPlaylists(data.userPlaylists, data.query));
 	const hasPlaylists = $derived(playlistMatches.length > 0);
 
 	const nothingFound = $derived(
@@ -92,10 +92,10 @@
 
 	const counts = $derived(
 		searchCounts({
-			tracks: songRows.length,
-			albums: albums.length,
+			tracks: Number(data.tracks.totalItemCount),
+			albums: data.albumsTotal,
 			playlists: playlistMatches.length,
-			users: users.length
+			users: data.usersTotal
 		})
 	);
 	const chips = $derived(searchChips(counts));
@@ -400,7 +400,7 @@
 								>
 									{#snippet trailing()}
 										<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
-											{Number(album.trackCount)} canciones
+											{plural(Number(album.trackCount), 'canción', 'canciones')}
 										</span>
 									{/snippet}
 								</ListRow>
@@ -462,7 +462,7 @@
 			fields: { trackId: String(trackMenu.state.track.id) },
 			label: 'Añadir a una playlist'
 		}}
-		playlists={data.playlists}
+		playlists={data.userPlaylists}
 	/>
 {/if}
 
@@ -481,6 +481,6 @@
 			fields: { albumId: albumMenu.albumId },
 			label: 'Añadir álbum a una playlist'
 		}}
-		playlists={data.playlists}
+		playlists={data.userPlaylists}
 	/>
 {/if}
