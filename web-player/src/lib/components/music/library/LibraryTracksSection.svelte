@@ -9,10 +9,11 @@
 	import Alert from '$lib/components/ui/primitives/Alert.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
+	import SelectionBar from '$lib/components/ui/primitives/SelectionBar.svelte';
 	import SearchInput from '$lib/components/ui/primitives/SearchInput.svelte';
 	import ChipGroup from '$lib/components/ui/primitives/ChipGroup.svelte';
 	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
-	import ManageTrackList from '$lib/components/music/ManageTrackList.svelte';
+	import ManageTrackList from '$lib/components/music/library/ManageTrackList.svelte';
 
 	interface Props {
 		tracks: LibraryTrack[];
@@ -64,14 +65,13 @@
 
 {#if tracks.length > 0}
 	{#if selectedIds.length > 0}
-		<div class="mt-4 flex min-h-11 flex-wrap items-center gap-x-4 gap-y-3">
-			<span class="text-sm text-fg-2"
-				>{plural(selectedIds.length, 'seleccionada', 'seleccionadas')}</span
-			>
+		<SelectionBar
+			class="mt-4"
+			label={plural(selectedIds.length, 'seleccionada', 'seleccionadas')}
+			onClear={() => (selectedIds = [])}
+		>
 			<Button size="sm" variant="danger" onclick={deleteSelected}>Borrar</Button>
-			<Button size="sm" variant="secondary" onclick={() => (selectedIds = [])}>Deseleccionar</Button
-			>
-		</div>
+		</SelectionBar>
 	{:else}
 		<div class="mt-4 flex min-h-11 flex-wrap items-center gap-x-4 gap-y-3">
 			<SearchInput

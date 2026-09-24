@@ -17,10 +17,14 @@
 		submittingLabel: string;
 		canSubmit: boolean;
 		helperText?: string;
+		layout?: 'inline' | 'split';
+		coverHint?: string;
 		onCancel: () => void;
 		onSuccess?: () => void;
 		fields: Snippet;
 		extra?: Snippet;
+		aside?: Snippet;
+		footer?: Snippet;
 	}
 
 	let {
@@ -33,13 +37,19 @@
 		submittingLabel,
 		canSubmit,
 		helperText,
+		layout = 'inline',
+		coverHint,
 		onCancel,
 		onSuccess,
 		fields,
-		extra
+		extra,
+		aside,
+		footer
 	}: Props = $props();
 
 	let submitting = $state(false);
+
+	const split = $derived(layout === 'split');
 </script>
 
 <form
@@ -54,34 +64,66 @@
 			if (result.type === 'success' || result.type === 'redirect') onSuccess?.();
 		};
 	}}
-	class="mt-5 w-full max-w-4xl space-y-5"
+	class={split ? 'mt-6 grid gap-8 lg:grid-cols-[auto_1fr]' : 'mt-5 w-full max-w-4xl space-y-5'}
 >
-	<div class="flex flex-col items-stretch gap-5 sm:flex-row sm:gap-8">
-		<Field>
+	{#if split}
+		<div class="flex w-full flex-col gap-4 lg:w-64">
 			<ImageDropzone
 				name="cover"
 				fallbackUrl={coverFallbackUrl}
 				required={requireCover}
 				icon={coverIcon}
 				gradient
-				size="hero"
+				size="fill"
 			/>
-		</Field>
-		<div class="flex flex-1 flex-col gap-4">
+			{#if coverHint}
+				<p class="text-xs text-fg-2">{coverHint}</p>
+			{/if}
 			{@render fields()}
+			{@render extra?.()}
 		</div>
-	</div>
+		<div class="min-w-0">
+			{@render aside?.()}
+			<div class="mt-6 space-y-5">
+				{@render feedback()}
+				{@render actions()}
+			</div>
+		</div>
+	{:else}
+		<div class="flex flex-col items-stretch gap-5 sm:flex-row sm:gap-8">
+			<Field>
+				<ImageDropzone
+					name="cover"
+					fallbackUrl={coverFallbackUrl}
+					required={requireCover}
+					icon={coverIcon}
+					gradient
+					size="hero"
+				/>
+			</Field>
+			<div class="flex flex-1 flex-col gap-4">
+				{@render fields()}
+			</div>
+		</div>
 
-	{@render extra?.()}
+		{@render extra?.()}
+		{@render feedback()}
+		{@render actions()}
+	{/if}
+</form>
 
+{#snippet feedback()}
 	{#if formMessage}
 		<Alert tone="danger">{formMessage}</Alert>
 	{/if}
+{/snippet}
 
+{#snippet actions()}
 	<div class="flex items-center justify-between gap-4">
 		{#if helperText}
 			<p class="text-sm text-fg-2">{helperText}</p>
 		{/if}
+		{@render footer?.()}
 		<div class="ml-auto flex shrink-0 items-center gap-3">
 			<Button type="button" variant="secondary" onclick={onCancel}>Cancelar</Button>
 			<Button type="submit" disabled={submitting || !canSubmit}>
@@ -89,4 +131,4 @@
 			</Button>
 		</div>
 	</div>
-</form>
+{/snippet}

@@ -14,10 +14,9 @@
 	import Checkbox from '$lib/components/ui/primitives/Checkbox.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
-	import Chip from '$lib/components/ui/primitives/Chip.svelte';
 	import { LIMITS } from '$lib/validation';
 	import { formatSize } from '$lib/utils/format';
-	import { genreOptions } from '$lib/data/genres';
+	import GenrePicker from '$lib/components/music/GenrePicker.svelte';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';
@@ -43,15 +42,6 @@
 		{ key: 'upload', label: 'Subir', hint: 'Portada y audio.' },
 		{ key: 'done', label: 'Listo', hint: 'Se procesa y aparece en tu biblioteca.' }
 	];
-
-	const options = $derived(genreOptions(data.genres));
-	const blocked = $derived(
-		new Set(
-			options
-				.filter((option) => tags.includes(option.genre))
-				.flatMap((option) => option.incompatibleWith)
-		)
-	);
 
 	const busy = $derived(status === 'uploading');
 
@@ -89,10 +79,6 @@
 		dt.items.add(file);
 		audioInput.files = dt.files;
 		pickAudio(file);
-	}
-
-	function toggleTag(tag: string) {
-		tags = tags.includes(tag) ? tags.filter((current) => current !== tag) : [...tags, tag];
 	}
 
 	function reset() {
@@ -258,28 +244,12 @@
 							{/snippet}
 						</Field>
 
-						<Field label="Géneros">
-							<div class="mb-2 flex flex-wrap gap-2">
-								{#each options as option (option.genre)}
-									<Chip
-										selected={tags.includes(option.genre)}
-										disabled={blocked.has(option.genre)}
-										onclick={() => toggleTag(option.genre)}
-									>
-										{option.label}
-									</Chip>
-								{/each}
-							</div>
-							{#each tags as tag (tag)}
-								<input type="hidden" name="tags" value={tag} />
-							{/each}
-							{#snippet hint()}
-								<p>
-									Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient.
-								</p>
-								<span class="shrink-0 tabular-nums">{tags.length} elegidos</span>
-							{/snippet}
-						</Field>
+						<GenrePicker
+							genres={data.genres}
+							bind:selected={tags}
+							name="tags"
+							help="Elige al menos uno. Algunos géneros no se pueden combinar, como Metal con Ambient."
+						/>
 
 						<Checkbox bind:checked={isExplicit} name="isExplicit">
 							<span class="inline-flex items-center gap-2">

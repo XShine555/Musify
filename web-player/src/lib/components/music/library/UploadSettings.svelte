@@ -1,11 +1,19 @@
+<script lang="ts" module>
+	import type { Visibility } from '$lib/data/uploadQueue';
+
+	const VISIBILITY: { value: Visibility; label: string }[] = [
+		{ value: 'private', label: 'Privado' },
+		{ value: 'public', label: 'Público' }
+	];
+</script>
+
 <script lang="ts">
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
-	import { genreOptions } from '$lib/data/genres';
-	import type { Visibility } from '$lib/data/uploadQueue';
+	import type { GenreOption } from '$lib/types';
 	import { LIMITS } from '$lib/validation';
-	import Chip from '$lib/components/ui/primitives/Chip.svelte';
+	import GenrePicker from '$lib/components/music/GenrePicker.svelte';
 	import Field from '$lib/components/ui/primitives/Field.svelte';
 	import SegmentedControl from '$lib/components/ui/primitives/SegmentedControl.svelte';
 	import Input from '$lib/components/ui/primitives/Input.svelte';
@@ -13,7 +21,7 @@
 	import ImageDropzone from '$lib/components/ui/forms/ImageDropzone.svelte';
 
 	interface Props {
-		genres: { genre: string; incompatibleWith: string[] }[];
+		genres: GenreOption[];
 		selectedGenres: string[];
 		visibility: Visibility;
 		coauthors: string[];
@@ -32,28 +40,8 @@
 		class: klass = ''
 	}: Props = $props();
 
-	const VISIBILITY: { value: Visibility; label: string }[] = [
-		{ value: 'private', label: 'Privado' },
-		{ value: 'public', label: 'Público' }
-	];
-
 	let artist = $state('');
 	let hasCover = $state(false);
-
-	const options = $derived(genreOptions(genres));
-	const blocked = $derived(
-		new Set(
-			options
-				.filter((option) => selectedGenres.includes(option.genre))
-				.flatMap((option) => option.incompatibleWith)
-		)
-	);
-
-	function toggleGenre(genre: string) {
-		selectedGenres = selectedGenres.includes(genre)
-			? selectedGenres.filter((current) => current !== genre)
-			: [...selectedGenres, genre];
-	}
 
 	function addArtist() {
 		const name = artist.trim();
@@ -90,23 +78,7 @@
 		</Field>
 
 		<div class="flex min-w-0 flex-col gap-7">
-			<Field label="Géneros">
-				<div class="flex flex-wrap gap-2">
-					{#each options as option (option.genre)}
-						<Chip
-							selected={selectedGenres.includes(option.genre)}
-							disabled={blocked.has(option.genre)}
-							onclick={() => toggleGenre(option.genre)}
-						>
-							{option.label}
-						</Chip>
-					{/each}
-				</div>
-				{#snippet hint()}
-					<p>Elige varios. Algunos no se pueden combinar.</p>
-					<span class="shrink-0 tabular-nums">{selectedGenres.length} elegidos</span>
-				{/snippet}
-			</Field>
+			<GenrePicker {genres} bind:selected={selectedGenres} />
 
 			<Field label="Título" for="upload-title">
 				<Input

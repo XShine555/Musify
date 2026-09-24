@@ -1,6 +1,5 @@
 <script lang="ts">
-	import UploadCloud from '@lucide/svelte/icons/cloud-upload';
-	import { genreInfo } from '$lib/data/genres';
+	import { genreLabels } from '$lib/data/genres';
 	import {
 		filesFromDrop,
 		readDuration,
@@ -11,12 +10,14 @@
 		type Visibility
 	} from '$lib/data/uploadQueue';
 	import { plural } from '$lib/utils/format';
+	import type { GenreOption } from '$lib/types';
+	import FileDropzone from '$lib/components/ui/forms/FileDropzone.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import UploadQueueList from '$lib/components/music/library/UploadQueueList.svelte';
 	import UploadSettings from '$lib/components/music/library/UploadSettings.svelte';
 
 	interface Props {
-		genres: { genre: string; incompatibleWith: string[] }[];
+		genres: GenreOption[];
 	}
 
 	let { genres }: Props = $props();
@@ -27,16 +28,10 @@
 	let selectedGenres = $state<string[]>([]);
 	let visibility = $state<Visibility>('private');
 	let coauthors = $state<string[]>([]);
-	let dragging = $state(false);
-	let input = $state<HTMLInputElement>();
 
 	const single = $derived(queue.length === 1 ? queue[0] : null);
 	const summary = $derived(summarizeQueue(queue));
-	const genresLabel = $derived(
-		selectedGenres.length > 0
-			? selectedGenres.map((genre) => genreInfo(genre).label).join(', ')
-			: '-'
-	);
+	const genresLabel = $derived(genreLabels(selectedGenres));
 	const visibilityLabel = $derived(visibility === 'private' ? 'Privado' : 'Público');
 	const queueMeta = $derived(
 		[
@@ -60,19 +55,6 @@
 		}
 	}
 
-	function onPick(event: Event) {
-		const target = event.currentTarget as HTMLInputElement;
-		enqueue(Array.from(target.files ?? []));
-		target.value = '';
-	}
-
-	async function onDrop(event: DragEvent) {
-		event.preventDefault();
-		dragging = false;
-		if (!event.dataTransfer) return;
-		enqueue(await filesFromDrop(event.dataTransfer));
-	}
-
 	function setTitle(id: string, title: string) {
 		queue = queue.map((item) => (item.id === id ? { ...item, title } : item));
 	}
@@ -84,39 +66,14 @@
 
 <div class="mt-6 grid items-start gap-6 lg:grid-cols-2">
 	<div class="flex min-w-0 flex-col gap-8">
-		<div
-			role="presentation"
-			ondragover={(event) => {
-				event.preventDefault();
-				dragging = true;
-			}}
-			ondragleave={() => (dragging = false)}
-			ondrop={onDrop}
-			class="flex min-h-64 flex-col items-center justify-center rounded-panel border border-dashed p-6 text-center transition sm:p-10 {dragging
-				? 'border-accent/60 bg-accent-tint'
-				: 'border-line-strong bg-surface'}"
-		>
-			<span class="grid size-14 place-items-center rounded-full bg-surface-2 text-fg-2">
-				<UploadCloud class="size-icon-xl" />
-			</span>
-			<h2 class="mt-5 font-display text-xl font-semibold tracking-display text-fg">
-				Arrastra tus archivos aquí
-			</h2>
-			<p class="mt-2 text-xs text-fg-2">
-				WAV, FLAC, AIFF o MP3 · hasta 500 MB por archivo · puedes soltar carpetas enteras
-			</p>
-			<Button class="mt-6" onclick={() => input?.click()}>Elegir archivos</Button>
-			<input
-				bind:this={input}
-				type="file"
-				multiple
-				accept={ACCEPT}
-				onchange={onPick}
-				class="hidden"
-				aria-label="Elegir archivos de audio"
-				tabindex="-1"
-			/>
-		</div>
+		<FileDropzone
+			accept={ACCEPT}
+			title="Arrastra tus archivos aquí"
+			hint="WAV, FLAC, AIFF o MP3 · hasta 500 MB por archivo · puedes soltar carpetas enteras"
+			inputLabel="Elegir archivos de audio"
+			onfiles={enqueue}
+			readDrop={filesFromDrop}
+		/>
 
 		<UploadSettings
 			{genres}

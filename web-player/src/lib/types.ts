@@ -17,6 +17,11 @@ export interface Track {
 	listensCount: number;
 }
 
+export interface GenreOption {
+	genre: string;
+	incompatibleWith: string[];
+}
+
 export type TrackStatus = 'Pending' | 'Processing' | 'Completed' | 'Failed';
 
 export interface LibraryTrack extends Track {
