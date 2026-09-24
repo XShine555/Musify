@@ -1,10 +1,9 @@
 using ErrorOr;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
-using Musify.Application.Shared;
 using Musify.Application.Events;
+using Musify.Application.Shared;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Tracks;
@@ -22,49 +21,21 @@ public class DeleteTrackCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
     {
-        var track = await database.Tracks.SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
-        if (track == null)
-        {
-            logger.LogInformation("Track {TrackId} not found", request.TrackId);
-            return Error.NotFound();
-        }
+        var found = await database.Tracks.FindOwnedAsync(request.TrackId, request.UserId, cancellationToken);
+        if (found.IsError)
+            return found.Errors;
 
-        if (track.OwnerUserId != request.UserId)
-        {
-            logger.LogWarning("User {UserId} unauthorized to delete track {TrackId}", request.UserId, request.TrackId);
-            return AppErrors.Forbidden("Track", request.TrackId);
-        }
-
+        var track = found.Value;
         if (track.Audio.IsInProgress)
-        {
-            logger.LogWarning("Track {TrackId} is currently being processed and cannot be deleted", request.TrackId);
-            return Error.Conflict(description: "Track is currently being processed and cannot be deleted");
-        }
+            return AppErrors.Conflict("Track.Processing", "Track is currently being processed and cannot be deleted.");
 
         track.LifeCycleStatus = LifeCycleStatus.Removing;
 
-        try
-        {
-            await eventBus.PublishAsync(
-                new DeleteTrackEvent(track.Id, request.UserId),
-                cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to publish delete track event for track {TrackId}", request.TrackId);
-            return Error.Failure(description: $"Failed to delete track {request.TrackId}");
-        }
+        await eventBus.PublishAsync(new DeleteTrackEvent(track.Id, request.UserId), cancellationToken);
+        await database.SaveChangesAsync(cancellationToken);
 
-        try
-        {
-            await database.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to mark track {TrackId} as processing before deletion", request.TrackId);
-            return Error.Failure(description: $"Failed to delete track {request.TrackId}");
-        }
+        logger.LogInformation("Marked track {TrackId} as removing", request.TrackId);
 
-        return new Success();
+        return Result.Success;
     }
 }

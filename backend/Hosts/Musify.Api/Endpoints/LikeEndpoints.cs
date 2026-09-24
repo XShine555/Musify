@@ -42,7 +42,7 @@ public static class LikeEndpoints
         [AsParameters] PageQuery page)
     {
         var result = await mediator.Send(new GetLikedTracksQuery(currentUser.RequiredId, page.PageNumber, page.PageSize), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> ToggleTrackLike(

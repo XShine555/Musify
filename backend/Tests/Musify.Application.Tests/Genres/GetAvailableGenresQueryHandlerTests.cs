@@ -1,6 +1,7 @@
 using Musify.Application.Genres;
 using Musify.Domain.ValueObjects;
 using Xunit;
+using Musify.Application.Genres.Responses;
 
 namespace Musify.Application.Tests.Genres;
 

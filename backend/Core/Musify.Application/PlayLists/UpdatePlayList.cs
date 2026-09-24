@@ -50,7 +50,7 @@ public class UpdatePlayListCommandHandler(
         if (!string.IsNullOrWhiteSpace(request.NewName))
         {
             playListEntity.Name = request.NewName.Trim();
-            playListEntity.NormalizedName = request.NewName.Trim().ToUpperInvariant();
+            playListEntity.NormalizedName = TextNormalizer.Normalize(request.NewName);
         }
 
         if (request.NewDescription != null)
@@ -123,7 +123,7 @@ public class UpdatePlayListCommandHandler(
                     sizes.Medium,
                     sizes.Large),
                 cancellationToken);
-            return new Success();
+            return Result.Success;
         }
         catch (Exception exception)
         {

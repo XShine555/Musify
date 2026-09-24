@@ -18,23 +18,13 @@ public class AddTrackToAlbumCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(AddTrackToAlbumCommand request, CancellationToken cancellationToken)
     {
-        var album = await database.Albums
-            .AsNoTracking()
-            .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
-        if (album == null)
-            return AppErrors.NotFound("Album", request.AlbumId);
+        var album = await database.Albums.FindOwnedAsync(request.AlbumId, request.UserId, cancellationToken);
+        if (album.IsError)
+            return album.Errors;
 
-        if (album.OwnerUserId != request.UserId)
-            return AppErrors.Forbidden("Album", request.AlbumId);
-
-        var track = await database.Tracks
-            .AsNoTracking()
-            .SingleOrDefaultAsync(t => t.Id == request.TrackId, cancellationToken);
-        if (track == null)
-            return AppErrors.NotFound("Track", request.TrackId);
-
-        if (track.OwnerUserId != request.UserId)
-            return AppErrors.Forbidden("Track", request.TrackId);
+        var track = await database.Tracks.FindOwnedAsync(request.TrackId, request.UserId, cancellationToken);
+        if (track.IsError)
+            return track.Errors;
 
         var alreadyAdded = await database.AlbumHasTracks
             .AsNoTracking()

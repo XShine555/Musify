@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Users.Responses;
-using X.PagedList.EF;
 
 namespace Musify.Application.Users;
 
@@ -17,17 +16,15 @@ public class GetUserFollowingQueryHandler(IDatabase database)
     public async ValueTask<ErrorOr<PaginatedResponse<UserSummaryResponse>>> Handle(GetUserFollowingQuery request, CancellationToken cancellationToken)
     {
         if (!await database.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken))
-            return Error.NotFound();
+            return AppErrors.NotFound("User", request.UserId);
 
-        var followsQuery = database.UserFollows
-            .AsNoTracking()
-            .Where(f => f.FollowerId == request.UserId);
-
-        var totalCount = await followsQuery.CountAsync(cancellationToken);
         var viewerId = request.ViewerId;
 
-        var page = await followsQuery
+        return await database.UserFollows
+            .AsNoTracking()
+            .Where(f => f.FollowerId == request.UserId)
             .OrderByDescending(f => f.CreatedAt)
+            .ThenBy(f => f.Id)
             .Select(f => new UserSummaryResponse(
                 f.Followed.Id,
                 f.Followed.Name,
@@ -35,8 +32,6 @@ public class GetUserFollowingQueryHandler(IDatabase database)
                 f.Followed.SecondName,
                 f.Followed.ProfilePictureUrl,
                 viewerId != null && database.UserFollows.Any(v => v.FollowerId == viewerId && v.FollowedId == f.FollowedId)))
-            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
-
-        return PaginatedResponse<UserSummaryResponse>.FromPagedList(page);
+            .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
     }
 }

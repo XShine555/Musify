@@ -1,10 +1,9 @@
 using ErrorOr;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
-using Musify.Application.Shared;
 using Musify.Application.Events;
+using Musify.Application.Shared;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists;
@@ -20,43 +19,18 @@ public class DeletePlayListCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(DeletePlayListCommand request, CancellationToken cancellationToken)
     {
-        var playList = await database.PlayLists.SingleOrDefaultAsync(p => p.Id == request.PlayListId, cancellationToken);
-        if (playList == null)
-        {
-            logger.LogDebug("Playlist {PlayListId} not found", request.PlayListId);
-            return Error.NotFound();
-        }
+        var found = await database.PlayLists.FindOwnedAsync(request.PlayListId, request.UserId, cancellationToken);
+        if (found.IsError)
+            return found.Errors;
 
-        if (playList.OwnerUserId != request.UserId)
-        {
-            logger.LogWarning("Playlist {PlayListId} does not belong to user {UserId}", request.PlayListId, request.UserId);
-            return AppErrors.Forbidden("PlayList", request.PlayListId);
-        }
-
+        var playList = found.Value;
         playList.LifeCycleStatus = LifeCycleStatus.Removing;
 
-        try
-        {
-            await eventBus.PublishAsync(
-                new DeletePlayListEvent(playList.Id, request.UserId),
-                cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to publish delete playlist event for playlist {PlayListId}", request.PlayListId);
-            return Error.Failure(description: $"Failed to delete playlist {request.PlayListId}");
-        }
+        await eventBus.PublishAsync(new DeletePlayListEvent(playList.Id, request.UserId), cancellationToken);
+        await database.SaveChangesAsync(cancellationToken);
 
-        try
-        {
-            await database.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to mark playlist {PlayListId} as removing", request.PlayListId);
-            return Error.Failure(description: $"Failed to delete playlist {request.PlayListId}");
-        }
+        logger.LogInformation("Marked playlist {PlayListId} as removing", request.PlayListId);
 
-        return new Success();
+        return Result.Success;
     }
 }

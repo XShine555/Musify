@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Users.Responses;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Users;
 
@@ -20,9 +21,8 @@ public class GetUserByIdQueryHandler(IDatabase database)
             .Select(u => UserApplicationResponse.FromEntity(u))
             .SingleOrDefaultAsync(cancellationToken);
 
-        if (user == null)
-            return Error.NotFound();
-
-        return user;
+        return user == null
+            ? AppErrors.NotFound("User", request.Id)
+            : user;
     }
 }

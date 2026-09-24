@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.PlayLists;
 
@@ -18,18 +19,13 @@ public class AddTrackToPlayListCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(AddTrackToPlayListCommand request, CancellationToken cancellationToken)
     {
-        var playList = await database.PlayLists
-            .AsNoTracking()
-            .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
-        if (playList == null)
-            return AppErrors.NotFound("PlayList", request.PlayListId);
-
-        if (playList.OwnerUserId != request.UserId)
-            return AppErrors.Forbidden("PlayList", request.PlayListId);
+        var playList = await database.PlayLists.FindOwnedAsync(request.PlayListId, request.UserId, cancellationToken);
+        if (playList.IsError)
+            return playList.Errors;
 
         var trackExists = await database.Tracks
             .AsNoTracking()
-            .AnyAsync(t => t.Id == request.TrackId, cancellationToken);
+            .AnyAsync(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active, cancellationToken);
         if (!trackExists)
             return AppErrors.NotFound("Track", request.TrackId);
 

@@ -17,14 +17,9 @@ public class RemoveTrackFromPlayListCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(RemoveTrackFromPlayListCommand request, CancellationToken cancellationToken)
     {
-        var playList = await database.PlayLists
-            .AsNoTracking()
-            .SingleOrDefaultAsync(pl => pl.Id == request.PlayListId, cancellationToken);
-        if (playList == null)
-            return AppErrors.NotFound("PlayList", request.PlayListId);
-
-        if (playList.OwnerUserId != request.UserId)
-            return AppErrors.Forbidden("PlayList", request.PlayListId);
+        var playList = await database.PlayLists.FindOwnedAsync(request.PlayListId, request.UserId, cancellationToken);
+        if (playList.IsError)
+            return playList.Errors;
 
         var playListTracks = await database.PlayListHasTracks
             .Where(plt => plt.PlayListId == request.PlayListId)

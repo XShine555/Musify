@@ -1,6 +1,5 @@
 using ErrorOr;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Application.Events;
@@ -20,20 +19,17 @@ public class DeleteAlbumCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(DeleteAlbumCommand request, CancellationToken cancellationToken)
     {
-        var album = await database.Albums
-            .SingleOrDefaultAsync(a => a.Id == request.AlbumId && a.LifeCycleStatus == LifeCycleStatus.Active, cancellationToken);
-        if (album == null)
-            return AppErrors.NotFound("Album", request.AlbumId);
+        var found = await database.Albums.FindOwnedAsync(request.AlbumId, request.UserId, cancellationToken);
+        if (found.IsError)
+            return found.Errors;
 
-        if (album.OwnerUserId != request.UserId)
-            return AppErrors.Forbidden("Album", request.AlbumId);
-
+        var album = found.Value;
         album.LifeCycleStatus = LifeCycleStatus.Removing;
 
         await eventBus.PublishAsync(new DeleteAlbumEvent(album.Id, request.UserId), cancellationToken);
         await database.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Marked album {AlbumId} of user {UserId} as removing", request.AlbumId, request.UserId);
+        logger.LogInformation("Marked album {AlbumId} as removing", request.AlbumId);
 
         return Result.Success;
     }

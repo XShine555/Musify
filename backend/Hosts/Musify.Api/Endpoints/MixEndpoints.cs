@@ -36,7 +36,7 @@ public static class MixEndpoints
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetMixesByUserIdQuery(currentUser.RequiredId), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetMixById(

@@ -4,9 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
-using X.PagedList;
-using X.PagedList.EF;
-using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums;
 
@@ -22,32 +19,15 @@ public class GetAlbumsByUserIdQueryHandler(IDatabase database)
             .AsNoTracking()
             .AnyAsync(user => user.Id == request.UserId, cancellationToken);
         if (!userExists)
-            return Error.NotFound(description: $"User {request.UserId} not found");
+            return AppErrors.NotFound("User", request.UserId);
 
-        var albumsQuery = database.Albums
+        return await database.Albums
             .AsNoTracking()
-            .Where(album => album.OwnerUserId == request.UserId && album.LifeCycleStatus == LifeCycleStatus.Active);
-
-        var totalCount = await albumsQuery.CountAsync(cancellationToken);
-
-        var pagedEntities = await albumsQuery
+            .Active()
+            .Where(album => album.OwnerUserId == request.UserId)
             .OrderByDescending(album => album.CreatedAt)
-            .Select(album => new
-            {
-                Album = album,
-                TrackCount = album.AlbumTracks.Count,
-                CoverTrackIds = album.AlbumTracks
-                    .OrderBy(albumTrack => albumTrack.TrackNumber)
-                    .Take(AlbumApplicationResponse.CoverTrackCount)
-                    .Select(albumTrack => albumTrack.TrackId)
-                    .ToList()
-            })
-            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
-
-        var pagedAlbums = new StaticPagedList<AlbumApplicationResponse>(
-            pagedEntities.Select(entry => AlbumApplicationResponse.FromEntity(entry.Album, entry.TrackCount, entry.CoverTrackIds)),
-            pagedEntities.PageNumber, pagedEntities.PageSize, pagedEntities.TotalItemCount);
-
-        return PaginatedResponse<AlbumApplicationResponse>.FromPagedList(pagedAlbums);
+            .ThenBy(album => album.Id)
+            .SelectResponse()
+            .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
     }
 }

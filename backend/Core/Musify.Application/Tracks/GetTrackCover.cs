@@ -3,6 +3,9 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
+using Musify.Domain.ValueObjects;
+using MimeMapping;
 
 namespace Musify.Application.Tracks;
 
@@ -20,12 +23,12 @@ public class GetTrackCoverQueryHandler(
     public async ValueTask<ErrorOr<TrackCoverLocation>> Handle(GetTrackCoverQuery request, CancellationToken cancellationToken)
     {
         var track = await database.Tracks.AsNoTracking()
-            .Where(t => t.Id == request.TrackId)
+            .Where(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active)
             .Select(t => new { t.Pictures.SmallName, t.Pictures.MediumName, t.Pictures.LargeName })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (track == null)
-            return Error.NotFound();
+            return AppErrors.NotFound("TrackCover", request.TrackId);
 
         var routes = trackConfiguration.Routes;
         var size = PictureSizeParser.Parse(request.Size);
@@ -38,13 +41,9 @@ public class GetTrackCoverQueryHandler(
         var key = string.IsNullOrEmpty(name) ? null : routes.BuildPicturePath(size, name);
 
         if (string.IsNullOrEmpty(name) || key == null)
-            return Error.NotFound();
+            return AppErrors.NotFound("TrackCover", request.TrackId);
 
-        var contentType = name.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
-            ? "image/webp"
-            : name.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
-                ? "image/png"
-                : "image/jpeg";
+        var contentType = MimeUtility.GetMimeMapping(name);
 
         return new TrackCoverLocation(storageConfiguration.Bucket, key, contentType);
     }

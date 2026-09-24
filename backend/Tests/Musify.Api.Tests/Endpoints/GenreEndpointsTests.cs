@@ -4,7 +4,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Musify.Api.Tests.TestSupport;
-using Musify.Application.Genres;
+using Musify.Application.Genres.Responses;
+using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
@@ -85,8 +86,8 @@ public sealed class GenreEndpointsTests(ApiTestFixture fixture)
         var response = await fixture.CreateAnonymousClient().GetAsync("/tracks?genre=blues&pageSize=100", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<TracksSearchResponse>(JsonOptions, TestContext.Current.CancellationToken);
-        Assert.Contains(body!.Items, item => item.Track.Title == title);
+        var body = await response.Content.ReadFromJsonAsync<PaginatedResponse<TrackApplicationResponse>>(JsonOptions, TestContext.Current.CancellationToken);
+        Assert.Contains(body!.Items, item => item.Title == title);
     }
 
     [Fact]
@@ -98,8 +99,8 @@ public sealed class GenreEndpointsTests(ApiTestFixture fixture)
         var response = await fixture.CreateAnonymousClient().GetAsync("/tracks?genre=Ambient&pageSize=100", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<TracksSearchResponse>(JsonOptions, TestContext.Current.CancellationToken);
-        Assert.Contains(body!.Items, item => item.Track.Title == title);
-        Assert.All(body.Items, item => Assert.Contains(Genre.Ambient, item.Track.Tags));
+        var body = await response.Content.ReadFromJsonAsync<PaginatedResponse<TrackApplicationResponse>>(JsonOptions, TestContext.Current.CancellationToken);
+        Assert.Contains(body!.Items, item => item.Title == title);
+        Assert.All(body.Items, item => Assert.Contains(Genre.Ambient, item.Tags));
     }
 }

@@ -126,7 +126,7 @@ public static class PlayListEndpoints
         [AsParameters] PageQuery page)
     {
         var result = await mediator.Send(new GetPlayListsByUserIdQuery(userId, name, page.PageNumber, page.PageSize, currentUser.Id), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetPlayListTracks(

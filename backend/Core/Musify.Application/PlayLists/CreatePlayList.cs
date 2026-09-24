@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Services;
@@ -53,7 +54,7 @@ public class CreatePlayListCommandHandler(
         {
             OwnerUserId = request.UserId,
             Name = request.Name.Trim(),
-            NormalizedName = request.Name.Trim().ToUpperInvariant(),
+            NormalizedName = TextNormalizer.Normalize(request.Name),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             Pictures = resolvedPictures.Pictures,
             Visibility = request.Visibility
@@ -119,7 +120,7 @@ public class CreatePlayListCommandHandler(
                     sizes.Medium,
                     sizes.Large),
                 cancellationToken);
-            return new Success();
+            return Result.Success;
         }
         catch (Exception exception)
         {

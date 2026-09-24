@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Likes;
 
@@ -20,12 +21,9 @@ public class ToggleTrackLikeCommandHandler(
     {
         var trackExists = await database.Tracks
             .AsNoTracking()
-            .AnyAsync(t => t.Id == request.TrackId, cancellationToken);
+            .AnyAsync(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active, cancellationToken);
         if (!trackExists)
-        {
-            logger.LogInformation("Track {TrackId} not found", request.TrackId);
-            return Error.NotFound(description: $"Track {request.TrackId} not found");
-        }
+            return AppErrors.NotFound("Track", request.TrackId);
 
         var existingLike = await database.TrackLikes
             .SingleOrDefaultAsync(like => like.UserId == request.UserId && like.TrackId == request.TrackId, cancellationToken);

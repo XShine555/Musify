@@ -7,6 +7,7 @@ using Musify.Application.Contracts;
 using Musify.Application.Services;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.ValueObjects;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Tracks;
 
@@ -32,13 +33,10 @@ public class GetTrackStreamQueryHandler(
             .SingleOrDefaultAsync(cancellationToken);
 
         if (track == null)
-            return Error.NotFound();
+            return AppErrors.NotFound("Track", request.TrackId);
 
         if (!track.Audio.IsProcessed)
-        {
-            logger.LogInformation("Stream requested for track {TrackId} but audio is not ready", request.TrackId);
-            return Error.Conflict(description: "Track audio is not available for streaming yet.");
-        }
+            return AppErrors.Conflict("Track.AudioNotReady", "Track audio is not available for streaming yet.");
 
         var response = await streamIssuer.IssueAsync(track.Id, track.Audio.FolderName, request.UserId, cancellationToken);
 

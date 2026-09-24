@@ -105,7 +105,7 @@ public static class UserEndpoints
         [AsParameters] PageQuery page)
     {
         var result = await mediator.Send(new GetUsersQuery(page.PageNumber, page.PageSize, usernameSearch, currentUser.Id), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetUserById(

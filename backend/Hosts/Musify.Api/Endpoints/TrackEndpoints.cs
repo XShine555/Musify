@@ -23,7 +23,7 @@ public static class TrackEndpoints
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetTracks")
             .WithSummary("Get Paginated Tracks, Optionally Filtered By Name And Genre.")
-            .Produces<TracksSearchResponse>()
+            .Produces<PaginatedResponse<TrackApplicationResponse>>()
             .ProducesValidationProblem();
 
         group.MapGet("/{id}", GetTrackById)
@@ -116,7 +116,7 @@ public static class TrackEndpoints
         }
 
         var result = await mediator.Send(new GetTracksQuery(name, page.PageNumber, page.PageSize, parsedGenre), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetTrackById(

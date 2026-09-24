@@ -63,7 +63,7 @@ export const load: PageServerLoad = async ({ url, locals, fetch }) => {
 		genre,
 		genres,
 		tracks,
-		albums: (albumsRes?.data?.items ?? []).map((item) => item.album),
+		albums: albumsRes?.data?.items ?? [],
 		users: usersRes?.data?.items ?? [],
 		viewerId: user?.sub ?? null,
 		playlists: playlistsRes?.data?.items ?? []

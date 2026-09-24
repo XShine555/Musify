@@ -1,4 +1,3 @@
-using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
@@ -7,18 +6,19 @@ using Musify.Application.Mixes.Responses;
 namespace Musify.Application.Mixes;
 
 public record GetMixesByUserIdQuery(long UserId)
-    : IQuery<ErrorOr<IReadOnlyList<MixApplicationResponse>>>;
+    : IQuery<IReadOnlyList<MixApplicationResponse>>;
 
 public class GetMixesByUserIdQueryHandler(IDatabase database)
-    : IQueryHandler<GetMixesByUserIdQuery, ErrorOr<IReadOnlyList<MixApplicationResponse>>>
+    : IQueryHandler<GetMixesByUserIdQuery, IReadOnlyList<MixApplicationResponse>>
 {
-    public async ValueTask<ErrorOr<IReadOnlyList<MixApplicationResponse>>> Handle(GetMixesByUserIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyList<MixApplicationResponse>> Handle(GetMixesByUserIdQuery request, CancellationToken cancellationToken)
     {
         var mixes = await database.Mixes
             .AsNoTracking()
             .Where(mix => mix.UserId == request.UserId)
             .Include(mix => mix.Items)
             .OrderBy(mix => mix.Position)
+            .ThenBy(mix => mix.Id)
             .ToListAsync(cancellationToken);
 
         var orderedItemsByMix = mixes.ToDictionary(

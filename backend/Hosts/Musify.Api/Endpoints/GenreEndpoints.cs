@@ -1,5 +1,6 @@
 using Mediator;
 using Musify.Application.Genres;
+using Musify.Application.Genres.Responses;
 
 namespace Musify.Api.Endpoints;
 

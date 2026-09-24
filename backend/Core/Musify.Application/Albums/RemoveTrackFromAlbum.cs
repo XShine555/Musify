@@ -17,14 +17,9 @@ public class RemoveTrackFromAlbumCommandHandler(
 {
     public async ValueTask<ErrorOr<Success>> Handle(RemoveTrackFromAlbumCommand request, CancellationToken cancellationToken)
     {
-        var album = await database.Albums
-            .AsNoTracking()
-            .SingleOrDefaultAsync(a => a.Id == request.AlbumId, cancellationToken);
-        if (album == null)
-            return AppErrors.NotFound("Album", request.AlbumId);
-
-        if (album.OwnerUserId != request.UserId)
-            return AppErrors.Forbidden("Album", request.AlbumId);
+        var album = await database.Albums.FindOwnedAsync(request.AlbumId, request.UserId, cancellationToken);
+        if (album.IsError)
+            return album.Errors;
 
         var albumTracks = await database.AlbumHasTracks
             .Where(albumTrack => albumTrack.AlbumId == request.AlbumId)
@@ -33,10 +28,7 @@ public class RemoveTrackFromAlbumCommandHandler(
 
         var link = albumTracks.SingleOrDefault(albumTrack => albumTrack.TrackId == request.TrackId);
         if (link == null)
-        {
-            logger.LogInformation("Track {TrackId} not in album {AlbumId}", request.TrackId, request.AlbumId);
-            return Error.NotFound(description: "Track is not in the album.");
-        }
+            return Error.NotFound("Album.TrackNotFound", "Track is not in the album.");
 
         database.AlbumHasTracks.Remove(link);
 
@@ -48,6 +40,6 @@ public class RemoveTrackFromAlbumCommandHandler(
 
         logger.LogInformation("Removed track {TrackId} from album {AlbumId}", request.TrackId, request.AlbumId);
 
-        return new Success();
+        return Result.Success;
     }
 }

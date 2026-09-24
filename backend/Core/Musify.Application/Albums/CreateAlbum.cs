@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Albums.Responses;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Application.Services;
 using Musify.Domain.Entities;
@@ -53,7 +54,7 @@ public class CreateAlbumCommandHandler(
         {
             OwnerUserId = request.UserId,
             Title = title,
-            NormalizedTitle = title.ToUpperInvariant(),
+            NormalizedTitle = TextNormalizer.Normalize(title),
             Description = request.Description,
             ReleaseYear = request.ReleaseYear,
             Pictures = EntityPictures.Pending(intent.ObjectName)
@@ -101,7 +102,7 @@ public class CreateAlbumCommandHandler(
                     sizes.Medium,
                     sizes.Large),
                 cancellationToken);
-            return new Success();
+            return Result.Success;
         }
         catch (Exception exception)
         {

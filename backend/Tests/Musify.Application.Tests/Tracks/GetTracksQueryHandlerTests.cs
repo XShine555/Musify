@@ -21,10 +21,8 @@ public sealed class GetTracksQueryHandlerTests : HandlerTestBase
             new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = trackB.Id });
 
         var result = await CreateHandler().Handle(new GetTracksQuery(Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Equal(2, result.Value.TotalItemCount);
-        Assert.Equal(2, result.Value.Items.Count);
+        Assert.Equal(2, result.TotalItemCount);
+        Assert.Equal(2, result.Items.Count);
     }
 
     [Fact]
@@ -39,10 +37,8 @@ public sealed class GetTracksQueryHandlerTests : HandlerTestBase
             new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = other.Id });
 
         var result = await CreateHandler().Handle(new GetTracksQuery(Name: "rhapsody", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        var item = Assert.Single(result.Value.Items);
-        Assert.Equal("Bohemian Rhapsody", item.Track.Title);
+        var item = Assert.Single(result.Items);
+        Assert.Equal("Bohemian Rhapsody", item.Title);
     }
 
     [Fact]
@@ -57,9 +53,7 @@ public sealed class GetTracksQueryHandlerTests : HandlerTestBase
             new Musify.Domain.Entities.UserHasTrack { UserId = owner.Id, TrackId = jazz.Id });
 
         var result = await CreateHandler().Handle(new GetTracksQuery(null, 1, 10, Genre.Indie), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        var item = Assert.Single(result.Value.Items);
-        Assert.Equal("Loud", item.Track.Title);
+        var item = Assert.Single(result.Items);
+        Assert.Equal("Loud", item.Title);
     }
 }

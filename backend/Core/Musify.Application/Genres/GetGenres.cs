@@ -2,12 +2,11 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Domain.ValueObjects;
+using Musify.Application.Genres.Responses;
 
 namespace Musify.Application.Genres;
 
 public record GetGenresQuery : IQuery<IReadOnlyList<GenreResponse>>;
-
-public record GenreResponse(Genre Genre, int TrackCount);
 
 public class GetGenresQueryHandler(IDatabase database)
     : IQueryHandler<GetGenresQuery, IReadOnlyList<GenreResponse>>

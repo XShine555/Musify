@@ -1,55 +1,37 @@
-using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.ValueObjects;
-using X.PagedList.EF;
 
 namespace Musify.Application.Tracks;
 
 public record GetTracksQuery(string? Name, int PageNumber, int PageSize, Genre? Genre = null)
-    : IQuery<ErrorOr<TracksSearchResponse>>;
+    : IQuery<PaginatedResponse<TrackApplicationResponse>>;
 
 public class GetTracksQueryHandler(IDatabase database)
-    : IQueryHandler<GetTracksQuery, ErrorOr<TracksSearchResponse>>
+    : IQueryHandler<GetTracksQuery, PaginatedResponse<TrackApplicationResponse>>
 {
-    public async ValueTask<ErrorOr<TracksSearchResponse>> Handle(GetTracksQuery request, CancellationToken cancellationToken)
+    public async ValueTask<PaginatedResponse<TrackApplicationResponse>> Handle(GetTracksQuery request, CancellationToken cancellationToken)
     {
-        var tracksQuery = database.UserHasTracks
+        var tracksQuery = database.Tracks
             .AsNoTracking()
-            .Include(ut => ut.Track.Owner)
-            .Include(ut => ut.Track.Tags)
-            .Where(ut => ut.Track.LifeCycleStatus == LifeCycleStatus.Active);
+            .Active();
 
-        if (!string.IsNullOrEmpty(request.Name))
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
-            var normalizedName = request.Name.Trim().ToUpperInvariant();
-            tracksQuery = tracksQuery.Where(t => t.Track.NormalizedTitle.Contains(normalizedName));
+            var normalizedName = TextNormalizer.Normalize(request.Name);
+            tracksQuery = tracksQuery.Where(track => track.NormalizedTitle.Contains(normalizedName));
         }
 
         if (request.Genre is { } genre)
-            tracksQuery = tracksQuery.Where(t => t.Track.Tags.Any(tag => tag.Tag == genre));
+            tracksQuery = tracksQuery.Where(track => track.Tags.Any(tag => tag.Tag == genre));
 
-        var totalCount = await tracksQuery.CountAsync(cancellationToken);
-
-        var pagedEntities = await tracksQuery
-            .OrderByDescending(t => t.Track.CreatedAt)
-            .ThenBy(t => t.Id)
-            .Select(t => new { t.Track, ListensCount = t.Track.ListeningHistories.Count(l => l.IsCounted) })
-            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
-
-        var items = pagedEntities
-            .Select(x => TrackSearchItemResponse.FromTrack(TrackApplicationResponse.FromEntity(x.Track, x.ListensCount)))
-            .ToList();
-
-        return new TracksSearchResponse(
-            items,
-            pagedEntities.PageNumber,
-            pagedEntities.PageSize,
-            pagedEntities.PageCount,
-            pagedEntities.TotalItemCount,
-            pagedEntities.HasPreviousPage,
-            pagedEntities.HasNextPage);
+        return await tracksQuery
+            .OrderByDescending(track => track.CreatedAt)
+            .ThenBy(track => track.Id)
+            .SelectResponse()
+            .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
     }
 }

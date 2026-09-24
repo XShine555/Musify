@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Musify.Application.Configuration;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Application.Events;
 using Musify.Application.Services;
 using Musify.Application.Tracks.Responses;
@@ -82,8 +83,8 @@ public class CreateTrackCommandHandler(
 
         var trackEntity = new Track
         {
-            Title = request.Title,
-            NormalizedTitle = request.Title.ToUpperInvariant(),
+            Title = request.Title.Trim(),
+            NormalizedTitle = TextNormalizer.Normalize(request.Title),
             OwnerUserId = user.Id,
             Owner = user,
             IsExplicit = request.IsExplicit,

@@ -1,11 +1,10 @@
 using Mediator;
 using Musify.Domain.ValueObjects;
+using Musify.Application.Genres.Responses;
 
 namespace Musify.Application.Genres;
 
 public record GetAvailableGenresQuery : IQuery<IReadOnlyList<AvailableGenreResponse>>;
-
-public record AvailableGenreResponse(Genre Genre, IReadOnlyList<Genre> IncompatibleWith);
 
 public class GetAvailableGenresQueryHandler
     : IQueryHandler<GetAvailableGenresQuery, IReadOnlyList<AvailableGenreResponse>>

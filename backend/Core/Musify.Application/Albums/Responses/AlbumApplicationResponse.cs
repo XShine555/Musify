@@ -18,7 +18,7 @@ public record AlbumApplicationResponse(
     DateTime UpdatedAt,
     IReadOnlyList<Guid> CoverTrackIds)
 {
-    public const int CoverTrackCount = 4;
+    public const int CoverTrackCount = AlbumProjections.CoverTrackCount;
 
     public static AlbumApplicationResponse FromEntity(
         Album album,

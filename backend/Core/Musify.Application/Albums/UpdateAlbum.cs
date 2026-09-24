@@ -51,7 +51,7 @@ public class UpdateAlbumCommandHandler(
         var title = request.Title.Trim();
 
         album.Title = title;
-        album.NormalizedTitle = title.ToUpperInvariant();
+        album.NormalizedTitle = TextNormalizer.Normalize(title);
         album.Description = request.Description;
         album.ReleaseYear = request.ReleaseYear;
 
@@ -118,7 +118,7 @@ public class UpdateAlbumCommandHandler(
                     sizes.Medium,
                     sizes.Large),
                 cancellationToken);
-            return new Success();
+            return Result.Success;
         }
         catch (Exception exception)
         {

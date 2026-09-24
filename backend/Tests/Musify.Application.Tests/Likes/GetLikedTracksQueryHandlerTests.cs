@@ -21,9 +21,7 @@ public sealed class GetLikedTracksQueryHandlerTests : HandlerTestBase
             new TrackLike { UserId = owner.Id, TrackId = newer.Id, CreatedAt = DateTime.UtcNow });
 
         var result = await CreateHandler().Handle(new GetLikedTracksQuery(owner.Id, 1, 10), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Equal(["Newer like", "Older like"], result.Value.Items.Select(track => track.Title));
+        Assert.Equal(["Newer like", "Older like"], result.Items.Select(track => track.Title));
     }
 
     [Fact]
@@ -33,9 +31,7 @@ public sealed class GetLikedTracksQueryHandlerTests : HandlerTestBase
         await SeedAsync(owner);
 
         var result = await CreateHandler().Handle(new GetLikedTracksQuery(owner.Id, 1, 10), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Empty(result.Value.Items);
+        Assert.Empty(result.Items);
     }
 
     [Fact]
@@ -47,8 +43,6 @@ public sealed class GetLikedTracksQueryHandlerTests : HandlerTestBase
         await SeedAsync(owner, stranger, track, new TrackLike { UserId = stranger.Id, TrackId = track.Id });
 
         var result = await CreateHandler().Handle(new GetLikedTracksQuery(owner.Id, 1, 10), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Empty(result.Value.Items);
+        Assert.Empty(result.Items);
     }
 }

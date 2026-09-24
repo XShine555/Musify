@@ -1,12 +1,11 @@
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Users.Responses;
 
 namespace Musify.Application.Users;
 
 public record GetListeningStatsQuery(long UserId) : IQuery<ListeningStatsResponse>;
-
-public record ListeningStatsResponse(int TracksThisWeek, int SecondsThisWeek, int StreakDays);
 
 public class GetListeningStatsQueryHandler(IDatabase database)
     : IQueryHandler<GetListeningStatsQuery, ListeningStatsResponse>

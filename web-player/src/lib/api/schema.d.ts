@@ -763,22 +763,6 @@ export interface components {
             expiresInSeconds: number | string;
             uploadUrl: string;
         };
-        AlbumSearchItemResponse: {
-            album: components["schemas"]["AlbumApplicationResponse"];
-        };
-        AlbumsSearchResponse: {
-            items: components["schemas"]["AlbumSearchItemResponse"][];
-            /** Format: int32 */
-            pageNumber: number | string;
-            /** Format: int32 */
-            pageSize: number | string;
-            /** Format: int32 */
-            pageCount: number | string;
-            /** Format: int32 */
-            totalItemCount: number | string;
-            hasPreviousPage: boolean;
-            hasNextPage: boolean;
-        };
         AvailableGenreResponse: {
             genre: components["schemas"]["Genre"];
             incompatibleWith: components["schemas"]["Genre"][];
@@ -796,7 +780,7 @@ export interface components {
             description: null | string;
             /** Format: uuid */
             pictureIntentId: null | string;
-            visibility?: components["schemas"]["PlaylistVisibility"];
+            visibility?: components["schemas"]["PlayListVisibility"];
         };
         CreateTrackRequest: {
             title: string;
@@ -918,12 +902,17 @@ export interface components {
             smallImageKeyName: null | string;
             mediumImageKeyName: null | string;
             largeImageKeyName: null | string;
-            visibility: components["schemas"]["PlaylistVisibility"];
+            visibility: components["schemas"]["PlayListVisibility"];
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
             coverTrackIds: string[];
+            ownerUserId: string;
+            /** Format: int32 */
+            trackCount: number | string;
+            /** Format: double */
+            durationSeconds: number | string;
         };
         PlayListPictureUploadResponse: {
             /** Format: uuid */
@@ -937,7 +926,7 @@ export interface components {
             uploadUrl: string;
         };
         /** @enum {unknown} */
-        PlaylistVisibility: "Private" | "Public";
+        PlayListVisibility: "Private" | "Public";
         /** @enum {unknown} */
         ProcessingStatus: "Pending" | "Processing" | "Completed" | "Failed";
         RecordListeningProgressRequest: {
@@ -988,22 +977,6 @@ export interface components {
             tags: components["schemas"]["Genre"][];
             isExplicit: boolean;
         };
-        TrackSearchItemResponse: {
-            track: components["schemas"]["TrackApplicationResponse"];
-        };
-        TracksSearchResponse: {
-            items: components["schemas"]["TrackSearchItemResponse"][];
-            /** Format: int32 */
-            pageNumber: number | string;
-            /** Format: int32 */
-            pageSize: number | string;
-            /** Format: int32 */
-            pageCount: number | string;
-            /** Format: int32 */
-            totalItemCount: number | string;
-            hasPreviousPage: boolean;
-            hasNextPage: boolean;
-        };
         TrackStreamResponse: {
             manifestUrl: string;
             ticket: string;
@@ -1042,7 +1015,7 @@ export interface components {
             newDescription: null | string;
             /** Format: uuid */
             newPictureIntentId: null | string;
-            newVisibility?: null | components["schemas"]["PlaylistVisibility"];
+            newVisibility?: null | components["schemas"]["PlayListVisibility"];
         };
         UserApplicationResponse: {
             id: string;
@@ -1106,7 +1079,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AlbumsSearchResponse"];
+                    "application/json": components["schemas"]["PaginatedResponseOfAlbumApplicationResponse"];
                 };
             };
         };
@@ -2158,7 +2131,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TracksSearchResponse"];
+                    "application/json": components["schemas"]["PaginatedResponseOfTrackApplicationResponse"];
                 };
             };
             /** @description Bad Request */

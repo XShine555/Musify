@@ -33,7 +33,7 @@ public class GenerateMixesForUserCommandHandler(
         if (libraryTrackIds.Count == 0)
         {
             logger.LogInformation("User {UserId} has no tracks yet, skipping mix generation", userId);
-            return new Success();
+            return Result.Success;
         }
 
         var historyTrackIds = await database.ListeningHistories
@@ -69,23 +69,15 @@ public class GenerateMixesForUserCommandHandler(
         if (drafts.Count == 0)
         {
             logger.LogInformation("No candidate songs found for user {UserId}, skipping mix generation", userId);
-            return new Success();
+            return Result.Success;
         }
 
         await ReplaceMixesAsync(userId, drafts, cancellationToken);
 
-        try
-        {
-            await database.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to generate mixes for user {UserId}", userId);
-            return Error.Failure(description: $"Failed to generate mixes for user {userId}");
-        }
+        await database.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Generated {Count} mixes for user {UserId}", drafts.Count, userId);
-        return new Success();
+        return Result.Success;
     }
 
     private List<Guid> Take(IEnumerable<Guid> trackIds) =>

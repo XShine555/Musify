@@ -49,7 +49,7 @@
 	let albumMenu = $state<AlbumMenuState | null>(null);
 	let sfilter = $state<SearchFilter>('Todo');
 
-	type LocalTrack = (typeof data.tracks.items)[number]['track'];
+	type LocalTrack = (typeof data.tracks.items)[number];
 
 	let localItems = $state<LocalTrack[]>([]);
 	let localPage = $state(1);
@@ -60,7 +60,7 @@
 		trackMenu.close();
 		albumMenu = null;
 		sfilter = data.genre ? 'Canciones' : 'Todo';
-		localItems = data.tracks.items.map((item) => item.track);
+		localItems = data.tracks.items;
 		localPage = Number(data.tracks.pageNumber);
 		hasMore = data.tracks.hasNextPage;
 	});
@@ -177,11 +177,7 @@
 			const res = await fetch(`/api/tracks?${params}`);
 			if (!res.ok) throw new Error(String(res.status));
 			const next = (await res.json()) as typeof data.tracks;
-			localItems = appendUnique(
-				localItems,
-				next.items.map((item) => item.track),
-				(track) => track.id
-			);
+			localItems = appendUnique(localItems, next.items, (track) => track.id);
 			localPage = Number(next.pageNumber);
 			hasMore = next.hasNextPage;
 		} catch {

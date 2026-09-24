@@ -1,11 +1,8 @@
-using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
-using X.PagedList;
-using X.PagedList.EF;
 using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Likes;
@@ -14,30 +11,20 @@ public record GetLikedTracksQuery(
     long UserId,
     int PageNumber,
     int PageSize)
-    : IQuery<ErrorOr<PaginatedResponse<TrackApplicationResponse>>>;
+    : IQuery<PaginatedResponse<TrackApplicationResponse>>;
 
 public class GetLikedTracksQueryHandler(IDatabase database)
-    : IQueryHandler<GetLikedTracksQuery, ErrorOr<PaginatedResponse<TrackApplicationResponse>>>
+    : IQueryHandler<GetLikedTracksQuery, PaginatedResponse<TrackApplicationResponse>>
 {
-    public async ValueTask<ErrorOr<PaginatedResponse<TrackApplicationResponse>>> Handle(GetLikedTracksQuery request, CancellationToken cancellationToken)
+    public async ValueTask<PaginatedResponse<TrackApplicationResponse>> Handle(GetLikedTracksQuery request, CancellationToken cancellationToken)
     {
-        var likesQuery = database.TrackLikes
+        return await database.TrackLikes
             .AsNoTracking()
-            .Include(like => like.Track.Owner)
-            .Include(like => like.Track.Tags)
-            .Where(like => like.UserId == request.UserId && like.Track.LifeCycleStatus == LifeCycleStatus.Active);
-
-        var totalCount = await likesQuery.CountAsync(cancellationToken);
-
-        var pagedEntities = await likesQuery
+            .Where(like => like.UserId == request.UserId && like.Track.LifeCycleStatus == LifeCycleStatus.Active)
             .OrderByDescending(like => like.CreatedAt)
-            .Select(like => new { like.Track, ListensCount = like.Track.ListeningHistories.Count(l => l.IsCounted) })
-            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
-
-        var pagedTracks = new StaticPagedList<TrackApplicationResponse>(
-            pagedEntities.Select(x => TrackApplicationResponse.FromEntity(x.Track, x.ListensCount)),
-            pagedEntities.PageNumber, pagedEntities.PageSize, pagedEntities.TotalItemCount);
-
-        return PaginatedResponse<TrackApplicationResponse>.FromPagedList(pagedTracks);
+            .ThenBy(like => like.Id)
+            .Select(like => like.Track)
+            .SelectResponse()
+            .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
     }
 }

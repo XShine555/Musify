@@ -4,6 +4,7 @@ using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Services;
 
@@ -30,7 +31,7 @@ public sealed class UploadIntentValidator(
         if (activeBytes + requiredBytes > config.MaxActiveUploadBytesPerUser)
             return Error.Validation(description: "Upload byte quota exceeded. Wait for existing uploads to complete or expire.");
 
-        return new Success();
+        return Result.Success;
     }
 
     public async Task<ErrorOr<UploadIntent>> ValidateAndLoadAsync(
@@ -44,20 +45,20 @@ public sealed class UploadIntentValidator(
             .FirstOrDefaultAsync(i => i.Id == intentId, cancellationToken);
 
         if (intent == null || intent.UserId != userId)
-            return Error.NotFound(description: "Upload intent not found or not accessible.");
+            return AppErrors.NotFound("UploadIntent", intentId);
 
         if (intent.Purpose != purpose)
             return Error.Validation(description: "Upload intent was issued for a different purpose.");
 
         if (intent.IsConsumed)
-            return Error.Conflict(description: "Upload intent has already been consumed.");
+            return AppErrors.Conflict("UploadIntent.Consumed", "Upload intent has already been consumed.");
 
         if (intent.IsExpiredAt(DateTime.UtcNow))
             return Error.Validation(description: "Upload intent has expired.");
 
         var metadata = await storageService.HeadObjectAsync(intent.Bucket, intent.Key, cancellationToken);
         if (metadata == null)
-            return Error.NotFound(description: "Uploaded object not found in storage. Upload the file first.");
+            return Error.NotFound("UploadIntent.ObjectMissing", "Uploaded object not found in storage. Upload the file first.");
 
         if (metadata.ContentLength > config.MaxUploadBytes)
             return Error.Validation(description: $"Uploaded file exceeds the maximum allowed size of {config.MaxUploadBytes} bytes.");

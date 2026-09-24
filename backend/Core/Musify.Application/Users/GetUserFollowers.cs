@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Users.Responses;
-using X.PagedList.EF;
 
 namespace Musify.Application.Users;
 
@@ -17,20 +16,18 @@ public class GetUserFollowersQueryHandler(IDatabase database)
     public async ValueTask<ErrorOr<PaginatedResponse<UserSummaryResponse>>> Handle(GetUserFollowersQuery request, CancellationToken cancellationToken)
     {
         if (!await database.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken))
-            return Error.NotFound();
+            return AppErrors.NotFound("User", request.UserId);
 
         if (!await FollowVisibility.CanViewFollowersAsync(database, request.ViewerId, request.UserId, cancellationToken))
-            return Error.Forbidden();
+            return AppErrors.Forbidden("User", request.UserId);
 
-        var followsQuery = database.UserFollows
-            .AsNoTracking()
-            .Where(f => f.FollowedId == request.UserId);
-
-        var totalCount = await followsQuery.CountAsync(cancellationToken);
         var viewerId = request.ViewerId;
 
-        var page = await followsQuery
+        return await database.UserFollows
+            .AsNoTracking()
+            .Where(f => f.FollowedId == request.UserId)
             .OrderByDescending(f => f.CreatedAt)
+            .ThenBy(f => f.Id)
             .Select(f => new UserSummaryResponse(
                 f.Follower.Id,
                 f.Follower.Name,
@@ -38,8 +35,6 @@ public class GetUserFollowersQueryHandler(IDatabase database)
                 f.Follower.SecondName,
                 f.Follower.ProfilePictureUrl,
                 viewerId != null && database.UserFollows.Any(v => v.FollowerId == viewerId && v.FollowedId == f.FollowerId)))
-            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
-
-        return PaginatedResponse<UserSummaryResponse>.FromPagedList(page);
+            .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
     }
 }

@@ -2,6 +2,7 @@ using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 
 namespace Musify.Application.Tracks;
 
@@ -24,7 +25,7 @@ public class RecordListeningProgressCommandHandler(IDatabase database)
             .SingleOrDefaultAsync(l => l.Id == request.ListenId && l.UserId == request.UserId, cancellationToken);
 
         if (listen == null)
-            return Error.NotFound();
+            return AppErrors.NotFound("Listen", request.ListenId);
 
         var now = DateTime.UtcNow;
         var durationCap = listen.Track.DurationSeconds + ListeningRules.DurationToleranceSeconds;

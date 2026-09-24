@@ -19,9 +19,7 @@ public sealed class GetMixesByUserIdQueryHandlerTests : HandlerTestBase
         await SeedAsync(owner, other, second, first, theirs);
 
         var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Equal(["First", "Second"], result.Value.Select(mix => mix.Title));
+        Assert.Equal(["First", "Second"], result.Select(mix => mix.Title));
     }
 
     [Fact]
@@ -31,8 +29,6 @@ public sealed class GetMixesByUserIdQueryHandlerTests : HandlerTestBase
         await SeedAsync(owner);
 
         var result = await CreateHandler().Handle(new GetMixesByUserIdQuery(owner.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Empty(result.Value);
+        Assert.Empty(result);
     }
 }

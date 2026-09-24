@@ -24,16 +24,13 @@ public class FollowUserCommandHandler(
             .AsNoTracking()
             .AnyAsync(u => u.Id == request.FollowedId, cancellationToken);
         if (!followedExists)
-        {
-            logger.LogInformation("User {FollowedId} not found", request.FollowedId);
-            return Error.NotFound(description: $"User {request.FollowedId} not found");
-        }
+            return AppErrors.NotFound("User", request.FollowedId);
 
         var alreadyFollowing = await database.UserFollows
             .AsNoTracking()
             .AnyAsync(f => f.FollowerId == request.FollowerId && f.FollowedId == request.FollowedId, cancellationToken);
         if (alreadyFollowing)
-            return new Success();
+            return Result.Success;
 
         await database.UserFollows.AddAsync(new UserFollow
         {
@@ -49,6 +46,6 @@ public class FollowUserCommandHandler(
 
         logger.LogInformation("User {FollowerId} followed user {FollowedId}", request.FollowerId, request.FollowedId);
 
-        return new Success();
+        return Result.Success;
     }
 }

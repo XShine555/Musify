@@ -1,6 +1,9 @@
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
+using System.Text.Json.Serialization;
+using Musify.Application.Serialization;
+
 namespace Musify.Application.PlayLists.Responses;
 
 public record PlayListApplicationResponse(
@@ -13,13 +16,18 @@ public record PlayListApplicationResponse(
     PlayListVisibility Visibility,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    IReadOnlyList<Guid> CoverTrackIds)
+    IReadOnlyList<Guid> CoverTrackIds,
+    [property: JsonConverter(typeof(LongAsStringConverter))] long OwnerUserId,
+    int TrackCount,
+    double DurationSeconds)
 {
-    public const int CoverTrackCount = 4;
+    public const int CoverTrackCount = PlayListProjections.CoverTrackCount;
 
     public static PlayListApplicationResponse FromEntity(
         PlayList playList,
-        IReadOnlyList<Guid>? coverTrackIds = null)
+        IReadOnlyList<Guid>? coverTrackIds = null,
+        int trackCount = 0,
+        double durationSeconds = 0)
     {
         return new PlayListApplicationResponse(
             playList.Id,
@@ -31,6 +39,9 @@ public record PlayListApplicationResponse(
             playList.Visibility,
             playList.CreatedAt,
             playList.UpdatedAt,
-            coverTrackIds ?? []);
+            coverTrackIds ?? [],
+            playList.OwnerUserId,
+            trackCount,
+            durationSeconds);
     }
 }

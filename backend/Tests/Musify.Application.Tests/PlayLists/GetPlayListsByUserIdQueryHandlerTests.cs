@@ -21,9 +21,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
             TestEntities.PlayList(other.Id, "Theirs"));
 
         var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        var playList = Assert.Single(result.Value.Items);
+        var playList = Assert.Single(result.Items);
         Assert.Equal("Mine", playList.Name);
     }
 
@@ -37,9 +35,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
             TestEntities.PlayList(owner.Id, "Private one", visibility: PlayListVisibility.Private));
 
         var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: 999), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        var playList = Assert.Single(result.Value.Items);
+        var playList = Assert.Single(result.Items);
         Assert.Equal("Public one", playList.Name);
     }
 
@@ -53,9 +49,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
             TestEntities.PlayList(owner.Id, "Private one", visibility: PlayListVisibility.Private));
 
         var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Equal(2, result.Value.Items.Count);
+        Assert.Equal(2, result.Items.Count);
     }
 
     [Fact]
@@ -65,9 +59,7 @@ public sealed class GetPlayListsByUserIdQueryHandlerTests : HandlerTestBase
         await SeedAsync(owner, TestEntities.PlayList(owner.Id, "Road Trip"), TestEntities.PlayList(owner.Id, "Study Focus"));
 
         var result = await CreateHandler().Handle(new GetPlayListsByUserIdQuery(owner.Id, Name: "road", PageNumber: 1, PageSize: 10, ViewerId: owner.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        var playList = Assert.Single(result.Value.Items);
+        var playList = Assert.Single(result.Items);
         Assert.Equal("Road Trip", playList.Name);
     }
 }

@@ -1,43 +1,40 @@
-using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Users.Responses;
-using X.PagedList.EF;
 
 namespace Musify.Application.Users;
 
 public record GetUsersQuery(int PageNumber, int PageSize, string? UsernameSearch, long? ViewerId = null)
-    : IQuery<ErrorOr<PaginatedResponse<UserSummaryResponse>>>;
+    : IQuery<PaginatedResponse<UserSummaryResponse>>;
 
 public class GetUsersQueryHandler(IDatabase database)
-    : IQueryHandler<GetUsersQuery, ErrorOr<PaginatedResponse<UserSummaryResponse>>>
+    : IQueryHandler<GetUsersQuery, PaginatedResponse<UserSummaryResponse>>
 {
-    public async ValueTask<ErrorOr<PaginatedResponse<UserSummaryResponse>>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+    public async ValueTask<PaginatedResponse<UserSummaryResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
         var usersQuery = database.Users
             .AsNoTracking();
 
-        if (!string.IsNullOrEmpty(request.UsernameSearch))
+        if (!string.IsNullOrWhiteSpace(request.UsernameSearch))
         {
-            var normalizedUsername = request.UsernameSearch.Trim().ToUpperInvariant();
-            usersQuery = usersQuery.Where(u => u.NormalizedName.Contains(normalizedUsername));
+            var normalizedUsername = TextNormalizer.Normalize(request.UsernameSearch);
+            usersQuery = usersQuery.Where(user => user.NormalizedName.Contains(normalizedUsername));
         }
 
-        var totalCount = await usersQuery.CountAsync(cancellationToken);
         var viewerId = request.ViewerId;
-        var pagedUsers = await usersQuery
-            .OrderBy(u => u.Name)
-            .Select(u => new UserSummaryResponse(
-                u.Id,
-                u.Name,
-                u.FirstName,
-                u.SecondName,
-                u.ProfilePictureUrl,
-                viewerId != null && database.UserFollows.Any(f => f.FollowerId == viewerId && f.FollowedId == u.Id)))
-            .ToPagedListAsync(request.PageNumber, request.PageSize, totalCount, cancellationToken);
 
-        return PaginatedResponse<UserSummaryResponse>.FromPagedList(pagedUsers);
+        return await usersQuery
+            .OrderBy(user => user.Name)
+            .ThenBy(user => user.Id)
+            .Select(user => new UserSummaryResponse(
+                user.Id,
+                user.Name,
+                user.FirstName,
+                user.SecondName,
+                user.ProfilePictureUrl,
+                viewerId != null && database.UserFollows.Any(f => f.FollowerId == viewerId && f.FollowedId == user.Id)))
+            .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
     }
 }

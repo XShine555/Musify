@@ -25,7 +25,7 @@ public static class AlbumEndpoints
             .AddEndpointFilter<ValidationFilter<PageQuery>>()
             .WithName("GetAlbums")
             .WithSummary("Get Paginated Albums, Optionally Filtered By Title.")
-            .Produces<AlbumsSearchResponse>();
+            .Produces<PaginatedResponse<AlbumApplicationResponse>>();
 
         group.MapGet("/{id}", GetAlbumById)
             .WithName("GetAlbumById")
@@ -129,7 +129,7 @@ public static class AlbumEndpoints
         [AsParameters] PageQuery page)
     {
         var result = await mediator.Send(new GetAlbumsQuery(title, page.PageNumber, page.PageSize), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetAlbumById(
@@ -166,7 +166,7 @@ public static class AlbumEndpoints
         }
 
         var result = await mediator.Send(new GetRecentlyListenedAlbumsQuery(currentUser.RequiredId, limit), cancellationToken);
-        return result.ToHttpResult();
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> GetAlbumTracks(

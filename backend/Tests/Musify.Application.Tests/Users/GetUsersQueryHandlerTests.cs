@@ -15,9 +15,7 @@ public sealed class GetUsersQueryHandlerTests : HandlerTestBase
         await SeedAsync(TestEntities.User(1, "alice"), TestEntities.User(2, "bob"));
 
         var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: null), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.Equal(2, result.Value.TotalItemCount);
+        Assert.Equal(2, result.TotalItemCount);
     }
 
     [Fact]
@@ -26,9 +24,7 @@ public sealed class GetUsersQueryHandlerTests : HandlerTestBase
         await SeedAsync(TestEntities.User(1, "alice-wonderland"), TestEntities.User(2, "bob-builder"));
 
         var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: "alice"), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        var user = Assert.Single(result.Value.Items);
+        var user = Assert.Single(result.Items);
         Assert.Equal(1, user.Id);
     }
 
@@ -40,8 +36,6 @@ public sealed class GetUsersQueryHandlerTests : HandlerTestBase
             new UserFollow { FollowerId = 1, FollowedId = 2 });
 
         var result = await CreateHandler().Handle(new GetUsersQuery(PageNumber: 1, PageSize: 10, UsernameSearch: null, ViewerId: 1), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
-        Assert.All(result.Value.Items, item => Assert.Equal(item.Id == 2, item.IsFollowedByViewer));
+        Assert.All(result.Items, item => Assert.Equal(item.Id == 2, item.IsFollowedByViewer));
     }
 }
