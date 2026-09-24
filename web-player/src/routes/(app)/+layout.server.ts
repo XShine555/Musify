@@ -5,8 +5,6 @@ import { toLikedTrack, toPlaylist, toTrack } from '$lib/server/mappers';
 import { authConfig } from '$lib/server/config';
 import { LIKED_TRACKS_PAGE_SIZE, PLAYLIST_PICKER_PAGE_SIZE } from '$lib/config';
 
-const PUBLIC_PATHS = new Set(['/auth']);
-
 function orFallback<T>(load: Promise<T>, fallback: T): Promise<T> {
 	return load.catch(() => fallback);
 }
@@ -14,7 +12,7 @@ function orFallback<T>(load: Promise<T>, fallback: T): Promise<T> {
 export const load: LayoutServerLoad = async ({ locals, url, fetch }) => {
 	const allowAnonymousListening = await getAllowAnonymousListening(fetch);
 
-	if (!locals.user && !allowAnonymousListening && !PUBLIC_PATHS.has(url.pathname)) {
+	if (!locals.user && !allowAnonymousListening) {
 		loginRedirect(url);
 	}
 

@@ -12,7 +12,9 @@
 	<meta name="description" content="Inicia sesión o crea una cuenta en Musify." />
 </svelte:head>
 
-<div class="relative grid min-h-screen place-items-center overflow-hidden bg-bg px-6 text-fg">
+<div
+	class="relative grid min-h-screen place-items-center overflow-hidden bg-bg px-6 text-fg antialiased"
+>
 	<div class="pointer-events-none absolute inset-0" style="background:var(--mf-ambient)"></div>
 
 	<div class="relative flex w-full max-w-4xl flex-col items-center gap-12 text-center">
