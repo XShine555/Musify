@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Mediator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Musify.Application.Users;
 
 namespace Musify.Api.Authentication;
@@ -87,15 +88,15 @@ public sealed class JwtBearerEventsHandler(
 
         try
         {
+            var userInfoEndpoint = await ResolveUserInfoEndpointAsync(tokenValidatedContext, cancellationToken);
+
             var client = httpClientFactory.CreateClient();
-            var request = new HttpRequestMessage(
-                HttpMethod.Get,
-                $"{authenticationConfiguration.IssuerAddress.TrimEnd('/')}/oidc/v1/userinfo")
+            using var request = new HttpRequestMessage(HttpMethod.Get, userInfoEndpoint)
             {
                 Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
             };
 
-            var response = await client.SendAsync(request, cancellationToken);
+            using var response = await client.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogDebug("Userinfo request returned {StatusCode}", response.StatusCode);
@@ -109,6 +110,20 @@ public sealed class JwtBearerEventsHandler(
             logger.LogWarning(exception, "Failed to fetch userinfo from identity provider");
             return null;
         }
+    }
+
+    private async Task<string> ResolveUserInfoEndpointAsync(
+        TokenValidatedContext tokenValidatedContext, CancellationToken cancellationToken)
+    {
+        var configurationManager = tokenValidatedContext.Options.ConfigurationManager;
+        if (configurationManager != null)
+        {
+            var configuration = await configurationManager.GetConfigurationAsync(cancellationToken);
+            if (configuration is OpenIdConnectConfiguration { UserInfoEndpoint: { Length: > 0 } endpoint })
+                return endpoint;
+        }
+
+        return $"{authenticationConfiguration.IssuerAddress.TrimEnd('/')}/oidc/v1/userinfo";
     }
 
     public override Task AuthenticationFailed(AuthenticationFailedContext context)

@@ -117,7 +117,7 @@ public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAs
         var key = $"tests/{Guid.NewGuid():N}/presigned.txt";
 
         var uploadUrl = await service.GetUploadUrlAsync(
-            InfrastructureTestFixture.S3Bucket, key, "text/plain", TimeSpan.FromMinutes(5), TestContext.Current.CancellationToken);
+            InfrastructureTestFixture.S3Bucket, key, "text/plain", TimeSpan.FromMinutes(5), cancellationToken: TestContext.Current.CancellationToken);
 
         using var httpClient = new HttpClient();
         using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl)

@@ -69,7 +69,7 @@ public sealed class UploadIntentIssuer(
         foreach (var item in planned)
         {
             var uploadUrl = await storageService.GetUploadUrlAsync(
-                storageConfiguration.Bucket, item.Key, item.Request.ContentType, expiresIn, cancellationToken);
+                storageConfiguration.Bucket, item.Key, item.Request.ContentType, expiresIn, cancellationToken: cancellationToken);
 
             var intent = new UploadIntent
             {

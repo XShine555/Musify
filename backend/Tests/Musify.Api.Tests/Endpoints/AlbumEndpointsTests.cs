@@ -18,7 +18,7 @@ public sealed class AlbumEndpointsTests(ApiTestFixture fixture)
     private async Task<Guid> CreatePictureIntentAsync(HttpClient client)
     {
         fixture.StorageService
-            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns("https://storage.musify.test/presigned-upload");
         fixture.StorageService
             .HeadObjectAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())

@@ -17,9 +17,7 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
         var user = TestEntities.User();
         await SeedAsync(user);
 
-        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
+        await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
         Assert.Empty(await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken));
     }
 
@@ -32,9 +30,7 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
             user, track,
             TestEntities.ListeningHistory(user.Id, track.Id));
 
-        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
+        await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
         var mixes = await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken);
         Assert.Single(mixes);
         Assert.Equal(MixKind.Daily, mixes[0].Kind);
@@ -54,9 +50,7 @@ public sealed class GenerateMixesForUserCommandHandlerTests : HandlerTestBase
             user, listenedTrack, unheardTrack, staleMix, staleItem,
             TestEntities.ListeningHistory(user.Id, listenedTrack.Id));
 
-        var result = await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
-
-        Assert.False(result.IsError);
+        await CreateHandler().Handle(new GenerateMixesForUserCommand(user.Id), TestContext.Current.CancellationToken);
         var mixes = await Database.Mixes.ToListAsync(TestContext.Current.CancellationToken);
         Assert.DoesNotContain(mixes, mix => mix.Id == staleMix.Id);
         Assert.Contains(mixes, mix => mix.Kind == MixKind.Discovery);

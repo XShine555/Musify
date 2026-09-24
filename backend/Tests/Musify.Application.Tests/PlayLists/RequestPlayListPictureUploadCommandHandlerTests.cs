@@ -17,7 +17,7 @@ public sealed class RequestPlayListPictureUploadCommandHandlerTests : HandlerTes
     private RequestPlayListPictureUploadCommandHandler CreateHandler(UploadIntentConfiguration? uploadIntentConfig = null)
     {
         storageService
-            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .GetUploadUrlAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns("https://storage.musify.test/presigned-upload");
 
         var config = uploadIntentConfig ?? TestConfigurations.UploadIntent();

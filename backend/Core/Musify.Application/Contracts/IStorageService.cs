@@ -2,11 +2,12 @@ namespace Musify.Application.Contracts;
 
 public interface IStorageService
 {
+    /// <summary>Opens an object for reading, or returns null when it does not exist.</summary>
     public Task<Stream?> GetFileAsync(string bucket, string key, CancellationToken cancellationToken);
 
     public Task<ObjectMetaData?> HeadObjectAsync(string bucket, string key, CancellationToken cancellationToken);
 
-    public Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, CancellationToken cancellationToken, bool preventOverwrite = true);
+    public Task<string> GetUploadUrlAsync(string bucket, string key, string contentType, TimeSpan expirationTime, bool preventOverwrite = true, CancellationToken cancellationToken = default);
 
     public Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken);
 

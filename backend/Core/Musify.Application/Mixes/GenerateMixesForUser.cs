@@ -1,4 +1,3 @@
-using ErrorOr;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,17 +9,17 @@ using Musify.Domain.ValueObjects;
 namespace Musify.Application.Mixes;
 
 public record GenerateMixesForUserCommand(long UserId)
-    : ICommand<ErrorOr<Success>>;
+    : ICommand;
 
 public class GenerateMixesForUserCommandHandler(
     IDatabase database,
     MixConfiguration mixConfiguration,
     ILogger<GenerateMixesForUserCommandHandler> logger)
-    : ICommandHandler<GenerateMixesForUserCommand, ErrorOr<Success>>
+    : ICommandHandler<GenerateMixesForUserCommand>
 {
     private sealed record MixDraft(MixKind Kind, IReadOnlyList<Guid> TrackIds);
 
-    public async ValueTask<ErrorOr<Success>> Handle(GenerateMixesForUserCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(GenerateMixesForUserCommand request, CancellationToken cancellationToken)
     {
         var userId = request.UserId;
 
@@ -33,7 +32,7 @@ public class GenerateMixesForUserCommandHandler(
         if (libraryTrackIds.Count == 0)
         {
             logger.LogInformation("User {UserId} has no tracks yet, skipping mix generation", userId);
-            return Result.Success;
+            return Unit.Value;
         }
 
         var historyTrackIds = await database.ListeningHistories
@@ -63,7 +62,7 @@ public class GenerateMixesForUserCommandHandler(
         if (drafts.Count == 0)
         {
             logger.LogInformation("No candidate songs found for user {UserId}, skipping mix generation", userId);
-            return Result.Success;
+            return Unit.Value;
         }
 
         await ReplaceMixesAsync(userId, drafts, cancellationToken);
@@ -71,7 +70,7 @@ public class GenerateMixesForUserCommandHandler(
         await database.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Generated {Count} mixes for user {UserId}", drafts.Count, userId);
-        return Result.Success;
+        return Unit.Value;
     }
 
     private List<Guid> Take(IEnumerable<Guid> trackIds) =>

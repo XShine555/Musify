@@ -7,53 +7,41 @@ using Musify.Infrastructure.Configuration;
 
 namespace Musify.Infrastructure.Services;
 
-public partial class AudioService(ILogger<AudioService> logger,
+public sealed partial class AudioTranscoderService(
+    ILogger<AudioTranscoderService> logger,
     AudioConfiguration audioConfiguration)
     : IAudioTranscoderService
 {
-    private record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
+    private sealed record FfmpegExecutionResult(int ExitCode, string StandardOutput, string StandardError);
 
     [GeneratedRegex(@"Duration:\s*(\d+):(\d{2}):(\d{2}(?:\.\d+)?)", RegexOptions.IgnoreCase)]
     private static partial Regex DurationRegex();
 
     public async Task<AudioTranscodeResult> TranscodeToAudioFileAsync(Stream audioStream, string destinationPath, CancellationToken cancellationToken)
     {
-        try
+        Directory.CreateDirectory(destinationPath);
+
+        logger.LogInformation("Starting audio transcoding for {DestinationPath}", destinationPath);
+
+        var executionResult = await ExecuteFfmpegAsync(
+            BuildAudioFileArguments(destinationPath, audioConfiguration.Ffmpeg),
+            destinationPath,
+            audioStream,
+            "TranscodeToAudioFile",
+            cancellationToken);
+
+        if (executionResult.ExitCode != 0)
         {
-            Directory.CreateDirectory(destinationPath);
-
-            logger.LogInformation("Starting audio transcoding for {DestinationPath}", destinationPath);
-
-            var executionResult = await ExecuteFfmpegWithInputAsync(
-                BuildAudioFileArguments(destinationPath, audioConfiguration.Ffmpeg),
-                destinationPath,
-                audioStream,
-                "TranscodeToAudioFile",
-                cancellationToken);
-
-            if (executionResult.ExitCode != 0)
-            {
-                logger.LogError("Audio transcoding failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
-                    executionResult.ExitCode, executionResult.StandardOutput, executionResult.StandardError);
-                return new AudioTranscodeResult(executionResult.ExitCode, TimeSpan.Zero);
-            }
-
-            logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
-
-            var outputPath = Path.Combine(destinationPath, audioConfiguration.Ffmpeg.OutputFileName);
-            var duration = await GetAudioDurationAsync(outputPath, cancellationToken);
-            return new AudioTranscodeResult(executionResult.ExitCode, duration);
+            logger.LogError("Audio transcoding failed with exit code {ExitCode}. Output: {StandardOutput}, Error: {StandardError}",
+                executionResult.ExitCode, executionResult.StandardOutput, executionResult.StandardError);
+            return new AudioTranscodeResult(executionResult.ExitCode, TimeSpan.Zero);
         }
-        catch (TimeoutException timeoutException)
-        {
-            logger.LogError(timeoutException, "Audio transcoding timed out after {Timeout} for {DestinationPath}", audioConfiguration.TranscodingTimeout, destinationPath);
-            throw;
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to transcode audio for {DestinationPath}", destinationPath);
-            throw;
-        }
+
+        logger.LogInformation("Audio transcoding completed for {DestinationPath}", destinationPath);
+
+        var outputPath = Path.Combine(destinationPath, audioConfiguration.Ffmpeg.OutputFileName);
+        var duration = await GetAudioDurationAsync(outputPath, cancellationToken);
+        return new AudioTranscodeResult(executionResult.ExitCode, duration);
     }
 
     private async Task<TimeSpan> GetAudioDurationAsync(string filePath, CancellationToken cancellationToken)
@@ -61,6 +49,7 @@ public partial class AudioService(ILogger<AudioService> logger,
         var executionResult = await ExecuteFfmpegAsync(
             BuildProbeDurationArguments(filePath),
             Path.GetDirectoryName(filePath) ?? Environment.CurrentDirectory,
+            input: null,
             "ProbeAudioDuration",
             cancellationToken);
 
@@ -75,43 +64,29 @@ public partial class AudioService(ILogger<AudioService> logger,
         return new TimeSpan(hours, minutes, 0) + TimeSpan.FromSeconds(seconds);
     }
 
-    private async Task<FfmpegExecutionResult> ExecuteFfmpegWithInputAsync(
-        string arguments,
-        string workingDirectory,
-        Stream inputStream,
-        string operationName,
-        CancellationToken cancellationToken)
-    {
-        using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: true);
-        process.Start();
-
-        logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId}) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
-
-        var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-
-        if (inputStream.CanSeek)
-            inputStream.Position = 0;
-
-        await inputStream.CopyToAsync(process.StandardInput.BaseStream, cancellationToken);
-        process.StandardInput.Close();
-
-        return await WaitForProcessResultAsync(process, outputTask, errorTask, operationName, cancellationToken);
-    }
-
     private async Task<FfmpegExecutionResult> ExecuteFfmpegAsync(
         string arguments,
         string workingDirectory,
+        Stream? input,
         string operationName,
         CancellationToken cancellationToken)
     {
-        using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: false);
+        using var process = BuildProcess(arguments, workingDirectory, redirectStandardInput: input != null);
         process.Start();
 
         logger.LogDebug("[{Operation}] ffmpeg started (PID: {ProcessId}) in {WorkingDirectory}", operationName, process.Id, workingDirectory);
 
         var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
+        if (input != null)
+        {
+            if (input.CanSeek)
+                input.Position = 0;
+
+            await input.CopyToAsync(process.StandardInput.BaseStream, cancellationToken);
+            process.StandardInput.Close();
+        }
 
         return await WaitForProcessResultAsync(process, outputTask, errorTask, operationName, cancellationToken);
     }
@@ -148,11 +123,8 @@ public partial class AudioService(ILogger<AudioService> logger,
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            logger.LogError("[{Operation}] ffmpeg timed out after {Timeout} (PID: {ProcessId})",
-                operationName, audioConfiguration.TranscodingTimeout, process.Id);
-
             TryKillProcess(process);
-            throw new TimeoutException($"ffmpeg execution exceeded timeout {audioConfiguration.TranscodingTimeout}.");
+            throw new TimeoutException($"ffmpeg execution exceeded timeout {audioConfiguration.TranscodingTimeout} (PID: {process.Id}).");
         }
 
         var standardError = await errorTask;
@@ -171,9 +143,9 @@ public partial class AudioService(ILogger<AudioService> logger,
             if (!process.HasExited)
                 process.Kill();
         }
-        catch (Exception exception)
+        catch (InvalidOperationException exception)
         {
-            logger.LogError(exception, "Failed to kill ffmpeg process (PID: {ProcessId})", process.Id);
+            logger.LogWarning(exception, "Could not kill ffmpeg process (PID: {ProcessId}); it had already exited", process.Id);
         }
     }
 

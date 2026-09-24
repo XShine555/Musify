@@ -1,29 +1,27 @@
+using System.Runtime.CompilerServices;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Logging;
 using MimeMapping;
 using Musify.Application.Contracts;
+using Musify.Application.Shared;
 using Musify.Infrastructure.Configuration;
-using ObjectMetaData = Musify.Application.Contracts.ObjectMetaData;
 
 namespace Musify.Infrastructure.Services;
 
-public class StorageService(IAmazonS3 amazonS3, ILogger<StorageService> logger,
+public sealed class StorageService(
+    IAmazonS3 amazonS3,
+    ILogger<StorageService> logger,
     InfrastructureStorageConfiguration storageClientConfiguration)
     : IStorageService
 {
     public async Task<Stream?> GetFileAsync(string bucket, string key, CancellationToken cancellationToken)
     {
-        var request = new GetObjectRequest
-        {
-            BucketName = bucket,
-            Key = key,
-        };
-
         try
         {
-            var response = await amazonS3.GetObjectAsync(request, cancellationToken);
+            var response = await amazonS3.GetObjectAsync(
+                new GetObjectRequest { BucketName = bucket, Key = key }, cancellationToken);
             logger.LogDebug("Retrieved file from S3 {Bucket}/{Key}", bucket, key);
             return response.ResponseStream;
         }
@@ -32,11 +30,6 @@ public class StorageService(IAmazonS3 amazonS3, ILogger<StorageService> logger,
             logger.LogDebug("File not found in S3 {Bucket}/{Key}", bucket, key);
             return null;
         }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to get file from S3 {Bucket}/{Key}", bucket, key);
-            throw;
-        }
     }
 
     public async Task<string> GetUploadUrlAsync(
@@ -44,8 +37,8 @@ public class StorageService(IAmazonS3 amazonS3, ILogger<StorageService> logger,
         string key,
         string contentType,
         TimeSpan expirationTime,
-        CancellationToken cancellationToken,
-        bool preventOverwrite = true)
+        bool preventOverwrite = true,
+        CancellationToken cancellationToken = default)
     {
         var request = new GetPreSignedUrlRequest
         {
@@ -71,140 +64,81 @@ public class StorageService(IAmazonS3 amazonS3, ILogger<StorageService> logger,
             var response = await amazonS3.GetObjectMetadataAsync(bucket, key, cancellationToken);
             return new ObjectMetaData(response.Headers.ContentType, response.ContentLength);
         }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return null;
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "HEAD failed for {Bucket}/{Key}", bucket, key);
-            throw;
         }
     }
 
     public async Task RemoveFileAsync(string bucket, string key, CancellationToken cancellationToken)
     {
-        var request = new DeleteObjectRequest
-        {
-            BucketName = bucket,
-            Key = key,
-        };
-
         logger.LogDebug("Removing file from S3 {Bucket}/{Key}", bucket, key);
-        await amazonS3.DeleteObjectAsync(request, cancellationToken);
+        await amazonS3.DeleteObjectAsync(new DeleteObjectRequest { BucketName = bucket, Key = key }, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<string>> TransferFilesAsync(string sourceDirectory, string bucket, string route, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<string>> TransferFilesAsync(
+        string sourceDirectory, string bucket, string route, CancellationToken cancellationToken)
     {
-        var trasnsferUtility = new TransferUtility(amazonS3);
-
-        var files = Directory.GetFiles(sourceDirectory, "*");
+        using var transferUtility = new TransferUtility(amazonS3);
 
         var uploadedKeys = new List<string>();
-        var successCount = 0;
-        var failedCount = 0;
 
-        foreach (var file in files)
+        foreach (var filePath in Directory.GetFiles(sourceDirectory, "*"))
         {
-            string fileName = Path.GetFileName(file);
-            string filePath = Path.Combine(sourceDirectory, file);
+            var key = StorageKey.Combine(route, Path.GetFileName(filePath));
 
-            var key = string.Join('/', new[] { route, fileName }
-                .Where(static s => !string.IsNullOrWhiteSpace(s))
-                .Select(static s => s.Trim().Trim('/', '\\')));
-            var contentType = MimeUtility.GetMimeMapping(filePath);
-            try
-            {
-                await trasnsferUtility.UploadAsync(
-                    new TransferUtilityUploadRequest
-                    {
-                        FilePath = filePath,
-                        BucketName = bucket,
-                        Key = key,
-                        ContentType = contentType
-                    },
-                    cancellationToken);
-                uploadedKeys.Add(key);
-                successCount++;
-                logger.LogDebug("Transferred file to S3 {Bucket}/{Key}", bucket, key);
-            }
-            catch (Exception exception)
-            {
-                failedCount++;
-                logger.LogError(exception, "Failed to transfer file to S3 {Bucket}/{Key}", bucket, key);
-                throw;
-            }
+            await transferUtility.UploadAsync(
+                new TransferUtilityUploadRequest
+                {
+                    FilePath = filePath,
+                    BucketName = bucket,
+                    Key = key,
+                    ContentType = MimeUtility.GetMimeMapping(filePath)
+                },
+                cancellationToken);
+
+            uploadedKeys.Add(key);
+            logger.LogDebug("Transferred file to S3 {Bucket}/{Key}", bucket, key);
         }
 
-        logger.LogInformation("File transfer completed to {Bucket}/{Route}. Success: {SuccessCount}, Failed: {FailedCount}", bucket, route, successCount, failedCount);
+        logger.LogInformation("Transferred {Count} files to {Bucket}/{Route}", uploadedKeys.Count, bucket, route);
 
         return uploadedKeys;
     }
 
     public async Task UploadFileAsync(string filePath, string bucket, string key, CancellationToken cancellationToken)
     {
-        try
-        {
-            using var fileStream = File.OpenRead(filePath);
-            var contentType = MimeUtility.GetMimeMapping(filePath);
-            await UploadFileAsync(fileStream, contentType, bucket, key, cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to upload file to S3 {Bucket}/{Key}", bucket, key);
-            throw;
-        }
+        await using var fileStream = File.OpenRead(filePath);
+        await UploadFileAsync(fileStream, MimeUtility.GetMimeMapping(filePath), bucket, key, cancellationToken);
     }
 
     public async Task UploadFileAsync(Stream sourceStream, string contentType, string bucket, string key, CancellationToken cancellationToken)
     {
-        var request = new PutObjectRequest
-        {
-            BucketName = bucket,
-            ContentType = contentType,
-            InputStream = sourceStream,
-            Key = key
-        };
-
-        try
-        {
-            await amazonS3.PutObjectAsync(request, cancellationToken);
-            logger.LogDebug("Uploaded file to S3 {Bucket}/{Key}", bucket, key);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to upload file to S3 {Bucket}/{Key}", bucket, key);
-            throw;
-        }
+        await amazonS3.PutObjectAsync(
+            new PutObjectRequest { BucketName = bucket, ContentType = contentType, InputStream = sourceStream, Key = key },
+            cancellationToken);
+        logger.LogDebug("Uploaded file to S3 {Bucket}/{Key}", bucket, key);
     }
 
-    public async Task CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey,
-        CancellationToken cancellationToken)
+    public async Task CopyFileAsync(
+        string sourceBucket, string sourceKey, string destinationBucket, string destinationKey, CancellationToken cancellationToken)
     {
-        var request = new CopyObjectRequest
-        {
-            SourceBucket = sourceBucket,
-            SourceKey = sourceKey,
-            DestinationBucket = destinationBucket,
-            DestinationKey = destinationKey
-        };
+        await amazonS3.CopyObjectAsync(
+            new CopyObjectRequest
+            {
+                SourceBucket = sourceBucket,
+                SourceKey = sourceKey,
+                DestinationBucket = destinationBucket,
+                DestinationKey = destinationKey
+            },
+            cancellationToken);
 
-        try
-        {
-            await amazonS3.CopyObjectAsync(request, cancellationToken);
-            logger.LogInformation("Copied file from {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
-                sourceBucket, sourceKey, destinationBucket, destinationKey);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to copy file from {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
-                sourceBucket, sourceKey, destinationBucket, destinationKey);
-            throw;
-        }
+        logger.LogDebug("Copied file from {SourceBucket}/{SourceKey} to {DestinationBucket}/{DestinationKey}",
+            sourceBucket, sourceKey, destinationBucket, destinationKey);
     }
 
     public async IAsyncEnumerable<StorageObject> ListObjectsAsync(
-        string bucket, string prefix, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        string bucket, string prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var listRequest = new ListObjectsV2Request
         {
@@ -221,6 +155,6 @@ public class StorageService(IAmazonS3 amazonS3, ILogger<StorageService> logger,
 
             listRequest.ContinuationToken = listResponse.NextContinuationToken;
         }
-        while (listResponse.IsTruncated.HasValue && listResponse.IsTruncated.Value);
+        while (listResponse.IsTruncated == true);
     }
 }

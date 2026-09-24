@@ -28,7 +28,7 @@ public static class ServicesDependencyInjection
             return new AmazonS3Client(configuration.AccessKey, configuration.SecretAccessKey, s3Configuration);
         });
 
-        services.AddScoped<IStorageService, StorageService>();
+        services.AddSingleton<IStorageService, StorageService>();
         return services;
     }
 
@@ -45,17 +45,7 @@ public static class ServicesDependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddUploadIntentJobs(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddUploadIntentConfiguration(configuration);
-
-        services.AddHostedService<UploadIntentExpirationJob>();
-        services.AddHostedService<TemporalUploadsCleanUpJob>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddDailyMixGenerationJob(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddJobs(this IServiceCollection services)
     {
         services.AddHangfire((serviceProvider, hangfireConfiguration) =>
         {
@@ -67,6 +57,9 @@ public static class ServicesDependencyInjection
         services.AddHangfireServer();
         services.AddScoped<DailyMixGenerationJob>();
         services.AddScoped<ListeningHistoryCleanupJob>();
+        services.AddScoped<UploadIntentExpirationJob>();
+        services.AddScoped<TempUploadsCleanupJob>();
+        services.AddHostedService<RecurringJobsRegistrar>();
 
         return services;
     }
@@ -83,7 +76,7 @@ public static class ServicesDependencyInjection
     {
         services.AddValidatedOptions<AudioConfiguration>(configuration);
 
-        services.AddScoped<IAudioTranscoderService, AudioService>();
+        services.AddScoped<IAudioTranscoderService, AudioTranscoderService>();
         return services;
     }
 }
