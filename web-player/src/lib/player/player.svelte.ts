@@ -4,6 +4,7 @@ import { extractAccent, type Accent } from '$lib/theme/palette';
 import { shuffle } from '$lib/data/collections';
 import { dialog } from '$lib/state/dialog.svelte';
 import { ListenTracker } from './listenTracker';
+import { append, insertNext, move, nextIndex, previousIndex } from './queue';
 
 export interface PlayerTrack {
 	id: string | number;
@@ -398,9 +399,7 @@ class PlayerState {
 			this.playQueue(items, 0);
 			return;
 		}
-		const tracks = [...this.tracks];
-		tracks.splice(this.#index() + 1, 0, ...items.map(toTrack));
-		this.tracks = tracks;
+		this.tracks = insertNext(this.tracks, this.#index(), items.map(toTrack));
 	}
 
 	appendToQueue(items: QueueItem[]) {
@@ -409,7 +408,7 @@ class PlayerState {
 			this.playQueue(items, 0);
 			return;
 		}
-		this.tracks = [...this.tracks, ...items.map(toTrack)];
+		this.tracks = append(this.tracks, items.map(toTrack));
 	}
 
 	playTrack(id: string | number) {
@@ -460,13 +459,7 @@ class PlayerState {
 	next() {
 		if (this.tracks.length === 0) return;
 		const idx = this.#index();
-		let nextIdx = (idx + 1) % this.tracks.length;
-		if (this.shuffle && this.tracks.length > 1) {
-			do {
-				nextIdx = Math.floor(Math.random() * this.tracks.length);
-			} while (nextIdx === idx);
-		}
-		this.currentId = this.tracks[nextIdx].id;
+		this.currentId = this.tracks[nextIndex(this.tracks.length, idx, this.shuffle)].id;
 		this.#loadCurrent();
 	}
 
@@ -490,13 +483,7 @@ class PlayerState {
 	}
 
 	moveQueueItem(from: number, insertAt: number) {
-		if (from < 0 || from >= this.tracks.length) return;
-		const target = insertAt > from ? insertAt - 1 : insertAt;
-		if (target === from) return;
-		const tracks = [...this.tracks];
-		const [item] = tracks.splice(from, 1);
-		tracks.splice(target, 0, item);
-		this.tracks = tracks;
+		this.tracks = move(this.tracks, from, insertAt);
 	}
 
 	clearUpcoming() {
@@ -511,7 +498,7 @@ class PlayerState {
 			return;
 		}
 		const idx = this.#index();
-		this.currentId = this.tracks[(idx - 1 + this.tracks.length) % this.tracks.length].id;
+		this.currentId = this.tracks[previousIndex(this.tracks.length, idx)].id;
 		this.#loadCurrent();
 	}
 
