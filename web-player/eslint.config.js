@@ -19,6 +19,19 @@ export default ts.config(
 				'error',
 				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
 			],
+			'@typescript-eslint/no-non-null-assertion': 'error',
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['../*'],
+							message: 'Use $lib/... instead of relative parent imports.'
+						}
+					]
+				}
+			],
+			'svelte/no-unused-props': 'error',
 			'svelte/no-navigation-without-resolve': 'off',
 			'svelte/prefer-svelte-reactivity': 'off'
 		}

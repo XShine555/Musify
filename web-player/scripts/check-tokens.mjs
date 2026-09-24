@@ -24,12 +24,16 @@ const PAIRED_HW = /\b(?:([a-z0-9-]+:))?h-([\d.]+)\s+\1w-\2\b/g;
 const QUARTER_STEP_SPACING = /\b[a-z-]+-\d+\.(25|75)\b/g;
 const HEX_COLOR = /#[0-9a-fA-F]{3,8}\b/g;
 const RGBA_LITERAL = /\brgba?\(/g;
+const LUCIDE_IMPORT = /import (\w+) from '@lucide\/svelte\/icons\/[\w-]+'/g;
+const ICON_PIXEL_SIZE = /\bsize=\{\d+\}/;
+const ICON_RAW_SIZE = /\bclass="[^"]*\bsize-\d[\w.]*/;
 
 let violations = [];
 
 for (const file of files) {
 	const content = readFileSync(file, 'utf8');
 	const lines = content.split('\n');
+	const icons = [...content.matchAll(LUCIDE_IMPORT)].map((m) => m[1]);
 
 	lines.forEach((line, i) => {
 		const lineNo = i + 1;
@@ -37,6 +41,17 @@ for (const file of files) {
 		for (const match of line.matchAll(/[a-zA-Z][a-zA-Z0-9-]*-\[[^\]]+\]/g)) {
 			if (!ARBITRARY_WHITELIST.some((re) => re.test(match[0]))) {
 				violations.push(`${file}:${lineNo} — arbitrario fuera de la lista blanca: \`${match[0]}\``);
+			}
+		}
+
+		for (const icon of icons) {
+			const tag = line.match(new RegExp(`<${icon}\s[^>]*`));
+			if (!tag) continue;
+			if (ICON_PIXEL_SIZE.test(tag[0])) {
+				violations.push(`${file}:${lineNo} — icono con size={N}: usa una clase size-icon-*`);
+			}
+			if (ICON_RAW_SIZE.test(tag[0])) {
+				violations.push(`${file}:${lineNo} — icono con size-N: usa una clase size-icon-*`);
 			}
 		}
 
