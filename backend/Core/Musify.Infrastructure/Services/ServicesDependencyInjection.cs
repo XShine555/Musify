@@ -38,13 +38,6 @@ public static class ServicesDependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddUploadIntentConfiguration(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddValidatedOptions<UploadIntentConfiguration>(configuration);
-
-        return services;
-    }
-
     public static IServiceCollection AddJobs(this IServiceCollection services)
     {
         services.AddHangfire((serviceProvider, hangfireConfiguration) =>

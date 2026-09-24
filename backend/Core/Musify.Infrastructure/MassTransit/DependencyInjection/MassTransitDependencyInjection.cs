@@ -14,8 +14,8 @@ public static partial class MassTransitDependencyInjection
     public static IServiceCollection AddMassTransitClient(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddValidatedOptions<MassTransitConfiguration>(configuration);
-
         services.AddScoped<IEventBus, MassTransitEventBus>();
+
         services.AddMassTransit(options =>
         {
             AddOutbox(options);
@@ -34,6 +34,7 @@ public static partial class MassTransitDependencyInjection
         services.AddValidatedOptions<MassTransitConfiguration>(configuration);
 
         services.AddValidatedOptions<WorkerConfiguration>(configuration);
+        services.AddScoped<IEventBus, MassTransitEventBus>();
 
         RegisterRoutingSlipBuilders(services);
 

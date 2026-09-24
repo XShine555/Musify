@@ -340,10 +340,18 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      keys-init:
+        condition: service_completed_successfully
     environment:
       <<: *backend-env
       DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT}
+      # The Application handlers need these to build their dependencies; the
+      # Worker never issues stream tickets, so the key is never read.
+      StreamGateway__PublicBaseUrl: ${PUBLIC_STREAM_URL}
+      StreamTicket__PrivateKeyPath: /keys/stream_private.pem
       Workers__Routes__TemporaryFilesDirectory: /tmp/musify
+    volumes:
+      - ./keys:/keys:ro
     restart: unless-stopped
 
   # YARP in front of the SeaweedFS filer: validates the RS256 stream ticket and

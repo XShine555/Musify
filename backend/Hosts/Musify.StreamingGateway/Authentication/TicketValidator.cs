@@ -14,27 +14,24 @@ public sealed record TicketValidationResult(string Prefix, long? MaxBytes)
 
 public sealed class TicketValidator : IDisposable
 {
-    private readonly StreamTicketValidationConfiguration _options;
-    private readonly RSA _rsa;
-    private readonly TokenValidationParameters _validationParameters;
-    private readonly JsonWebTokenHandler _handler = new();
+    private readonly RSA rsa;
+    private readonly TokenValidationParameters validationParameters;
+    private readonly JsonWebTokenHandler handler = new();
 
-    public TicketValidator(StreamTicketValidationConfiguration options)
+    public TicketValidator(StreamTicketValidationConfiguration configuration)
     {
-        _options = options;
+        rsa = RSA.Create();
+        rsa.ImportFromPem(File.ReadAllText(configuration.PublicKeyPath));
 
-        _rsa = RSA.Create();
-        _rsa.ImportFromPem(File.ReadAllText(_options.PublicKeyPath));
-
-        _validationParameters = new TokenValidationParameters
+        validationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = _options.Issuer,
+            ValidIssuer = configuration.Issuer,
             ValidateAudience = true,
-            ValidAudience = _options.Audience,
+            ValidAudience = configuration.Audience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new RsaSecurityKey(_rsa),
+            IssuerSigningKey = new RsaSecurityKey(rsa),
             ValidAlgorithms = [SecurityAlgorithms.RsaSha256],
             ClockSkew = TimeSpan.FromSeconds(30),
         };
@@ -45,7 +42,7 @@ public sealed class TicketValidator : IDisposable
         if (string.IsNullOrWhiteSpace(token))
             return TicketValidationResult.Invalid;
 
-        var result = await _handler.ValidateTokenAsync(token, _validationParameters);
+        var result = await handler.ValidateTokenAsync(token, validationParameters);
         if (!result.IsValid)
             return TicketValidationResult.Invalid;
 
@@ -59,5 +56,5 @@ public sealed class TicketValidator : IDisposable
         return new TicketValidationResult(prefix, maxBytes);
     }
 
-    public void Dispose() => _rsa.Dispose();
+    public void Dispose() => rsa.Dispose();
 }
