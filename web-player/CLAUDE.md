@@ -108,6 +108,6 @@ Server helpers:
 - `guards.ts` holds `requireUser`, `optionalUser` and `loginRedirect`. Keep them in pages and actions even though the `(app)` layout also redirects: page loads run in parallel with the layout load, and form actions skip it.
 - `mappers.ts` (`toTrack`, `toAlbum`, `toPlaylist`, `toMix`, `toPage`, `toCount`, `toListeningStats`, ...) turn DTOs into the domain types. Every load and `/api` endpoint goes through them, so `Number()` conversions on DTOs never reach routes or the client.
 - `actions/` holds `authedAction(handler)` (returns 401 without a token, reads the form and hands `{ api, form, params, locals, url }` to the handler) plus the shared `follow` and `playlist` actions.
-- `forms/` holds `fields.ts` (`formString`, `formFile`) and the form parsers (`parseAlbumForm`, `parsePlaylistForm`, `parseTrackUploadForm`); they validate with `LIMITS` from `$lib/validation`. `uploadOptionalCover` handles the optional cover upload.
+- `forms/` holds `fields.ts` (`formString`, `formFile`) and the form parsers (`parseAlbumForm`, `parsePlaylistForm`); they validate with `LIMITS` from `$lib/validation`. `uploadOptionalCover` handles the optional cover upload.
 - `genres.ts` caches the genre list; `playbackConfig.ts` caches the anonymous listening setting.
 - Page sizes come from `$lib/config`; do not hardcode them.

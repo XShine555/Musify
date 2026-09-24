@@ -16,6 +16,7 @@ const ARBITRARY_WHITELIST = [
 	/^py-\[\d+d?vh\]$/, // Explorar: centrado vertical de "sin resultados"
 	/^transition-\[filter\]$/, // Explorar: genre-tile hover
 	/^transition-\[transform,width\]$/, // Tabs: indicador deslizante
+	/^transition-\[width\]$/, // cola de subida: barra de progreso
 	/^bg-\[image:var\(--mf-[\w-]+\)\]$/
 ];
 

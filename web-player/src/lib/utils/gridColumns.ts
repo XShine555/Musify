@@ -29,7 +29,8 @@ export const COL = {
 	status: '7rem',
 	statusQueue: '8.75rem',
 	statusMobile: '6rem',
-	access: '6rem',
+	actions: '4.75rem',
+	actionsMobile: '4rem',
 	size: '5.5rem',
 	durationQueue: '4.5rem'
 } as const;

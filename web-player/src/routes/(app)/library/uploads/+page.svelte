@@ -4,4 +4,4 @@
 	let { data } = $props();
 </script>
 
-<LibraryUploadsSection genres={data.genres} />
+<LibraryUploadsSection genres={data.genres} albums={data.albums} />

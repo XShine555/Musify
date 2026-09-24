@@ -63,7 +63,7 @@ export function appNavSections(
 					label: 'Gestionar música',
 					icon: Music,
 					inMobileTabs: false,
-					activeFor: ['/albums', '/upload']
+					activeFor: ['/albums']
 				}
 			]
 		}
