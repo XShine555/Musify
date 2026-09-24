@@ -74,7 +74,7 @@
 			{/if}
 		</div>
 
-		<div class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto pb-4.5">
+		<div class="flex min-h-0 flex-1 flex-col gap-px overflow-y-auto pb-icon-md">
 			{#each visiblePlaylists as playlist (playlist.id)}
 				{@const active = page.url.pathname === `/playlists/${playlist.id}`}
 				<ListRow
