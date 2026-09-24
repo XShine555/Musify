@@ -17,8 +17,16 @@ public sealed class PlayListProcessingStateMachine : MassTransitStateMachine<Pla
         InstanceState(state => state.CurrentState);
 
         Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.PlayListId));
-        Event(() => PictureProcessed, config => config.CorrelateById(context => context.Message.PlayListId));
-        Event(() => PictureFailed, config => config.CorrelateById(context => context.Message.PlayListId));
+        Event(() => PictureProcessed, config =>
+        {
+            config.CorrelateById(context => context.Message.PlayListId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
+        Event(() => PictureFailed, config =>
+        {
+            config.CorrelateById(context => context.Message.PlayListId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
 
         Initially(
             When(ProcessingStarted)

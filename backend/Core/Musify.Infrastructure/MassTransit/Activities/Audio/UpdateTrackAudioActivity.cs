@@ -38,11 +38,7 @@ internal class UpdateTrackAudioActivity(
 
         if (string.IsNullOrWhiteSpace(audioFolderKey))
         {
-            logger.LogWarning("Audio folder key is empty for track {TrackId}; skipping update", track.Id);
-            await publishEndpoint.Publish(
-                new TrackAudioProcessed(executeContext.Arguments.TrackId),
-                executeContext.CancellationToken);
-            return executeContext.Completed();
+            throw new InvalidOperationException($"Audio folder key is empty for track {track.Id}");
         }
 
         try

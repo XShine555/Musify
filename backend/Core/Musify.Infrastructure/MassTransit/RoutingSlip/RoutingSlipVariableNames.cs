@@ -8,6 +8,9 @@ internal static class RoutingSlipVariableNames
         internal const string CorrelationId = "Workflow.CorrelationId";
         internal const string SubjectId = "Workflow.SubjectId";
         internal const string ProcessKind = "Workflow.ProcessKind";
+        internal const string Bucket = "Workflow.Bucket";
+        internal const string PictureKey = "Workflow.PictureKey";
+        internal const string AudioKey = "Workflow.AudioKey";
     }
 
     internal static class ProcessKinds
@@ -16,6 +19,9 @@ internal static class RoutingSlipVariableNames
         internal const string TrackAudio = "TrackAudio";
         internal const string PlayListPicture = "PlayListPicture";
         internal const string AlbumPicture = "AlbumPicture";
+        internal const string TrackCreation = "TrackCreation";
+        internal const string AlbumCreation = "AlbumCreation";
+        internal const string PlayListCreation = "PlayListCreation";
     }
 
     internal static class Audio

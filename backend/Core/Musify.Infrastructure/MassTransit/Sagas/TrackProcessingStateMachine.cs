@@ -19,10 +19,26 @@ public sealed class TrackProcessingStateMachine : MassTransitStateMachine<TrackP
         InstanceState(state => state.CurrentState);
 
         Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.TrackId));
-        Event(() => PictureProcessed, config => config.CorrelateById(context => context.Message.TrackId));
-        Event(() => AudioProcessed, config => config.CorrelateById(context => context.Message.TrackId));
-        Event(() => PictureFailed, config => config.CorrelateById(context => context.Message.TrackId));
-        Event(() => AudioFailed, config => config.CorrelateById(context => context.Message.TrackId));
+        Event(() => PictureProcessed, config =>
+        {
+            config.CorrelateById(context => context.Message.TrackId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
+        Event(() => AudioProcessed, config =>
+        {
+            config.CorrelateById(context => context.Message.TrackId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
+        Event(() => PictureFailed, config =>
+        {
+            config.CorrelateById(context => context.Message.TrackId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
+        Event(() => AudioFailed, config =>
+        {
+            config.CorrelateById(context => context.Message.TrackId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
 
         Initially(
             When(ProcessingStarted)

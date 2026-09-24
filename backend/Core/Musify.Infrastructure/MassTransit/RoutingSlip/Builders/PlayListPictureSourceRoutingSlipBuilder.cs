@@ -22,7 +22,8 @@ public class PlayListPictureSourceRoutingSlipBuilder
             message.Small,
             message.Medium,
             message.Large,
-            correlationId);
+            correlationId,
+            RoutingSlipVariableNames.ProcessKinds.PlayListCreation);
 
     public RoutingSlipBuilder Build(UpdatePlayListPictureSourceEvent message, Guid? correlationId)
         => BuildSlip(
@@ -34,7 +35,8 @@ public class PlayListPictureSourceRoutingSlipBuilder
             message.Small,
             message.Medium,
             message.Large,
-            correlationId);
+            correlationId,
+            RoutingSlipVariableNames.ProcessKinds.PlayListPicture);
 
     private static RoutingSlipBuilder BuildSlip(
         Guid playListId,
@@ -45,7 +47,8 @@ public class PlayListPictureSourceRoutingSlipBuilder
         ImageSize small,
         ImageSize medium,
         ImageSize large,
-        Guid? correlationId)
+        Guid? correlationId,
+        string processKind)
     {
         var routingSlipBuilder = new RoutingSlipBuilder(NewId.NextGuid());
         routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.CorrelationId, correlationId ?? Guid.Empty);
@@ -78,6 +81,14 @@ public class PlayListPictureSourceRoutingSlipBuilder
                 small,
                 medium,
                 large));
+
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, playListId);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, processKind);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.Bucket, bucket);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.PictureKey, pictureDestinationKey);
+        routingSlipBuilder.AddSubscription(
+            EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
+            RoutingSlipEvents.Faulted);
 
         return routingSlipBuilder;
     }

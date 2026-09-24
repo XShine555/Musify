@@ -17,8 +17,16 @@ public sealed class AlbumProcessingStateMachine : MassTransitStateMachine<AlbumP
         InstanceState(state => state.CurrentState);
 
         Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.AlbumId));
-        Event(() => PictureProcessed, config => config.CorrelateById(context => context.Message.AlbumId));
-        Event(() => PictureFailed, config => config.CorrelateById(context => context.Message.AlbumId));
+        Event(() => PictureProcessed, config =>
+        {
+            config.CorrelateById(context => context.Message.AlbumId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
+        Event(() => PictureFailed, config =>
+        {
+            config.CorrelateById(context => context.Message.AlbumId);
+            config.OnMissingInstance(instance => instance.Discard());
+        });
 
         Initially(
             When(ProcessingStarted)

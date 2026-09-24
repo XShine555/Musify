@@ -45,7 +45,7 @@ public class RequestAlbumPictureUploadCommandHandler(
         var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
 
         var tempKey = albumConfiguration.Routes.BuildTempPicturePath(
-            uploadIntentConfiguration.TemporalRootPrefix, request.UserId, objectName);
+            uploadIntentConfiguration.TempRootPrefix, request.UserId, objectName);
 
         try
         {

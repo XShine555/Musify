@@ -57,6 +57,15 @@ public class CreateTrackRoutingSlipBuilder
                 message.Medium,
                 message.Large));
 
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.SubjectId, message.TrackId);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.ProcessKind, RoutingSlipVariableNames.ProcessKinds.TrackCreation);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.Bucket, message.Bucket);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.PictureKey, message.PictureDestinationKey);
+        routingSlipBuilder.AddVariable(RoutingSlipVariableNames.Workflow.AudioKey, message.AudioDestinationKey);
+        routingSlipBuilder.AddSubscription(
+            EndpointHelper.BuildConsumerUri(ProcessingSlipFaultConsumer.QueueName),
+            RoutingSlipEvents.Faulted);
+
         return routingSlipBuilder;
     }
 }

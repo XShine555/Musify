@@ -55,7 +55,7 @@ internal class TranscodeAudioActivity(
             var log = new TranscodeAudioLog(workingDirectory);
             return executeContext.CompletedWithVariables(log, new Dictionary<string, object>
             {
-                [RoutingSlipVariableNames.Audio.DurationSeconds] = (int)Math.Round(transcodeResult.Duration.TotalSeconds)
+                [RoutingSlipVariableNames.Audio.DurationSeconds] = transcodeResult.Duration.TotalSeconds
             });
         }
         catch (Exception exception)

@@ -16,10 +16,10 @@ public class TemporalUploadsCleanUpJob(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("TemporalUploadsCleanUpJob started (interval: {Interval}s, prefix: {Prefix})",
-            uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds,
-            uploadIntentConfiguration.TemporalRootPrefix);
+            uploadIntentConfiguration.TempCleanupJobIntervalSeconds,
+            uploadIntentConfiguration.TempRootPrefix);
 
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(uploadIntentConfiguration.TemporalCleanUpJobIntervalSeconds));
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(uploadIntentConfiguration.TempCleanupJobIntervalSeconds));
 
         do
         {
@@ -40,13 +40,13 @@ public class TemporalUploadsCleanUpJob(
         await using var scope = scopeFactory.CreateAsyncScope();
         var storageService = scope.ServiceProvider.GetRequiredService<IStorageService>();
 
-        var cutOff = DateTime.UtcNow.AddDays(-uploadIntentConfiguration.TemporalUploadsRetentionDays);
+        var cutOff = DateTime.UtcNow.AddDays(-uploadIntentConfiguration.TempUploadsRetentionDays);
         var deleted = 0;
         var errors = 0;
 
         await foreach (var (key, lastModified) in storageService.ListObjectsAsync(
             storageConfiguration.Bucket,
-            uploadIntentConfiguration.TemporalRootPrefix,
+            uploadIntentConfiguration.TempRootPrefix,
             cancellationToken))
         {
             if (lastModified >= cutOff)
