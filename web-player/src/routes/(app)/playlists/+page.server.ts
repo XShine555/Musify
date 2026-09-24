@@ -1,6 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { apiFor, authedAction, requireUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
+import { authedAction } from '$lib/server/actions/authedAction';
 import { PLAYLISTS_PAGE_SIZE } from '$lib/config';
 import { toPlaylist } from '$lib/server/mappers';
 import { parsePlaylistForm } from '$lib/server/forms/playlistForm';

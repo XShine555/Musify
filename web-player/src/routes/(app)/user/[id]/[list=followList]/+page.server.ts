@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { apiFor, optionalUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { optionalUser } from '$lib/server/guards';
 import { toPage } from '$lib/server/mappers';
 import { fetchFollowList } from '$lib/server/follows';
 import { FOLLOW_LIST_PAGE_SIZE } from '$lib/config';

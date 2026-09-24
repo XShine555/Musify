@@ -1,8 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { apiFor, requireUser } from '$lib/server/api';
+import { apiFor } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
 import { toMix, toPlaylist, toTrack } from '$lib/server/mappers';
-import { addTrackAction } from '$lib/server/playlistActions';
+import { addTrackAction } from '$lib/server/actions/playlist';
 import { HOME_MIXES_LIMIT, HOME_SHELF_LIMIT, HOME_SPOTLIGHT_TRACKS_LIMIT } from '$lib/config';
 import { pickGreeting } from '$lib/server/greeting';
 

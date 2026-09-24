@@ -1,6 +1,9 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { apiFor, authedAction, formFile, requireUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
+import { formFile } from '$lib/server/forms/fields';
+import { authedAction } from '$lib/server/actions/authedAction';
 import { toAlbum, toPage } from '$lib/server/mappers';
 import { ALBUMS_PAGE_SIZE } from '$lib/config';
 import { parseAlbumForm } from '$lib/server/forms/albumForm';

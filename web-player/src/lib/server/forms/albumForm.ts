@@ -1,4 +1,4 @@
-import { formString } from '$lib/server/api';
+import { formString } from '$lib/server/forms/fields';
 import { ALBUM_EARLIEST_YEAR, LIMITS } from '$lib/validation';
 
 interface AlbumFormBody {

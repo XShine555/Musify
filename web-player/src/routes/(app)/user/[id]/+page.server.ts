@@ -1,8 +1,9 @@
 import type { PageServerLoad, Actions } from './$types';
-import { apiFor, optionalUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { optionalUser } from '$lib/server/guards';
 import { toPlaylist } from '$lib/server/mappers';
 import { PROFILE_PLAYLISTS_PAGE_SIZE } from '$lib/config';
-import { followUserAction, unfollowUserAction } from '$lib/server/followActions';
+import { followUserAction, unfollowUserAction } from '$lib/server/actions/follow';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();

@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { authedAction } from '$lib/server/api';
+import { authedAction } from '$lib/server/actions/authedAction';
 
 const setFollowing = (follow: boolean) =>
 	authedAction(async ({ api, params }) => {

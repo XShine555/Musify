@@ -1,7 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
-import { apiFor, requireUser, unwrapOrError } from '$lib/server/api';
+import { apiFor, unwrapOrError } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
 import { toMix } from '$lib/server/mappers';
-import { addTrackAction } from '$lib/server/playlistActions';
+import { addTrackAction } from '$lib/server/actions/playlist';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch }) => {
 	requireUser(locals, url);

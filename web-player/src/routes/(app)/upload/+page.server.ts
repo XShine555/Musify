@@ -1,6 +1,8 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { apiFor, authedAction, requireData, requireUser } from '$lib/server/api';
+import { apiFor, requireData } from '$lib/server/api';
+import { requireUser } from '$lib/server/guards';
+import { authedAction } from '$lib/server/actions/authedAction';
 import { parseTrackUploadForm } from '$lib/server/forms/trackUploadForm';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
 import { findConflict, genreInfo } from '$lib/data/genres';

@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { apiFor, unwrapOrError } from '$lib/server/api';
 import { getGenres } from '$lib/server/genres';
 import { toAlbum, toPage, toTrack } from '$lib/server/mappers';
-import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/playlistActions';
+import { addAlbumToPlaylistAction, addTrackAction } from '$lib/server/actions/playlist';
 import { EXPLORE_ALBUMS_PAGE_SIZE, EXPLORE_PAGE_SIZE, EXPLORE_USERS_LIMIT } from '$lib/config';
 
 export const load: PageServerLoad = async ({ url, locals, fetch }) => {
