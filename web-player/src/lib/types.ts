@@ -29,17 +29,30 @@ export interface LibraryTrack extends Track {
 	status: TrackStatus;
 	genres: string[];
 	albumTitle: string | null;
+	albums: { id: string; title: string }[];
+	published: boolean;
+}
+
+export interface TrackStatusCounts {
+	total: number;
+	processing: number;
+	completed: number;
+	failed: number;
+	published: number;
 }
 
 export interface LikedTrack extends Track {
 	likedAt: number;
 }
 
+export type AlbumType = 'Album' | 'EP' | 'Single';
+
 export interface Album {
 	id: string;
 	title: string;
 	description: string | null;
 	releaseYear: number | null;
+	type: AlbumType;
 	ownerUserId: string;
 	trackCount: number;
 	coverTrackIds: string[];

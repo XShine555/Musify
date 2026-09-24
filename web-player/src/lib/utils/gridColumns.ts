@@ -27,6 +27,7 @@ export const COL = {
 	genres: 'minmax(6rem,12.5rem)',
 	genresWide: 'minmax(6rem,13.75rem)',
 	status: '7rem',
+	publish: '6.5rem',
 	statusQueue: '8.75rem',
 	statusMobile: '6rem',
 	access: '6rem',

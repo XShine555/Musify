@@ -20,29 +20,18 @@ export const saveAlbum = tagged('saveAlbum', async ({ api, form }) => {
 	if ('failMessage' in cover)
 		return fail(502, { message: cover.failMessage, detail: cover.detail });
 
-	let albumId = existingId;
-	if (existingId) {
-		const failure = await updateAlbum(api, existingId, parsed.body, cover.intentId);
-		if (failure) return failure;
-	} else {
+	const addIds = formIds(form, 'addTrackIds');
+	if (!existingId) {
 		if (!cover.intentId) return fail(400, { message: 'La portada es obligatoria.' });
-		const created = await createAlbum(api, parsed.body, cover.intentId);
+		const created = await createAlbum(api, parsed.body, cover.intentId, addIds);
 		if ('failMessage' in created) return fail(502, { message: created.failMessage });
-		albumId = created.id;
+		return { saved: true };
 	}
 
-	const failure = await syncAlbumTracks(
-		api,
-		albumId,
-		formIds(form, 'addTrackIds'),
-		formIds(form, 'removeTrackIds')
-	);
-	if (failure && !existingId) {
-		return fail(502, {
-			message: 'El álbum se creó, pero no se pudieron añadir las canciones. Inténtalo de nuevo.',
-			albumId
-		});
-	}
+	const updateFailure = await updateAlbum(api, existingId, parsed.body, cover.intentId);
+	if (updateFailure) return updateFailure;
+
+	const failure = await syncAlbumTracks(api, existingId, addIds, formIds(form, 'removeTrackIds'));
 	return failure ?? { saved: true };
 });
 

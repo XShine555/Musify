@@ -17,6 +17,7 @@
 			align: 'center',
 			class: `${TEXT} tabular-nums`
 		},
+		{ id: 'publish', width: COL.publish },
 		{ id: 'delete', width: COL.action, mobile: COL.actionMobile }
 	];
 </script>
@@ -26,6 +27,8 @@
 	import type { LibraryTrack } from '$lib/types';
 	import { player } from '$lib/player/player.svelte';
 	import { genreLabels } from '$lib/data/genres';
+	import { canPublish } from '$lib/data/libraryTracks';
+	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import { fmtTime } from '$lib/utils/format';
 	import TrackTitleCell from '$lib/components/music/TrackTitleCell.svelte';
 	import TrackStatusBadge from '$lib/components/music/TrackStatusBadge.svelte';
@@ -37,11 +40,19 @@
 		tracks: LibraryTrack[];
 		selectedIds: string[];
 		onPlay: (index: number) => void;
+		onPublish: (track: LibraryTrack) => void;
 		onDelete: (track: LibraryTrack) => void;
 		class?: string;
 	}
 
-	let { tracks, selectedIds = $bindable(), onPlay, onDelete, class: klass = '' }: Props = $props();
+	let {
+		tracks,
+		selectedIds = $bindable(),
+		onPlay,
+		onPublish,
+		onDelete,
+		class: klass = ''
+	}: Props = $props();
 
 	const selected = $derived(new Set(selectedIds));
 	const allSelected = $derived(
@@ -81,9 +92,20 @@
 		{:else if column.id === 'genres'}
 			{genreLabels(track.genres)}
 		{:else if column.id === 'status'}
-			<TrackStatusBadge status={track.status} />
+			<TrackStatusBadge {track} />
 		{:else if column.id === 'duration'}
 			{fmtTime(track.duration)}
+		{:else if column.id === 'publish'}
+			<span title={canPublish(track) ? undefined : 'Disponible cuando termine de procesarse'}>
+				<Button
+					size="sm"
+					variant="secondary"
+					disabled={!canPublish(track)}
+					onclick={() => onPublish(track)}
+				>
+					{track.published ? 'Despublicar' : 'Publicar'}
+				</Button>
+			</span>
 		{:else}
 			<IconButton label="Borrar canción" size="xs" revealOnHover onclick={() => onDelete(track)}>
 				<X class="size-icon-sm" />

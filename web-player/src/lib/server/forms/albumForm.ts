@@ -5,7 +5,14 @@ export interface AlbumFormBody {
 	title: string;
 	description: string | null;
 	releaseYear: number | null;
+	type: 'Album' | 'EP' | 'Single';
 }
+
+const ALBUM_TYPES: Record<string, AlbumFormBody['type']> = {
+	album: 'Album',
+	ep: 'EP',
+	single: 'Single'
+};
 
 export function parseAlbumForm(form: FormData): { body: AlbumFormBody } | { failMessage: string } {
 	const title = formString(form, 'title').trim();
@@ -36,7 +43,8 @@ export function parseAlbumForm(form: FormData): { body: AlbumFormBody } | { fail
 		body: {
 			title,
 			description: description === '' ? null : description,
-			releaseYear
+			releaseYear,
+			type: ALBUM_TYPES[formString(form, 'type')] ?? 'Album'
 		}
 	};
 }

@@ -1,42 +1,47 @@
 import { describe, expect, it } from 'vitest';
-import type { LibraryTrack } from '$lib/types';
-import { filterLibraryTracks } from './libraryTracks';
+import {
+	canPublish,
+	filterCounts,
+	filterQuery,
+	parseTrackFilter,
+	trackState
+} from './libraryTracks';
 
-function track(id: string, title: string, status: LibraryTrack['status']): LibraryTrack {
-	return {
-		id,
-		title,
-		artist: 'Artista',
-		ownerUserId: '1',
-		explicit: false,
-		duration: 60,
-		listensCount: 0,
-		date: '2026-01-01T00:00:00Z',
-		status,
-		genres: [],
-		albumTitle: null
-	};
-}
+describe('trackState', () => {
+	it('never calls a processed track published unless it is', () => {
+		expect(trackState({ status: 'Completed', published: false }).label).toBe('Sin publicar');
+		expect(trackState({ status: 'Completed', published: true }).label).toBe('Publicada');
+	});
+	it('pulses while processing', () => {
+		expect(trackState({ status: 'Processing', published: false })).toMatchObject({
+			label: 'Procesando',
+			pulse: true
+		});
+		expect(trackState({ status: 'Failed', published: false }).tone).toBe('danger');
+	});
+});
 
-const tracks = [
-	track('1', 'Alba', 'Completed'),
-	track('2', 'Noche', 'Processing'),
-	track('3', 'Ruido', 'Pending'),
-	track('4', 'Roto', 'Failed')
-];
+describe('canPublish', () => {
+	it('only allows processed tracks', () => {
+		expect(canPublish({ status: 'Completed' })).toBe(true);
+		expect(canPublish({ status: 'Pending' })).toBe(false);
+	});
+});
 
-describe('filterLibraryTracks', () => {
-	it('returns everything for the "all" filter without a query', () => {
-		expect(filterLibraryTracks(tracks, '', 'all')).toHaveLength(4);
+describe('filters', () => {
+	it('falls back to "all" for unknown values', () => {
+		expect(parseTrackFilter('nope')).toBe('all');
+		expect(parseTrackFilter(null)).toBe('all');
+		expect(parseTrackFilter('failed')).toBe('failed');
 	});
-	it('groups pending and processing tracks together', () => {
-		expect(filterLibraryTracks(tracks, '', 'processing').map((t) => t.id)).toEqual(['2', '3']);
+	it('maps a filter to an API query', () => {
+		expect(filterQuery('processing')).toEqual({ status: ['Pending', 'Processing'] });
+		expect(filterQuery('unpublished')).toEqual({ status: ['Completed'], published: false });
+		expect(filterQuery('all')).toEqual({});
 	});
-	it('combines the status filter with the text query', () => {
-		expect(filterLibraryTracks(tracks, ' alb ', 'published').map((t) => t.id)).toEqual(['1']);
-		expect(filterLibraryTracks(tracks, 'alb', 'failed')).toEqual([]);
-	});
-	it('matches the artist too', () => {
-		expect(filterLibraryTracks(tracks, 'artista', 'all')).toHaveLength(4);
+	it('derives the chip counts', () => {
+		expect(
+			filterCounts({ total: 10, processing: 2, completed: 6, failed: 2, published: 4 })
+		).toEqual({ all: 10, published: 4, unpublished: 2, processing: 2, failed: 2 });
 	});
 });

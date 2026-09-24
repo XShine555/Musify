@@ -1,34 +1,14 @@
-import type { Album } from '$lib/types';
-import { toAlbum, toLibraryTrack, toPage } from '$lib/server/mappers';
+import { toAlbum, toPage } from '$lib/server/mappers';
 import { failOnError, unwrapOrError, type ApiClient } from '$lib/server/api';
 import { uploadOptionalCover } from '$lib/server/upload';
 import type { AlbumFormBody } from '$lib/server/forms/albumForm';
-import { ALBUMS_PAGE_SIZE, ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PAGE_SIZE } from '$lib/config';
+import { ALBUMS_PAGE_SIZE } from '$lib/config';
 
 export const ALBUMS_SECTION_URL = '/library/albums';
 
-export async function trackIdsByAlbum(
-	api: ApiClient,
-	albums: Album[]
-): Promise<Record<string, string[]>> {
-	const entries = await Promise.all(
-		albums.map(async (album) => {
-			const tracks = await api.GET('/albums/{id}/tracks', {
-				params: {
-					path: { id: album.id },
-					query: { pageNumber: 1, pageSize: ALBUM_TRACKS_PAGE_SIZE }
-				}
-			});
-			return [album.id, (tracks.data?.items ?? []).map((track) => track.id)] as const;
-		})
-	);
-	return Object.fromEntries(entries);
-}
-
-function albumTitleByTrackId(albums: Album[], trackIds: Record<string, string[]>) {
-	return new Map(
-		albums.flatMap((album) => (trackIds[album.id] ?? []).map((id) => [id, album.title] as const))
-	);
+export async function albumTrackIds(api: ApiClient, albumId: string): Promise<string[]> {
+	const result = await api.GET('/albums/{id}/tracks/ids', { params: { path: { id: albumId } } });
+	return unwrapOrError(result, 'No se pudieron cargar las canciones del álbum.').trackIds;
 }
 
 export async function loadUserAlbums(api: ApiClient, userId: string) {
@@ -36,19 +16,6 @@ export async function loadUserAlbums(api: ApiClient, userId: string) {
 		params: { path: { userId }, query: { pageNumber: 1, pageSize: ALBUMS_PAGE_SIZE } }
 	});
 	return toPage(unwrapOrError(result, 'No se pudieron cargar tus álbumes.'), toAlbum);
-}
-
-export async function loadLibraryTracks(api: ApiClient, userId: string) {
-	const [tracksResult, albums] = await Promise.all([
-		api.GET('/tracks/users/{userId}', {
-			params: { path: { userId }, query: { pageNumber: 1, pageSize: LIBRARY_PAGE_SIZE } }
-		}),
-		loadUserAlbums(api, userId)
-	]);
-	const albumTitles = albumTitleByTrackId(albums.items, await trackIdsByAlbum(api, albums.items));
-	return toPage(unwrapOrError(tracksResult, 'No se pudo cargar tu biblioteca.'), (dto) =>
-		toLibraryTrack(dto, albumTitles.get(dto.id) ?? null)
-	);
 }
 
 export type CoverUpload = { intentId: string | null } | { failMessage: string; detail?: string };
@@ -60,9 +27,10 @@ export function uploadAlbumCover(api: ApiClient, file: File | null): Promise<Cov
 export async function createAlbum(
 	api: ApiClient,
 	body: AlbumFormBody,
-	pictureIntentId: string
+	pictureIntentId: string,
+	trackIds: string[] = []
 ): Promise<{ id: string } | { failMessage: string }> {
-	const created = await api.POST('/albums', { body: { ...body, pictureIntentId } });
+	const created = await api.POST('/albums', { body: { ...body, pictureIntentId, trackIds } });
 	if (created.error || !created.data) return { failMessage: 'No se pudo crear el álbum.' };
 	return { id: created.data.id };
 }

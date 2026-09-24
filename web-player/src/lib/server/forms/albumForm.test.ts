@@ -12,11 +12,19 @@ describe('parseAlbumForm', () => {
 	it('parses a valid form and trims values', () => {
 		expect(
 			parseAlbumForm(form({ title: ' Title ', description: ' d ', releaseYear: '2020' }))
-		).toEqual({ body: { title: 'Title', description: 'd', releaseYear: 2020 } });
+		).toEqual({ body: { title: 'Title', description: 'd', releaseYear: 2020, type: 'Album' } });
 	});
 	it('turns empty optional fields into null', () => {
 		expect(parseAlbumForm(form({ title: 'T' }))).toEqual({
-			body: { title: 'T', description: null, releaseYear: null }
+			body: { title: 'T', description: null, releaseYear: null, type: 'Album' }
+		});
+	});
+	it('maps the album type', () => {
+		expect(parseAlbumForm(form({ title: 'T', type: 'ep' }))).toMatchObject({
+			body: { type: 'EP' }
+		});
+		expect(parseAlbumForm(form({ title: 'T', type: 'x' }))).toMatchObject({
+			body: { type: 'Album' }
 		});
 	});
 	it('rejects empty or too long titles', () => {

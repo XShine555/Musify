@@ -2,6 +2,7 @@ import type { components } from '$lib/api/schema';
 import type {
 	Album,
 	LibraryTrack,
+	TrackStatusCounts,
 	LikedTrack,
 	ListeningStats,
 	Mix,
@@ -11,6 +12,8 @@ import type {
 } from '$lib/types';
 
 type TrackDto = components['schemas']['TrackApplicationResponse'];
+type UserTrackDto = components['schemas']['UserTrackApplicationResponse'];
+type StatusCountsDto = components['schemas']['TrackStatusCountsResponse'];
 type AlbumDto = components['schemas']['AlbumApplicationResponse'];
 type PlaylistDto = components['schemas']['PlayListApplicationResponse'];
 type MixDto = components['schemas']['MixApplicationResponse'];
@@ -39,12 +42,24 @@ export function toDatedTrack(dto: TrackDto): Track & { date: string } {
 	return { ...toTrack(dto), date: dto.createdAt };
 }
 
-export function toLibraryTrack(dto: TrackDto, albumTitle: string | null): LibraryTrack {
+export function toLibraryTrack(dto: UserTrackDto): LibraryTrack {
 	return {
 		...toDatedTrack(dto),
 		status: dto.audioStatus,
 		genres: dto.tags,
-		albumTitle
+		albums: dto.albums,
+		albumTitle: dto.albums.length > 0 ? dto.albums.map((album) => album.title).join(', ') : null,
+		published: dto.isPublished
+	};
+}
+
+export function toStatusCounts(dto: StatusCountsDto): TrackStatusCounts {
+	return {
+		total: Number(dto.total) || 0,
+		processing: (Number(dto.pending) || 0) + (Number(dto.processing) || 0),
+		completed: Number(dto.completed) || 0,
+		failed: Number(dto.failed) || 0,
+		published: Number(dto.published) || 0
 	};
 }
 
@@ -89,6 +104,7 @@ export function toAlbum(dto: AlbumDto): Album {
 		title: dto.title,
 		description: dto.description,
 		releaseYear: dto.releaseYear === null ? null : Number(dto.releaseYear),
+		type: dto.type,
 		ownerUserId: dto.ownerUserId,
 		trackCount: Number(dto.trackCount) || 0,
 		coverTrackIds: dto.coverTrackIds,

@@ -27,6 +27,7 @@
 	layout="split"
 	{artist}
 	showType
+	initialType={album ? (album.type.toLowerCase() as 'album' | 'ep' | 'single') : 'album'}
 	initialTitle={album?.title}
 	initialDescription={album?.description ?? ''}
 	initialReleaseYear={album?.releaseYear ?? new Date().getFullYear()}
