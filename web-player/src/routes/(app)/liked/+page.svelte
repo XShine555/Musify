@@ -2,7 +2,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import X from '@lucide/svelte/icons/x';
 	import { player } from '$lib/player/player.svelte';
-	import { isQueueCurrent, playAllOrToggle } from '$lib/player/actions';
+	import PlayAllButton from '$lib/components/ui/media/PlayAllButton.svelte';
 	import { liked } from '$lib/player/liked.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -13,14 +13,9 @@
 
 	const tracks = $derived(liked.list);
 	const listTracks = $derived(tracks.map((track) => ({ ...track, date: track.likedAt })));
-	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
 	function playFrom(index: number) {
 		player.playOrToggle(tracks, index);
-	}
-
-	function playAll() {
-		playAllOrToggle(tracks);
 	}
 </script>
 
@@ -44,9 +39,7 @@
 			</div>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
-				{isCurrentQueue && player.playing ? 'Pausar' : 'Reproducir'}
-			</Button>
+			<PlayAllButton items={tracks} />
 		{/snippet}
 	</PageHeader>
 

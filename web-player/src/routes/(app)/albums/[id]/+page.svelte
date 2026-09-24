@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { albumCover } from '$lib/utils/hrefs';
 	import { player } from '$lib/player/player.svelte';
-	import { isQueueCurrent, playAllOrToggle } from '$lib/player/actions';
+	import PlayAllButton from '$lib/components/ui/media/PlayAllButton.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Page from '$lib/components/ui/layout/Page.svelte';
@@ -26,12 +26,6 @@
 
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
-
-	const isCurrentQueue = $derived(isQueueCurrent(tracks));
-
-	function playAll() {
-		playAllOrToggle(tracks);
-	}
 
 	function playTrackFrom(index: number) {
 		player.playOrToggle(tracks, index);
@@ -69,13 +63,7 @@
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={playAll} disabled={tracks.length === 0}>
-				{#if isCurrentQueue && player.playing}
-					Pausar
-				{:else}
-					Reproducir
-				{/if}
-			</Button>
+			<PlayAllButton items={tracks} />
 			{#if isOwner}
 				<Button size="sm" variant="secondary" onclick={() => (editing = true)}>Editar</Button>
 				<Button size="sm" variant="secondary" onclick={() => (confirmingDelete = true)}>

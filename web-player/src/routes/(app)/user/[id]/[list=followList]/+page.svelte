@@ -6,44 +6,29 @@
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import InfiniteScroll from '$lib/components/ui/primitives/InfiniteScroll.svelte';
 	import UserRow from '$lib/components/ui/media/UserRow.svelte';
-	import { appendUnique } from '$lib/utils/collections';
+	import { createPagedList } from '$lib/state/pagedList.svelte';
 	import { plural } from '$lib/utils/format';
 
 	let { data } = $props();
 
 	type ListUser = NonNullable<typeof data.users>['items'][number];
 
-	let items = $state<ListUser[]>([]);
-	let page = $state(1);
-	let hasMore = $state(false);
-	let loadingMore = $state(false);
+	const list = createPagedList<ListUser>(
+		async (pageNumber) => {
+			const res = await fetch(
+				`/api/users/${data.profile.id}/${data.list}?pageNumber=${pageNumber}`
+			);
+			if (!res.ok) throw new Error(String(res.status));
+			return (await res.json()) as NonNullable<typeof data.users>;
+		},
+		(user) => user.id
+	);
 
-	$effect(() => {
-		items = data.users?.items ?? [];
-		page = data.users?.pageNumber ?? 1;
-		hasMore = data.users?.hasNextPage ?? false;
-	});
+	$effect(() => list.reset(data.users));
 
 	const isFollowers = $derived(data.list === 'followers');
 	const title = $derived(isFollowers ? 'Seguidores' : 'Siguiendo');
 	const total = $derived(data.users?.totalItemCount ?? 0);
-
-	async function loadMore() {
-		if (loadingMore) return;
-		loadingMore = true;
-		try {
-			const res = await fetch(`/api/users/${data.profile.id}/${data.list}?pageNumber=${page + 1}`);
-			if (!res.ok) throw new Error(String(res.status));
-			const next = (await res.json()) as NonNullable<typeof data.users>;
-			items = appendUnique(items, next.items, (u) => u.id);
-			page = next.pageNumber;
-			hasMore = next.hasNextPage;
-		} catch {
-			hasMore = false;
-		} finally {
-			loadingMore = false;
-		}
-	}
 </script>
 
 <svelte:head>
@@ -67,7 +52,7 @@
 			title="Seguidores privados"
 			description="Solo puedes ver los seguidores de {data.profile.name} si os seguís mutuamente."
 		/>
-	{:else if items.length === 0}
+	{:else if list.items.length === 0}
 		<EmptyState
 			icon={Users}
 			title={isFollowers ? 'Sin seguidores' : 'No sigue a nadie'}
@@ -77,12 +62,17 @@
 		/>
 	{:else}
 		<ul class="flex flex-col gap-1">
-			{#each items as user (user.id)}
+			{#each list.items as user (user.id)}
 				<li>
 					<UserRow {user} />
 				</li>
 			{/each}
 		</ul>
-		<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
+		<InfiniteScroll
+			onLoadMore={() => list.loadMore()}
+			hasMore={list.hasMore}
+			loading={list.loading}
+			error={list.error}
+		/>
 	{/if}
 </Page>

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import Music from '@lucide/svelte/icons/music';
 	import { player } from '$lib/player/player.svelte';
-	import { fetchAlbumTracks } from '$lib/data/albums';
-	import type { Track } from '$lib/types';
+	import type { Paged, Track } from '$lib/types';
 	import { fmtTime, fmtPlays, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
@@ -19,12 +18,10 @@
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import { EXPLORE_PAGE_SIZE } from '$lib/config';
 	import { genreHref, playlistCover } from '$lib/utils/hrefs';
-	import { createTrackMenu } from '$lib/state/menus.svelte';
-	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
-	import { contextMenuPosition } from '$lib/utils/menuPosition';
-	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import ListEnd from '@lucide/svelte/icons/list-end';
-	import { appendUnique } from '$lib/utils/collections';
+	import { createMenu } from '$lib/state/menu.svelte';
+	import { createPagedList } from '$lib/state/pagedList.svelte';
+	import TrackContextMenu from '$lib/components/ui/overlay/TrackContextMenu.svelte';
+	import AlbumContextMenu from '$lib/components/ui/overlay/AlbumContextMenu.svelte';
 	import { genreInfo, genreTiles } from '$lib/data/genres';
 	import {
 		type SearchFilter,
@@ -37,8 +34,6 @@
 		findTopResult
 	} from '$lib/data/search';
 
-	type AlbumMenuState = { x: number; y: number; openLeft: boolean; albumId: string };
-
 	const TOP_RESULT_KIND_LABEL: Record<TopResult['kind'], string> = {
 		track: 'Canción',
 		album: 'Álbum',
@@ -48,25 +43,33 @@
 
 	let { data, form } = $props();
 
-	const trackMenu = createTrackMenu();
-	let albumMenu = $state<AlbumMenuState | null>(null);
+	const trackMenu = createMenu<Track>();
+	const albumMenu = createMenu<string>();
 	let sfilter = $state<SearchFilter>('all');
 
-	let localItems = $state<Track[]>([]);
-	let localPage = $state(1);
-	let hasMore = $state(false);
-	let loadingMore = $state(false);
+	const tracksList = createPagedList<Track>(
+		async (pageNumber) => {
+			const params = new URLSearchParams({
+				pageNumber: String(pageNumber),
+				pageSize: String(EXPLORE_PAGE_SIZE)
+			});
+			if (data.query) params.set('name', data.query);
+			if (data.genre) params.set('genre', data.genre);
+			const res = await fetch(`/api/tracks?${params}`);
+			if (!res.ok) throw new Error(String(res.status));
+			return (await res.json()) as Paged<Track>;
+		},
+		(track) => track.id
+	);
 
 	$effect(() => {
 		trackMenu.close();
-		albumMenu = null;
+		albumMenu.close();
 		sfilter = data.genre ? 'tracks' : 'all';
-		localItems = data.tracks.items;
-		localPage = data.tracks.pageNumber;
-		hasMore = data.tracks.hasNextPage;
+		tracksList.reset(data.tracks);
 	});
 
-	const items = $derived(localItems);
+	const items = $derived(tracksList.items);
 
 	const tiles = $derived(genreTiles(data.genres));
 	const activeGenre = $derived(data.genre ? genreInfo(data.genre) : null);
@@ -127,52 +130,6 @@
 		if (topResult.kind === 'playlist') return `/playlists/${topResult.playlist.id}`;
 		return `/user/${topResult.user.id}`;
 	});
-
-	function togglePlay(index: number) {
-		player.playOrToggle(items, index);
-	}
-
-	function openAlbumMenu(event: MouseEvent, albumId: string) {
-		event.preventDefault();
-		albumMenu = { ...contextMenuPosition(event), albumId };
-	}
-
-	async function albumPlayNext() {
-		if (!albumMenu) return;
-		const { albumId } = albumMenu;
-		albumMenu = null;
-		player.playNext(await fetchAlbumTracks(albumId));
-	}
-
-	async function albumAddToQueue() {
-		if (!albumMenu) return;
-		const { albumId } = albumMenu;
-		albumMenu = null;
-		player.appendToQueue(await fetchAlbumTracks(albumId));
-	}
-
-	async function loadMore() {
-		if (loadingMore) return;
-		loadingMore = true;
-		try {
-			const params = new URLSearchParams({
-				pageNumber: String(localPage + 1),
-				pageSize: String(EXPLORE_PAGE_SIZE)
-			});
-			if (data.query) params.set('name', data.query);
-			if (data.genre) params.set('genre', data.genre);
-			const res = await fetch(`/api/tracks?${params}`);
-			if (!res.ok) throw new Error(String(res.status));
-			const next = (await res.json()) as typeof data.tracks;
-			localItems = appendUnique(localItems, next.items, (track) => track.id);
-			localPage = next.pageNumber;
-			hasMore = next.hasNextPage;
-		} catch {
-			hasMore = false;
-		} finally {
-			loadingMore = false;
-		}
-	}
 </script>
 
 <svelte:head>
@@ -334,7 +291,7 @@
 										active={player.currentId === track.id}
 										size="lg"
 										trackId={track.id}
-										onclick={() => togglePlay(i)}
+										onclick={() => player.playOrToggle(items, i)}
 										oncontextmenu={(e) => trackMenu.open(e, track)}
 									>
 										{#snippet overlay()}
@@ -352,8 +309,13 @@
 							{/each}
 						</ul>
 
-						{#if sfilter === 'tracks' && hasMore}
-							<InfiniteScroll onLoadMore={loadMore} {hasMore} loading={loadingMore} />
+						{#if sfilter === 'tracks' && tracksList.hasMore}
+							<InfiniteScroll
+								onLoadMore={() => tracksList.loadMore()}
+								hasMore={tracksList.hasMore}
+								loading={tracksList.loading}
+								error={tracksList.error}
+							/>
 						{/if}
 					{:else}
 						<EmptyState
@@ -377,7 +339,7 @@
 									href="/albums/{album.id}"
 									size="lg"
 									trackIds={album.coverTrackIds}
-									oncontextmenu={(e) => openAlbumMenu(e, album.id)}
+									oncontextmenu={(e) => albumMenu.open(e, album.id)}
 								>
 									{#snippet trailing()}
 										<span class="hidden shrink-0 text-xs text-fg-2 tabular-nums sm:block">
@@ -427,39 +389,5 @@
 	{/if}
 </Page>
 
-{#if trackMenu.state}
-	<ContextMenu
-		x={trackMenu.state.x}
-		y={trackMenu.state.y}
-		openLeft={trackMenu.state.openLeft}
-		onClose={() => trackMenu.close()}
-		items={[
-			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: () => trackMenu.playNext() }
-		]}
-		playlistAction={{
-			action: '?/addTrack',
-			fields: { trackId: trackMenu.state.track.id },
-			label: 'Añadir a una playlist'
-		}}
-		playlists={data.userPlaylists}
-	/>
-{/if}
-
-{#if albumMenu}
-	<ContextMenu
-		x={albumMenu.x}
-		y={albumMenu.y}
-		openLeft={albumMenu.openLeft}
-		onClose={() => (albumMenu = null)}
-		items={[
-			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: albumPlayNext },
-			{ icon: ListEnd, label: 'Añadir a la cola', onclick: albumAddToQueue }
-		]}
-		playlistAction={{
-			action: '?/addAlbumToPlaylist',
-			fields: { albumId: albumMenu.albumId },
-			label: 'Añadir álbum a una playlist'
-		}}
-		playlists={data.userPlaylists}
-	/>
-{/if}
+<TrackContextMenu menu={trackMenu} playlists={data.userPlaylists} />
+<AlbumContextMenu menu={albumMenu} playlists={data.userPlaylists} />

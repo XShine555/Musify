@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { playlistCover } from '$lib/utils/hrefs';
-	import { goto } from '$app/navigation';
 	import History from '@lucide/svelte/icons/history';
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import ListMusic from '@lucide/svelte/icons/list-music';
 	import { player } from '$lib/player/player.svelte';
-	import { isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/actions';
+	import { playShuffled } from '$lib/player/actions';
 	import type { Track } from '$lib/types';
 	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
 	import { fetchPlaylistTracks } from '$lib/data/albums';
@@ -17,43 +16,20 @@
 	import SectionHeading from '$lib/components/ui/layout/SectionHeading.svelte';
 	import EmptyState from '$lib/components/ui/primitives/EmptyState.svelte';
 	import Button from '$lib/components/ui/primitives/Button.svelte';
-	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
-	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import { createTrackMenu } from '$lib/state/menus.svelte';
+	import PlayAllButton from '$lib/components/ui/media/PlayAllButton.svelte';
+	import TrackContextMenu from '$lib/components/ui/overlay/TrackContextMenu.svelte';
+	import { createMenu } from '$lib/state/menu.svelte';
 	import { HOME_CONTINUE_LIMIT } from '$lib/config';
 
 	let { data } = $props();
 
-	const trackMenu = createTrackMenu();
+	const trackMenu = createMenu<Track>();
 
-	const mixes = $derived(data.mixes);
-	const playlists = $derived(data.playlists);
 	const spotlight = $derived(data.spotlightPlaylist);
-
 	const continueItems = $derived(mergeRecentlyPlayed(data.recentlyPlayed, HOME_CONTINUE_LIMIT));
 
-	function playContinue(index: number) {
-		player.playOrToggle(continueItems, index);
-	}
-	function playSpotlightTrack(items: Track[], index: number) {
-		player.playOrToggle(items, index);
-	}
-	async function playSpotlight(previewItems: Track[]) {
-		if (!spotlight) return;
-		if (isQueueCurrent(previewItems)) {
-			player.toggle();
-			return;
-		}
-		playAllOrToggle(await fetchPlaylistTracks(spotlight.id));
-	}
 	async function shuffleSpotlight() {
-		if (!spotlight) return;
-		playShuffled(await fetchPlaylistTracks(spotlight.id));
-	}
-
-	function playMix(mix: (typeof mixes)[number], event: MouseEvent) {
-		event.preventDefault();
-		player.playQueue(mix.tracks, 0);
+		if (data.spotlightPlaylist) playShuffled(await fetchPlaylistTracks(data.spotlightPlaylist.id));
 	}
 </script>
 
@@ -90,11 +66,14 @@
 				</p>
 				<div class="mt-6.5 flex flex-wrap items-center gap-2.5">
 					{#if spotlight}
-						{#await data.spotlightTracks then { items: previewItems }}
-							<Button variant="primary" onclick={() => playSpotlight(previewItems)}>
-								{isQueueCurrent(previewItems) && player.playing ? 'Pausar' : 'Reanudar'}
-								{spotlight.name}
-							</Button>
+						{#await data.spotlightTracks then { items }}
+							<PlayAllButton
+								{items}
+								load={() => fetchPlaylistTracks(spotlight.id)}
+								size="md"
+								idleLabel="Reanudar {spotlight.name}"
+								activeLabel="Pausar {spotlight.name}"
+							/>
 						{/await}
 					{/if}
 					<Button href="/explore" variant="secondary">Explorar música</Button>
@@ -130,7 +109,7 @@
 					{#each continueItems as item, i (item.id)}
 						{@const isCurrent = player.currentId === item.id}
 						<ListRow
-							onclick={() => playContinue(i)}
+							onclick={() => player.playOrToggle(continueItems, i)}
 							oncontextmenu={(e) => trackMenu.open(e, item)}
 							active={isCurrent}
 							size="lg"
@@ -185,16 +164,19 @@
 								{spotlight.description || 'Tu colección, siempre a mano.'}
 							</p>
 							<div class="mt-5 flex gap-2.5">
-								<Button variant="accent" onclick={() => playSpotlight(previewItems)}
-									>Reproducir</Button
-								>
+								<PlayAllButton
+									items={previewItems}
+									load={() => fetchPlaylistTracks(spotlight.id)}
+									variant="accent"
+									size="md"
+								/>
 								<Button variant="secondary" onclick={shuffleSpotlight}>Aleatorio</Button>
 							</div>
 						</div>
 						<div class="flex flex-col gap-2 p-5.5 sm:p-6">
 							{#each previewItems as track, i (track.id)}
 								<ListRow
-									onclick={() => playSpotlightTrack(previewItems, i)}
+									onclick={() => player.playOrToggle(previewItems, i)}
 									active={player.currentId === track.id}
 									size="sm"
 									title={track.title}
@@ -224,15 +206,18 @@
 
 		<section>
 			<SectionHeading title="Mixes" subtitle="Generados a partir de lo que más repites" />
-			{#if mixes.length > 0}
+			{#if data.mixes.length > 0}
 				<div class="grid-tiles">
-					{#each mixes as mix, i (mix.id)}
+					{#each data.mixes as mix, i (mix.id)}
 						<MediaCard
 							href="/mixes/{mix.id}"
 							title={mix.title}
 							subtitle={mix.subtitle}
 							trackIds={mix.tracks.map((track) => track.id)}
-							onPlay={(event) => playMix(mix, event)}
+							onPlay={(event) => {
+								event.preventDefault();
+								player.playQueue(mix.tracks, 0);
+							}}
 							index={i}
 						/>
 					{/each}
@@ -252,11 +237,11 @@
 				subtitle="Creadas y guardadas por ti"
 				href={data.playlistsHasMore ? '/playlists' : undefined}
 			/>
-			{#if playlists.length > 0}
+			{#if data.playlists.length > 0}
 				<div class="grid-wide">
-					{#each playlists as playlist, i (playlist.id)}
+					{#each data.playlists as playlist, i (playlist.id)}
 						<ListRow
-							onclick={() => goto(`/playlists/${playlist.id}`)}
+							href="/playlists/{playlist.id}"
 							size="lg"
 							variant="card"
 							title={playlist.name}
@@ -282,20 +267,4 @@
 	</div>
 </Page>
 
-{#if trackMenu.state}
-	<ContextMenu
-		x={trackMenu.state.x}
-		y={trackMenu.state.y}
-		openLeft={trackMenu.state.openLeft}
-		onClose={() => trackMenu.close()}
-		items={[
-			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: () => trackMenu.playNext() }
-		]}
-		playlistAction={{
-			action: '?/addTrack',
-			fields: { trackId: trackMenu.state.track.id },
-			label: 'Añadir a una playlist'
-		}}
-		playlists={data.userPlaylists}
-	/>
-{/if}
+<TrackContextMenu menu={trackMenu} playlists={data.userPlaylists} />

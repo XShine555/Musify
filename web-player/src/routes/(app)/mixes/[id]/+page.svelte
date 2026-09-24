@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Shuffle from '@lucide/svelte/icons/shuffle';
 	import { player } from '$lib/player/player.svelte';
-	import { isQueueCurrent, playAllOrToggle, playShuffled } from '$lib/player/actions';
+	import { playShuffled } from '$lib/player/actions';
 	import { fmtTime, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import BackLink from '$lib/components/ui/primitives/BackLink.svelte';
@@ -10,9 +10,10 @@
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import TrackList from '$lib/components/ui/media/TrackList.svelte';
-	import ContextMenu from '$lib/components/ui/overlay/ContextMenu.svelte';
-	import ListPlus from '@lucide/svelte/icons/list-plus';
-	import { createTrackMenu } from '$lib/state/menus.svelte';
+	import TrackContextMenu from '$lib/components/ui/overlay/TrackContextMenu.svelte';
+	import { createMenu } from '$lib/state/menu.svelte';
+	import type { Track } from '$lib/types';
+	import PlayAllButton from '$lib/components/ui/media/PlayAllButton.svelte';
 
 	let { data, form } = $props();
 
@@ -20,9 +21,8 @@
 	const tracks = $derived(mix.tracks);
 
 	const totalSeconds = $derived(tracks.reduce((total, track) => total + track.duration, 0));
-	const isCurrentQueue = $derived(isQueueCurrent(tracks));
 
-	const trackMenu = createTrackMenu();
+	const trackMenu = createMenu<Track>();
 
 	function playFrom(index: number) {
 		player.playOrToggle(tracks, index);
@@ -52,13 +52,7 @@
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button size="sm" onclick={() => playAllOrToggle(tracks)} disabled={tracks.length === 0}>
-				{#if isCurrentQueue && player.playing}
-					Pausar
-				{:else}
-					Reproducir
-				{/if}
-			</Button>
+			<PlayAllButton items={tracks} />
 			<Button
 				variant="secondary"
 				size="sm"
@@ -79,24 +73,8 @@
 		{tracks}
 		columns={['plays']}
 		onPlay={playFrom}
-		oncontextmenu={(e, _track, i) => trackMenu.open(e, tracks[i])}
+		oncontextmenu={(e, track) => trackMenu.open(e, track)}
 	/>
 </Page>
 
-{#if trackMenu.state}
-	<ContextMenu
-		x={trackMenu.state.x}
-		y={trackMenu.state.y}
-		openLeft={trackMenu.state.openLeft}
-		onClose={() => trackMenu.close()}
-		items={[
-			{ icon: ListPlus, label: 'Reproducir a continuación', onclick: () => trackMenu.playNext() }
-		]}
-		playlistAction={{
-			action: '?/addTrack',
-			fields: { trackId: trackMenu.state.track.id },
-			label: 'Añadir a una playlist'
-		}}
-		playlists={data.userPlaylists}
-	/>
-{/if}
+<TrackContextMenu menu={trackMenu} playlists={data.userPlaylists} />
