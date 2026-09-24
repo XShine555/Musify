@@ -1,12 +1,6 @@
 import { page } from '$app/state';
 import type { LucideIcon } from '@lucide/svelte';
-import Home from '@lucide/svelte/icons/house';
-import Compass from '@lucide/svelte/icons/compass';
-import ListMusic from '@lucide/svelte/icons/list-music';
-import Heart from '@lucide/svelte/icons/heart';
-import Disc from '@lucide/svelte/icons/disc-2';
-import Folder from '@lucide/svelte/icons/folder';
-import Upload from '@lucide/svelte/icons/upload';
+import { House, Compass, ListMusic, Heart, Music } from '@lucide/svelte';
 import type { SessionUser } from '$lib/types';
 
 export interface AppNavLink {
@@ -14,7 +8,13 @@ export interface AppNavLink {
 	label: string;
 	icon: LucideIcon;
 	count?: number;
-	primary: boolean;
+	inMobileTabs: boolean;
+	activeFor?: string[];
+}
+
+export interface AppNavSection {
+	title?: string;
+	links: AppNavLink[];
 }
 
 export interface AppNavCounts {
@@ -22,27 +22,54 @@ export interface AppNavCounts {
 	liked?: number;
 }
 
-export function isNavActive(href: string): boolean {
+export function isNavActive(link: AppNavLink): boolean {
+	return [link.href, ...(link.activeFor ?? [])].some(isPathActive);
+}
+
+function isPathActive(href: string): boolean {
 	const section: string | null | undefined = page.data.section;
 	if (section !== undefined) return section === href;
 	return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
 }
 
-export function appNavLinks(user: SessionUser | null, counts: AppNavCounts = {}): AppNavLink[] {
-	if (!user) return [{ href: '/explore', label: 'Descubrir', icon: Compass, primary: true }];
+export function appNavSections(
+	user: SessionUser | null,
+	counts: AppNavCounts = {}
+): AppNavSection[] {
+	if (!user)
+		return [
+			{ links: [{ href: '/explore', label: 'Descubrir', icon: Compass, inMobileTabs: true }] }
+		];
 	return [
-		{ href: '/', label: 'Inicio', icon: Home, primary: true },
-		{ href: '/explore', label: 'Descubrir', icon: Compass, primary: true },
 		{
-			href: '/playlists',
-			label: 'Playlists',
-			icon: ListMusic,
-			count: counts.playlists,
-			primary: true
+			links: [
+				{ href: '/', label: 'Inicio', icon: House, inMobileTabs: true },
+				{ href: '/explore', label: 'Descubrir', icon: Compass, inMobileTabs: true },
+				{
+					href: '/playlists',
+					label: 'Playlists',
+					icon: ListMusic,
+					count: counts.playlists,
+					inMobileTabs: true
+				},
+				{ href: '/liked', label: 'Me gusta', icon: Heart, count: counts.liked, inMobileTabs: true }
+			]
 		},
-		{ href: '/liked', label: 'Me gusta', icon: Heart, count: counts.liked, primary: true },
-		{ href: '/albums', label: 'Mis álbumes', icon: Disc, primary: false },
-		{ href: '/library', label: 'Canciones subidas', icon: Folder, primary: false },
-		{ href: '/upload', label: 'Subir música', icon: Upload, primary: false }
+		{
+			title: 'Estudio',
+			links: [
+				{
+					href: '/library',
+					label: 'Gestionar música',
+					icon: Music,
+					inMobileTabs: false,
+					activeFor: ['/albums', '/upload']
+				}
+			]
+		}
 	];
+}
+
+export function appNavLinks(user: SessionUser | null, counts: AppNavCounts = {}): AppNavLink[] {
+	return appNavSections(user, counts).flatMap((section) => section.links);
 }

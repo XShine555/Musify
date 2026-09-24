@@ -9,7 +9,7 @@
 
 	let { user, class: klass = '' }: Props = $props();
 
-	const links = $derived(appNavLinks(user).filter((link) => link.primary));
+	const links = $derived(appNavLinks(user).filter((link) => link.inMobileTabs));
 </script>
 
 <nav
@@ -17,7 +17,7 @@
 	style="padding-bottom:calc(0.4375rem + var(--mf-safe-b))"
 >
 	{#each links as link (link.href)}
-		{@const active = isNavActive(link.href)}
+		{@const active = isNavActive(link)}
 		<a
 			href={link.href}
 			aria-current={active ? 'page' : undefined}

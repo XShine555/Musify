@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { appNavLinks, isNavActive } from './navLinks';
+	import { appNavSections, isNavActive } from './navLinks';
 	import { playlistCover } from '$lib/utils/hrefs';
 	import { liked } from '$lib/state/liked.svelte';
 	import { createPlaylistModal } from '$lib/state/panels.svelte';
@@ -29,7 +29,9 @@
 
 	const visiblePlaylists = $derived(playlists.slice(0, SIDEBAR_PLAYLISTS_LIMIT));
 
-	const navLinks = $derived(appNavLinks(user, { playlists: playlistCount, liked: liked.count }));
+	const navSections = $derived(
+		appNavSections(user, { playlists: playlistCount, liked: liked.count })
+	);
 </script>
 
 <aside
@@ -39,24 +41,32 @@
 		<Logo size="sm" />
 	</a>
 
-	<nav class="flex flex-col gap-1">
-		{#each navLinks as link (link.href)}
-			{@const active = isNavActive(link.href)}
-			<a
-				href={link.href}
-				aria-current={active ? 'page' : undefined}
-				class="flex items-center gap-3 rounded-control px-3 py-2 text-sm transition-colors {active
-					? 'bg-surface-2 text-fg'
-					: 'text-fg-2 hover:bg-hover hover:text-fg'}"
-			>
-				<link.icon class="size-icon-md shrink-0" />
-				<span class="flex-1 truncate">{link.label}</span>
-				{#if link.count}
-					<span class="text-xs text-fg-2 tabular-nums">{link.count}</span>
-				{/if}
-			</a>
-		{/each}
-	</nav>
+	{#each navSections as section, index (index)}
+		{#if index > 0}
+			<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
+		{/if}
+		{#if section.title}
+			<span class="px-3 pb-2 text-eyebrow text-fg-2">{section.title}</span>
+		{/if}
+		<nav class="flex flex-col gap-2">
+			{#each section.links as link (link.href)}
+				{@const active = isNavActive(link)}
+				<a
+					href={link.href}
+					aria-current={active ? 'page' : undefined}
+					class="flex items-center gap-3 rounded-control px-3 py-2 text-sm transition-colors {active
+						? 'bg-surface-2 text-fg'
+						: 'text-fg-2 hover:bg-hover hover:text-fg'}"
+				>
+					<link.icon class="size-icon-md shrink-0" />
+					<span class="flex-1 truncate">{link.label}</span>
+					{#if link.count}
+						<span class="text-xs text-fg-2 tabular-nums">{link.count}</span>
+					{/if}
+				</a>
+			{/each}
+		</nav>
+	{/each}
 
 	{#if user}
 		<div class="mx-3 mt-6 mb-3.5 h-px bg-line"></div>
