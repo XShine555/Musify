@@ -2,28 +2,29 @@ using FluentValidation;
 using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Application.Configuration;
 
-namespace Musify.Api.Validators.Tracks;
-
-public sealed class RequestTrackUploadUrlsRequestValidator : AbstractValidator<RequestTrackUploadUrlsRequest>
+namespace Musify.Api.Validators.Tracks
 {
-    public RequestTrackUploadUrlsRequestValidator(UploadIntentConfiguration uploadConfiguration)
+    public sealed class RequestTrackUploadUrlsRequestValidator : AbstractValidator<RequestTrackUploadUrlsRequest>
     {
-        RuleFor(x => x.PictureFileType)
-            .MustBeFileType(Uploads.PictureFileTypes);
+        public RequestTrackUploadUrlsRequestValidator(UploadIntentConfiguration uploadConfiguration)
+        {
+            RuleFor(x => x.PictureFileType)
+                .MustBeFileType(Uploads.PictureFileTypes);
 
-        RuleFor(x => x.PictureContentType)
-            .MustBeContentType(Uploads.PictureContentTypes);
+            RuleFor(x => x.PictureContentType)
+                .MustBeContentType(Uploads.PictureContentTypes);
 
-        RuleFor(x => x.AudioFileType)
-            .MustBeFileType(Uploads.AudioFileTypes);
+            RuleFor(x => x.AudioFileType)
+                .MustBeFileType(Uploads.AudioFileTypes);
 
-        RuleFor(x => x.AudioContentType)
-            .MustBeContentType(Uploads.AudioContentTypes);
+            RuleFor(x => x.AudioContentType)
+                .MustBeContentType(Uploads.AudioContentTypes);
 
-        RuleFor(x => x.ExpectedPictureSizeBytes)
-            .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
+            RuleFor(x => x.ExpectedPictureSizeBytes)
+                .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
 
-        RuleFor(x => x.ExpectedAudioSizeBytes)
-            .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
+            RuleFor(x => x.ExpectedAudioSizeBytes)
+                .MustBeValidUploadSize(uploadConfiguration.MaxUploadBytes);
+        }
     }
 }

@@ -3,29 +3,30 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Events;
 using Musify.Infrastructure.MassTransit.Arguments;
 
-namespace Musify.Infrastructure.MassTransit.Activities.PlayLists;
-
-internal class PublishPlayListPictureProcessingEventActivity(
-    IPublishEndpoint publishEndpoint,
-    ILogger<PublishPlayListPictureProcessingEventActivity> logger)
-    : IExecuteActivity<PublishPlayListPictureProcessingEventArguments>
+namespace Musify.Infrastructure.MassTransit.Activities.PlayLists
 {
-    public const string ExecuteEndpointName = "publish-play-list-picture-processing-event";
-
-    public async Task<ExecutionResult> Execute(ExecuteContext<PublishPlayListPictureProcessingEventArguments> executeContext)
+    internal class PublishPlayListPictureProcessingEventActivity(
+        IPublishEndpoint publishEndpoint,
+        ILogger<PublishPlayListPictureProcessingEventActivity> logger)
+        : IExecuteActivity<PublishPlayListPictureProcessingEventArguments>
     {
-        var arguments = executeContext.Arguments;
+        public const string ExecuteEndpointName = "publish-play-list-picture-processing-event";
 
-        await publishEndpoint.Publish(
-            new UpdatePlayListPictureEvent(
-                arguments.PlayListId,
-                arguments.Bucket,
-                arguments.FinalPictureKey,
-                arguments.Sizes),
-            executeContext.CancellationToken);
+        public async Task<ExecutionResult> Execute(ExecuteContext<PublishPlayListPictureProcessingEventArguments> executeContext)
+        {
+            var arguments = executeContext.Arguments;
 
-        logger.LogInformation("Published picture processing event for playlist {PlayListId}", arguments.PlayListId);
+            await publishEndpoint.Publish(
+                new UpdatePlayListPictureEvent(
+                    arguments.PlayListId,
+                    arguments.Bucket,
+                    arguments.FinalPictureKey,
+                    arguments.Sizes),
+                executeContext.CancellationToken);
 
-        return executeContext.Completed();
+            logger.LogInformation("Published picture processing event for playlist {PlayListId}", arguments.PlayListId);
+
+            return executeContext.Completed();
+        }
     }
 }

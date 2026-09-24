@@ -1,8 +1,9 @@
-namespace Musify.Domain.ValueObjects;
-
-public enum LifeCycleStatus
+namespace Musify.Domain.ValueObjects
 {
-    Active = 0,
-    Removing = 1,
-    Failed = 2
+    public enum LifeCycleStatus
+    {
+        Active = 0,
+        Removing = 1,
+        Failed = 2
+    }
 }

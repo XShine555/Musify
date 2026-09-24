@@ -2,26 +2,27 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks;
 using Xunit;
 
-namespace Musify.Application.Tests.Tracks;
-
-public sealed class GetTracksByUserIdQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Tracks
 {
-    private GetTracksByUserIdQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_ReturnsOnlyTracksLinkedToThatUser()
+    public sealed class GetTracksByUserIdQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User(1, "owner");
-        var other = TestEntities.User(2, "other");
-        var mine = TestEntities.Track(owner, "Mine");
-        var theirs = TestEntities.Track(other, "Theirs");
-        await SeedAsync(
-            owner, other, mine, theirs);
+        private GetTracksByUserIdQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ReturnsOnlyTracksLinkedToThatUser()
+        {
+            var owner = TestEntities.User(1, "owner");
+            var other = TestEntities.User(2, "other");
+            var mine = TestEntities.Track(owner, "Mine");
+            var theirs = TestEntities.Track(other, "Theirs");
+            await SeedAsync(
+                owner, other, mine, theirs);
 
-        Assert.False(result.IsError);
-        var track = Assert.Single(result.Value.Items);
-        Assert.Equal("Mine", track.Title);
+            var result = await CreateHandler().Handle(new GetTracksByUserIdQuery(owner.Id, Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+            var track = Assert.Single(result.Value.Items);
+            Assert.Equal("Mine", track.Title);
+        }
     }
 }

@@ -3,16 +3,17 @@ using Musify.Application.Events;
 using Musify.Infrastructure.MassTransit.Activities.LifeCycle;
 using Musify.Infrastructure.MassTransit.RoutingSlip;
 
-namespace Musify.Infrastructure.MassTransit.Consumers;
-
-public class AlbumProcessingFailedConsumer(IBus bus) : IConsumer<AlbumProcessingFailed>
+namespace Musify.Infrastructure.MassTransit.Consumers
 {
-    public Task Consume(ConsumeContext<AlbumProcessingFailed> context)
+    public class AlbumProcessingFailedConsumer(IBus bus) : IConsumer<AlbumProcessingFailed>
     {
-        var message = context.Message;
+        public Task Consume(ConsumeContext<AlbumProcessingFailed> context)
+        {
+            var message = context.Message;
 
-        return ProcessingFailedCleanup.ExecuteAsync(
-            bus, message.AlbumId, ActivityNames.MarkAlbumAsFailed, MarkAlbumLifeCycleActivity.ExecuteEndpointName, message.Bucket,
-            (ActivityNames.RemoveAlbumOriginalPicture, message.PictureKey));
+            return ProcessingFailedCleanup.ExecuteAsync(
+                bus, message.AlbumId, ActivityNames.MarkAlbumAsFailed, MarkAlbumLifeCycleActivity.ExecuteEndpointName, message.Bucket,
+                (ActivityNames.RemoveAlbumOriginalPicture, message.PictureKey));
+        }
     }
 }

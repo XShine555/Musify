@@ -1,62 +1,63 @@
-namespace Musify.Infrastructure.MassTransit.RoutingSlip;
-
-internal static class ActivityNames
+namespace Musify.Infrastructure.MassTransit.RoutingSlip
 {
-    internal const string MarkTrackAsRemoving = "MarkTrackAsRemoving";
-    internal const string MarkTrackAsFailed = "MarkTrackAsFailed";
-    internal const string DeleteTrackFromDb = "DeleteTrackFromDb";
-    internal const string MarkPlayListAsRemoving = "MarkPlayListAsRemoving";
-    internal const string MarkPlayListAsFailed = "MarkPlayListAsFailed";
-    internal const string DeletePlayListFromDb = "DeletePlayListFromDb";
-    internal const string MarkAlbumAsFailed = "MarkAlbumAsFailed";
-    internal const string MarkAlbumAsRemoving = "MarkAlbumAsRemoving";
-    internal const string DeleteAlbumFromDb = "DeleteAlbumFromDb";
+    internal static class ActivityNames
+    {
+        internal const string MarkTrackAsRemoving = "MarkTrackAsRemoving";
+        internal const string MarkTrackAsFailed = "MarkTrackAsFailed";
+        internal const string DeleteTrackFromDb = "DeleteTrackFromDb";
+        internal const string MarkPlayListAsRemoving = "MarkPlayListAsRemoving";
+        internal const string MarkPlayListAsFailed = "MarkPlayListAsFailed";
+        internal const string DeletePlayListFromDb = "DeletePlayListFromDb";
+        internal const string MarkAlbumAsFailed = "MarkAlbumAsFailed";
+        internal const string MarkAlbumAsRemoving = "MarkAlbumAsRemoving";
+        internal const string DeleteAlbumFromDb = "DeleteAlbumFromDb";
 
-    internal const string GenerateAudioWorkflowPaths = "GenerateAudioWorkflowPaths";
-    internal const string GeneratePictureWorkflowPaths = "GeneratePictureWorkflowPaths";
+        internal const string GenerateAudioWorkflowPaths = "GenerateAudioWorkflowPaths";
+        internal const string GeneratePictureWorkflowPaths = "GeneratePictureWorkflowPaths";
 
-    internal const string DownloadFile = "DownloadFile";
+        internal const string DownloadFile = "DownloadFile";
 
-    internal const string TranscodeAudio = "TranscodeAudio";
+        internal const string TranscodeAudio = "TranscodeAudio";
 
-    internal const string ResizeSmall = "ResizeSmall";
-    internal const string ResizeMedium = "ResizeMedium";
-    internal const string ResizeLarge = "ResizeLarge";
+        internal const string ResizeSmall = "ResizeSmall";
+        internal const string ResizeMedium = "ResizeMedium";
+        internal const string ResizeLarge = "ResizeLarge";
 
-    internal const string UploadSmall = "UploadSmall";
-    internal const string UploadMedium = "UploadMedium";
-    internal const string UploadLarge = "UploadLarge";
+        internal const string UploadSmall = "UploadSmall";
+        internal const string UploadMedium = "UploadMedium";
+        internal const string UploadLarge = "UploadLarge";
 
-    internal const string TransferFiles = "TransferFiles";
+        internal const string TransferFiles = "TransferFiles";
 
-    internal const string UpdateTrackPicture = "UpdateTrackPicture";
-    internal const string UpdatePlayListPicture = "UpdatePlayListPicture";
-    internal const string UpdateAlbumPicture = "UpdateAlbumPicture";
-    internal const string UpdateTrackAudio = "UpdateTrackAudio";
+        internal const string UpdateTrackPicture = "UpdateTrackPicture";
+        internal const string UpdatePlayListPicture = "UpdatePlayListPicture";
+        internal const string UpdateAlbumPicture = "UpdateAlbumPicture";
+        internal const string UpdateTrackAudio = "UpdateTrackAudio";
 
-    internal const string CopyPictureToFinal = "CopyPictureToFinal";
-    internal const string CopyAudioToFinal = "CopyAudioToFinal";
+        internal const string CopyPictureToFinal = "CopyPictureToFinal";
+        internal const string CopyAudioToFinal = "CopyAudioToFinal";
 
-    internal const string ConsumeUploadIntents = "ConsumeUploadIntents";
+        internal const string ConsumeUploadIntents = "ConsumeUploadIntents";
 
-    internal const string PublishTrackProcessingEvents = "PublishTrackProcessingEvents";
-    internal const string PublishPlayListPictureProcessingEvent = "PublishPlayListPictureProcessingEvent";
-    internal const string PublishAlbumPictureProcessingEvent = "PublishAlbumPictureProcessingEvent";
+        internal const string PublishTrackProcessingEvents = "PublishTrackProcessingEvents";
+        internal const string PublishPlayListPictureProcessingEvent = "PublishPlayListPictureProcessingEvent";
+        internal const string PublishAlbumPictureProcessingEvent = "PublishAlbumPictureProcessingEvent";
 
-    internal const string RemoveTrackOriginalPicture = "RemoveTrackOriginalPicture";
-    internal const string RemoveTrackSmallPicture = "RemoveTrackSmallPicture";
-    internal const string RemoveTrackMediumPicture = "RemoveTrackMediumPicture";
-    internal const string RemoveTrackLargePicture = "RemoveTrackLargePicture";
-    internal const string RemoveTrackOriginalAudio = "RemoveTrackOriginalAudio";
-    internal const string RemoveTrackProcessedAudio = "RemoveTrackProcessedAudio";
+        internal const string RemoveTrackOriginalPicture = "RemoveTrackOriginalPicture";
+        internal const string RemoveTrackSmallPicture = "RemoveTrackSmallPicture";
+        internal const string RemoveTrackMediumPicture = "RemoveTrackMediumPicture";
+        internal const string RemoveTrackLargePicture = "RemoveTrackLargePicture";
+        internal const string RemoveTrackOriginalAudio = "RemoveTrackOriginalAudio";
+        internal const string RemoveTrackProcessedAudio = "RemoveTrackProcessedAudio";
 
-    internal const string RemovePlayListOriginalPicture = "RemovePlayListOriginalPicture";
-    internal const string RemovePlayListSmallPicture = "RemovePlayListSmallPicture";
-    internal const string RemovePlayListMediumPicture = "RemovePlayListMediumPicture";
-    internal const string RemovePlayListLargePicture = "RemovePlayListLargePicture";
+        internal const string RemovePlayListOriginalPicture = "RemovePlayListOriginalPicture";
+        internal const string RemovePlayListSmallPicture = "RemovePlayListSmallPicture";
+        internal const string RemovePlayListMediumPicture = "RemovePlayListMediumPicture";
+        internal const string RemovePlayListLargePicture = "RemovePlayListLargePicture";
 
-    internal const string RemoveAlbumOriginalPicture = "RemoveAlbumOriginalPicture";
-    internal const string RemoveAlbumSmallPicture = "RemoveAlbumSmallPicture";
-    internal const string RemoveAlbumMediumPicture = "RemoveAlbumMediumPicture";
-    internal const string RemoveAlbumLargePicture = "RemoveAlbumLargePicture";
+        internal const string RemoveAlbumOriginalPicture = "RemoveAlbumOriginalPicture";
+        internal const string RemoveAlbumSmallPicture = "RemoveAlbumSmallPicture";
+        internal const string RemoveAlbumMediumPicture = "RemoveAlbumMediumPicture";
+        internal const string RemoveAlbumLargePicture = "RemoveAlbumLargePicture";
+    }
 }

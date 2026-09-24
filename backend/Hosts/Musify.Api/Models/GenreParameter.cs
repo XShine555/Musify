@@ -1,19 +1,20 @@
 using Musify.Domain.ValueObjects;
 
-namespace Musify.Api.Models;
-
-/// <summary>Query-string binding for a genre name (case-insensitive); unknown names are rejected with a 400.</summary>
-public readonly record struct GenreParameter(Genre Value)
+namespace Musify.Api.Models
 {
-    public static bool TryParse(string? value, out GenreParameter result)
+    /// <summary>Query-string binding for a genre name (case-insensitive); unknown names are rejected with a 400.</summary>
+    public readonly record struct GenreParameter(Genre Value)
     {
-        if (Enum.TryParse<Genre>(value, ignoreCase: true, out var genre) && Enum.IsDefined(genre))
+        public static bool TryParse(string? value, out GenreParameter result)
         {
-            result = new GenreParameter(genre);
-            return true;
-        }
+            if (Enum.TryParse<Genre>(value, ignoreCase: true, out var genre) && Enum.IsDefined(genre))
+            {
+                result = new GenreParameter(genre);
+                return true;
+            }
 
-        result = default;
-        return false;
+            result = default;
+            return false;
+        }
     }
 }

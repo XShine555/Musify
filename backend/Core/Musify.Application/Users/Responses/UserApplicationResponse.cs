@@ -1,25 +1,26 @@
 using Musify.Domain.Entities;
 
-namespace Musify.Application.Users.Responses;
-
-public record UserApplicationResponse(
-    long Id,
-    string Name,
-    string? FirstName,
-    string? SecondName,
-    string? ProfilePictureUrl,
-    DateTime CreatedAt,
-    DateTime UpdatedAt)
+namespace Musify.Application.Users.Responses
 {
-    public static UserApplicationResponse FromEntity(User user)
+    public record UserApplicationResponse(
+        long Id,
+        string Name,
+        string? FirstName,
+        string? SecondName,
+        string? ProfilePictureUrl,
+        DateTime CreatedAt,
+        DateTime UpdatedAt)
     {
-        return new UserApplicationResponse(
-            user.Id,
-            user.Name,
-            user.FirstName,
-            user.SecondName,
-            user.ProfilePictureUrl,
-            user.CreatedAt,
-            user.UpdatedAt);
+        public static UserApplicationResponse FromEntity(User user)
+        {
+            return new UserApplicationResponse(
+                user.Id,
+                user.Name,
+                user.FirstName,
+                user.SecondName,
+                user.ProfilePictureUrl,
+                user.CreatedAt,
+                user.UpdatedAt);
+        }
     }
 }

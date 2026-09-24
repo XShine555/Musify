@@ -1,12 +1,13 @@
-namespace Musify.Api.OpenApi;
-
-public static class OpenApiExtensions
+namespace Musify.Api.OpenApi
 {
-    public static IServiceCollection AddOpenApiConfiguration(this IServiceCollection services)
+    public static class OpenApiExtensions
     {
-        services.AddOpenApi();
-        services.ConfigureOptions<OpenApiOptionsSetup>();
+        public static IServiceCollection AddOpenApiConfiguration(this IServiceCollection services)
+        {
+            services.AddOpenApi();
+            services.ConfigureOptions<OpenApiOptionsSetup>();
 
-        return services;
+            return services;
+        }
     }
 }

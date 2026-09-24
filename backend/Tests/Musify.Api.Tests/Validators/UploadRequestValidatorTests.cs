@@ -5,45 +5,46 @@ using Musify.Api.Validators.Tracks;
 using Musify.Application.Configuration;
 using Xunit;
 
-namespace Musify.Api.Tests.Validators;
-
-public sealed class UploadRequestValidatorTests
+namespace Musify.Api.Tests.Validators
 {
-    private readonly UploadIntentConfiguration configuration = new() { MaxUploadBytes = 1_000 };
-
-    [Fact]
-    public void PictureUpload_ValidRequest_Passes()
+    public sealed class UploadRequestValidatorTests
     {
-        var validator = new PictureUploadRequestValidator(configuration);
+        private readonly UploadIntentConfiguration configuration = new() { MaxUploadBytes = 1_000 };
 
-        var result = validator.Validate(new PictureUploadRequest("webp", "image/webp", 500));
+        [Fact]
+        public void PictureUpload_ValidRequest_Passes()
+        {
+            var validator = new PictureUploadRequestValidator(configuration);
 
-        Assert.True(result.IsValid);
-    }
+            var result = validator.Validate(new PictureUploadRequest("webp", "image/webp", 500));
 
-    [Theory]
-    [InlineData("exe", "image/webp", 500L)]
-    [InlineData("averyveryveryloongextension", "image/webp", 500L)]
-    [InlineData("we bp", "image/webp", 500L)]
-    [InlineData("webp", "text/html", 500L)]
-    [InlineData("webp", "image/webp", 0L)]
-    [InlineData("webp", "image/webp", 1_001L)]
-    public void PictureUpload_InvalidRequest_Fails(string fileType, string contentType, long size)
-    {
-        var validator = new PictureUploadRequestValidator(configuration);
+            Assert.True(result.IsValid);
+        }
 
-        var result = validator.Validate(new PictureUploadRequest(fileType, contentType, size));
+        [Theory]
+        [InlineData("exe", "image/webp", 500L)]
+        [InlineData("averyveryveryloongextension", "image/webp", 500L)]
+        [InlineData("we bp", "image/webp", 500L)]
+        [InlineData("webp", "text/html", 500L)]
+        [InlineData("webp", "image/webp", 0L)]
+        [InlineData("webp", "image/webp", 1_001L)]
+        public void PictureUpload_InvalidRequest_Fails(string fileType, string contentType, long size)
+        {
+            var validator = new PictureUploadRequestValidator(configuration);
 
-        Assert.False(result.IsValid);
-    }
+            var result = validator.Validate(new PictureUploadRequest(fileType, contentType, size));
 
-    [Fact]
-    public void TrackUpload_AudioTypesAreCheckedAgainstTheAudioAllowList()
-    {
-        var validator = new RequestTrackUploadUrlsRequestValidator(configuration);
+            Assert.False(result.IsValid);
+        }
 
-        Assert.True(validator.Validate(new RequestTrackUploadUrlsRequest("png", "image/png", "mp3", "audio/mpeg", 10, 900)).IsValid);
-        Assert.False(validator.Validate(new RequestTrackUploadUrlsRequest("png", "image/png", "png", "image/png")).IsValid);
-        Assert.False(validator.Validate(new RequestTrackUploadUrlsRequest("mp3", "audio/mpeg", "mp3", "audio/mpeg")).IsValid);
+        [Fact]
+        public void TrackUpload_AudioTypesAreCheckedAgainstTheAudioAllowList()
+        {
+            var validator = new RequestTrackUploadUrlsRequestValidator(configuration);
+
+            Assert.True(validator.Validate(new RequestTrackUploadUrlsRequest("png", "image/png", "mp3", "audio/mpeg", 10, 900)).IsValid);
+            Assert.False(validator.Validate(new RequestTrackUploadUrlsRequest("png", "image/png", "png", "image/png")).IsValid);
+            Assert.False(validator.Validate(new RequestTrackUploadUrlsRequest("mp3", "audio/mpeg", "mp3", "audio/mpeg")).IsValid);
+        }
     }
 }

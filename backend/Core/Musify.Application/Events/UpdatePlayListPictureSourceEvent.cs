@@ -1,11 +1,12 @@
 using Musify.Application.Shared;
 
-namespace Musify.Application.Events;
-
-public record UpdatePlayListPictureSourceEvent(
-    Guid PlayListId,
-    Guid PictureIntentId,
-    string Bucket,
-    string PictureSourceKey,
-    string PictureDestinationKey,
-    ImageSizes Sizes);
+namespace Musify.Application.Events
+{
+    public record UpdatePlayListPictureSourceEvent(
+        Guid PlayListId,
+        Guid PictureIntentId,
+        string Bucket,
+        string PictureSourceKey,
+        string PictureDestinationKey,
+        ImageSizes Sizes);
+}

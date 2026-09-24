@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Musify.Application.Configuration;
-
-public class ApplicationStorageConfiguration : IConfigurationOptions
+namespace Musify.Application.Configuration
 {
-    public static string SectionName => "ApplicationStorage";
+    public class ApplicationStorageConfiguration : IConfigurationOptions
+    {
+        public static string SectionName => "ApplicationStorage";
 
-    [Required]
-    [StringLength(128, MinimumLength = 1)]
-    public required string Bucket { get; set; }
+        [Required]
+        [StringLength(128, MinimumLength = 1)]
+        public required string Bucket { get; set; }
+    }
 }

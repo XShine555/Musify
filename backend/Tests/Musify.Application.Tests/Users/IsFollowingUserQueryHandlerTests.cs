@@ -3,33 +3,34 @@ using Musify.Application.Users;
 using Musify.Domain.Entities;
 using Xunit;
 
-namespace Musify.Application.Tests.Users;
-
-public sealed class IsFollowingUserQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Users
 {
-    private IsFollowingUserQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_Following_ReturnsTrue()
+    public sealed class IsFollowingUserQueryHandlerTests : HandlerTestBase
     {
-        var follower = TestEntities.User(1, "follower");
-        var followed = TestEntities.User(2, "followed");
-        await SeedAsync(follower, followed, new UserFollow { FollowerId = follower.Id, FollowedId = followed.Id });
+        private IsFollowingUserQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new IsFollowingUserQuery(follower.Id, followed.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_Following_ReturnsTrue()
+        {
+            var follower = TestEntities.User(1, "follower");
+            var followed = TestEntities.User(2, "followed");
+            await SeedAsync(follower, followed, new UserFollow { FollowerId = follower.Id, FollowedId = followed.Id });
 
-        Assert.True(result);
-    }
+            var result = await CreateHandler().Handle(new IsFollowingUserQuery(follower.Id, followed.Id), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_NotFollowing_ReturnsFalse()
-    {
-        var follower = TestEntities.User(1, "follower");
-        var followed = TestEntities.User(2, "followed");
-        await SeedAsync(follower, followed);
+            Assert.True(result);
+        }
 
-        var result = await CreateHandler().Handle(new IsFollowingUserQuery(follower.Id, followed.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_NotFollowing_ReturnsFalse()
+        {
+            var follower = TestEntities.User(1, "follower");
+            var followed = TestEntities.User(2, "followed");
+            await SeedAsync(follower, followed);
 
-        Assert.False(result);
+            var result = await CreateHandler().Handle(new IsFollowingUserQuery(follower.Id, followed.Id), TestContext.Current.CancellationToken);
+
+            Assert.False(result);
+        }
     }
 }

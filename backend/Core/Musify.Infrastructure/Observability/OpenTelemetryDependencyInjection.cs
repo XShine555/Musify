@@ -8,46 +8,47 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace Musify.Infrastructure.Observability;
-
-public static class OpenTelemetryDependencyInjection
+namespace Musify.Infrastructure.Observability
 {
-    public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
+    public static class OpenTelemetryDependencyInjection
     {
-        services.AddValidatedOptions<OpenTelemetryConfiguration>(configuration);
+        public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddValidatedOptions<OpenTelemetryConfiguration>(configuration);
 
-        services
-            .AddOptions<OtlpExporterOptions>()
-            .Configure<OpenTelemetryConfiguration>((exporterOptions, openTelemetryConfiguration) =>
-            {
-                exporterOptions.Endpoint = new Uri(openTelemetryConfiguration.OtlpEndpoint);
-            });
+            services
+                .AddOptions<OtlpExporterOptions>()
+                .Configure<OpenTelemetryConfiguration>((exporterOptions, openTelemetryConfiguration) =>
+                {
+                    exporterOptions.Endpoint = new Uri(openTelemetryConfiguration.OtlpEndpoint);
+                });
 
-        services
-            .AddOpenTelemetry()
-            .ConfigureResource(resource =>
-            {
-                resource.AddService("Musify");
-            })
-            .WithTracing(tracing =>
-                tracing.AddSource("MassTransit")
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddEntityFrameworkCoreInstrumentation()
-                    .AddOtlpExporter()
-            )
-            .WithMetrics(metrics =>
-                metrics.AddMeter("MassTransit")
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddProcessInstrumentation()
-                    .AddOtlpExporter()
-            )
-            .WithLogging(logging =>
-                logging.AddOtlpExporter()
-            );
+            services
+                .AddOpenTelemetry()
+                .ConfigureResource(resource =>
+                {
+                    resource.AddService("Musify");
+                })
+                .WithTracing(tracing =>
+                    tracing.AddSource("MassTransit")
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddEntityFrameworkCoreInstrumentation()
+                        .AddOtlpExporter()
+                )
+                .WithMetrics(metrics =>
+                    metrics.AddMeter("MassTransit")
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddProcessInstrumentation()
+                        .AddOtlpExporter()
+                )
+                .WithLogging(logging =>
+                    logging.AddOtlpExporter()
+                );
 
-        return services;
+            return services;
+        }
     }
 }

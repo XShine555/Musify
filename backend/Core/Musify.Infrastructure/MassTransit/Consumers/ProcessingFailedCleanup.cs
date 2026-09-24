@@ -3,32 +3,33 @@ using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.RoutingSlip;
 
-namespace Musify.Infrastructure.MassTransit.Consumers;
-
-internal static class ProcessingFailedCleanup
+namespace Musify.Infrastructure.MassTransit.Consumers
 {
-    /// <summary>Removes whatever files were left behind and marks the entity as failed.</summary>
-    public static Task ExecuteAsync(
-        IBus bus,
-        Guid subjectId,
-        string markStepName,
-        string markEndpointName,
-        string? bucket,
-        params (string StepName, string? Key)[] files)
+    internal static class ProcessingFailedCleanup
     {
-        var builder = RoutingSlips.Create(correlationId: null);
-
-        if (!string.IsNullOrWhiteSpace(bucket))
+        /// <summary>Removes whatever files were left behind and marks the entity as failed.</summary>
+        public static Task ExecuteAsync(
+            IBus bus,
+            Guid subjectId,
+            string markStepName,
+            string markEndpointName,
+            string? bucket,
+            params (string StepName, string? Key)[] files)
         {
-            foreach (var (stepName, key) in files)
+            var builder = RoutingSlips.Create(correlationId: null);
+
+            if (!string.IsNullOrWhiteSpace(bucket))
             {
-                if (!string.IsNullOrWhiteSpace(key))
-                    builder.AddRemoveFile(stepName, bucket, key);
+                foreach (var (stepName, key) in files)
+                {
+                    if (!string.IsNullOrWhiteSpace(key))
+                        builder.AddRemoveFile(stepName, bucket, key);
+                }
             }
+
+            builder.AddStep(markStepName, markEndpointName, new MarkLifeCycleArguments(subjectId, LifeCycleStatus.Failed));
+
+            return bus.Execute(builder.Build());
         }
-
-        builder.AddStep(markStepName, markEndpointName, new MarkLifeCycleArguments(subjectId, LifeCycleStatus.Failed));
-
-        return bus.Execute(builder.Build());
     }
 }

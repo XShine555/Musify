@@ -1,4 +1,5 @@
-namespace Musify.Application.Configuration.Responses;
+namespace Musify.Application.Configuration.Responses
+{
 
-
-public record PlaybackPublicConfigResponse(bool AllowAnonymousListening, int AnonymousFragmentSeconds);
+    public record PlaybackPublicConfigResponse(bool AllowAnonymousListening, int AnonymousFragmentSeconds);
+}

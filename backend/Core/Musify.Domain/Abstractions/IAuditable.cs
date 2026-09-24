@@ -1,8 +1,9 @@
-namespace Musify.Domain.Abstractions;
-
-public interface IAuditable
+namespace Musify.Domain.Abstractions
 {
-    public DateTime CreatedAt { get; set; }
+    public interface IAuditable
+    {
+        public DateTime CreatedAt { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
 }

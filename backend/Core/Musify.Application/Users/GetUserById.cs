@@ -5,24 +5,25 @@ using Musify.Application.Contracts;
 using Musify.Application.Shared;
 using Musify.Application.Users.Responses;
 
-namespace Musify.Application.Users;
-
-public record GetUserByIdQuery(long Id)
-    : IQuery<ErrorOr<UserApplicationResponse>>;
-
-public class GetUserByIdQueryHandler(IDatabase database)
-    : IQueryHandler<GetUserByIdQuery, ErrorOr<UserApplicationResponse>>
+namespace Musify.Application.Users
 {
-    public async ValueTask<ErrorOr<UserApplicationResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
-    {
-        var user = await database.Users
-            .AsNoTracking()
-            .Where(u => u.Id == request.Id)
-            .Select(u => UserApplicationResponse.FromEntity(u))
-            .SingleOrDefaultAsync(cancellationToken);
+    public record GetUserByIdQuery(long Id)
+        : IQuery<ErrorOr<UserApplicationResponse>>;
 
-        return user == null
-            ? AppErrors.NotFound("User", request.Id)
-            : user;
+    public class GetUserByIdQueryHandler(IDatabase database)
+        : IQueryHandler<GetUserByIdQuery, ErrorOr<UserApplicationResponse>>
+    {
+        public async ValueTask<ErrorOr<UserApplicationResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        {
+            var user = await database.Users
+                .AsNoTracking()
+                .Where(u => u.Id == request.Id)
+                .Select(u => UserApplicationResponse.FromEntity(u))
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return user == null
+                ? AppErrors.NotFound("User", request.Id)
+                : user;
+        }
     }
 }

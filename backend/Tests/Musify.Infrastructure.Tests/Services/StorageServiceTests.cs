@@ -7,130 +7,131 @@ using Musify.Infrastructure.Services;
 using Musify.Infrastructure.Tests.TestSupport;
 using Xunit;
 
-namespace Musify.Infrastructure.Tests.Services;
-
-[Collection(InfrastructureCollection.Name)]
-public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAsyncLifetime
+namespace Musify.Infrastructure.Tests.Services
 {
-    private StorageService service = null!;
-
-    public ValueTask InitializeAsync()
+    [Collection(InfrastructureCollection.Name)]
+    public sealed class StorageServiceTests(InfrastructureTestFixture fixture) : IAsyncLifetime
     {
-        var storageConfiguration = new InfrastructureStorageConfiguration
+        private StorageService service = null!;
+
+        public ValueTask InitializeAsync()
         {
-            Address = fixture.S3ServiceUrl,
-            AccessKey = InfrastructureTestFixture.S3AccessKey,
-            SecretAccessKey = InfrastructureTestFixture.S3SecretKey,
-            ForcePathStyle = true,
-            UseHttp = true,
-        };
-        service = new StorageService(fixture.CreateS3Client(), NullLogger<StorageService>.Instance, storageConfiguration);
-        return ValueTask.CompletedTask;
-    }
+            var storageConfiguration = new InfrastructureStorageConfiguration
+            {
+                Address = fixture.S3ServiceUrl,
+                AccessKey = InfrastructureTestFixture.S3AccessKey,
+                SecretAccessKey = InfrastructureTestFixture.S3SecretKey,
+                ForcePathStyle = true,
+                UseHttp = true,
+            };
+            service = new StorageService(fixture.CreateS3Client(), NullLogger<StorageService>.Instance, storageConfiguration);
+            return ValueTask.CompletedTask;
+        }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
-    [Fact]
-    public async Task UploadThenGetFile_RoundTripsTheSameBytes()
-    {
-        var key = $"tests/{Guid.NewGuid():N}/round-trip.txt";
-        var content = "hello seaweedfs"u8.ToArray();
-
-        await service.UploadFileAsync(new MemoryStream(content), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-
-        await using var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-        Assert.NotNull(stream);
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        var readBack = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
-
-        Assert.Equal("hello seaweedfs", readBack);
-    }
-
-    [Fact]
-    public async Task GetFileAsync_MissingObject_ReturnsNull()
-    {
-        var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, $"tests/{Guid.NewGuid():N}/missing.txt", TestContext.Current.CancellationToken);
-
-        Assert.Null(stream);
-    }
-
-    [Fact]
-    public async Task HeadObjectAsync_ExistingObject_ReturnsMetadata()
-    {
-        var key = $"tests/{Guid.NewGuid():N}/head.txt";
-        await service.UploadFileAsync(new MemoryStream("x"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-
-        var metadata = await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-
-        Assert.NotNull(metadata);
-        Assert.Equal(1, metadata.ContentLength);
-    }
-
-    [Fact]
-    public async Task HeadObjectAsync_MissingObject_ReturnsNull()
-    {
-        var metadata = await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, $"tests/{Guid.NewGuid():N}/missing.txt", TestContext.Current.CancellationToken);
-
-        Assert.Null(metadata);
-    }
-
-    [Fact]
-    public async Task RemoveFileAsync_ExistingObject_DeletesIt()
-    {
-        var key = $"tests/{Guid.NewGuid():N}/to-remove.txt";
-        await service.UploadFileAsync(new MemoryStream("x"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-
-        await service.RemoveFileAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-
-        Assert.Null(await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken));
-    }
-
-    [Fact]
-    public async Task CopyFileAsync_CopiesToTheDestinationKey()
-    {
-        var sourceKey = $"tests/{Guid.NewGuid():N}/source.txt";
-        var destinationKey = $"tests/{Guid.NewGuid():N}/destination.txt";
-        await service.UploadFileAsync(new MemoryStream("copy-me"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, sourceKey, TestContext.Current.CancellationToken);
-
-        await service.CopyFileAsync(InfrastructureTestFixture.S3Bucket, sourceKey, InfrastructureTestFixture.S3Bucket, destinationKey, TestContext.Current.CancellationToken);
-
-        Assert.NotNull(await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, destinationKey, TestContext.Current.CancellationToken));
-    }
-
-    [Fact]
-    public async Task ListObjectsAsync_ReturnsEveryObjectUnderThePrefix()
-    {
-        var prefix = $"tests/{Guid.NewGuid():N}";
-        await service.UploadFileAsync(new MemoryStream("a"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/a.txt", TestContext.Current.CancellationToken);
-        await service.UploadFileAsync(new MemoryStream("b"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/b.txt", TestContext.Current.CancellationToken);
-
-        var keys = new List<string>();
-        await foreach (var item in service.ListObjectsAsync(InfrastructureTestFixture.S3Bucket, prefix, TestContext.Current.CancellationToken))
-            keys.Add(item.Key);
-
-        Assert.Equal([$"{prefix}/a.txt", $"{prefix}/b.txt"], keys.Order());
-    }
-
-    [Fact]
-    public async Task GetUploadUrlAsync_PresignedPut_CanActuallyUploadTheObject()
-    {
-        var key = $"tests/{Guid.NewGuid():N}/presigned.txt";
-
-        var uploadUrl = await service.GetUploadUrlAsync(
-            InfrastructureTestFixture.S3Bucket, key, "text/plain", TimeSpan.FromMinutes(5), cancellationToken: TestContext.Current.CancellationToken);
-
-        using var httpClient = new HttpClient();
-        using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl)
+        [Fact]
+        public async Task UploadThenGetFile_RoundTripsTheSameBytes()
         {
-            Content = new ByteArrayContent(Encoding.UTF8.GetBytes("presigned content"))
-        };
-        request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
-        request.Headers.TryAddWithoutValidation("If-None-Match", "*");
-        var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+            var key = $"tests/{Guid.NewGuid():N}/round-trip.txt";
+            var content = "hello seaweedfs"u8.ToArray();
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var metadata = await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
-        Assert.NotNull(metadata);
-        Assert.Equal("presigned content".Length, metadata.ContentLength);
+            await service.UploadFileAsync(new MemoryStream(content), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+
+            await using var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+            Assert.NotNull(stream);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            var readBack = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+
+            Assert.Equal("hello seaweedfs", readBack);
+        }
+
+        [Fact]
+        public async Task GetFileAsync_MissingObject_ReturnsNull()
+        {
+            var stream = await service.GetFileAsync(InfrastructureTestFixture.S3Bucket, $"tests/{Guid.NewGuid():N}/missing.txt", TestContext.Current.CancellationToken);
+
+            Assert.Null(stream);
+        }
+
+        [Fact]
+        public async Task HeadObjectAsync_ExistingObject_ReturnsMetadata()
+        {
+            var key = $"tests/{Guid.NewGuid():N}/head.txt";
+            await service.UploadFileAsync(new MemoryStream("x"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+
+            var metadata = await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+
+            Assert.NotNull(metadata);
+            Assert.Equal(1, metadata.ContentLength);
+        }
+
+        [Fact]
+        public async Task HeadObjectAsync_MissingObject_ReturnsNull()
+        {
+            var metadata = await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, $"tests/{Guid.NewGuid():N}/missing.txt", TestContext.Current.CancellationToken);
+
+            Assert.Null(metadata);
+        }
+
+        [Fact]
+        public async Task RemoveFileAsync_ExistingObject_DeletesIt()
+        {
+            var key = $"tests/{Guid.NewGuid():N}/to-remove.txt";
+            await service.UploadFileAsync(new MemoryStream("x"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+
+            await service.RemoveFileAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+
+            Assert.Null(await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken));
+        }
+
+        [Fact]
+        public async Task CopyFileAsync_CopiesToTheDestinationKey()
+        {
+            var sourceKey = $"tests/{Guid.NewGuid():N}/source.txt";
+            var destinationKey = $"tests/{Guid.NewGuid():N}/destination.txt";
+            await service.UploadFileAsync(new MemoryStream("copy-me"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, sourceKey, TestContext.Current.CancellationToken);
+
+            await service.CopyFileAsync(InfrastructureTestFixture.S3Bucket, sourceKey, InfrastructureTestFixture.S3Bucket, destinationKey, TestContext.Current.CancellationToken);
+
+            Assert.NotNull(await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, destinationKey, TestContext.Current.CancellationToken));
+        }
+
+        [Fact]
+        public async Task ListObjectsAsync_ReturnsEveryObjectUnderThePrefix()
+        {
+            var prefix = $"tests/{Guid.NewGuid():N}";
+            await service.UploadFileAsync(new MemoryStream("a"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/a.txt", TestContext.Current.CancellationToken);
+            await service.UploadFileAsync(new MemoryStream("b"u8.ToArray()), "text/plain", InfrastructureTestFixture.S3Bucket, $"{prefix}/b.txt", TestContext.Current.CancellationToken);
+
+            var keys = new List<string>();
+            await foreach (var item in service.ListObjectsAsync(InfrastructureTestFixture.S3Bucket, prefix, TestContext.Current.CancellationToken))
+                keys.Add(item.Key);
+
+            Assert.Equal([$"{prefix}/a.txt", $"{prefix}/b.txt"], keys.Order());
+        }
+
+        [Fact]
+        public async Task GetUploadUrlAsync_PresignedPut_CanActuallyUploadTheObject()
+        {
+            var key = $"tests/{Guid.NewGuid():N}/presigned.txt";
+
+            var uploadUrl = await service.GetUploadUrlAsync(
+                InfrastructureTestFixture.S3Bucket, key, "text/plain", TimeSpan.FromMinutes(5), cancellationToken: TestContext.Current.CancellationToken);
+
+            using var httpClient = new HttpClient();
+            using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl)
+            {
+                Content = new ByteArrayContent(Encoding.UTF8.GetBytes("presigned content"))
+            };
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+            request.Headers.TryAddWithoutValidation("If-None-Match", "*");
+            var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var metadata = await service.HeadObjectAsync(InfrastructureTestFixture.S3Bucket, key, TestContext.Current.CancellationToken);
+            Assert.NotNull(metadata);
+            Assert.Equal("presigned content".Length, metadata.ContentLength);
+        }
     }
 }

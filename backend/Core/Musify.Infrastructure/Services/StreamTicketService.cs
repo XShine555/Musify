@@ -5,50 +5,51 @@ using Microsoft.IdentityModel.Tokens;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 
-namespace Musify.Infrastructure.Services;
-
-public sealed class StreamTicketService : IStreamTicketService, IDisposable
+namespace Musify.Infrastructure.Services
 {
-    private readonly StreamTicketConfiguration configuration;
-    private readonly RSA rsa;
-    private readonly SigningCredentials signingCredentials;
-    private readonly JsonWebTokenHandler tokenHandler = new();
-
-    public StreamTicketService(StreamTicketConfiguration configuration)
+    public sealed class StreamTicketService : IStreamTicketService, IDisposable
     {
-        this.configuration = configuration;
+        private readonly StreamTicketConfiguration configuration;
+        private readonly RSA rsa;
+        private readonly SigningCredentials signingCredentials;
+        private readonly JsonWebTokenHandler tokenHandler = new();
 
-        rsa = RSA.Create();
-        rsa.ImportFromPem(File.ReadAllText(configuration.PrivateKeyPath));
-
-        var key = new RsaSecurityKey(rsa);
-        signingCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
-    }
-
-    public StreamTicket IssueTicket(long? userId, string keyPrefix, long? maxBytes = null)
-    {
-        var now = DateTimeOffset.UtcNow;
-
-        var claims = new Dictionary<string, object> { ["prefix"] = keyPrefix };
-        if (userId != null)
-            claims["sub"] = userId.Value.ToString(CultureInfo.InvariantCulture);
-        if (maxBytes != null)
-            claims["maxBytes"] = maxBytes.Value.ToString(CultureInfo.InvariantCulture);
-
-        var descriptor = new SecurityTokenDescriptor
+        public StreamTicketService(StreamTicketConfiguration configuration)
         {
-            Issuer = configuration.Issuer,
-            Audience = configuration.Audience,
-            IssuedAt = now.UtcDateTime,
-            NotBefore = now.UtcDateTime,
-            Expires = now.AddSeconds(configuration.TicketTtlSeconds).UtcDateTime,
-            Claims = claims,
-            SigningCredentials = signingCredentials,
-        };
+            this.configuration = configuration;
 
-        var token = tokenHandler.CreateToken(descriptor);
-        return new StreamTicket(token, configuration.TicketTtlSeconds);
+            rsa = RSA.Create();
+            rsa.ImportFromPem(File.ReadAllText(configuration.PrivateKeyPath));
+
+            var key = new RsaSecurityKey(rsa);
+            signingCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
+        }
+
+        public StreamTicket IssueTicket(long? userId, string keyPrefix, long? maxBytes = null)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            var claims = new Dictionary<string, object> { ["prefix"] = keyPrefix };
+            if (userId != null)
+                claims["sub"] = userId.Value.ToString(CultureInfo.InvariantCulture);
+            if (maxBytes != null)
+                claims["maxBytes"] = maxBytes.Value.ToString(CultureInfo.InvariantCulture);
+
+            var descriptor = new SecurityTokenDescriptor
+            {
+                Issuer = configuration.Issuer,
+                Audience = configuration.Audience,
+                IssuedAt = now.UtcDateTime,
+                NotBefore = now.UtcDateTime,
+                Expires = now.AddSeconds(configuration.TicketTtlSeconds).UtcDateTime,
+                Claims = claims,
+                SigningCredentials = signingCredentials,
+            };
+
+            var token = tokenHandler.CreateToken(descriptor);
+            return new StreamTicket(token, configuration.TicketTtlSeconds);
+        }
+
+        public void Dispose() => rsa.Dispose();
     }
-
-    public void Dispose() => rsa.Dispose();
 }

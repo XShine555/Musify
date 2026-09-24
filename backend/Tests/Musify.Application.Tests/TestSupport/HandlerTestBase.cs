@@ -2,29 +2,30 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace Musify.Application.Tests.TestSupport;
-
-public abstract class HandlerTestBase : IAsyncLifetime
+namespace Musify.Application.Tests.TestSupport
 {
-    private TestDatabase database = null!;
-
-    protected TestDatabase Database => database;
-
-    public async ValueTask InitializeAsync() => database = await TestDatabase.CreateAsync();
-
-    public ValueTask DisposeAsync()
+    public abstract class HandlerTestBase : IAsyncLifetime
     {
-        GC.SuppressFinalize(this);
-        return database.DisposeAsync();
-    }
+        private TestDatabase database = null!;
 
-    protected static ILogger<T> NoOpLogger<T>() => NullLogger<T>.Instance;
+        protected TestDatabase Database => database;
 
-    protected async Task SeedAsync(params object[] entities)
-    {
-        foreach (var entity in entities)
-            Database.Add(entity);
+        public async ValueTask InitializeAsync() => database = await TestDatabase.CreateAsync();
 
-        await Database.SaveChangesAsync(CancellationToken.None);
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return database.DisposeAsync();
+        }
+
+        protected static ILogger<T> NoOpLogger<T>() => NullLogger<T>.Instance;
+
+        protected async Task SeedAsync(params object[] entities)
+        {
+            foreach (var entity in entities)
+                Database.Add(entity);
+
+            await Database.SaveChangesAsync(CancellationToken.None);
+        }
     }
 }

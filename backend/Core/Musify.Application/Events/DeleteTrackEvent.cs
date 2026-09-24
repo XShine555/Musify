@@ -1,5 +1,6 @@
-namespace Musify.Application.Events;
-
-public record DeleteTrackEvent(
-    Guid TrackId,
-    long UserId);
+namespace Musify.Application.Events
+{
+    public record DeleteTrackEvent(
+        Guid TrackId,
+        long UserId);
+}

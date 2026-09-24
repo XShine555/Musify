@@ -3,51 +3,52 @@ using Musify.Application.Tracks;
 using Musify.Domain.ValueObjects;
 using Xunit;
 
-namespace Musify.Application.Tests.Tracks;
-
-public sealed class GetTracksQueryHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Tracks
 {
-    private GetTracksQueryHandler CreateHandler() => new(Database);
-
-    [Fact]
-    public async Task Handle_NoNameFilter_ReturnsEveryTrackAUserOwns()
+    public sealed class GetTracksQueryHandlerTests : HandlerTestBase
     {
-        var owner = TestEntities.User();
-        var trackA = TestEntities.Track(owner, "Alpha");
-        var trackB = TestEntities.Track(owner, "Beta");
-        await SeedAsync(
-            owner, trackA, trackB);
+        private GetTracksQueryHandler CreateHandler() => new(Database);
 
-        var result = await CreateHandler().Handle(new GetTracksQuery(Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
-        Assert.Equal(2, result.TotalItemCount);
-        Assert.Equal(2, result.Items.Count);
-    }
+        [Fact]
+        public async Task Handle_NoNameFilter_ReturnsEveryTrackAUserOwns()
+        {
+            var owner = TestEntities.User();
+            var trackA = TestEntities.Track(owner, "Alpha");
+            var trackB = TestEntities.Track(owner, "Beta");
+            await SeedAsync(
+                owner, trackA, trackB);
 
-    [Fact]
-    public async Task Handle_NameFilter_ReturnsOnlyMatchingTracks()
-    {
-        var owner = TestEntities.User();
-        var match = TestEntities.Track(owner, "Bohemian Rhapsody");
-        var other = TestEntities.Track(owner, "Imagine");
-        await SeedAsync(
-            owner, match, other);
+            var result = await CreateHandler().Handle(new GetTracksQuery(Name: null, PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+            Assert.Equal(2, result.TotalItemCount);
+            Assert.Equal(2, result.Items.Count);
+        }
 
-        var result = await CreateHandler().Handle(new GetTracksQuery(Name: "rhapsody", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
-        var item = Assert.Single(result.Items);
-        Assert.Equal("Bohemian Rhapsody", item.Title);
-    }
+        [Fact]
+        public async Task Handle_NameFilter_ReturnsOnlyMatchingTracks()
+        {
+            var owner = TestEntities.User();
+            var match = TestEntities.Track(owner, "Bohemian Rhapsody");
+            var other = TestEntities.Track(owner, "Imagine");
+            await SeedAsync(
+                owner, match, other);
 
-    [Fact]
-    public async Task Handle_GenreFilter_ReturnsOnlyTracksWithThatTag()
-    {
-        var owner = TestEntities.User();
-        var rock = TestEntities.Track(owner, "Loud", tags: [Genre.Rock, Genre.Indie]);
-        var jazz = TestEntities.Track(owner, "Smooth", tags: [Genre.Jazz]);
-        await SeedAsync(
-            owner, rock, jazz);
+            var result = await CreateHandler().Handle(new GetTracksQuery(Name: "rhapsody", PageNumber: 1, PageSize: 10), TestContext.Current.CancellationToken);
+            var item = Assert.Single(result.Items);
+            Assert.Equal("Bohemian Rhapsody", item.Title);
+        }
 
-        var result = await CreateHandler().Handle(new GetTracksQuery(null, 1, 10, Genre.Indie), TestContext.Current.CancellationToken);
-        var item = Assert.Single(result.Items);
-        Assert.Equal("Loud", item.Title);
+        [Fact]
+        public async Task Handle_GenreFilter_ReturnsOnlyTracksWithThatTag()
+        {
+            var owner = TestEntities.User();
+            var rock = TestEntities.Track(owner, "Loud", tags: [Genre.Rock, Genre.Indie]);
+            var jazz = TestEntities.Track(owner, "Smooth", tags: [Genre.Jazz]);
+            await SeedAsync(
+                owner, rock, jazz);
+
+            var result = await CreateHandler().Handle(new GetTracksQuery(null, 1, 10, Genre.Indie), TestContext.Current.CancellationToken);
+            var item = Assert.Single(result.Items);
+            Assert.Equal("Loud", item.Title);
+        }
     }
 }

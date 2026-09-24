@@ -1,11 +1,12 @@
-namespace Musify.Application.Shared;
-
-public static class StorageKey
+namespace Musify.Application.Shared
 {
-    public static string Combine(params string[] segments)
+    public static class StorageKey
     {
-        return string.Join('/', segments
-            .Where(static s => !string.IsNullOrWhiteSpace(s))
-            .Select(static s => s.Trim().Trim('/', '\\')));
+        public static string Combine(params string[] segments)
+        {
+            return string.Join('/', segments
+                .Where(static s => !string.IsNullOrWhiteSpace(s))
+                .Select(static s => s.Trim().Trim('/', '\\')));
+        }
     }
 }

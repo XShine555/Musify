@@ -3,29 +3,30 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Events;
 using Musify.Infrastructure.MassTransit.Arguments;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Albums;
-
-internal class PublishAlbumPictureProcessingEventActivity(
-    IPublishEndpoint publishEndpoint,
-    ILogger<PublishAlbumPictureProcessingEventActivity> logger)
-    : IExecuteActivity<PublishAlbumPictureProcessingEventArguments>
+namespace Musify.Infrastructure.MassTransit.Activities.Albums
 {
-    public const string ExecuteEndpointName = "publish-album-picture-processing-event";
-
-    public async Task<ExecutionResult> Execute(ExecuteContext<PublishAlbumPictureProcessingEventArguments> executeContext)
+    internal class PublishAlbumPictureProcessingEventActivity(
+        IPublishEndpoint publishEndpoint,
+        ILogger<PublishAlbumPictureProcessingEventActivity> logger)
+        : IExecuteActivity<PublishAlbumPictureProcessingEventArguments>
     {
-        var arguments = executeContext.Arguments;
+        public const string ExecuteEndpointName = "publish-album-picture-processing-event";
 
-        await publishEndpoint.Publish(
-            new UpdateAlbumPictureEvent(
-                arguments.AlbumId,
-                arguments.Bucket,
-                arguments.FinalPictureKey,
-                arguments.Sizes),
-            executeContext.CancellationToken);
+        public async Task<ExecutionResult> Execute(ExecuteContext<PublishAlbumPictureProcessingEventArguments> executeContext)
+        {
+            var arguments = executeContext.Arguments;
 
-        logger.LogInformation("Published picture processing event for album {AlbumId}", arguments.AlbumId);
+            await publishEndpoint.Publish(
+                new UpdateAlbumPictureEvent(
+                    arguments.AlbumId,
+                    arguments.Bucket,
+                    arguments.FinalPictureKey,
+                    arguments.Sizes),
+                executeContext.CancellationToken);
 
-        return executeContext.Completed();
+            logger.LogInformation("Published picture processing event for album {AlbumId}", arguments.AlbumId);
+
+            return executeContext.Completed();
+        }
     }
 }

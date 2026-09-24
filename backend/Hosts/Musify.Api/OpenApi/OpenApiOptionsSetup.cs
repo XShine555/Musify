@@ -4,88 +4,89 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Musify.Api.Authentication;
 
-namespace Musify.Api.OpenApi;
-
-public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> options)
-    : IConfigureNamedOptions<OpenApiOptions>
+namespace Musify.Api.OpenApi
 {
-    internal const string SecuritySchemeId = "OAuth2";
-
-    private readonly AuthenticationConfiguration configuration = options.Value;
-
-    public void Configure(string? name, OpenApiOptions options) => Configure(options);
-
-    public void Configure(OpenApiOptions options)
+    public sealed class OpenApiOptionsSetup(IOptions<AuthenticationConfiguration> options)
+        : IConfigureNamedOptions<OpenApiOptions>
     {
-        options.AddDocumentTransformer((document, _, _) =>
+        internal const string SecuritySchemeId = "OAuth2";
+
+        private readonly AuthenticationConfiguration configuration = options.Value;
+
+        public void Configure(string? name, OpenApiOptions options) => Configure(options);
+
+        public void Configure(OpenApiOptions options)
         {
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-            document.Components.SecuritySchemes[SecuritySchemeId] = new OpenApiSecurityScheme
+            options.AddDocumentTransformer((document, _, _) =>
             {
-                Type = SecuritySchemeType.OAuth2,
-                Flows = new OpenApiOAuthFlows
+                document.Components ??= new OpenApiComponents();
+                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                document.Components.SecuritySchemes[SecuritySchemeId] = new OpenApiSecurityScheme
                 {
-                    AuthorizationCode = new OpenApiOAuthFlow
+                    Type = SecuritySchemeType.OAuth2,
+                    Flows = new OpenApiOAuthFlows
                     {
-                        AuthorizationUrl = new Uri(configuration.AuthorizationEndpoint),
-                        TokenUrl = new Uri(configuration.TokenEndpoint),
-                        Scopes = configuration.Scopes.ToDictionary(scope => scope, scope => scope),
+                        AuthorizationCode = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new Uri(configuration.AuthorizationEndpoint),
+                            TokenUrl = new Uri(configuration.TokenEndpoint),
+                            Scopes = configuration.Scopes.ToDictionary(scope => scope, scope => scope),
+                        },
                     },
-                },
-            };
+                };
 
-            return Task.CompletedTask;
-        });
-
-        options.AddSchemaTransformer((schema, context, _) =>
-        {
-            // Every long the API returns is a user id, serialized as a string (JS loses precision above 2^53).
-            // Request DTOs only carry byte sizes, which may be sent as numbers or strings.
-            if (context.JsonPropertyInfo is { } property
-                && (property.PropertyType == typeof(long) || property.PropertyType == typeof(long?)))
-            {
-                var isRequest = property.DeclaringType?.Name.EndsWith("Request", StringComparison.Ordinal) == true;
-                schema.Type = isRequest ? JsonSchemaType.Integer | JsonSchemaType.String : JsonSchemaType.String;
-                if (property.PropertyType == typeof(long?))
-                    schema.Type |= JsonSchemaType.Null;
-                schema.Format = isRequest ? "int64" : null;
-            }
-
-            return Task.CompletedTask;
-        });
-
-        options.AddOperationTransformer((operation, context, _) =>
-        {
-            // Route parameters constrained with :long are user ids, which travel as strings like every other long.
-            foreach (var parameter in operation.Parameters?.OfType<OpenApiParameter>() ?? [])
-            {
-                if (parameter.Schema is OpenApiSchema { Type: JsonSchemaType.Integer, Format: "int64" } schema)
-                {
-                    schema.Type = JsonSchemaType.String;
-                    schema.Format = null;
-                }
-            }
-
-            var requiresAuthorization = context.Description.ActionDescriptor.EndpointMetadata
-                .OfType<IAuthorizeData>()
-                .Any();
-
-            var allowsAnonymous = context.Description.ActionDescriptor.EndpointMetadata
-                .OfType<IAllowAnonymous>()
-                .Any();
-
-            if (!requiresAuthorization || allowsAnonymous)
                 return Task.CompletedTask;
-
-            operation.Security ??= new List<OpenApiSecurityRequirement>();
-            operation.Security.Add(new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference(SecuritySchemeId, context.Document)] =
-                    configuration.Scopes.ToList(),
             });
 
-            return Task.CompletedTask;
-        });
+            options.AddSchemaTransformer((schema, context, _) =>
+            {
+                // Every long the API returns is a user id, serialized as a string (JS loses precision above 2^53).
+                // Request DTOs only carry byte sizes, which may be sent as numbers or strings.
+                if (context.JsonPropertyInfo is { } property
+                    && (property.PropertyType == typeof(long) || property.PropertyType == typeof(long?)))
+                {
+                    var isRequest = property.DeclaringType?.Name.EndsWith("Request", StringComparison.Ordinal) == true;
+                    schema.Type = isRequest ? JsonSchemaType.Integer | JsonSchemaType.String : JsonSchemaType.String;
+                    if (property.PropertyType == typeof(long?))
+                        schema.Type |= JsonSchemaType.Null;
+                    schema.Format = isRequest ? "int64" : null;
+                }
+
+                return Task.CompletedTask;
+            });
+
+            options.AddOperationTransformer((operation, context, _) =>
+            {
+                // Route parameters constrained with :long are user ids, which travel as strings like every other long.
+                foreach (var parameter in operation.Parameters?.OfType<OpenApiParameter>() ?? [])
+                {
+                    if (parameter.Schema is OpenApiSchema { Type: JsonSchemaType.Integer, Format: "int64" } schema)
+                    {
+                        schema.Type = JsonSchemaType.String;
+                        schema.Format = null;
+                    }
+                }
+
+                var requiresAuthorization = context.Description.ActionDescriptor.EndpointMetadata
+                    .OfType<IAuthorizeData>()
+                    .Any();
+
+                var allowsAnonymous = context.Description.ActionDescriptor.EndpointMetadata
+                    .OfType<IAllowAnonymous>()
+                    .Any();
+
+                if (!requiresAuthorization || allowsAnonymous)
+                    return Task.CompletedTask;
+
+                operation.Security ??= new List<OpenApiSecurityRequirement>();
+                operation.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference(SecuritySchemeId, context.Document)] =
+                        configuration.Scopes.ToList(),
+                });
+
+                return Task.CompletedTask;
+            });
+        }
     }
 }

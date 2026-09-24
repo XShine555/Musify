@@ -1,17 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Musify.Application.Configuration;
-
-
-public sealed class PlaybackConfiguration : IConfigurationOptions
+namespace Musify.Application.Configuration
 {
-    public static string SectionName => "Playback";
 
-    public bool AllowAnonymousListening { get; set; }
+    public sealed class PlaybackConfiguration : IConfigurationOptions
+    {
+        public static string SectionName => "Playback";
 
-    [Range(0, 3600)]
-    public int AnonymousFragmentSeconds { get; set; }
+        public bool AllowAnonymousListening { get; set; }
 
-    [Range(1, int.MaxValue)]
-    public int EstimatedAudioBytesPerSecond { get; set; } = 16_000;
+        [Range(0, 3600)]
+        public int AnonymousFragmentSeconds { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int EstimatedAudioBytesPerSecond { get; set; } = 16_000;
+    }
 }

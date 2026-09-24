@@ -1,27 +1,28 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Musify.Application.Configuration;
 
-namespace Musify.Api.Authentication;
-
-public static class AuthenticationExtensions
+namespace Musify.Api.Authentication
 {
-    public static IServiceCollection AddAuthenticationConfiguration(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static class AuthenticationExtensions
     {
-        services.AddValidatedOptions<AuthenticationConfiguration>(configuration);
+        public static IServiceCollection AddAuthenticationConfiguration(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddValidatedOptions<AuthenticationConfiguration>(configuration);
 
-        services.AddMemoryCache();
-        services.AddHttpClient();
-        services.AddScoped<JwtBearerEventsHandler>();
-        services.ConfigureOptions<JwtBearerOptionsSetup>();
+            services.AddMemoryCache();
+            services.AddHttpClient();
+            services.AddScoped<JwtBearerEventsHandler>();
+            services.ConfigureOptions<JwtBearerOptionsSetup>();
 
-        services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer();
+            services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer();
 
-        services.AddAuthorization();
+            services.AddAuthorization();
 
-        return services;
+            return services;
+        }
     }
 }

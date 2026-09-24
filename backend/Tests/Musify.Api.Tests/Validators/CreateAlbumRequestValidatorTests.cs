@@ -3,83 +3,84 @@ using Musify.Api.Validators;
 using Musify.Api.Validators.Albums;
 using Xunit;
 
-namespace Musify.Api.Tests.Validators;
-
-public sealed class CreateAlbumRequestValidatorTests
+namespace Musify.Api.Tests.Validators
 {
-    private readonly CreateAlbumRequestValidator validator = new();
-
-    [Fact]
-    public void Validate_ValidRequest_Passes()
+    public sealed class CreateAlbumRequestValidatorTests
     {
-        var result = validator.Validate(new CreateAlbumRequest("My Album", "A short description", 2024, Guid.NewGuid()));
+        private readonly CreateAlbumRequestValidator validator = new();
 
-        Assert.True(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ValidRequest_Passes()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("My Album", "A short description", 2024, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_ValidRequestWithoutOptionalFields_Passes()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("My Album", null, null, Guid.NewGuid()));
+            Assert.True(result.IsValid);
+        }
 
-        Assert.True(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ValidRequestWithoutOptionalFields_Passes()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("My Album", null, null, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_BlankTitle_Fails()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("", null, null, Guid.NewGuid()));
+            Assert.True(result.IsValid);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateAlbumRequest.Title));
-    }
+        [Fact]
+        public void Validate_BlankTitle_Fails()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("", null, null, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_TitleOverMaxLength_Fails()
-    {
-        var result = validator.Validate(new CreateAlbumRequest(new string('a', 201), null, null, Guid.NewGuid()));
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateAlbumRequest.Title));
+        }
 
-        Assert.False(result.IsValid);
-    }
+        [Fact]
+        public void Validate_TitleOverMaxLength_Fails()
+        {
+            var result = validator.Validate(new CreateAlbumRequest(new string('a', 201), null, null, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_ReleaseYearBeforeTheEarliestBoundary_Fails()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.EarliestReleaseYear - 1, Guid.NewGuid()));
+            Assert.False(result.IsValid);
+        }
 
-        Assert.False(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ReleaseYearBeforeTheEarliestBoundary_Fails()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.EarliestReleaseYear - 1, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_ReleaseYearAtTheEarliestBoundary_Passes()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.EarliestReleaseYear, Guid.NewGuid()));
+            Assert.False(result.IsValid);
+        }
 
-        Assert.True(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ReleaseYearAtTheEarliestBoundary_Passes()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.EarliestReleaseYear, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_ReleaseYearAtTheLatestBoundary_Passes()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.LatestReleaseYear, Guid.NewGuid()));
+            Assert.True(result.IsValid);
+        }
 
-        Assert.True(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ReleaseYearAtTheLatestBoundary_Passes()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.LatestReleaseYear, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_ReleaseYearPastTheLatestBoundary_Fails()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.LatestReleaseYear + 1, Guid.NewGuid()));
+            Assert.True(result.IsValid);
+        }
 
-        Assert.False(result.IsValid);
-    }
+        [Fact]
+        public void Validate_ReleaseYearPastTheLatestBoundary_Fails()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("Title", null, Limits.LatestReleaseYear + 1, Guid.NewGuid()));
 
-    [Fact]
-    public void Validate_EmptyPictureIntentId_Fails()
-    {
-        var result = validator.Validate(new CreateAlbumRequest("Title", null, null, Guid.Empty));
+            Assert.False(result.IsValid);
+        }
 
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateAlbumRequest.PictureIntentId));
+        [Fact]
+        public void Validate_EmptyPictureIntentId_Fails()
+        {
+            var result = validator.Validate(new CreateAlbumRequest("Title", null, null, Guid.Empty));
+
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateAlbumRequest.PictureIntentId));
+        }
     }
 }

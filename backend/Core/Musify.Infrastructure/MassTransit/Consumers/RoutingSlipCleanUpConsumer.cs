@@ -3,41 +3,42 @@ using MassTransit.Courier.Contracts;
 using Microsoft.Extensions.Logging;
 using Musify.Infrastructure.MassTransit.RoutingSlip;
 
-namespace Musify.Infrastructure.MassTransit.Consumers;
-
-public class RoutingSlipCleanUpConsumer(
-    ILogger<RoutingSlipCleanUpConsumer> logger) :
-    IConsumer<RoutingSlipCompleted>,
-    IConsumer<RoutingSlipFaulted>
+namespace Musify.Infrastructure.MassTransit.Consumers
 {
-    public const string QueueName = "routing-slip-clean-up";
-
-    public Task Consume(ConsumeContext<RoutingSlipCompleted> context)
-        => DeleteFolder(context.Message.Variables);
-
-    public Task Consume(ConsumeContext<RoutingSlipFaulted> context)
-        => DeleteFolder(context.Message.Variables);
-
-    private Task DeleteFolder(IDictionary<string, object> variables)
+    public class RoutingSlipCleanUpConsumer(
+        ILogger<RoutingSlipCleanUpConsumer> logger) :
+        IConsumer<RoutingSlipCompleted>,
+        IConsumer<RoutingSlipFaulted>
     {
-        if (!variables.TryGetValue(RoutingSlipVariableNames.Workflow.TemporalDirectory, out var pathObject))
-            return Task.CompletedTask;
+        public const string QueueName = "routing-slip-clean-up";
 
-        var pathString = pathObject.ToString();
+        public Task Consume(ConsumeContext<RoutingSlipCompleted> context)
+            => DeleteFolder(context.Message.Variables);
 
-        if (string.IsNullOrEmpty(pathString))
-            return Task.CompletedTask;
+        public Task Consume(ConsumeContext<RoutingSlipFaulted> context)
+            => DeleteFolder(context.Message.Variables);
 
-        try
+        private Task DeleteFolder(IDictionary<string, object> variables)
         {
-            Directory.Delete(pathString, recursive: true);
-            logger.LogInformation("Deleted temporal directory at path {Path}", pathString);
-        }
-        catch (DirectoryNotFoundException)
-        {
-            logger.LogWarning("Temporal directory at path {Path} was not found for deletion", pathString);
-        }
+            if (!variables.TryGetValue(RoutingSlipVariableNames.Workflow.TemporalDirectory, out var pathObject))
+                return Task.CompletedTask;
 
-        return Task.CompletedTask;
+            var pathString = pathObject.ToString();
+
+            if (string.IsNullOrEmpty(pathString))
+                return Task.CompletedTask;
+
+            try
+            {
+                Directory.Delete(pathString, recursive: true);
+                logger.LogInformation("Deleted temporal directory at path {Path}", pathString);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                logger.LogWarning("Temporal directory at path {Path} was not found for deletion", pathString);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

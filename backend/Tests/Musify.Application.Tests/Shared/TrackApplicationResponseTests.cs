@@ -2,31 +2,32 @@ using Musify.Application.Tests.TestSupport;
 using Musify.Application.Tracks.Responses;
 using Xunit;
 
-namespace Musify.Application.Tests.Shared;
-
-public sealed class TrackApplicationResponseTests
+namespace Musify.Application.Tests.Shared
 {
-    [Fact]
-    public void FromEntity_UsesOwnerNameAsArtist()
+    public sealed class TrackApplicationResponseTests
     {
-        var owner = TestEntities.User(1, "The Owner");
-        var track = TestEntities.Track(owner);
+        [Fact]
+        public void FromEntity_UsesOwnerNameAsArtist()
+        {
+            var owner = TestEntities.User(1, "The Owner");
+            var track = TestEntities.Track(owner);
 
-        var response = TrackApplicationResponse.FromEntity(track, listensCount: 3);
+            var response = TrackApplicationResponse.FromEntity(track, listensCount: 3);
 
-        Assert.Equal("The Owner", response.Artist);
-        Assert.Equal(owner.Id, response.OwnerUserId);
-        Assert.Equal(3, response.ListensCount);
-        Assert.False(response.IsExplicit);
-    }
+            Assert.Equal("The Owner", response.Artist);
+            Assert.Equal(owner.Id, response.OwnerUserId);
+            Assert.Equal(3, response.ListensCount);
+            Assert.False(response.IsExplicit);
+        }
 
-    [Fact]
-    public void FromEntity_CopiesExplicitFlag()
-    {
-        var track = TestEntities.Track(TestEntities.User(), isExplicit: true);
+        [Fact]
+        public void FromEntity_CopiesExplicitFlag()
+        {
+            var track = TestEntities.Track(TestEntities.User(), isExplicit: true);
 
-        var response = TrackApplicationResponse.FromEntity(track, listensCount: 0);
+            var response = TrackApplicationResponse.FromEntity(track, listensCount: 0);
 
-        Assert.True(response.IsExplicit);
+            Assert.True(response.IsExplicit);
+        }
     }
 }

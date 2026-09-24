@@ -1,6 +1,7 @@
-namespace Musify.Application.Configuration;
-
-public interface IConfigurationOptions
+namespace Musify.Application.Configuration
 {
-    public static abstract string SectionName { get; }
+    public interface IConfigurationOptions
+    {
+        public static abstract string SectionName { get; }
+    }
 }

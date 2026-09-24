@@ -7,135 +7,136 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Musify.Application.Users;
 
-namespace Musify.Api.Authentication;
-
-public sealed class JwtBearerEventsHandler(
-    IMediator mediator,
-    IMemoryCache cache,
-    IHttpClientFactory httpClientFactory,
-    AuthenticationConfiguration authenticationConfiguration,
-    ILogger<JwtBearerEventsHandler> logger) : JwtBearerEvents
+namespace Musify.Api.Authentication
 {
-    private static readonly TimeSpan UserSyncCacheTtl = TimeSpan.FromMinutes(15);
-
-    private sealed record UserInfoResponse(
-        [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("preferred_username")] string? PreferredUsername,
-        [property: JsonPropertyName("email")] string? Email,
-        [property: JsonPropertyName("given_name")] string? GivenName,
-        [property: JsonPropertyName("family_name")] string? FamilyName,
-        [property: JsonPropertyName("picture")] string? Picture);
-
-    public override async Task TokenValidated(TokenValidatedContext context)
+    public sealed class JwtBearerEventsHandler(
+        IMediator mediator,
+        IMemoryCache cache,
+        IHttpClientFactory httpClientFactory,
+        AuthenticationConfiguration authenticationConfiguration,
+        ILogger<JwtBearerEventsHandler> logger) : JwtBearerEvents
     {
-        var principal = context.Principal!;
+        private static readonly TimeSpan UserSyncCacheTtl = TimeSpan.FromMinutes(15);
 
-        var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(rawId, out var userId))
+        private sealed record UserInfoResponse(
+            [property: JsonPropertyName("name")] string? Name,
+            [property: JsonPropertyName("preferred_username")] string? PreferredUsername,
+            [property: JsonPropertyName("email")] string? Email,
+            [property: JsonPropertyName("given_name")] string? GivenName,
+            [property: JsonPropertyName("family_name")] string? FamilyName,
+            [property: JsonPropertyName("picture")] string? Picture);
+
+        public override async Task TokenValidated(TokenValidatedContext context)
         {
-            logger.LogWarning("Token subject '{Subject}' is not a numeric id; skipping user provisioning", rawId);
-            return;
-        }
+            var principal = context.Principal!;
 
-        var cacheKey = $"user-synced:{userId}";
-        if (cache.TryGetValue(cacheKey, out _))
-            return;
-
-        var userInfo = await FetchUserInfoAsync(context, context.HttpContext.RequestAborted);
-
-        var username = userInfo?.Name
-            ?? userInfo?.PreferredUsername
-            ?? principal.FindFirstValue("name")
-            ?? principal.FindFirstValue(ClaimTypes.Name)
-            ?? principal.FindFirstValue("preferred_username")
-            ?? userInfo?.Email
-            ?? principal.FindFirstValue("email")
-            ?? principal.FindFirstValue(ClaimTypes.Email)
-            ?? rawId!;
-
-        var firstName = userInfo?.GivenName
-            ?? principal.FindFirstValue("given_name")
-            ?? principal.FindFirstValue(ClaimTypes.GivenName);
-        var lastName = userInfo?.FamilyName
-            ?? principal.FindFirstValue("family_name")
-            ?? principal.FindFirstValue(ClaimTypes.Surname);
-        var profilePictureUrl = userInfo?.Picture ?? principal.FindFirstValue("picture");
-
-        try
-        {
-            await mediator.Send(
-                new SyncUserCommand(userId, username, firstName, lastName, profilePictureUrl),
-                context.HttpContext.RequestAborted);
-
-            cache.Set(cacheKey, true, UserSyncCacheTtl);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Failed to sync user {UserId} during token validation", userId);
-        }
-    }
-
-    private async Task<UserInfoResponse?> FetchUserInfoAsync(
-        TokenValidatedContext context, CancellationToken cancellationToken)
-    {
-        var authorizationHeader = context.HttpContext.Request.Headers.Authorization.ToString();
-        if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return null;
-
-        var accessToken = authorizationHeader["Bearer ".Length..].Trim();
-        if (accessToken.Length == 0)
-            return null;
-
-        try
-        {
-            var userInfoEndpoint = await ResolveUserInfoEndpointAsync(context, cancellationToken);
-
-            var client = httpClientFactory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, userInfoEndpoint)
+            var rawId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!long.TryParse(rawId, out var userId))
             {
-                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
-            };
-
-            using var response = await client.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                logger.LogDebug("Userinfo request returned {StatusCode}", response.StatusCode);
-                return null;
+                logger.LogWarning("Token subject '{Subject}' is not a numeric id; skipping user provisioning", rawId);
+                return;
             }
 
-            return await response.Content.ReadFromJsonAsync<UserInfoResponse>(cancellationToken);
+            var cacheKey = $"user-synced:{userId}";
+            if (cache.TryGetValue(cacheKey, out _))
+                return;
+
+            var userInfo = await FetchUserInfoAsync(context, context.HttpContext.RequestAborted);
+
+            var username = userInfo?.Name
+                ?? userInfo?.PreferredUsername
+                ?? principal.FindFirstValue("name")
+                ?? principal.FindFirstValue(ClaimTypes.Name)
+                ?? principal.FindFirstValue("preferred_username")
+                ?? userInfo?.Email
+                ?? principal.FindFirstValue("email")
+                ?? principal.FindFirstValue(ClaimTypes.Email)
+                ?? rawId!;
+
+            var firstName = userInfo?.GivenName
+                ?? principal.FindFirstValue("given_name")
+                ?? principal.FindFirstValue(ClaimTypes.GivenName);
+            var lastName = userInfo?.FamilyName
+                ?? principal.FindFirstValue("family_name")
+                ?? principal.FindFirstValue(ClaimTypes.Surname);
+            var profilePictureUrl = userInfo?.Picture ?? principal.FindFirstValue("picture");
+
+            try
+            {
+                await mediator.Send(
+                    new SyncUserCommand(userId, username, firstName, lastName, profilePictureUrl),
+                    context.HttpContext.RequestAborted);
+
+                cache.Set(cacheKey, true, UserSyncCacheTtl);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to sync user {UserId} during token validation", userId);
+            }
         }
-        catch (Exception exception)
+
+        private async Task<UserInfoResponse?> FetchUserInfoAsync(
+            TokenValidatedContext context, CancellationToken cancellationToken)
         {
-            logger.LogWarning(exception, "Failed to fetch userinfo from identity provider");
-            return null;
-        }
-    }
+            var authorizationHeader = context.HttpContext.Request.Headers.Authorization.ToString();
+            if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                return null;
 
-    private async Task<string> ResolveUserInfoEndpointAsync(
-        TokenValidatedContext context, CancellationToken cancellationToken)
-    {
-        var configurationManager = context.Options.ConfigurationManager;
-        if (configurationManager != null)
+            var accessToken = authorizationHeader["Bearer ".Length..].Trim();
+            if (accessToken.Length == 0)
+                return null;
+
+            try
+            {
+                var userInfoEndpoint = await ResolveUserInfoEndpointAsync(context, cancellationToken);
+
+                var client = httpClientFactory.CreateClient();
+                using var request = new HttpRequestMessage(HttpMethod.Get, userInfoEndpoint)
+                {
+                    Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
+                };
+
+                using var response = await client.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogDebug("Userinfo request returned {StatusCode}", response.StatusCode);
+                    return null;
+                }
+
+                return await response.Content.ReadFromJsonAsync<UserInfoResponse>(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Failed to fetch userinfo from identity provider");
+                return null;
+            }
+        }
+
+        private async Task<string> ResolveUserInfoEndpointAsync(
+            TokenValidatedContext context, CancellationToken cancellationToken)
         {
-            var configuration = await configurationManager.GetConfigurationAsync(cancellationToken);
-            if (configuration is OpenIdConnectConfiguration { UserInfoEndpoint: { Length: > 0 } endpoint })
-                return endpoint;
+            var configurationManager = context.Options.ConfigurationManager;
+            if (configurationManager != null)
+            {
+                var configuration = await configurationManager.GetConfigurationAsync(cancellationToken);
+                if (configuration is OpenIdConnectConfiguration { UserInfoEndpoint: { Length: > 0 } endpoint })
+                    return endpoint;
+            }
+
+            return $"{authenticationConfiguration.IssuerAddress.TrimEnd('/')}/oidc/v1/userinfo";
         }
 
-        return $"{authenticationConfiguration.IssuerAddress.TrimEnd('/')}/oidc/v1/userinfo";
-    }
+        public override Task AuthenticationFailed(AuthenticationFailedContext context)
+        {
+            logger.LogWarning(context.Exception, "JWT authentication failed");
+            return Task.CompletedTask;
+        }
 
-    public override Task AuthenticationFailed(AuthenticationFailedContext context)
-    {
-        logger.LogWarning(context.Exception, "JWT authentication failed");
-        return Task.CompletedTask;
-    }
-
-    public override Task Challenge(JwtBearerChallengeContext context)
-    {
-        if (context.AuthenticateFailure != null)
-            logger.LogWarning("JWT challenge: {Error} - {Description}", context.Error, context.ErrorDescription);
-        return Task.CompletedTask;
+        public override Task Challenge(JwtBearerChallengeContext context)
+        {
+            if (context.AuthenticateFailure != null)
+                logger.LogWarning("JWT challenge: {Error} - {Description}", context.Error, context.ErrorDescription);
+            return Task.CompletedTask;
+        }
     }
 }

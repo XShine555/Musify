@@ -1,9 +1,10 @@
 using Musify.Application.Shared;
 
-namespace Musify.Application.Events;
-
-public record UpdateAlbumPictureEvent(
-    Guid AlbumId,
-    string Bucket,
-    string SourceKey,
-    ImageSizes Sizes);
+namespace Musify.Application.Events
+{
+    public record UpdateAlbumPictureEvent(
+        Guid AlbumId,
+        string Bucket,
+        string SourceKey,
+        ImageSizes Sizes);
+}

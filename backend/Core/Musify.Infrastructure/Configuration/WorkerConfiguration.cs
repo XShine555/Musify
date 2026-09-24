@@ -1,18 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using Musify.Application.Configuration;
 
-namespace Musify.Infrastructure.Configuration;
-
-public class WorkerConfiguration : IConfigurationOptions
+namespace Musify.Infrastructure.Configuration
 {
-    public static string SectionName => "Workers";
+    public class WorkerConfiguration : IConfigurationOptions
+    {
+        public static string SectionName => "Workers";
 
-    [Required]
-    public WorkerRoutes Routes { get; set; } = new WorkerRoutes();
-}
+        [Required]
+        public WorkerRoutes Routes { get; set; } = new WorkerRoutes();
+    }
 
-public class WorkerRoutes
-{
-    [Required]
-    public string TemporaryFilesDirectory { get; set; } = Path.GetTempPath();
+    public class WorkerRoutes
+    {
+        [Required]
+        public string TemporaryFilesDirectory { get; set; } = Path.GetTempPath();
+    }
 }

@@ -1,9 +1,10 @@
-namespace Musify.Domain.ValueObjects;
-
-public enum UploadIntentPurpose
+namespace Musify.Domain.ValueObjects
 {
-    PlayListPicture,
-    TrackPicture,
-    TrackAudio,
-    AlbumPicture,
+    public enum UploadIntentPurpose
+    {
+        PlayListPicture,
+        TrackPicture,
+        TrackAudio,
+        AlbumPicture,
+    }
 }

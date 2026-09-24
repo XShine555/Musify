@@ -1,20 +1,21 @@
 using FluentValidation;
 using Musify.Api.DataTransferObjects;
 
-namespace Musify.Api.Validators;
-
-public sealed class AddTracksRequestValidator : AbstractValidator<AddTracksRequest>
+namespace Musify.Api.Validators
 {
-    public const int MaxTracksPerRequest = 500;
-
-    public AddTracksRequestValidator()
+    public sealed class AddTracksRequestValidator : AbstractValidator<AddTracksRequest>
     {
-        RuleFor(x => x.TrackIds)
-            .NotEmpty()
-            .Must(ids => ids.Count <= MaxTracksPerRequest)
-            .WithMessage($"At most {MaxTracksPerRequest} tracks can be added at once.");
+        public const int MaxTracksPerRequest = 500;
 
-        RuleForEach(x => x.TrackIds)
-            .NotEmpty();
+        public AddTracksRequestValidator()
+        {
+            RuleFor(x => x.TrackIds)
+                .NotEmpty()
+                .Must(ids => ids.Count <= MaxTracksPerRequest)
+                .WithMessage($"At most {MaxTracksPerRequest} tracks can be added at once.");
+
+            RuleForEach(x => x.TrackIds)
+                .NotEmpty();
+        }
     }
 }

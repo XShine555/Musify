@@ -1,6 +1,7 @@
-namespace Musify.Infrastructure.MassTransit.Arguments;
-
-public record TransferFilesToBucketArguments(
-    string DestinationBucket,
-    string SourceDirectoryVariable,
-    string DestinationKey);
+namespace Musify.Infrastructure.MassTransit.Arguments
+{
+    public record TransferFilesToBucketArguments(
+        string DestinationBucket,
+        string SourceDirectoryVariable,
+        string DestinationKey);
+}

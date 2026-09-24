@@ -3,44 +3,45 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Musify.Domain.Abstractions;
 using Musify.Domain.ValueObjects;
 
-namespace Musify.Domain.Entities;
-
-[Table("Tracks")]
-public class Track : IAuditable, IHasLifeCycle, IOwnedEntity
+namespace Musify.Domain.Entities
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    [Table("Tracks")]
+    public class Track : IAuditable, IHasLifeCycle, IOwnedEntity
+    {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-    [MaxLength(200)]
-    public required string Title { get; set; }
+        [MaxLength(200)]
+        public required string Title { get; set; }
 
-    [MaxLength(200)]
-    public required string NormalizedTitle { get; set; }
+        [MaxLength(200)]
+        public required string NormalizedTitle { get; set; }
 
-    public double DurationSeconds { get; set; }
+        public double DurationSeconds { get; set; }
 
-    public required long OwnerUserId { get; set; }
+        public required long OwnerUserId { get; set; }
 
-    [ForeignKey(nameof(OwnerUserId))]
-    public User Owner { get; set; } = null!;
+        [ForeignKey(nameof(OwnerUserId))]
+        public User Owner { get; set; } = null!;
 
-    public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
+        public LifeCycleStatus LifeCycleStatus { get; set; } = LifeCycleStatus.Active;
 
-    public bool IsExplicit { get; set; }
+        public bool IsExplicit { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public TrackPictures Pictures { get; set; } = new();
+        public TrackPictures Pictures { get; set; } = new();
 
-    public TrackAudio Audio { get; set; } = new();
+        public TrackAudio Audio { get; set; } = new();
 
-    public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
+        public ICollection<PlayListHasTrack> PlayListTracks { get; set; } = new List<PlayListHasTrack>();
 
-    public ICollection<AlbumHasTrack> AlbumTracks { get; set; } = new List<AlbumHasTrack>();
+        public ICollection<AlbumHasTrack> AlbumTracks { get; set; } = new List<AlbumHasTrack>();
 
-    public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
+        public ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
 
-    public ICollection<TrackTag> Tags { get; set; } = new List<TrackTag>();
+        public ICollection<TrackTag> Tags { get; set; } = new List<TrackTag>();
+    }
 }

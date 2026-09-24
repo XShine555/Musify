@@ -1,58 +1,59 @@
 using MassTransit;
 using Musify.Application.Events;
 
-namespace Musify.Infrastructure.MassTransit.Sagas;
-
-public sealed class AlbumProcessingStateMachine : MassTransitStateMachine<AlbumProcessingState>
+namespace Musify.Infrastructure.MassTransit.Sagas
 {
-    public State Processing { get; private set; } = null!;
-    public State Failed { get; private set; } = null!;
-
-    public Event<CreateAlbumResourcesEvent> ProcessingStarted { get; private set; } = null!;
-    public Event<AlbumPictureProcessed> PictureProcessed { get; private set; } = null!;
-    public Event<AlbumPictureProcessingFailed> PictureFailed { get; private set; } = null!;
-
-    public AlbumProcessingStateMachine()
+    public sealed class AlbumProcessingStateMachine : MassTransitStateMachine<AlbumProcessingState>
     {
-        InstanceState(state => state.CurrentState);
+        public State Processing { get; private set; } = null!;
+        public State Failed { get; private set; } = null!;
 
-        Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.AlbumId));
-        Event(() => PictureProcessed, config =>
+        public Event<CreateAlbumResourcesEvent> ProcessingStarted { get; private set; } = null!;
+        public Event<AlbumPictureProcessed> PictureProcessed { get; private set; } = null!;
+        public Event<AlbumPictureProcessingFailed> PictureFailed { get; private set; } = null!;
+
+        public AlbumProcessingStateMachine()
         {
-            config.CorrelateById(context => context.Message.AlbumId);
-            config.OnMissingInstance(instance => instance.Discard());
-        });
-        Event(() => PictureFailed, config =>
-        {
-            config.CorrelateById(context => context.Message.AlbumId);
-            config.OnMissingInstance(instance => instance.Discard());
-        });
+            InstanceState(state => state.CurrentState);
 
-        Initially(
-            When(ProcessingStarted)
-                .Then(context =>
-                {
-                    context.Saga.CreatedAt = DateTime.UtcNow;
-                    context.Saga.UpdatedAt = DateTime.UtcNow;
-                    context.Saga.Bucket = context.Message.Bucket;
-                    context.Saga.PictureKey = context.Message.PictureDestinationKey;
-                })
-                .TransitionTo(Processing));
+            Event(() => ProcessingStarted, config => config.CorrelateById(context => context.Message.AlbumId));
+            Event(() => PictureProcessed, config =>
+            {
+                config.CorrelateById(context => context.Message.AlbumId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
+            Event(() => PictureFailed, config =>
+            {
+                config.CorrelateById(context => context.Message.AlbumId);
+                config.OnMissingInstance(instance => instance.Discard());
+            });
 
-        During(Processing,
-            When(PictureProcessed).Finalize(),
-            When(PictureFailed)
-                .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
-                .TransitionTo(Failed)
-                .Publish(context => new AlbumProcessingFailed(
-                    context.Saga.CorrelationId,
-                    context.Saga.Bucket,
-                    context.Saga.PictureKey)));
+            Initially(
+                When(ProcessingStarted)
+                    .Then(context =>
+                    {
+                        context.Saga.CreatedAt = DateTime.UtcNow;
+                        context.Saga.UpdatedAt = DateTime.UtcNow;
+                        context.Saga.Bucket = context.Message.Bucket;
+                        context.Saga.PictureKey = context.Message.PictureDestinationKey;
+                    })
+                    .TransitionTo(Processing));
 
-        During(Failed,
-            Ignore(PictureProcessed),
-            Ignore(PictureFailed));
+            During(Processing,
+                When(PictureProcessed).Finalize(),
+                When(PictureFailed)
+                    .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
+                    .TransitionTo(Failed)
+                    .Publish(context => new AlbumProcessingFailed(
+                        context.Saga.CorrelationId,
+                        context.Saga.Bucket,
+                        context.Saga.PictureKey)));
 
-        SetCompletedWhenFinalized();
+            During(Failed,
+                Ignore(PictureProcessed),
+                Ignore(PictureFailed));
+
+            SetCompletedWhenFinalized();
+        }
     }
 }

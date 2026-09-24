@@ -5,59 +5,60 @@ using Musify.Application.Tests.TestSupport;
 using NSubstitute;
 using Xunit;
 
-namespace Musify.Application.Tests.Services;
-
-public sealed class TrackStreamIssuerTests
+namespace Musify.Application.Tests.Services
 {
-    private readonly IStreamTicketService ticketService = Substitute.For<IStreamTicketService>();
-
-    public TrackStreamIssuerTests() =>
-        ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("signed-token", 120));
-
-    private TrackStreamIssuer CreateIssuer(PlaybackConfiguration? playback = null) => new(
-        ticketService,
-        TestConfigurations.Track(),
-        TestConfigurations.StreamGateway("https://stream.musify.test/"),
-        playback ?? TestConfigurations.Playback());
-
-    [Fact]
-    public void Issue_BuildsManifestUrlAndCarriesTheListenId()
+    public sealed class TrackStreamIssuerTests
     {
-        var listenId = Guid.NewGuid();
+        private readonly IStreamTicketService ticketService = Substitute.For<IStreamTicketService>();
 
-        var response = CreateIssuer().Issue("folder-42", userId: 7, listenId);
+        public TrackStreamIssuerTests() =>
+            ticketService.IssueTicket(Arg.Any<long?>(), Arg.Any<string>(), Arg.Any<long?>()).Returns(new StreamTicket("signed-token", 120));
 
-        Assert.Equal("signed-token", response.Ticket);
-        Assert.Equal(120, response.ExpiresInSeconds);
-        Assert.Equal(listenId, response.ListenId);
-        Assert.Equal("https://stream.musify.test/media/Tracks/ProcessedAudios/folder-42/audio.m4a", response.ManifestUrl);
-    }
+        private TrackStreamIssuer CreateIssuer(PlaybackConfiguration? playback = null) => new(
+            ticketService,
+            TestConfigurations.Track(),
+            TestConfigurations.StreamGateway("https://stream.musify.test/"),
+            playback ?? TestConfigurations.Playback());
 
-    [Fact]
-    public void Issue_PassesTheProcessedAudioKeyPrefixToTheTicketService()
-    {
-        CreateIssuer().Issue("folder-42", userId: 1, listenId: null);
+        [Fact]
+        public void Issue_BuildsManifestUrlAndCarriesTheListenId()
+        {
+            var listenId = Guid.NewGuid();
 
-        ticketService.Received(1).IssueTicket(1, "Tracks/ProcessedAudios/folder-42/", null);
-    }
+            var response = CreateIssuer().Issue("folder-42", userId: 7, listenId);
 
-    [Fact]
-    public void Issue_AnonymousUserWithFragmentConfigured_PassesTheByteCapToTheTicketService()
-    {
-        var playback = TestConfigurations.Playback(allowAnonymousListening: true, anonymousFragmentSeconds: 30);
+            Assert.Equal("signed-token", response.Ticket);
+            Assert.Equal(120, response.ExpiresInSeconds);
+            Assert.Equal(listenId, response.ListenId);
+            Assert.Equal("https://stream.musify.test/media/Tracks/ProcessedAudios/folder-42/audio.m4a", response.ManifestUrl);
+        }
 
-        CreateIssuer(playback).Issue("folder-42", userId: null, listenId: null);
+        [Fact]
+        public void Issue_PassesTheProcessedAudioKeyPrefixToTheTicketService()
+        {
+            CreateIssuer().Issue("folder-42", userId: 1, listenId: null);
 
-        ticketService.Received(1).IssueTicket(null, "Tracks/ProcessedAudios/folder-42/", 30L * playback.EstimatedAudioBytesPerSecond);
-    }
+            ticketService.Received(1).IssueTicket(1, "Tracks/ProcessedAudios/folder-42/", null);
+        }
 
-    [Fact]
-    public void Issue_AuthenticatedUser_IgnoresTheAnonymousFragmentCap()
-    {
-        var playback = TestConfigurations.Playback(allowAnonymousListening: true, anonymousFragmentSeconds: 30);
+        [Fact]
+        public void Issue_AnonymousUserWithFragmentConfigured_PassesTheByteCapToTheTicketService()
+        {
+            var playback = TestConfigurations.Playback(allowAnonymousListening: true, anonymousFragmentSeconds: 30);
 
-        CreateIssuer(playback).Issue("folder-42", userId: 1, listenId: null);
+            CreateIssuer(playback).Issue("folder-42", userId: null, listenId: null);
 
-        ticketService.Received(1).IssueTicket(1, "Tracks/ProcessedAudios/folder-42/", null);
+            ticketService.Received(1).IssueTicket(null, "Tracks/ProcessedAudios/folder-42/", 30L * playback.EstimatedAudioBytesPerSecond);
+        }
+
+        [Fact]
+        public void Issue_AuthenticatedUser_IgnoresTheAnonymousFragmentCap()
+        {
+            var playback = TestConfigurations.Playback(allowAnonymousListening: true, anonymousFragmentSeconds: 30);
+
+            CreateIssuer(playback).Issue("folder-42", userId: 1, listenId: null);
+
+            ticketService.Received(1).IssueTicket(1, "Tracks/ProcessedAudios/folder-42/", null);
+        }
     }
 }

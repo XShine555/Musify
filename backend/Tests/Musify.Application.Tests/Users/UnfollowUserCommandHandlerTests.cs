@@ -4,34 +4,35 @@ using Musify.Application.Users;
 using Musify.Domain.Entities;
 using Xunit;
 
-namespace Musify.Application.Tests.Users;
-
-public sealed class UnfollowUserCommandHandlerTests : HandlerTestBase
+namespace Musify.Application.Tests.Users
 {
-    private UnfollowUserCommandHandler CreateHandler() => new(Database, NoOpLogger<UnfollowUserCommandHandler>());
-
-    [Fact]
-    public async Task Handle_ExistingFollow_RemovesIt()
+    public sealed class UnfollowUserCommandHandlerTests : HandlerTestBase
     {
-        var follower = TestEntities.User(1, "follower");
-        var followed = TestEntities.User(2, "followed");
-        await SeedAsync(follower, followed, new UserFollow { FollowerId = follower.Id, FollowedId = followed.Id });
+        private UnfollowUserCommandHandler CreateHandler() => new(Database, NoOpLogger<UnfollowUserCommandHandler>());
 
-        var result = await CreateHandler().Handle(new UnfollowUserCommand(follower.Id, followed.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_ExistingFollow_RemovesIt()
+        {
+            var follower = TestEntities.User(1, "follower");
+            var followed = TestEntities.User(2, "followed");
+            await SeedAsync(follower, followed, new UserFollow { FollowerId = follower.Id, FollowedId = followed.Id });
 
-        Assert.False(result.IsError);
-        Assert.Empty(await Database.UserFollows.ToListAsync(TestContext.Current.CancellationToken));
-    }
+            var result = await CreateHandler().Handle(new UnfollowUserCommand(follower.Id, followed.Id), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task Handle_NotFollowing_IsIdempotent()
-    {
-        var follower = TestEntities.User(1, "follower");
-        var followed = TestEntities.User(2, "followed");
-        await SeedAsync(follower, followed);
+            Assert.False(result.IsError);
+            Assert.Empty(await Database.UserFollows.ToListAsync(TestContext.Current.CancellationToken));
+        }
 
-        var result = await CreateHandler().Handle(new UnfollowUserCommand(follower.Id, followed.Id), TestContext.Current.CancellationToken);
+        [Fact]
+        public async Task Handle_NotFollowing_IsIdempotent()
+        {
+            var follower = TestEntities.User(1, "follower");
+            var followed = TestEntities.User(2, "followed");
+            await SeedAsync(follower, followed);
 
-        Assert.False(result.IsError);
+            var result = await CreateHandler().Handle(new UnfollowUserCommand(follower.Id, followed.Id), TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsError);
+        }
     }
 }

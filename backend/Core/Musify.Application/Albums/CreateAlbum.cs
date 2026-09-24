@@ -12,61 +12,62 @@ using Musify.Application.Shared;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
-namespace Musify.Application.Albums;
-
-public record CreateAlbumCommand(
-    long UserId,
-    string Title,
-    string? Description,
-    int? ReleaseYear,
-    Guid PictureIntentId)
-    : ICommand<ErrorOr<AlbumApplicationResponse>>;
-
-public class CreateAlbumCommandHandler(
-    IEventBus eventBus,
-    IDatabase database,
-    UploadIntentValidator uploadIntentValidator,
-    ILogger<CreateAlbumCommandHandler> logger,
-    AlbumConfiguration albumConfiguration)
-    : ICommandHandler<CreateAlbumCommand, ErrorOr<AlbumApplicationResponse>>
+namespace Musify.Application.Albums
 {
-    public async ValueTask<ErrorOr<AlbumApplicationResponse>> Handle(CreateAlbumCommand request, CancellationToken cancellationToken)
+    public record CreateAlbumCommand(
+        long UserId,
+        string Title,
+        string? Description,
+        int? ReleaseYear,
+        Guid PictureIntentId)
+        : ICommand<ErrorOr<AlbumApplicationResponse>>;
+
+    public class CreateAlbumCommandHandler(
+        IEventBus eventBus,
+        IDatabase database,
+        UploadIntentValidator uploadIntentValidator,
+        ILogger<CreateAlbumCommandHandler> logger,
+        AlbumConfiguration albumConfiguration)
+        : ICommandHandler<CreateAlbumCommand, ErrorOr<AlbumApplicationResponse>>
     {
-        var userExists = await database.Users
-            .AsNoTracking()
-            .AnyAsync(user => user.Id == request.UserId, cancellationToken);
-        if (!userExists)
-            return AppErrors.NotFound("User", request.UserId);
-
-        var prepared = await PictureSourceChange.PrepareAsync(
-            uploadIntentValidator, request.PictureIntentId, request.UserId, UploadIntentPurpose.AlbumPicture, albumConfiguration, cancellationToken);
-        if (prepared.IsError)
-            return prepared.Errors;
-
-        var picture = prepared.Value;
-        var title = request.Title.Trim();
-
-        var album = new Album
+        public async ValueTask<ErrorOr<AlbumApplicationResponse>> Handle(CreateAlbumCommand request, CancellationToken cancellationToken)
         {
-            OwnerUserId = request.UserId,
-            Title = title,
-            NormalizedTitle = TextNormalizer.Normalize(title),
-            Description = request.Description,
-            ReleaseYear = request.ReleaseYear,
-            Pictures = picture.Pictures
-        };
+            var userExists = await database.Users
+                .AsNoTracking()
+                .AnyAsync(user => user.Id == request.UserId, cancellationToken);
+            if (!userExists)
+                return AppErrors.NotFound("User", request.UserId);
 
-        await database.Albums.AddAsync(album, cancellationToken);
+            var prepared = await PictureSourceChange.PrepareAsync(
+                uploadIntentValidator, request.PictureIntentId, request.UserId, UploadIntentPurpose.AlbumPicture, albumConfiguration, cancellationToken);
+            if (prepared.IsError)
+                return prepared.Errors;
 
-        await eventBus.PublishAsync(
-            new CreateAlbumResourcesEvent(
-                album.Id, picture.Intent.Id, picture.Intent.Bucket, picture.Intent.Key, picture.FinalKey, picture.Sizes),
-            cancellationToken);
+            var picture = prepared.Value;
+            var title = request.Title.Trim();
 
-        await database.SaveChangesAsync(cancellationToken);
+            var album = new Album
+            {
+                OwnerUserId = request.UserId,
+                Title = title,
+                NormalizedTitle = TextNormalizer.Normalize(title),
+                Description = request.Description,
+                ReleaseYear = request.ReleaseYear,
+                Pictures = picture.Pictures
+            };
 
-        logger.LogInformation("Created album {AlbumId} for user {UserId}", album.Id, request.UserId);
+            await database.Albums.AddAsync(album, cancellationToken);
 
-        return AlbumApplicationResponse.FromEntity(album, trackCount: 0);
+            await eventBus.PublishAsync(
+                new CreateAlbumResourcesEvent(
+                    album.Id, picture.Intent.Id, picture.Intent.Bucket, picture.Intent.Key, picture.FinalKey, picture.Sizes),
+                cancellationToken);
+
+            await database.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Created album {AlbumId} for user {UserId}", album.Id, request.UserId);
+
+            return AlbumApplicationResponse.FromEntity(album, trackCount: 0);
+        }
     }
 }

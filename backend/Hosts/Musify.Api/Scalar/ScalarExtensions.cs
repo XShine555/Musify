@@ -1,11 +1,12 @@
-namespace Musify.Api.Scalar;
-
-public static class ScalarExtensions
+namespace Musify.Api.Scalar
 {
-    public static IServiceCollection AddScalarConfiguration(this IServiceCollection services)
+    public static class ScalarExtensions
     {
-        services.ConfigureOptions<ScalarOptionsSetup>();
+        public static IServiceCollection AddScalarConfiguration(this IServiceCollection services)
+        {
+            services.ConfigureOptions<ScalarOptionsSetup>();
 
-        return services;
+            return services;
+        }
     }
 }

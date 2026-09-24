@@ -1,10 +1,11 @@
 using Mediator;
 using Musify.Application.UploadIntents;
 
-namespace Musify.Infrastructure.Jobs;
-
-public class UploadIntentExpirationJob(IMediator mediator)
+namespace Musify.Infrastructure.Jobs
 {
-    public async Task RunAsync(CancellationToken cancellationToken) =>
-        await mediator.Send(new ExpireUploadIntentsCommand(), cancellationToken);
+    public class UploadIntentExpirationJob(IMediator mediator)
+    {
+        public async Task RunAsync(CancellationToken cancellationToken) =>
+            await mediator.Send(new ExpireUploadIntentsCommand(), cancellationToken);
+    }
 }

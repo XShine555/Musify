@@ -2,16 +2,17 @@ using FluentValidation;
 using Musify.Api.Models;
 using Musify.Application.Shared;
 
-namespace Musify.Api.Validators;
-
-public sealed class PageQueryValidator : AbstractValidator<PageQuery>
+namespace Musify.Api.Validators
 {
-    public PageQueryValidator()
+    public sealed class PageQueryValidator : AbstractValidator<PageQuery>
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1);
+        public PageQueryValidator()
+        {
+            RuleFor(x => x.PageNumber)
+                .GreaterThanOrEqualTo(1);
 
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, PageRequest.MaxPageSize);
+            RuleFor(x => x.PageSize)
+                .InclusiveBetween(1, PageRequest.MaxPageSize);
+        }
     }
 }

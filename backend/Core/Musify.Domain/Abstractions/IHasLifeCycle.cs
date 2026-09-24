@@ -1,10 +1,11 @@
 using Musify.Domain.ValueObjects;
 
-namespace Musify.Domain.Abstractions;
-
-public interface IHasLifeCycle
+namespace Musify.Domain.Abstractions
 {
-    public Guid Id { get; }
+    public interface IHasLifeCycle
+    {
+        public Guid Id { get; }
 
-    public LifeCycleStatus LifeCycleStatus { get; set; }
+        public LifeCycleStatus LifeCycleStatus { get; set; }
+    }
 }

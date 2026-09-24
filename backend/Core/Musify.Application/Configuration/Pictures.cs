@@ -2,90 +2,91 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using Musify.Application.Shared;
 
-namespace Musify.Application.Configuration;
-
-public enum PictureSize
+namespace Musify.Application.Configuration
 {
-    Small,
-    Medium,
-    Large
-}
-
-public class PictureRoutes
-{
-    [Required]
-    public string UploadsFolder { get; set; } = "uploads";
-
-    [Required]
-    public string ParentFolder { get; set; } = string.Empty;
-
-    [Required]
-    public string OriginalPicturesFolder { get; set; } = "OriginalPictures";
-
-    [Required]
-    public string SmallPicturesFolder { get; set; } = "SmallPictures";
-
-    [Required]
-    public string MediumPicturesFolder { get; set; } = "MediumPictures";
-
-    [Required]
-    public string LargePicturesFolder { get; set; } = "LargePictures";
-
-    public string FolderPath(PictureSize size) => StorageKey.Combine(ParentFolder, size switch
+    public enum PictureSize
     {
-        PictureSize.Small => SmallPicturesFolder,
-        PictureSize.Medium => MediumPicturesFolder,
-        PictureSize.Large => LargePicturesFolder,
-        _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
-    });
+        Small,
+        Medium,
+        Large
+    }
 
-    public string BuildPicturePath(PictureSize size, string pictureName) => StorageKey.Combine(FolderPath(size), pictureName);
+    public class PictureRoutes
+    {
+        [Required]
+        public string UploadsFolder { get; set; } = "uploads";
 
-    public string BuildOriginalPicturePath(long userId, string pictureName) =>
-        StorageKey.Combine(UploadsFolder, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, OriginalPicturesFolder, pictureName);
+        [Required]
+        public string ParentFolder { get; set; } = string.Empty;
 
-    public string BuildTempPath(string tempRootPrefix, long userId, string objectName) =>
-        StorageKey.Combine(tempRootPrefix, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, objectName);
-}
+        [Required]
+        public string OriginalPicturesFolder { get; set; } = "OriginalPictures";
 
-public class PictureSizes
-{
-    [Range(1, 1024)]
-    public int SmallWidth { get; set; } = 128;
+        [Required]
+        public string SmallPicturesFolder { get; set; } = "SmallPictures";
 
-    [Range(1, 1024)]
-    public int SmallHeight { get; set; } = 128;
+        [Required]
+        public string MediumPicturesFolder { get; set; } = "MediumPictures";
 
-    [Range(1, 1024)]
-    public int MediumWidth { get; set; } = 256;
+        [Required]
+        public string LargePicturesFolder { get; set; } = "LargePictures";
 
-    [Range(1, 1024)]
-    public int MediumHeight { get; set; } = 256;
+        public string FolderPath(PictureSize size) => StorageKey.Combine(ParentFolder, size switch
+        {
+            PictureSize.Small => SmallPicturesFolder,
+            PictureSize.Medium => MediumPicturesFolder,
+            PictureSize.Large => LargePicturesFolder,
+            _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+        });
 
-    [Range(1, 1024)]
-    public int LargeWidth { get; set; } = 512;
+        public string BuildPicturePath(PictureSize size, string pictureName) => StorageKey.Combine(FolderPath(size), pictureName);
 
-    [Range(1, 1024)]
-    public int LargeHeight { get; set; } = 512;
+        public string BuildOriginalPicturePath(long userId, string pictureName) =>
+            StorageKey.Combine(UploadsFolder, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, OriginalPicturesFolder, pictureName);
 
-    public ImageSizes ToImageSizes(PictureRoutes routes) => new(
-        new ImageSize(routes.FolderPath(PictureSize.Small), SmallWidth, SmallHeight),
-        new ImageSize(routes.FolderPath(PictureSize.Medium), MediumWidth, MediumHeight),
-        new ImageSize(routes.FolderPath(PictureSize.Large), LargeWidth, LargeHeight));
-}
+        public string BuildTempPath(string tempRootPrefix, long userId, string objectName) =>
+            StorageKey.Combine(tempRootPrefix, userId.ToString(CultureInfo.InvariantCulture), ParentFolder, objectName);
+    }
 
-public interface IPictureOwnerConfiguration
-{
-    public PictureRoutes Routes { get; }
+    public class PictureSizes
+    {
+        [Range(1, 1024)]
+        public int SmallWidth { get; set; } = 128;
 
-    public PictureSizes PicturesSizes { get; }
-}
+        [Range(1, 1024)]
+        public int SmallHeight { get; set; } = 128;
 
-public static class PictureSizeParser
-{
-    /// <summary>Parses the <c>size</c> query value; anything unknown means <see cref="PictureSize.Medium"/>.</summary>
-    public static PictureSize Parse(string? value) =>
-        Enum.TryParse<PictureSize>(value, ignoreCase: true, out var size) && Enum.IsDefined(size)
-            ? size
-            : PictureSize.Medium;
+        [Range(1, 1024)]
+        public int MediumWidth { get; set; } = 256;
+
+        [Range(1, 1024)]
+        public int MediumHeight { get; set; } = 256;
+
+        [Range(1, 1024)]
+        public int LargeWidth { get; set; } = 512;
+
+        [Range(1, 1024)]
+        public int LargeHeight { get; set; } = 512;
+
+        public ImageSizes ToImageSizes(PictureRoutes routes) => new(
+            new ImageSize(routes.FolderPath(PictureSize.Small), SmallWidth, SmallHeight),
+            new ImageSize(routes.FolderPath(PictureSize.Medium), MediumWidth, MediumHeight),
+            new ImageSize(routes.FolderPath(PictureSize.Large), LargeWidth, LargeHeight));
+    }
+
+    public interface IPictureOwnerConfiguration
+    {
+        public PictureRoutes Routes { get; }
+
+        public PictureSizes PicturesSizes { get; }
+    }
+
+    public static class PictureSizeParser
+    {
+        /// <summary>Parses the <c>size</c> query value; anything unknown means <see cref="PictureSize.Medium"/>.</summary>
+        public static PictureSize Parse(string? value) =>
+            Enum.TryParse<PictureSize>(value, ignoreCase: true, out var size) && Enum.IsDefined(size)
+                ? size
+                : PictureSize.Medium;
+    }
 }

@@ -1,14 +1,15 @@
 using FluentValidation;
 using Musify.Api.DataTransferObjects.Tracks;
 
-namespace Musify.Api.Validators.Tracks;
-
-public sealed class RecordListeningProgressRequestValidator : AbstractValidator<RecordListeningProgressRequest>
+namespace Musify.Api.Validators.Tracks
 {
-    public RecordListeningProgressRequestValidator()
+    public sealed class RecordListeningProgressRequestValidator : AbstractValidator<RecordListeningProgressRequest>
     {
-        RuleFor(x => x.PlayedSeconds)
-            .Must(seconds => double.IsFinite(seconds) && seconds >= 0)
-            .WithMessage("'Played Seconds' must be a non-negative number.");
+        public RecordListeningProgressRequestValidator()
+        {
+            RuleFor(x => x.PlayedSeconds)
+                .Must(seconds => double.IsFinite(seconds) && seconds >= 0)
+                .WithMessage("'Played Seconds' must be a non-negative number.");
+        }
     }
 }

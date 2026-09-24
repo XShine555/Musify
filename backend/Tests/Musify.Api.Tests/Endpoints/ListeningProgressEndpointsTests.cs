@@ -8,93 +8,94 @@ using Musify.Domain.Entities;
 using Musify.Infrastructure.Persistence;
 using Xunit;
 
-namespace Musify.Api.Tests.Endpoints;
-
-[Collection(ApiCollection.Name)]
-public sealed class ListeningProgressEndpointsTests(ApiTestFixture fixture)
+namespace Musify.Api.Tests.Endpoints
 {
-    private Task<long> CreateUserAsync() => fixture.SeedUserAsync();
-
-    private async Task<Guid> SeedListenAsync(long userId, double durationSeconds)
+    [Collection(ApiCollection.Name)]
+    public sealed class ListeningProgressEndpointsTests(ApiTestFixture fixture)
     {
-        using var scope = fixture.Services.CreateScope();
-        var database = scope.ServiceProvider.GetRequiredService<Database>();
-        var owner = await database.Users.SingleAsync(u => u.Id == userId, TestContext.Current.CancellationToken);
-        var track = new Track
+        private Task<long> CreateUserAsync() => fixture.SeedUserAsync();
+
+        private async Task<Guid> SeedListenAsync(long userId, double durationSeconds)
         {
-            Title = "Progress track",
-            NormalizedTitle = "PROGRESS TRACK",
-            OwnerUserId = owner.Id,
-            Owner = owner,
-            DurationSeconds = durationSeconds
-        };
-        var listen = new ListeningHistory
+            using var scope = fixture.Services.CreateScope();
+            var database = scope.ServiceProvider.GetRequiredService<Database>();
+            var owner = await database.Users.SingleAsync(u => u.Id == userId, TestContext.Current.CancellationToken);
+            var track = new Track
+            {
+                Title = "Progress track",
+                NormalizedTitle = "PROGRESS TRACK",
+                OwnerUserId = owner.Id,
+                Owner = owner,
+                DurationSeconds = durationSeconds
+            };
+            var listen = new ListeningHistory
+            {
+                UserId = userId,
+                TrackId = track.Id,
+                ListenedAt = DateTime.UtcNow.AddMinutes(-10)
+            };
+            database.Tracks.Add(track);
+            database.ListeningHistories.Add(listen);
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+            return listen.Id;
+        }
+
+        private async Task<ListeningHistory> LoadListenAsync(Guid listenId)
         {
-            UserId = userId,
-            TrackId = track.Id,
-            ListenedAt = DateTime.UtcNow.AddMinutes(-10)
-        };
-        database.Tracks.Add(track);
-        database.ListeningHistories.Add(listen);
-        await database.SaveChangesAsync(TestContext.Current.CancellationToken);
-        return listen.Id;
-    }
+            using var scope = fixture.Services.CreateScope();
+            var database = scope.ServiceProvider.GetRequiredService<Database>();
+            return await database.ListeningHistories.AsNoTracking()
+                .SingleAsync(l => l.Id == listenId, TestContext.Current.CancellationToken);
+        }
 
-    private async Task<ListeningHistory> LoadListenAsync(Guid listenId)
-    {
-        using var scope = fixture.Services.CreateScope();
-        var database = scope.ServiceProvider.GetRequiredService<Database>();
-        return await database.ListeningHistories.AsNoTracking()
-            .SingleAsync(l => l.Id == listenId, TestContext.Current.CancellationToken);
-    }
+        [Fact]
+        public async Task PutProgress_Anonymous_ReturnsUnauthorized()
+        {
+            var response = await fixture.CreateAnonymousClient().PutAsJsonAsync(
+                $"/tracks/listens/{Guid.NewGuid()}/progress", new RecordListeningProgressRequest(10), TestContext.Current.CancellationToken);
 
-    [Fact]
-    public async Task PutProgress_Anonymous_ReturnsUnauthorized()
-    {
-        var response = await fixture.CreateAnonymousClient().PutAsJsonAsync(
-            $"/tracks/listens/{Guid.NewGuid()}/progress", new RecordListeningProgressRequest(10), TestContext.Current.CancellationToken);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
+        [Fact]
+        public async Task PutProgress_OwnListen_StoresSecondsAndMarksCounted()
+        {
+            var userId = await CreateUserAsync();
+            var listenId = await SeedListenAsync(userId, durationSeconds: 200);
 
-    [Fact]
-    public async Task PutProgress_OwnListen_StoresSecondsAndMarksCounted()
-    {
-        var userId = await CreateUserAsync();
-        var listenId = await SeedListenAsync(userId, durationSeconds: 200);
+            var response = await fixture.CreateAuthenticatedClient(userId).PutAsJsonAsync(
+                $"/tracks/listens/{listenId}/progress", new RecordListeningProgressRequest(45), TestContext.Current.CancellationToken);
 
-        var response = await fixture.CreateAuthenticatedClient(userId).PutAsJsonAsync(
-            $"/tracks/listens/{listenId}/progress", new RecordListeningProgressRequest(45), TestContext.Current.CancellationToken);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            var stored = await LoadListenAsync(listenId);
+            Assert.Equal(45, stored.PlayedSeconds);
+            Assert.True(stored.IsCounted);
+        }
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var stored = await LoadListenAsync(listenId);
-        Assert.Equal(45, stored.PlayedSeconds);
-        Assert.True(stored.IsCounted);
-    }
+        [Fact]
+        public async Task PutProgress_OtherUsersListen_ReturnsNotFound()
+        {
+            var ownerId = await CreateUserAsync();
+            var otherId = await CreateUserAsync();
+            var listenId = await SeedListenAsync(ownerId, durationSeconds: 200);
 
-    [Fact]
-    public async Task PutProgress_OtherUsersListen_ReturnsNotFound()
-    {
-        var ownerId = await CreateUserAsync();
-        var otherId = await CreateUserAsync();
-        var listenId = await SeedListenAsync(ownerId, durationSeconds: 200);
+            var response = await fixture.CreateAuthenticatedClient(otherId).PutAsJsonAsync(
+                $"/tracks/listens/{listenId}/progress", new RecordListeningProgressRequest(45), TestContext.Current.CancellationToken);
 
-        var response = await fixture.CreateAuthenticatedClient(otherId).PutAsJsonAsync(
-            $"/tracks/listens/{listenId}/progress", new RecordListeningProgressRequest(45), TestContext.Current.CancellationToken);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Null((await LoadListenAsync(listenId)).PlayedSeconds);
+        }
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Null((await LoadListenAsync(listenId)).PlayedSeconds);
-    }
+        [Fact]
+        public async Task PutProgress_NegativeSeconds_ReturnsBadRequest()
+        {
+            var userId = await CreateUserAsync();
+            var listenId = await SeedListenAsync(userId, durationSeconds: 200);
 
-    [Fact]
-    public async Task PutProgress_NegativeSeconds_ReturnsBadRequest()
-    {
-        var userId = await CreateUserAsync();
-        var listenId = await SeedListenAsync(userId, durationSeconds: 200);
+            var response = await fixture.CreateAuthenticatedClient(userId).PutAsJsonAsync(
+                $"/tracks/listens/{listenId}/progress", new RecordListeningProgressRequest(-5), TestContext.Current.CancellationToken);
 
-        var response = await fixture.CreateAuthenticatedClient(userId).PutAsJsonAsync(
-            $"/tracks/listens/{listenId}/progress", new RecordListeningProgressRequest(-5), TestContext.Current.CancellationToken);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }

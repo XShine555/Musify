@@ -1,7 +1,8 @@
-namespace Musify.Domain.ValueObjects;
-
-public enum MixKind
+namespace Musify.Domain.ValueObjects
 {
-    Discovery = 0,
-    Daily = 1
+    public enum MixKind
+    {
+        Discovery = 0,
+        Daily = 1
+    }
 }

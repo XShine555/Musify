@@ -4,52 +4,53 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Files;
-
-internal class DownloadFileFromBucketActivity(
-    IStorageService storageService,
-    ILogger<DownloadFileFromBucketActivity> logger)
-    : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
+namespace Musify.Infrastructure.MassTransit.Activities.Files
 {
-    public const string ExecuteEndpointName = "download-file-from-bucket";
-
-    public async Task<ExecutionResult> Execute(ExecuteContext<DownloadFileFromBucketArguments> executeContext)
+    internal class DownloadFileFromBucketActivity(
+        IStorageService storageService,
+        ILogger<DownloadFileFromBucketActivity> logger)
+        : IActivity<DownloadFileFromBucketArguments, DownloadFileFromBucketLog>
     {
-        var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
-        ArgumentNullException.ThrowIfNull(destinationPath);
+        public const string ExecuteEndpointName = "download-file-from-bucket";
 
-        using var fileStream = await storageService.GetFileAsync(
-            executeContext.Arguments.Bucket,
-            executeContext.Arguments.Key,
-            executeContext.CancellationToken)
-            ?? throw new FileNotFoundException($"Object {executeContext.Arguments.Bucket}/{executeContext.Arguments.Key} was not found.");
-
-        var destinationDirectory = Path.GetDirectoryName(destinationPath);
-        if (!string.IsNullOrWhiteSpace(destinationDirectory))
-            Directory.CreateDirectory(destinationDirectory);
-
-        if (fileStream.CanSeek)
-            fileStream.Position = 0;
-
-        using var destinationStream = File.Create(destinationPath);
-        await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
-        return executeContext.Completed(new DownloadFileFromBucketLog(
-            executeContext.Arguments.Bucket,
-            executeContext.Arguments.Key,
-            destinationPath));
-    }
-
-    public Task<CompensationResult> Compensate(CompensateContext<DownloadFileFromBucketLog> compensateContext)
-    {
-        try
+        public async Task<ExecutionResult> Execute(ExecuteContext<DownloadFileFromBucketArguments> executeContext)
         {
-            File.Delete(compensateContext.Log.DestinationFilePath);
-            return Task.FromResult(compensateContext.Compensated());
+            var destinationPath = executeContext.GetVariable<string>(executeContext.Arguments.DestinationFilePathVariable);
+            ArgumentNullException.ThrowIfNull(destinationPath);
+
+            using var fileStream = await storageService.GetFileAsync(
+                executeContext.Arguments.Bucket,
+                executeContext.Arguments.Key,
+                executeContext.CancellationToken)
+                ?? throw new FileNotFoundException($"Object {executeContext.Arguments.Bucket}/{executeContext.Arguments.Key} was not found.");
+
+            var destinationDirectory = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrWhiteSpace(destinationDirectory))
+                Directory.CreateDirectory(destinationDirectory);
+
+            if (fileStream.CanSeek)
+                fileStream.Position = 0;
+
+            using var destinationStream = File.Create(destinationPath);
+            await fileStream.CopyToAsync(destinationStream, executeContext.CancellationToken);
+            return executeContext.Completed(new DownloadFileFromBucketLog(
+                executeContext.Arguments.Bucket,
+                executeContext.Arguments.Key,
+                destinationPath));
         }
-        catch (Exception exception)
+
+        public Task<CompensationResult> Compensate(CompensateContext<DownloadFileFromBucketLog> compensateContext)
         {
-            logger.LogError(exception, "Failed to compensate downloaded file {DestinationFilePath}", compensateContext.Log.DestinationFilePath);
-            return Task.FromResult(compensateContext.Failed(exception));
+            try
+            {
+                File.Delete(compensateContext.Log.DestinationFilePath);
+                return Task.FromResult(compensateContext.Compensated());
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to compensate downloaded file {DestinationFilePath}", compensateContext.Log.DestinationFilePath);
+                return Task.FromResult(compensateContext.Failed(exception));
+            }
         }
     }
 }

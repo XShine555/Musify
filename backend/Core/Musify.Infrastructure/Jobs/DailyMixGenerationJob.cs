@@ -4,27 +4,28 @@ using Microsoft.Extensions.Logging;
 using Musify.Application.Contracts;
 using Musify.Application.Mixes;
 
-namespace Musify.Infrastructure.Jobs;
-
-public class DailyMixGenerationJob(
-    IDatabase database,
-    IMediator mediator,
-    ILogger<DailyMixGenerationJob> logger)
+namespace Musify.Infrastructure.Jobs
 {
-    public async Task RunAsync(CancellationToken cancellationToken)
+    public class DailyMixGenerationJob(
+        IDatabase database,
+        IMediator mediator,
+        ILogger<DailyMixGenerationJob> logger)
     {
-        var userIds = await database.ListeningHistories
-            .AsNoTracking()
-            .Where(history => history.IsCounted)
-            .Select(history => history.UserId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
+        public async Task RunAsync(CancellationToken cancellationToken)
+        {
+            var userIds = await database.ListeningHistories
+                .AsNoTracking()
+                .Where(history => history.IsCounted)
+                .Select(history => history.UserId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
 
-        logger.LogInformation("Starting daily mix generation for {Count} users", userIds.Count);
+            logger.LogInformation("Starting daily mix generation for {Count} users", userIds.Count);
 
-        foreach (var userId in userIds)
-            await mediator.Send(new GenerateMixesForUserCommand(userId), cancellationToken);
+            foreach (var userId in userIds)
+                await mediator.Send(new GenerateMixesForUserCommand(userId), cancellationToken);
 
-        logger.LogInformation("Finished daily mix generation");
+            logger.LogInformation("Finished daily mix generation");
+        }
     }
 }

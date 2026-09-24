@@ -1,3 +1,4 @@
-namespace Musify.Infrastructure.MassTransit.Arguments;
-
-internal record DeleteEntityArguments(Guid Id);
+namespace Musify.Infrastructure.MassTransit.Arguments
+{
+    internal record DeleteEntityArguments(Guid Id);
+}

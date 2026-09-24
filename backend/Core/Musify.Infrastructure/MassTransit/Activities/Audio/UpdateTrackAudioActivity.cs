@@ -6,61 +6,62 @@ using Musify.Domain.ValueObjects;
 using Musify.Infrastructure.MassTransit.Arguments;
 using Musify.Infrastructure.MassTransit.Logs;
 
-namespace Musify.Infrastructure.MassTransit.Activities.Audio;
-
-internal class UpdateTrackAudioActivity(
-    IDatabase database,
-    IPublishEndpoint publishEndpoint,
-    ILogger<UpdateTrackAudioActivity> logger)
-    : IActivity<UpdateTrackAudioArguments, UpdateTrackAudioLog>
+namespace Musify.Infrastructure.MassTransit.Activities.Audio
 {
-    public const string ExecuteEndpointName = "update-track-audio";
-
-    public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackAudioArguments> executeContext)
+    internal class UpdateTrackAudioActivity(
+        IDatabase database,
+        IPublishEndpoint publishEndpoint,
+        ILogger<UpdateTrackAudioActivity> logger)
+        : IActivity<UpdateTrackAudioArguments, UpdateTrackAudioLog>
     {
-        var arguments = executeContext.Arguments;
-        var track = await TrackAudioStatus.LoadAsync(database, arguments.TrackId, executeContext.CancellationToken);
+        public const string ExecuteEndpointName = "update-track-audio";
 
-        try
+        public async Task<ExecutionResult> Execute(ExecuteContext<UpdateTrackAudioArguments> executeContext)
         {
-            if (string.IsNullOrWhiteSpace(arguments.AudioFolderKey))
-                throw new InvalidOperationException($"Audio folder key is empty for track {track.Id}");
+            var arguments = executeContext.Arguments;
+            var track = await TrackAudioStatus.LoadAsync(database, arguments.TrackId, executeContext.CancellationToken);
 
-            var durationSeconds = executeContext.GetVariable<double>(arguments.DurationSecondsVariable)
-                ?? throw new InvalidOperationException($"Missing routing slip variable {arguments.DurationSecondsVariable}");
+            try
+            {
+                if (string.IsNullOrWhiteSpace(arguments.AudioFolderKey))
+                    throw new InvalidOperationException($"Audio folder key is empty for track {track.Id}");
 
-            var log = new UpdateTrackAudioLog(track.Id, track.Audio.FolderName, track.DurationSeconds);
+                var durationSeconds = executeContext.GetVariable<double>(arguments.DurationSecondsVariable)
+                    ?? throw new InvalidOperationException($"Missing routing slip variable {arguments.DurationSecondsVariable}");
 
-            track.Audio.FolderName = Path.GetFileName(arguments.AudioFolderKey);
-            track.DurationSeconds = durationSeconds;
-            track.Audio.TranscodeStatus = ProcessingStatus.Completed;
-            await database.SaveChangesAsync(executeContext.CancellationToken);
+                var log = new UpdateTrackAudioLog(track.Id, track.Audio.FolderName, track.DurationSeconds);
 
-            logger.LogInformation("Updated track {TrackId} audio", arguments.TrackId);
+                track.Audio.FolderName = Path.GetFileName(arguments.AudioFolderKey);
+                track.DurationSeconds = durationSeconds;
+                track.Audio.TranscodeStatus = ProcessingStatus.Completed;
+                await database.SaveChangesAsync(executeContext.CancellationToken);
 
-            await publishEndpoint.Publish(new TrackAudioProcessed(arguments.TrackId), executeContext.CancellationToken);
+                logger.LogInformation("Updated track {TrackId} audio", arguments.TrackId);
 
-            return executeContext.Completed(log);
+                await publishEndpoint.Publish(new TrackAudioProcessed(arguments.TrackId), executeContext.CancellationToken);
+
+                return executeContext.Completed(log);
+            }
+            catch
+            {
+                await TrackAudioStatus.MarkFailedAsync(database, arguments.TrackId, executeContext.CancellationToken);
+                throw;
+            }
         }
-        catch
+
+        public async Task<CompensationResult> Compensate(CompensateContext<UpdateTrackAudioLog> compensateContext)
         {
-            await TrackAudioStatus.MarkFailedAsync(database, arguments.TrackId, executeContext.CancellationToken);
-            throw;
+            var log = compensateContext.Log;
+
+            var track = await TrackAudioStatus.LoadAsync(database, log.TrackId, compensateContext.CancellationToken);
+            track.Audio.FolderName = log.PreviousAudioFolderName;
+            track.DurationSeconds = log.PreviousDurationSeconds;
+            track.Audio.TranscodeStatus = ProcessingStatus.Failed;
+            await database.SaveChangesAsync(compensateContext.CancellationToken);
+
+            logger.LogInformation("Compensated track {TrackId} audio", log.TrackId);
+
+            return compensateContext.Compensated();
         }
-    }
-
-    public async Task<CompensationResult> Compensate(CompensateContext<UpdateTrackAudioLog> compensateContext)
-    {
-        var log = compensateContext.Log;
-
-        var track = await TrackAudioStatus.LoadAsync(database, log.TrackId, compensateContext.CancellationToken);
-        track.Audio.FolderName = log.PreviousAudioFolderName;
-        track.DurationSeconds = log.PreviousDurationSeconds;
-        track.Audio.TranscodeStatus = ProcessingStatus.Failed;
-        await database.SaveChangesAsync(compensateContext.CancellationToken);
-
-        logger.LogInformation("Compensated track {TrackId} audio", log.TrackId);
-
-        return compensateContext.Compensated();
     }
 }

@@ -1,7 +1,8 @@
-namespace Musify.Domain.ValueObjects;
-
-public enum PlayListVisibility
+namespace Musify.Domain.ValueObjects
 {
-    Private = 0,
-    Public = 1
+    public enum PlayListVisibility
+    {
+        Private = 0,
+        Public = 1
+    }
 }

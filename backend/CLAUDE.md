@@ -19,7 +19,7 @@ dotnet format Musify.slnx --verify-no-changes
 
 ## Style
 
-- File-scoped namespaces, usings outside the namespace and sorted (`.editorconfig` enforces it).
+- Block-scoped namespaces (`namespace X { }`; file-scoped `namespace X;` is not allowed), usings outside the namespace and sorted (`.editorconfig` enforces it).
 - Private fields camelCase without underscore, constants and `static readonly` fields PascalCase, explicit accessibility.
 - `ArgumentNullException.ThrowIfNull(x)` without `nameof`.
 - Use `PlayList` (not `Playlist`) in code; configuration POCOs end in `Configuration`; injected services are named after their type (`storageService`).
