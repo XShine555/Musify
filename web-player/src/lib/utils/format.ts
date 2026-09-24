@@ -36,6 +36,12 @@ export function albumMeta(releaseYear?: number | null, trackCount?: number): str
 		.join(' · ');
 }
 
+export function formatSize(bytes: number): string {
+	if (bytes === 0) return '';
+	const mb = bytes / (1024 * 1024);
+	return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+}
+
 export function playlistMeta(trackCount: number): string {
 	return plural(trackCount, 'canción', 'canciones');
 }

@@ -3,7 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { apiFor, authedAction, formFile, requireUser, unwrapOrError } from '$lib/server/api';
 import { toAlbum, toPage } from '$lib/server/mappers';
 import { ALBUMS_PAGE_SIZE } from '$lib/config';
-import { parseAlbumForm } from '$lib/server/albumForm';
+import { parseAlbumForm } from '$lib/server/forms/albumForm';
 import { uploadPresignedImage } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {

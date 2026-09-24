@@ -15,12 +15,12 @@
 	import Button from '$lib/components/ui/primitives/Button.svelte';
 	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
 	import Chip from '$lib/components/ui/primitives/Chip.svelte';
+	import { LIMITS } from '$lib/validation';
+	import { formatSize } from '$lib/utils/format';
 	import { genreOptions } from '$lib/data/genres';
 
 	type Status = 'idle' | 'uploading' | 'done' | 'error';
 	type StepState = 'idle' | 'active' | 'done';
-
-	const MAX_TITLE = 100;
 
 	let { data } = $props();
 
@@ -68,12 +68,6 @@
 
 	function stepClass(s: StepState) {
 		return s === 'idle' ? '' : 'bg-accent-tint';
-	}
-
-	function formatSize(bytes: number) {
-		if (bytes === 0) return '';
-		const mb = bytes / (1024 * 1024);
-		return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 	}
 
 	function pickAudio(file: File) {
@@ -256,12 +250,12 @@
 								id="title"
 								name="title"
 								bind:value={title}
-								maxlength={MAX_TITLE}
+								maxlength={LIMITS.trackTitle}
 								placeholder="Nombre de la canción"
 							/>
 							{#snippet hint()}
 								<p>Se usa como nombre público de la pista en el catálogo.</p>
-								<span class="shrink-0 tabular-nums">{title.length}/{MAX_TITLE}</span>
+								<span class="shrink-0 tabular-nums">{title.length}/{LIMITS.trackTitle}</span>
 							{/snippet}
 						</Field>
 

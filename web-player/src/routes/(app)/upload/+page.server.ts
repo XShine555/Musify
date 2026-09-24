@@ -1,20 +1,12 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import {
-	apiFor,
-	authedAction,
-	formFile,
-	formString,
-	requireData,
-	requireUser
-} from '$lib/server/api';
+import { apiFor, authedAction, requireData, requireUser } from '$lib/server/api';
+import { parseTrackUploadForm } from '$lib/server/forms/trackUploadForm';
 import { putPresigned, extOf, contentTypeOf, AUDIO_TYPES, IMAGE_TYPES } from '$lib/server/upload';
 import { findConflict, genreInfo } from '$lib/data/genres';
 import type { components } from '$lib/api/schema';
 
 type Genre = components['schemas']['Genre'];
-
-const MAX_TITLE = 100;
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	requireUser(locals, url);
@@ -25,28 +17,17 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 
 export const actions: Actions = {
 	default: authedAction(async ({ api, form }) => {
-		const title = formString(form, 'title').trim();
-		const audio = formFile(form, 'audio');
-		const cover = formFile(form, 'cover');
-		const rawTags = form.getAll('tags').map(String);
-		const isExplicit = form.get('isExplicit') === 'on';
+		const parsed = parseTrackUploadForm(form);
+		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
+		const { title, audio, cover, tags: rawTags, isExplicit } = parsed.body;
 
-		if (title === '' || title.length > MAX_TITLE) {
-			return fail(400, { message: 'El título es obligatorio (máx. 100 caracteres).' });
-		}
-		if (!audio) return fail(400, { message: 'Selecciona un archivo de audio.' });
-		if (!cover) return fail(400, { message: 'Selecciona una portada.' });
-
-		if (rawTags.length === 0) {
-			return fail(400, { message: 'Elige al menos un género.' });
-		}
 		const { data: available } = await api.GET('/genres/available');
 		const options = available ?? [];
 		const known = new Set<string>(options.map((option) => option.genre));
 		if (!rawTags.every((tag) => known.has(tag))) {
 			return fail(400, { message: 'Alguno de los géneros no es válido.' });
 		}
-		const tags = [...new Set(rawTags)] as Genre[];
+		const tags = rawTags as Genre[];
 		const conflict = findConflict(tags, options);
 		if (conflict) {
 			return fail(400, {

@@ -6,7 +6,6 @@ export const INFINITE_SCROLL_ROOT_MARGIN = '300px';
 export const ALBUMS_PAGE_SIZE = 50;
 export const ALBUM_TRACKS_PAGE_SIZE = 200;
 export const PLAYLIST_TRACKS_PAGE_SIZE = 200;
-export const ALBUM_EARLIEST_YEAR = 1877;
 export const LIBRARY_PICKER_PAGE_SIZE = 50;
 export const LIBRARY_PAGE_SIZE = 50;
 export const PLAYLISTS_PAGE_SIZE = 50;

@@ -4,16 +4,14 @@ import {
 	apiFor,
 	authedAction,
 	failOnError,
-	formFile,
 	formString,
 	optionalUser,
 	unwrapOrError
 } from '$lib/server/api';
 import { PLAYLIST_TRACKS_PAGE_SIZE } from '$lib/config';
 import { toDatedTrack, toPlaylist } from '$lib/server/mappers';
-import { uploadPresignedImage } from '$lib/server/upload';
-
-const MAX_NAME = 100;
+import { parsePlaylistForm } from '$lib/server/forms/playlistForm';
+import { uploadOptionalCover } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
@@ -50,29 +48,23 @@ export const actions: Actions = {
 	}),
 
 	edit: authedAction(async ({ api, form, params }) => {
-		const name = formString(form, 'name').trim();
-		const description = formString(form, 'description').trim();
-		const newVisibility = formString(form, 'visibility') === 'public' ? 'Public' : 'Private';
-		if (name === '' || name.length > MAX_NAME) {
-			return fail(400, { message: 'El nombre es obligatorio (máx. 100 caracteres).' });
-		}
+		const parsed = parsePlaylistForm(form);
+		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
+		const { name, description, visibility, cover } = parsed.body;
 
-		let newPictureIntentId: string | null = null;
-		const cover = formFile(form, 'cover');
-		if (cover) {
-			const result = await uploadPresignedImage(
-				(args) => api.POST('/playlists/upload-picture', { body: args }),
-				cover
-			);
-			if ('failMessage' in result) {
-				return fail(502, { message: result.failMessage, detail: result.detail });
-			}
-			newPictureIntentId = result.intentId;
+		const uploaded = await uploadOptionalCover(api, '/playlists/upload-picture', cover);
+		if ('failMessage' in uploaded) {
+			return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
 		}
 
 		const result = await api.PUT('/playlists/{playlistId}', {
 			params: { path: { playlistId: params.id } },
-			body: { newName: name, newDescription: description, newPictureIntentId, newVisibility }
+			body: {
+				newName: name,
+				newDescription: description,
+				newPictureIntentId: uploaded.intentId,
+				newVisibility: visibility
+			}
 		});
 		return failOnError(result, 'No se pudo actualizar la playlist.') ?? { edited: true };
 	}),

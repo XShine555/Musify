@@ -11,8 +11,8 @@ import {
 } from '$lib/server/api';
 import { toAlbum, toTrack } from '$lib/server/mappers';
 import { ALBUM_TRACKS_PAGE_SIZE, LIBRARY_PICKER_PAGE_SIZE } from '$lib/config';
-import { parseAlbumForm } from '$lib/server/albumForm';
-import { uploadPresignedImage } from '$lib/server/upload';
+import { parseAlbumForm } from '$lib/server/forms/albumForm';
+import { uploadOptionalCover } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ params, locals, url, fetch, parent }) => {
 	const { allowAnonymousListening } = await parent();
@@ -75,17 +75,9 @@ export const actions: Actions = {
 		const parsed = parseAlbumForm(form);
 		if ('failMessage' in parsed) return fail(400, { message: parsed.failMessage });
 
-		let newPictureIntentId: string | null = null;
-		const cover = formFile(form, 'cover');
-		if (cover) {
-			const uploaded = await uploadPresignedImage(
-				(args) => api.POST('/albums/upload-picture', { body: args }),
-				cover
-			);
-			if ('failMessage' in uploaded) {
-				return fail(502, { message: uploaded.failMessage, detail: uploaded.detail });
-			}
-			newPictureIntentId = uploaded.intentId;
+		const cover = await uploadOptionalCover(api, '/albums/upload-picture', formFile(form, 'cover'));
+		if ('failMessage' in cover) {
+			return fail(502, { message: cover.failMessage, detail: cover.detail });
 		}
 
 		const result = await api.PUT('/albums/{albumId}', {
@@ -94,7 +86,7 @@ export const actions: Actions = {
 				newTitle: parsed.body.title,
 				newDescription: parsed.body.description,
 				newReleaseYear: parsed.body.releaseYear,
-				newPictureIntentId
+				newPictureIntentId: cover.intentId
 			}
 		});
 		return failOnError(result, 'No se pudo actualizar el álbum.') ?? { edited: true };

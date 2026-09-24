@@ -1,18 +1,10 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import {
-	apiFor,
-	authedAction,
-	formFile,
-	formString,
-	requireUser,
-	unwrapOrError
-} from '$lib/server/api';
+import { apiFor, authedAction, requireUser, unwrapOrError } from '$lib/server/api';
 import { PLAYLISTS_PAGE_SIZE, PLAYLIST_SUMMARY_TRACKS_PAGE_SIZE } from '$lib/config';
 import { toPlaylistSummary, toTrack } from '$lib/server/mappers';
-import { uploadPresignedImage } from '$lib/server/upload';
-
-const MAX_NAME = 100;
+import { parsePlaylistForm } from '$lib/server/forms/playlistForm';
+import { uploadOptionalCover } from '$lib/server/upload';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 	const user = requireUser(locals, url);
@@ -51,33 +43,25 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 
 export const actions: Actions = {
 	create: authedAction(async ({ api, form }) => {
-		const name = formString(form, 'name').trim();
-		const description = formString(form, 'description').trim();
-		const visibility = formString(form, 'visibility') === 'public' ? 'Public' : 'Private';
+		const parsed = parsePlaylistForm(form);
+		if ('failMessage' in parsed) {
+			const { failMessage: message, name, description } = parsed;
+			return fail(400, { message, name, description });
+		}
+		const { name, description, visibility, cover } = parsed.body;
 
-		if (name === '' || name.length > MAX_NAME) {
-			return fail(400, {
-				message: 'El nombre es obligatorio (máx. 100 caracteres).',
+		const uploaded = await uploadOptionalCover(api, '/playlists/upload-picture', cover);
+		if ('failMessage' in uploaded) {
+			return fail(502, {
+				message: uploaded.failMessage,
 				name,
-				description
+				description,
+				detail: uploaded.detail
 			});
 		}
 
-		let pictureIntentId: string | null = null;
-		const cover = formFile(form, 'cover');
-		if (cover) {
-			const result = await uploadPresignedImage(
-				(args) => api.POST('/playlists/upload-picture', { body: args }),
-				cover
-			);
-			if ('failMessage' in result) {
-				return fail(502, { message: result.failMessage, name, description, detail: result.detail });
-			}
-			pictureIntentId = result.intentId;
-		}
-
 		const { data, error } = await api.POST('/playlists', {
-			body: { name, description, pictureIntentId, visibility }
+			body: { name, description, pictureIntentId: uploaded.intentId, visibility }
 		});
 
 		if (error || !data)

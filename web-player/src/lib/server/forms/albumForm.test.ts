@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALBUM_EARLIEST_YEAR } from '$lib/config';
+import { ALBUM_EARLIEST_YEAR } from '$lib/validation';
 import { parseAlbumForm } from './albumForm';
 
 function form(fields: Record<string, string>): FormData {

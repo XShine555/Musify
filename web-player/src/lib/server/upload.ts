@@ -78,6 +78,8 @@ export async function putPresigned(
 	});
 }
 
+import type { ApiClient } from '$lib/server/api';
+
 export type UploadImageResult = { intentId: string } | { failMessage: string; detail?: string };
 
 export async function uploadPresignedImage(
@@ -108,4 +110,19 @@ export async function uploadPresignedImage(
 	}
 
 	return { intentId: reserved.intentId };
+}
+
+export async function uploadOptionalCover(
+	api: ApiClient,
+	endpoint: '/albums/upload-picture' | '/playlists/upload-picture',
+	file: File | null
+): Promise<{ intentId: string | null } | { failMessage: string; detail?: string }> {
+	if (!file) return { intentId: null };
+	return uploadPresignedImage(
+		(args) =>
+			endpoint === '/albums/upload-picture'
+				? api.POST('/albums/upload-picture', { body: args })
+				: api.POST('/playlists/upload-picture', { body: args }),
+		file
+	);
 }
