@@ -188,12 +188,6 @@ services:
         }
         name_query() { printf '{"queries":[{"nameQuery":{"name":"%s","method":"TEXT_QUERY_METHOD_EQUALS"}}]}' "$$1"; }
 
-        # `latest` images require the standalone Login UI v2 container, which
-        # this stack does not run; opting out keeps the built-in /ui/login.
-        curl -fsS -X PUT "$$PUBLIC_AUTH_URL/v2/features/instance" \
-          -H "Authorization: Bearer $$PAT" -H "Content-Type: application/json" \
-          -d '{"loginV2":{"required":false}}' >/dev/null 2>&1 || echo "warning: could not disable Login UI v2"
-
         echo "==> project"
         PROJECT_NAME=Musify
         PROJECT_ID=$$(api_call POST /projects/_search "$$(name_query "$$PROJECT_NAME")" | jq -r --arg n "$$PROJECT_NAME" '.result // [] | map(select(.name==$$n)) | first | .id // empty')
