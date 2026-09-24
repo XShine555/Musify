@@ -17,6 +17,8 @@
 	import { trackNavigation } from '$lib/state/history.svelte';
 	import { restoreScroll } from '$lib/state/scroll';
 	import { page } from '$app/state';
+	import { beforeNavigate } from '$app/navigation';
+	import { uploadQueue } from '$lib/state/uploadQueue.svelte';
 
 	interface Props {
 		children: Snippet;
@@ -34,6 +36,9 @@
 	);
 
 	trackNavigation();
+	beforeNavigate((navigation) => {
+		if (navigation.willUnload && uploadQueue.active) navigation.cancel();
+	});
 	restoreScroll(() => scroller);
 
 	$effect(() => {

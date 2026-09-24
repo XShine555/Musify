@@ -12,7 +12,6 @@ const LABELS: [RegExp, string][] = [
 	[/^\/library\/albums\/?$/, 'Volver a tus álbumes'],
 	[/^\/library\/uploads\/?$/, 'Volver a subir música'],
 	[/^\/library\/?$/, 'Volver a tus canciones'],
-	[/^\/upload\/?$/, 'Volver a subir música'],
 	[/^\/mixes\/[^/]+/, 'Volver a la mezcla']
 ];
 

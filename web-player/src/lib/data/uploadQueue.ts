@@ -1,3 +1,6 @@
+import { findConflict, genreInfo } from '$lib/data/genres';
+import type { GenreOption } from '$lib/types';
+
 export const UPLOAD_MAX_BYTES = 500 * 1024 * 1024;
 export const UPLOAD_FORMATS = ['wav', 'flac', 'aiff', 'aif', 'mp3'];
 
@@ -9,7 +12,10 @@ export function uploadLimitsLabel(): string {
 	return `${list} · hasta ${UPLOAD_MAX_MB} MB por archivo · puedes soltar carpetas enteras`;
 }
 
-export type Visibility = 'private' | 'public';
+export const UPLOAD_CONCURRENCY = 3;
+export const UPLOAD_BATCH_SIZE = 20;
+
+export type UploadPhase = 'queued' | 'uploading' | 'creating' | 'processing' | 'done' | 'error';
 
 export interface QueuedUpload {
 	id: string;
@@ -18,6 +24,11 @@ export interface QueuedUpload {
 	format: string;
 	error: string | null;
 	duration: number | null;
+	phase: UploadPhase;
+	progress: number;
+	failure: string | null;
+	trackId: string | null;
+	note: string | null;
 }
 
 export function fileExtension(name: string): string {
@@ -50,13 +61,102 @@ export function toQueuedUpload(file: File): QueuedUpload {
 		title: titleFromFileName(file.name),
 		format: fileExtension(file.name).toUpperCase() || '?',
 		error: uploadError(file),
-		duration: null
+		duration: null,
+		phase: 'queued',
+		progress: 0,
+		failure: null,
+		trackId: null,
+		note: null
 	};
 }
 
-export function summarizeQueue(items: QueuedUpload[]): { ready: number; failed: number } {
-	const failed = items.filter((item) => item.error !== null).length;
-	return { ready: items.length - failed, failed };
+export function isStartable(item: QueuedUpload): boolean {
+	return item.error === null && item.phase === 'queued';
+}
+
+export function isBusy(item: QueuedUpload): boolean {
+	return item.phase === 'uploading' || item.phase === 'creating';
+}
+
+export function isActive(item: QueuedUpload): boolean {
+	return isBusy(item) || item.phase === 'processing';
+}
+
+export function beginUpload(item: QueuedUpload): QueuedUpload {
+	if (!isStartable(item)) return item;
+	return { ...item, phase: 'uploading', progress: 0, failure: null };
+}
+
+export function reportProgress(item: QueuedUpload, fraction: number): QueuedUpload {
+	if (item.phase !== 'uploading') return item;
+	const progress = Math.min(1, Math.max(item.progress, fraction));
+	return progress === item.progress ? item : { ...item, progress };
+}
+
+export function finishUpload(item: QueuedUpload): QueuedUpload {
+	if (item.phase !== 'uploading') return item;
+	return { ...item, phase: 'creating', progress: 1 };
+}
+
+export function finishCreate(
+	item: QueuedUpload,
+	trackId: string,
+	note: string | null = null
+): QueuedUpload {
+	if (item.phase !== 'creating') return item;
+	return { ...item, phase: 'processing', trackId, note };
+}
+
+export function finishProcessing(item: QueuedUpload): QueuedUpload {
+	if (item.phase !== 'processing') return item;
+	return { ...item, phase: 'done' };
+}
+
+export function failUpload(item: QueuedUpload, reason: string): QueuedUpload {
+	if (!isActive(item)) return item;
+	return { ...item, phase: 'error', failure: reason };
+}
+
+export function retryUpload(item: QueuedUpload): QueuedUpload {
+	if (item.phase !== 'error') return item;
+	return { ...item, phase: 'queued', progress: 0, failure: null, trackId: null, note: null };
+}
+
+export function genreConflictMessage(tags: string[], options: GenreOption[]): string | undefined {
+	const conflict = findConflict(tags, options);
+	if (!conflict) return undefined;
+	return `Los géneros ${genreInfo(conflict[0]).label} y ${genreInfo(conflict[1]).label} no se pueden combinar.`;
+}
+
+export function chunkStartable(items: QueuedUpload[], size = UPLOAD_BATCH_SIZE): QueuedUpload[][] {
+	const startable = items.filter(isStartable);
+	const chunks: QueuedUpload[][] = [];
+	for (let i = 0; i < startable.length; i += size) chunks.push(startable.slice(i, i + size));
+	return chunks;
+}
+
+export function hasActiveUploads(items: QueuedUpload[]): boolean {
+	return items.some(isActive);
+}
+
+export function summarizeQueue(items: QueuedUpload[]): {
+	ready: number;
+	failed: number;
+	uploading: number;
+	processing: number;
+	done: number;
+	errored: number;
+} {
+	const invalid = items.filter((item) => item.error !== null).length;
+	const valid = items.filter((item) => item.error === null);
+	return {
+		ready: valid.filter((item) => item.phase === 'queued').length,
+		failed: invalid,
+		uploading: valid.filter(isBusy).length,
+		processing: valid.filter((item) => item.phase === 'processing').length,
+		done: valid.filter((item) => item.phase === 'done').length,
+		errored: valid.filter((item) => item.phase === 'error').length
+	};
 }
 
 async function readEntries(reader: FileSystemDirectoryReader): Promise<FileSystemEntry[]> {
