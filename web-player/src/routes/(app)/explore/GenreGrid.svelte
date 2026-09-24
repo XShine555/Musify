@@ -26,5 +26,5 @@
 	{/each}
 </div>
 {#if tiles.length === 0}
-	<EmptyState icon={Music} description="Todavía no hay géneros. Sube música para empezar." />
+	<EmptyState icon={Music} description="Todavía no hay música disponible. Prueba a subir alguna." />
 {/if}

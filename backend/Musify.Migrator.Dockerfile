@@ -14,6 +14,7 @@ COPY Core/Musify.Application/Application.csproj        Core/Musify.Application/
 COPY Core/Musify.Infrastructure/Infrastructure.csproj Core/Musify.Infrastructure/
 RUN dotnet restore Core/Musify.Infrastructure/Infrastructure.csproj
 
+COPY .editorconfig ./
 COPY Core/Musify.Domain         Core/Musify.Domain/
 COPY Core/Musify.Application    Core/Musify.Application/
 COPY Core/Musify.Infrastructure Core/Musify.Infrastructure/
