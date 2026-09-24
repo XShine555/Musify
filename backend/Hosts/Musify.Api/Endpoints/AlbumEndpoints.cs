@@ -57,6 +57,15 @@ namespace Musify.Api.Endpoints
                 .Produces<PaginatedResponse<TrackApplicationResponse>>()
                 .Produces(StatusCodes.Status404NotFound);
 
+            group.MapGet("/{id:guid}/tracks/ids", GetAlbumTrackIds)
+                .WithName("GetAlbumTrackIds")
+                .WithSummary("Get the ids of every track in one of your albums, ordered by track number")
+                .RequireAuthorization()
+                .Produces<AlbumTrackIdsResponse>()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status404NotFound);
+
             group.MapGet("/{id:guid}/cover", GetAlbumCover)
                 .WithName("GetAlbumCover")
                 .WithSummary("Get an album cover image")
@@ -75,12 +84,13 @@ namespace Musify.Api.Endpoints
 
             group.MapPost("/", CreateAlbum)
                 .WithName("CreateAlbum")
-                .WithSummary("Create a new album")
+                .WithSummary("Create a new album, optionally with some of your tracks already in it")
                 .AddEndpointFilter<ValidationFilter<CreateAlbumRequest>>()
                 .RequireAuthorization()
                 .Produces<AlbumApplicationResponse>(StatusCodes.Status201Created)
                 .ProducesValidationProblem()
                 .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status404NotFound);
 
             group.MapPut("/{id:guid}", UpdateAlbum)
@@ -195,6 +205,16 @@ namespace Musify.Api.Endpoints
             return result.ToHttpResult();
         }
 
+        private static async Task<IResult> GetAlbumTrackIds(
+            IMediator mediator,
+            CurrentUser currentUser,
+            Guid id,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new GetAlbumTrackIdsQuery(currentUser.RequiredId, id), cancellationToken);
+            return result.ToHttpResult();
+        }
+
         private static Task<IResult> GetAlbumCover(
             IMediator mediator,
             IStorageService storageService,
@@ -226,7 +246,8 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(
-                new CreateAlbumCommand(currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear, request.PictureIntentId),
+                new CreateAlbumCommand(
+                    currentUser.RequiredId, request.Title, request.Description, request.ReleaseYear, request.PictureIntentId, request.Type, request.TrackIds),
                 cancellationToken);
 
             return result.ToCreatedResult(album => $"/albums/{album.Id}");
@@ -240,7 +261,7 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(
-                new UpdateAlbumCommand(currentUser.RequiredId, id, request.Title, request.Description, request.ReleaseYear),
+                new UpdateAlbumCommand(currentUser.RequiredId, id, request.Title, request.Description, request.ReleaseYear, request.Type),
                 cancellationToken);
 
             return result.ToHttpResult();

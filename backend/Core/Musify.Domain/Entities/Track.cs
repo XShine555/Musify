@@ -28,6 +28,8 @@ namespace Musify.Domain.Entities
 
         public bool IsExplicit { get; set; }
 
+        public bool IsPublished { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

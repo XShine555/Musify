@@ -7,7 +7,7 @@ using Musify.Application.Tracks.Responses;
 
 namespace Musify.Application.Tracks
 {
-    public record GetTrackByIdQuery(Guid TrackId)
+    public record GetTrackByIdQuery(Guid TrackId, long? ViewerId = null)
         : IQuery<ErrorOr<TrackApplicationResponse>>;
 
     public class GetTrackByIdQueryHandler(IDatabase database)
@@ -18,6 +18,7 @@ namespace Musify.Application.Tracks
             var track = await database.Tracks
                 .AsNoTracking()
                 .Active()
+                .VisibleTo(request.ViewerId)
                 .Where(t => t.Id == request.TrackId)
                 .SelectResponse()
                 .SingleOrDefaultAsync(cancellationToken);

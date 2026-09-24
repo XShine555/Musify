@@ -34,6 +34,24 @@ namespace Musify.Infrastructure.Tests.MassTransit
         }
 
         [Fact]
+        public async Task Track_WithoutPicture_CompletesOnceTheAudioIsProcessed()
+        {
+            await using var provider = CreateProvider<TrackProcessingStateMachine, TrackProcessingState>();
+            var harness = await StartAsync(provider);
+            var saga = provider.GetRequiredService<ISagaStateMachineTestHarness<TrackProcessingStateMachine, TrackProcessingState>>();
+            var id = Guid.NewGuid();
+
+            await harness.Bus.Publish(
+                new CreateTrackResourcesEvent(id, null, Guid.NewGuid(), "bucket", null, null, "audio-source", "audio", "audio-folder", Sizes), Ct);
+            Assert.NotNull(await saga.Exists(id, machine => machine.Processing));
+
+            await harness.Bus.Publish(new TrackAudioProcessed(id), Ct);
+
+            Assert.Null(await saga.NotExists(id));
+            Assert.False(await harness.Published.Any<TrackProcessingFailed>(Ct));
+        }
+
+        [Fact]
         public async Task Track_PictureFailed_PublishesProcessingFailedAndMovesToFailed()
         {
             await using var provider = CreateProvider<TrackProcessingStateMachine, TrackProcessingState>();

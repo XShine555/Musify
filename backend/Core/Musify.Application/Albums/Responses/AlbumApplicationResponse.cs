@@ -1,4 +1,5 @@
 using Musify.Domain.Entities;
+using Musify.Domain.ValueObjects;
 
 namespace Musify.Application.Albums.Responses
 {
@@ -14,7 +15,8 @@ namespace Musify.Application.Albums.Responses
         string? LargeImageKeyName,
         DateTime CreatedAt,
         DateTime UpdatedAt,
-        IReadOnlyList<Guid> CoverTrackIds)
+        IReadOnlyList<Guid> CoverTrackIds,
+        AlbumType Type)
     {
         public const int CoverTrackCount = AlbumProjections.CoverTrackCount;
 
@@ -35,7 +37,8 @@ namespace Musify.Application.Albums.Responses
                 album.Pictures?.LargeName,
                 album.CreatedAt,
                 album.UpdatedAt,
-                coverTrackIds ?? []);
+                coverTrackIds ?? [],
+                album.Type);
         }
     }
 }

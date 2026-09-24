@@ -22,6 +22,8 @@ namespace Musify.Domain.Entities
 
         public int? ReleaseYear { get; set; }
 
+        public AlbumType Type { get; set; }
+
         public EntityPictures? Pictures { get; set; }
 
         public required long OwnerUserId { get; set; }

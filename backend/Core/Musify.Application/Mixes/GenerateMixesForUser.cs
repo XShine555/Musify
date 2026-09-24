@@ -25,7 +25,7 @@ namespace Musify.Application.Mixes
 
             var libraryTrackIds = await database.Tracks
                 .AsNoTracking()
-                .Where(track => track.OwnerUserId == userId && track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(track => track.OwnerUserId == userId && track.LifeCycleStatus == LifeCycleStatus.Active && track.IsPublished)
                 .Select(track => track.Id)
                 .ToListAsync(cancellationToken);
 

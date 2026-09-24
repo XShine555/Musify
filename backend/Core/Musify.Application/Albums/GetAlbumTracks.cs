@@ -28,7 +28,7 @@ namespace Musify.Application.Albums
 
             return await database.AlbumHasTracks
                 .AsNoTracking()
-                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == Domain.ValueObjects.LifeCycleStatus.Active)
+                .Where(albumTrack => albumTrack.AlbumId == request.AlbumId && albumTrack.Track.LifeCycleStatus == Domain.ValueObjects.LifeCycleStatus.Active && albumTrack.Track.IsPublished)
                 .OrderBy(albumTrack => albumTrack.TrackNumber)
                 .ThenBy(albumTrack => albumTrack.Id)
                 .Select(albumTrack => albumTrack.Track)

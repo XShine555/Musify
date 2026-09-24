@@ -31,7 +31,7 @@ namespace Musify.Application.PlayLists
 
             return await database.PlayListHasTracks
                 .AsNoTracking()
-                .Where(playListTrack => playListTrack.PlayListId == request.PlayListId && playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active)
+                .Where(playListTrack => playListTrack.PlayListId == request.PlayListId && playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && playListTrack.Track.IsPublished)
                 .OrderBy(playListTrack => playListTrack.Position)
                 .ThenBy(playListTrack => playListTrack.Id)
                 .Select(playListTrack => playListTrack.Track)

@@ -14,7 +14,8 @@ namespace Musify.Application.Tracks.Responses
         DateTime UpdatedAt,
         long OwnerUserId,
         IReadOnlyCollection<Genre> Tags,
-        bool IsExplicit)
+        bool IsExplicit,
+        bool IsPublished)
     {
         public static TrackApplicationResponse FromEntity(Track track, int listensCount) =>
             new(
@@ -28,6 +29,7 @@ namespace Musify.Application.Tracks.Responses
                 track.UpdatedAt,
                 track.OwnerUserId,
                 track.Tags.Select(tag => tag.Tag).ToList(),
-                track.IsExplicit);
+                track.IsExplicit,
+                track.IsPublished);
     }
 }

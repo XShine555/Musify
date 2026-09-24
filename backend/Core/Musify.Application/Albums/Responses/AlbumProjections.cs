@@ -17,16 +17,18 @@ namespace Musify.Application.Albums.Responses
                 album.Description,
                 album.ReleaseYear,
                 album.OwnerUserId,
-                album.AlbumTracks.Count,
+                album.AlbumTracks.Count(albumTrack => albumTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && albumTrack.Track.IsPublished),
                 album.Pictures!.SmallName,
                 album.Pictures!.MediumName,
                 album.Pictures!.LargeName,
                 album.CreatedAt,
                 album.UpdatedAt,
                 album.AlbumTracks
+                    .Where(albumTrack => albumTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && albumTrack.Track.IsPublished)
                     .OrderBy(albumTrack => albumTrack.TrackNumber)
                     .Take(CoverTrackCount)
                     .Select(albumTrack => albumTrack.TrackId)
-                    .ToList()));
+                    .ToList(),
+                album.Type));
     }
 }

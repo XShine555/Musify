@@ -10,10 +10,10 @@ namespace Musify.Application.Configuration
         public int UploadUrlExpiresInSeconds { get; set; } = 120;
 
         [Range(1, 100)]
-        public int MaxActiveUploadIntentsPerUser { get; set; } = 5;
+        public int MaxActiveUploadIntentsPerUser { get; set; } = 50;
 
         [Range(1, long.MaxValue)]
-        public long MaxActiveUploadBytesPerUser { get; set; } = 200L * 1024 * 1024;
+        public long MaxActiveUploadBytesPerUser { get; set; } = 1024L * 1024 * 1024;
 
         [Range(1, long.MaxValue)]
         public long MaxUploadBytes { get; set; } = 100L * 1024 * 1024;

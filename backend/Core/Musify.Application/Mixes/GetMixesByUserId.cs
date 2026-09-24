@@ -25,7 +25,13 @@ namespace Musify.Application.Mixes
                 mix => mix.Id,
                 mix => mix.Items.OrderBy(item => item.Position).ToList());
 
-            var coverItems = orderedItemsByMix.Values
+            var visibleTrackIds = await MixItemMapper.VisibleTrackIdsAsync(
+                database, orderedItemsByMix.Values.SelectMany(items => items), cancellationToken);
+            var visibleItemsByMix = orderedItemsByMix.ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value.Where(item => visibleTrackIds.Contains(item.TrackId)).ToList());
+
+            var coverItems = visibleItemsByMix.Values
                 .SelectMany(items => items.Take(MixApplicationResponse.CoverItemCount))
                 .ToList();
             var coverResponses = (await MixItemMapper.ToResponsesAsync(database, coverItems, cancellationToken))
@@ -35,7 +41,7 @@ namespace Musify.Application.Mixes
             var responses = new List<MixApplicationResponse>(mixes.Count);
             foreach (var mix in mixes)
             {
-                var orderedItems = orderedItemsByMix[mix.Id];
+                var orderedItems = visibleItemsByMix[mix.Id];
                 var covers = orderedItems
                     .Take(MixApplicationResponse.CoverItemCount)
                     .Where(item => coverResponses.ContainsKey(item.TrackId))

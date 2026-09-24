@@ -21,7 +21,7 @@ namespace Musify.Application.Likes
         {
             var trackExists = await database.Tracks
                 .AsNoTracking()
-                .AnyAsync(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active, cancellationToken);
+                .AnyAsync(t => t.Id == request.TrackId && t.LifeCycleStatus == LifeCycleStatus.Active && t.IsPublished, cancellationToken);
             if (!trackExists)
                 return AppErrors.NotFound("Track", request.TrackId);
 

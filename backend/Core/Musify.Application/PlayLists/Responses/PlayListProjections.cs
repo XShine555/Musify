@@ -25,14 +25,15 @@ namespace Musify.Application.PlayLists.Responses
                 playList.CreatedAt,
                 playList.UpdatedAt,
                 playList.PlayListTracks
+                    .Where(playListTrack => playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && playListTrack.Track.IsPublished)
                     .OrderBy(playListTrack => playListTrack.Position)
                     .Take(CoverTrackCount)
                     .Select(playListTrack => playListTrack.TrackId)
                     .ToList(),
                 playList.OwnerUserId,
-                playList.PlayListTracks.Count(playListTrack => playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active),
+                playList.PlayListTracks.Count(playListTrack => playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && playListTrack.Track.IsPublished),
                 playList.PlayListTracks
-                    .Where(playListTrack => playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active)
+                    .Where(playListTrack => playListTrack.Track.LifeCycleStatus == LifeCycleStatus.Active && playListTrack.Track.IsPublished)
                     .Sum(playListTrack => playListTrack.Track.DurationSeconds)));
     }
 }
