@@ -149,7 +149,7 @@
 	{#if status === 'done'}
 		<Surface padding="lg" class="mt-10 bg-accent-tint text-center">
 			<span class="mx-auto grid size-14 place-items-center rounded-full bg-accent-soft text-ink">
-				<Check class="size-7" />
+				<Check class="size-icon-2xl" />
 			</span>
 			<h2 class="mt-6 font-display text-2xl font-semibold tracking-display text-fg">¡Subida!</h2>
 			<p class="mt-3 text-sm text-fg-2">
@@ -210,9 +210,9 @@
 					aria-label="Seleccionar archivo de audio"
 				/>
 				{#if audioName === ''}
-					<Headphones class="size-9 text-fg-2 sm:size-10" />
+					<Headphones class="size-icon-xl text-fg-2 sm:size-icon-3xl" />
 				{:else}
-					<Music class="size-9 text-accent-soft sm:size-10" />
+					<Music class="size-icon-xl text-accent-soft sm:size-icon-3xl" />
 				{/if}
 				{#if audioName === ''}
 					<p class="mt-4 text-sm font-medium text-fg">

@@ -45,7 +45,7 @@ for (const file of files) {
 		}
 
 		for (const icon of icons) {
-			const tag = line.match(new RegExp(`<${icon}\s[^>]*`));
+			const tag = line.match(new RegExp(`<${icon}\\s[^>]*`));
 			if (!tag) continue;
 			if (ICON_PIXEL_SIZE.test(tag[0])) {
 				violations.push(`${file}:${lineNo} — icono con size={N}: usa una clase size-icon-*`);

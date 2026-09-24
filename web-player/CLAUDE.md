@@ -63,7 +63,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
 The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utility` recipes) and in `src/lib/theme/` (`theme.css` for the static neutrals, `tokens.ts` for the dynamic tokens that depend on the user's hue). `scripts/check-tokens.mjs` (run as `npm run lint:tokens`, part of `lint`) fails on a stock radius, an `h-N w-N` pair, fractional quarter spacing, a literal hex/`rgba()`, or an arbitrary `-[…]` value outside its whitelist, so check that script before adding one.
 
 - **Radii:** always `rounded-tag/thumb/control/art/art-lg/panel/panel-lg` (or `rounded-full` for pills and circles). Never `rounded-sm/md/lg/xl/2xl/3xl` or a bare `rounded`.
-- **Square sizes:** use `size-*` instead of repeating `h-N w-N` (icons: `size-icon-xs/sm/md/lg/xl`; covers: `size-cover-xs` through `size-cover-hero`).
+- **Square sizes:** use `size-*` instead of repeating `h-N w-N` (icons: `size-icon-xs/sm/md/lg/xl/2xl/3xl`; covers: `size-cover-xs` through `size-cover-hero`).
 - **Typography:** use the recipes `text-display-1/2/3/4`, `text-eyebrow`, `text-body`, with tracking through `tracking-display`/`tracking-eyebrow` rather than a loose `tracking-[…]`.
 - **Spacing:** stick to the Tailwind scale in `.5` steps and avoid quarters like `.25`/`.75`, unless the semantic token calls for it (for example `mb-4.5` in `SectionHeading`).
 - **Colors:** always use `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never a literal hex or `rgba()` inside a `.svelte` file; those literals only belong in `theme.css`/`tokens.ts` as the source of truth.
