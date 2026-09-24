@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
+using Musify.Application.Configuration;
 
 namespace Musify.Api.Authentication;
 
@@ -9,13 +9,7 @@ public static class AuthenticationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services
-            .AddOptionsWithValidateOnStart<AuthenticationConfiguration>()
-            .Bind(configuration.GetRequiredSection(AuthenticationConfiguration.SectionName))
-            .ValidateDataAnnotations();
-
-        services.AddSingleton(serviceProvider =>
-            serviceProvider.GetRequiredService<IOptions<AuthenticationConfiguration>>().Value);
+        services.AddValidatedOptions<AuthenticationConfiguration>(configuration);
 
         services.AddMemoryCache();
         services.AddHttpClient();

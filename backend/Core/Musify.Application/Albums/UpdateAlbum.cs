@@ -106,6 +106,7 @@ public class UpdateAlbumCommandHandler(
     {
         try
         {
+            var sizes = albumConfiguration.PicturesSizes.ToImageSizes(albumConfiguration.Routes);
             await eventBus.PublishAsync(
                 new UpdateAlbumPictureSourceEvent(
                     albumId,
@@ -113,18 +114,9 @@ public class UpdateAlbumCommandHandler(
                     storageConfiguration.Bucket,
                     pictureIntent.Key,
                     finalPictureKey,
-                    new ImageSize(
-                        albumConfiguration.Routes.SmallPicturesPath,
-                        albumConfiguration.PicturesSizes.SmallPictureWidth,
-                        albumConfiguration.PicturesSizes.SmallPictureHeight),
-                    new ImageSize(
-                        albumConfiguration.Routes.MediumPicturesPath,
-                        albumConfiguration.PicturesSizes.MediumPictureWidth,
-                        albumConfiguration.PicturesSizes.MediumPictureHeight),
-                    new ImageSize(
-                        albumConfiguration.Routes.LargePicturesPath,
-                        albumConfiguration.PicturesSizes.LargePictureWidth,
-                        albumConfiguration.PicturesSizes.LargePictureHeight)),
+                    sizes.Small,
+                    sizes.Medium,
+                    sizes.Large),
                 cancellationToken);
             return new Success();
         }

@@ -6,7 +6,6 @@ using Musify.Application.Configuration;
 using Musify.Application.Contracts;
 using Musify.Application.Events;
 using Musify.Application.Services;
-using Musify.Application.Shared;
 using Musify.Application.Tracks.Responses;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
@@ -117,6 +116,7 @@ public class CreateTrackCommandHandler(
 
         try
         {
+            var sizes = trackConfiguration.PicturesSizes.ToImageSizes(trackConfiguration.Routes);
             await eventBus.PublishAsync(
                 new CreateTrackResourcesEvent(
                     trackEntity.Id,
@@ -128,18 +128,9 @@ public class CreateTrackCommandHandler(
                     audioIntent.Key,
                     finalAudioKey,
                     audioProcessedFolderKey,
-                    new ImageSize(
-                        trackConfiguration.Routes.SmallPicturesPath,
-                        trackConfiguration.PicturesSizes.SmallPictureWidth,
-                        trackConfiguration.PicturesSizes.SmallPictureHeight),
-                    new ImageSize(
-                        trackConfiguration.Routes.MediumPicturesPath,
-                        trackConfiguration.PicturesSizes.MediumPictureWidth,
-                        trackConfiguration.PicturesSizes.MediumPictureHeight),
-                    new ImageSize(
-                        trackConfiguration.Routes.LargePicturesPath,
-                        trackConfiguration.PicturesSizes.LargePictureWidth,
-                        trackConfiguration.PicturesSizes.LargePictureHeight)),
+                    sizes.Small,
+                    sizes.Medium,
+                    sizes.Large),
                 cancellationToken);
         }
         catch (Exception exception)

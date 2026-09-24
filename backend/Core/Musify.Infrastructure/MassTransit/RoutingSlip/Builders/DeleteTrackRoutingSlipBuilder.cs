@@ -58,21 +58,21 @@ public class DeleteTrackRoutingSlipBuilder(
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
-                        trackConfiguration.Routes.BuildSmallPicturePath(track.Pictures.SmallName)));
+                        trackConfiguration.Routes.BuildPicturePath(PictureSize.Small, track.Pictures.SmallName)));
 
                 routingSlipBuilder.AddActivity(
                     ActivityNames.RemoveTrackMediumPicture,
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
-                        trackConfiguration.Routes.BuildMediumPicturePath(track.Pictures.MediumName)));
+                        trackConfiguration.Routes.BuildPicturePath(PictureSize.Medium, track.Pictures.MediumName)));
 
                 routingSlipBuilder.AddActivity(
                     ActivityNames.RemoveTrackLargePicture,
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
-                        trackConfiguration.Routes.BuildLargePicturePath(track.Pictures.LargeName)));
+                        trackConfiguration.Routes.BuildPicturePath(PictureSize.Large, track.Pictures.LargeName)));
             }
 
             if (!string.IsNullOrEmpty(track.Audio.OriginalName))

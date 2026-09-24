@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Api.Authentication;
 
-public sealed class AuthenticationConfiguration
+public sealed class AuthenticationConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "Authentication";
+    public static string SectionName => "Authentication";
 
     [Required]
     [Url]

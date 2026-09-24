@@ -6,6 +6,10 @@ namespace Musify.Application.Configuration;
 
 public static class ConfigurationDependencyInjection
 {
+    public static IServiceCollection AddValidatedOptions<T>(this IServiceCollection services, IConfiguration configuration)
+        where T : class, IConfigurationOptions =>
+        services.AddValidatedOptions<T>(configuration, T.SectionName);
+
     public static IServiceCollection AddValidatedOptions<T>(
         this IServiceCollection services,
         IConfiguration configuration,

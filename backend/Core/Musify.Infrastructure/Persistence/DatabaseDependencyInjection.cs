@@ -1,27 +1,21 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Persistence;
 
 public static class DatabaseDependencyInjection
 {
-    public static IServiceCollection AddDatabase(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+    public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        serviceDescriptors
-            .AddOptionsWithValidateOnStart<DatabaseConfiguration>()
-            .Bind(configuration.GetRequiredSection(DatabaseConfiguration.SectionName))
-            .ValidateDataAnnotations();
+        services.AddValidatedOptions<DatabaseConfiguration>(configuration);
 
-        serviceDescriptors.AddSingleton(serviceProvider =>
-            serviceProvider.GetRequiredService<IOptions<DatabaseConfiguration>>().Value);
+        services.AddDbContext<Database>();
 
-        serviceDescriptors.AddDbContext<Database>();
+        services.AddScoped<IDatabase>(serviceProvider => serviceProvider.GetRequiredService<Database>());
 
-        serviceDescriptors.AddScoped<IDatabase>(serviceProvider => serviceProvider.GetRequiredService<Database>());
-
-        return serviceDescriptors;
+        return services;
     }
 }

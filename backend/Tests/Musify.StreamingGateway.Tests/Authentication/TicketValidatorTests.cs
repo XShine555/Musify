@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Musify.StreamingGateway.Authentication;
@@ -25,12 +24,12 @@ public sealed class TicketValidatorTests : IDisposable
         File.Delete(publicKeyPath);
     }
 
-    private TicketValidator CreateValidator() => new(Options.Create(new StreamTicketValidationOptions
+    private TicketValidator CreateValidator() => new(new StreamTicketValidationConfiguration
     {
         PublicKeyPath = publicKeyPath,
         Audience = Audience,
         Issuer = Issuer
-    }));
+    });
 
     private string IssueToken(string prefix = "Tracks/ProcessedAudios/abc/", string issuer = Issuer, string audience = Audience,
         DateTime? expires = null, DateTime? notBefore = null, long? maxBytes = null)

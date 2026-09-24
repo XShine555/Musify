@@ -44,7 +44,7 @@ public class RequestPlayListPictureUploadCommandHandler(
 
         var objectName = $"{Guid.NewGuid()}.{request.FileType.TrimStart('.').ToLowerInvariant()}";
 
-        var tempKey = playListConfiguration.Routes.BuildTempPicturePath(
+        var tempKey = playListConfiguration.Routes.BuildTempPath(
             uploadIntentConfiguration.TempRootPrefix, request.UserId, objectName);
 
         try

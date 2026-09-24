@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration;
 
-public class UploadIntentConfiguration
+public class UploadIntentConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "UploadIntent";
+    public static string SectionName => "UploadIntent";
 
     [Range(10, 3600)]
     public int UploadUrlExpiresInSeconds { get; set; } = 120;

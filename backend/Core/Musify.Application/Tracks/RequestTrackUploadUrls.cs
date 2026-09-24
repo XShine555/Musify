@@ -50,9 +50,9 @@ public class RequestTrackUploadUrlsCommandHandler(
         var pictureObjectName = $"{Guid.NewGuid()}.{request.PictureFileType.TrimStart('.').ToLowerInvariant()}";
         var audioObjectName = $"{Guid.NewGuid()}.{request.AudioFileType.TrimStart('.').ToLowerInvariant()}";
 
-        var tempPictureKey = trackConfiguration.Routes.BuildTempPicturePath(
+        var tempPictureKey = trackConfiguration.Routes.BuildTempPath(
             uploadIntentConfiguration.TempRootPrefix, request.UserId, pictureObjectName);
-        var tempAudioKey = trackConfiguration.Routes.BuildTempAudioPath(
+        var tempAudioKey = trackConfiguration.Routes.BuildTempPath(
             uploadIntentConfiguration.TempRootPrefix, request.UserId, audioObjectName);
 
         try

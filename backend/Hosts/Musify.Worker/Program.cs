@@ -17,10 +17,10 @@ var configuration = builder.Configuration;
 
 var services = builder.Services;
 
-services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
-services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
-services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
-services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
+services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration);
+services.AddValidatedOptions<PlayListConfiguration>(configuration);
+services.AddValidatedOptions<TrackConfiguration>(configuration);
+services.AddValidatedOptions<MixConfiguration>(configuration);
 services.AddStorageService(configuration);
 services.AddAudioTranscoder(configuration);
 services.AddPictureService();

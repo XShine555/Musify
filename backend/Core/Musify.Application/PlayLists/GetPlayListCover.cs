@@ -32,12 +32,14 @@ public class GetPlayListCoverQueryHandler(
 
         var pictures = owned.Pictures;
         var routes = playListConfiguration.Routes;
-        var (name, key) = request.Size.ToLowerInvariant() switch
+        var size = PictureSizeParser.Parse(request.Size);
+        var name = size switch
         {
-            "small" => (pictures.SmallName, BuildKey(routes.BuildSmallPicturePath, pictures.SmallName)),
-            "large" => (pictures.LargeName, BuildKey(routes.BuildLargePicturePath, pictures.LargeName)),
-            _ => (pictures.MediumName, BuildKey(routes.BuildMediumPicturePath, pictures.MediumName))
+            PictureSize.Small => pictures.SmallName,
+            PictureSize.Large => pictures.LargeName,
+            _ => pictures.MediumName
         };
+        var key = string.IsNullOrEmpty(name) ? null : routes.BuildPicturePath(size, name);
 
         // The resized files only exist once processing has finished; until then serve the original.
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(key))
@@ -52,7 +54,4 @@ public class GetPlayListCoverQueryHandler(
         var contentType = MimeUtility.GetMimeMapping(name);
         return new PlayListCoverLocation(storageConfiguration.Bucket, key, contentType);
     }
-
-    private static string? BuildKey(Func<string, string> builder, string? name)
-        => string.IsNullOrEmpty(name) ? null : builder(name);
 }

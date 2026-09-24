@@ -5,20 +5,18 @@ using Musify.Application.Contracts;
 using Musify.Infrastructure.Configuration;
 using Musify.Infrastructure.MassTransit.Sagas;
 using Musify.Infrastructure.Persistence;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.MassTransit;
 
 public static partial class MassTransitDependencyInjection
 {
-    public static IServiceCollection AddMassTransitClient(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+    public static IServiceCollection AddMassTransitClient(this IServiceCollection services, IConfiguration configuration)
     {
-        RegisterValidatedOptions<MassTransitConfiguration>(
-            serviceDescriptors,
-            configuration,
-            MassTransitConfiguration.SectionName);
+        services.AddValidatedOptions<MassTransitConfiguration>(configuration);
 
-        serviceDescriptors.AddScoped<IEventBus, MassTransitEventBus>();
-        serviceDescriptors.AddMassTransit(options =>
+        services.AddScoped<IEventBus, MassTransitEventBus>();
+        services.AddMassTransit(options =>
         {
             options.AddEntityFrameworkOutbox<Database>(outbox =>
             {
@@ -35,24 +33,18 @@ public static partial class MassTransitDependencyInjection
                     busRegistrationContext.GetRequiredService<MassTransitConfiguration>()));
         });
 
-        return serviceDescriptors;
+        return services;
     }
 
-    public static IServiceCollection AddMassTransitConsumers(this IServiceCollection serviceDescriptors, IConfiguration configuration)
+    public static IServiceCollection AddMassTransitConsumers(this IServiceCollection services, IConfiguration configuration)
     {
-        RegisterValidatedOptions<MassTransitConfiguration>(
-            serviceDescriptors,
-            configuration,
-            MassTransitConfiguration.SectionName);
+        services.AddValidatedOptions<MassTransitConfiguration>(configuration);
 
-        RegisterValidatedOptions<WorkerConfiguration>(
-            serviceDescriptors,
-            configuration,
-            WorkerConfiguration.SectionName);
+        services.AddValidatedOptions<WorkerConfiguration>(configuration);
 
-        RegisterRoutingSlipBuilders(serviceDescriptors);
+        RegisterRoutingSlipBuilders(services);
 
-        serviceDescriptors.AddMassTransit(options =>
+        services.AddMassTransit(options =>
         {
             options.AddEntityFrameworkOutbox<Database>(outbox =>
             {
@@ -107,7 +99,7 @@ public static partial class MassTransitDependencyInjection
             });
         });
 
-        return serviceDescriptors;
+        return services;
     }
 
     private static void UseStandardRetry(IReceiveEndpointConfigurator endpointConfigurator) =>

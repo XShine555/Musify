@@ -7,7 +7,6 @@ using Musify.Application.Contracts;
 using Musify.Application.Events;
 using Musify.Application.PlayLists.Responses;
 using Musify.Application.Services;
-using Musify.Application.Shared;
 using Musify.Domain.Entities;
 using Musify.Domain.ValueObjects;
 
@@ -108,6 +107,7 @@ public class CreatePlayListCommandHandler(
     {
         try
         {
+            var sizes = playListConfiguration.PicturesSizes.ToImageSizes(playListConfiguration.Routes);
             await eventBus.PublishAsync(
                 new CreatePlayListResourcesEvent(
                     playListId,
@@ -115,18 +115,9 @@ public class CreatePlayListCommandHandler(
                     storageConfiguration.Bucket,
                     pictureIntent.Key,
                     finalPictureKey,
-                    new ImageSize(
-                        playListConfiguration.Routes.SmallPicturesPath,
-                        playListConfiguration.PicturesSizes.SmallPictureWidth,
-                        playListConfiguration.PicturesSizes.SmallPictureHeight),
-                    new ImageSize(
-                        playListConfiguration.Routes.MediumPicturesPath,
-                        playListConfiguration.PicturesSizes.MediumPictureWidth,
-                        playListConfiguration.PicturesSizes.MediumPictureHeight),
-                    new ImageSize(
-                        playListConfiguration.Routes.LargePicturesPath,
-                        playListConfiguration.PicturesSizes.LargePictureWidth,
-                        playListConfiguration.PicturesSizes.LargePictureHeight)),
+                    sizes.Small,
+                    sizes.Medium,
+                    sizes.Large),
                 cancellationToken);
             return new Success();
         }

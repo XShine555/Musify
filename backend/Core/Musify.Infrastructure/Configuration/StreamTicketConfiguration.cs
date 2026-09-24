@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Configuration;
 
-public class StreamTicketConfiguration
+public class StreamTicketConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "StreamTicket";
+    public static string SectionName => "StreamTicket";
 
     [Required]
     public required string PrivateKeyPath { get; set; }

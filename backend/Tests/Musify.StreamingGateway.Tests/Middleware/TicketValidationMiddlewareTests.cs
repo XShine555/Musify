@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Musify.StreamingGateway.Authentication;
@@ -17,12 +16,12 @@ public sealed class TicketValidationMiddlewareTests : IDisposable
 
     private readonly string publicKeyPath = Path.GetTempFileName();
     private readonly RSA rsa = RSA.Create(2048);
-    private readonly StreamTicketValidationOptions options;
+    private readonly StreamTicketValidationConfiguration options;
 
     public TicketValidationMiddlewareTests()
     {
         File.WriteAllText(publicKeyPath, rsa.ExportSubjectPublicKeyInfoPem());
-        options = new StreamTicketValidationOptions
+        options = new StreamTicketValidationConfiguration
         {
             PublicKeyPath = publicKeyPath,
             Audience = "media-gateway",
@@ -57,8 +56,8 @@ public sealed class TicketValidationMiddlewareTests : IDisposable
     {
         var nextCalled = false;
         RequestDelegate next = _ => { nextCalled = true; return Task.CompletedTask; };
-        var validator = new TicketValidator(Options.Create(options));
-        var middleware = new TicketValidationMiddleware(next, validator, Options.Create(options), NullLogger<TicketValidationMiddleware>.Instance);
+        var validator = new TicketValidator(options);
+        var middleware = new TicketValidationMiddleware(next, validator, options, NullLogger<TicketValidationMiddleware>.Instance);
         return (middleware, () => nextCalled);
     }
 

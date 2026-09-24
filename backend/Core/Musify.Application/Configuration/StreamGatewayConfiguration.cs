@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.Application.Configuration;
 
-public class StreamGatewayConfiguration
+public class StreamGatewayConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "StreamGateway";
+    public static string SectionName => "StreamGateway";
 
     [Url]
     [Required]

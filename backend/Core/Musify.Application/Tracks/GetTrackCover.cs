@@ -28,12 +28,14 @@ public class GetTrackCoverQueryHandler(
             return Error.NotFound();
 
         var routes = trackConfiguration.Routes;
-        var (name, key) = request.Size.ToLowerInvariant() switch
+        var size = PictureSizeParser.Parse(request.Size);
+        var name = size switch
         {
-            "small" => (track.SmallName, BuildKey(routes.BuildSmallPicturePath, track.SmallName)),
-            "large" => (track.LargeName, BuildKey(routes.BuildLargePicturePath, track.LargeName)),
-            _ => (track.MediumName, BuildKey(routes.BuildMediumPicturePath, track.MediumName))
+            PictureSize.Small => track.SmallName,
+            PictureSize.Large => track.LargeName,
+            _ => track.MediumName
         };
+        var key = string.IsNullOrEmpty(name) ? null : routes.BuildPicturePath(size, name);
 
         if (string.IsNullOrEmpty(name) || key == null)
             return Error.NotFound();
@@ -46,7 +48,4 @@ public class GetTrackCoverQueryHandler(
 
         return new TrackCoverLocation(storageConfiguration.Bucket, key, contentType);
     }
-
-    private static string? BuildKey(Func<string, string> builder, string? name)
-        => string.IsNullOrEmpty(name) ? null : builder(name);
 }

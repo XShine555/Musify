@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Configuration;
 
-public class InfrastructureStorageConfiguration
+public class InfrastructureStorageConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "InfrastructureStorage";
+    public static string SectionName => "InfrastructureStorage";
 
     [Url]
     [Required]

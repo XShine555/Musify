@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Musify.StreamingGateway.Authentication;
@@ -9,11 +8,9 @@ namespace Musify.StreamingGateway.Middleware;
 public sealed class TicketValidationMiddleware(
     RequestDelegate next,
     TicketValidator ticketValidator,
-    IOptions<StreamTicketValidationOptions> options,
+    StreamTicketValidationConfiguration options,
     ILogger<TicketValidationMiddleware> logger)
 {
-    private readonly StreamTicketValidationOptions options = options.Value;
-
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path;

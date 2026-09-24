@@ -59,7 +59,7 @@ public class DeletePlayListRoutingSlipBuilder(
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
-                        routes.BuildSmallPicturePath(smallName)));
+                        routes.BuildPicturePath(PictureSize.Small, smallName)));
             }
 
             if (playList.Pictures.MediumName is { } mediumName)
@@ -69,7 +69,7 @@ public class DeletePlayListRoutingSlipBuilder(
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
-                        routes.BuildMediumPicturePath(mediumName)));
+                        routes.BuildPicturePath(PictureSize.Medium, mediumName)));
             }
 
             if (playList.Pictures.LargeName is { } largeName)
@@ -79,7 +79,7 @@ public class DeletePlayListRoutingSlipBuilder(
                     EndpointHelper.BuildExecuteActivityUri(RemoveFileFromBucketActivity.ExecuteEndpointName),
                     new RemoveFileFromBucketArguments(
                         bucket,
-                        routes.BuildLargePicturePath(largeName)));
+                        routes.BuildPicturePath(PictureSize.Large, largeName)));
             }
         }
 

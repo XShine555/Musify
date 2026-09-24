@@ -111,6 +111,7 @@ public class UpdatePlayListCommandHandler(
     {
         try
         {
+            var sizes = playListConfiguration.PicturesSizes.ToImageSizes(playListConfiguration.Routes);
             await eventBus.PublishAsync(
                 new UpdatePlayListPictureSourceEvent(
                     playListId,
@@ -118,18 +119,9 @@ public class UpdatePlayListCommandHandler(
                     storageConfiguration.Bucket,
                     pictureIntent.Key,
                     finalPictureKey,
-                    new ImageSize(
-                        playListConfiguration.Routes.SmallPicturesPath,
-                        playListConfiguration.PicturesSizes.SmallPictureWidth,
-                        playListConfiguration.PicturesSizes.SmallPictureHeight),
-                    new ImageSize(
-                        playListConfiguration.Routes.MediumPicturesPath,
-                        playListConfiguration.PicturesSizes.MediumPictureWidth,
-                        playListConfiguration.PicturesSizes.MediumPictureHeight),
-                    new ImageSize(
-                        playListConfiguration.Routes.LargePicturesPath,
-                        playListConfiguration.PicturesSizes.LargePictureWidth,
-                        playListConfiguration.PicturesSizes.LargePictureHeight)),
+                    sizes.Small,
+                    sizes.Medium,
+                    sizes.Large),
                 cancellationToken);
             return new Success();
         }

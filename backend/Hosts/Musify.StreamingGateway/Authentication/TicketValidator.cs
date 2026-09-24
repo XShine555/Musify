@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Musify.StreamingGateway.Configuration;
@@ -15,14 +14,14 @@ public sealed record TicketValidationResult(string Prefix, long? MaxBytes)
 
 public sealed class TicketValidator : IDisposable
 {
-    private readonly StreamTicketValidationOptions _options;
+    private readonly StreamTicketValidationConfiguration _options;
     private readonly RSA _rsa;
     private readonly TokenValidationParameters _validationParameters;
     private readonly JsonWebTokenHandler _handler = new();
 
-    public TicketValidator(IOptions<StreamTicketValidationOptions> options)
+    public TicketValidator(StreamTicketValidationConfiguration options)
     {
-        _options = options.Value;
+        _options = options;
 
         _rsa = RSA.Create();
         _rsa.ImportFromPem(File.ReadAllText(_options.PublicKeyPath));

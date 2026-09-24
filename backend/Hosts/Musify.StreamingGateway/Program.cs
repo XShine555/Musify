@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Musify.StreamingGateway.Authentication;
 using Musify.StreamingGateway.Configuration;
 using Musify.StreamingGateway.Middleware;
@@ -5,10 +6,13 @@ using Musify.StreamingGateway.Middleware;
 var builder = WebApplication.CreateBuilder();
 
 builder.Services
-    .AddOptions<StreamTicketValidationOptions>()
-    .Bind(builder.Configuration.GetRequiredSection(StreamTicketValidationOptions.SectionName))
+    .AddOptions<StreamTicketValidationConfiguration>()
+    .Bind(builder.Configuration.GetRequiredSection(StreamTicketValidationConfiguration.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+builder.Services.AddSingleton(serviceProvider =>
+    serviceProvider.GetRequiredService<IOptions<StreamTicketValidationConfiguration>>().Value);
 
 builder.Services.AddSingleton<TicketValidator>();
 

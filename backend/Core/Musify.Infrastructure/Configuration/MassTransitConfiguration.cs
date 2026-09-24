@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Configuration;
 
-public class MassTransitConfiguration
+public class MassTransitConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "MassTransit";
+    public static string SectionName => "MassTransit";
 
     [Required]
     public required string Address { get; set; }

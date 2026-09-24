@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Configuration;
 
-public class OpenTelemetryConfiguration
+public class OpenTelemetryConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "OpenTelemetry";
+    public static string SectionName => "OpenTelemetry";
 
     [Url]
     [Required]

@@ -13,14 +13,14 @@ public static class ApplicationDependencyInjection
         services.AddScoped<UploadIntentValidator>();
         services.AddScoped<TrackStreamIssuer>();
 
-        services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration, ApplicationStorageConfiguration.SectionName);
-        services.AddValidatedOptions<PlayListConfiguration>(configuration, PlayListConfiguration.SectionName);
-        services.AddValidatedOptions<AlbumConfiguration>(configuration, AlbumConfiguration.SectionName);
-        services.AddValidatedOptions<TrackConfiguration>(configuration, TrackConfiguration.SectionName);
-        services.AddValidatedOptions<MixConfiguration>(configuration, MixConfiguration.SectionName);
-        services.AddValidatedOptions<StreamGatewayConfiguration>(configuration, StreamGatewayConfiguration.SectionName);
-        services.AddValidatedOptions<UploadIntentConfiguration>(configuration, UploadIntentConfiguration.SectionName);
-        services.AddValidatedOptions<PlaybackConfiguration>(configuration, PlaybackConfiguration.SectionName);
+        services.AddValidatedOptions<ApplicationStorageConfiguration>(configuration);
+        services.AddValidatedOptions<PlayListConfiguration>(configuration);
+        services.AddValidatedOptions<AlbumConfiguration>(configuration);
+        services.AddValidatedOptions<TrackConfiguration>(configuration);
+        services.AddValidatedOptions<MixConfiguration>(configuration);
+        services.AddValidatedOptions<StreamGatewayConfiguration>(configuration);
+        services.AddValidatedOptions<UploadIntentConfiguration>(configuration);
+        services.AddValidatedOptions<PlaybackConfiguration>(configuration);
 
         return services;
     }

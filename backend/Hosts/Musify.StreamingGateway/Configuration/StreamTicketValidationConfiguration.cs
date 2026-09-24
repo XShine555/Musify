@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Musify.StreamingGateway.Configuration;
 
-public sealed class StreamTicketValidationOptions
+public sealed class StreamTicketValidationConfiguration
 {
     public const string SectionName = "StreamTicket";
 

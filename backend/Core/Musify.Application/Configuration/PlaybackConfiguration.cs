@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Musify.Application.Configuration;
 
 
-public sealed class PlaybackConfiguration
+public sealed class PlaybackConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "Playback";
+    public static string SectionName => "Playback";
 
     public bool AllowAnonymousListening { get; set; }
 

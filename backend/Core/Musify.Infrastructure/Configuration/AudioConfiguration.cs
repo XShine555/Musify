@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Configuration;
 
-public class AudioConfiguration
+public class AudioConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "AudioTranscoder";
+    public static string SectionName => "AudioTranscoder";
 
     [Required]
     public TimeSpan TranscodingTimeout { get; set; } = TimeSpan.FromMinutes(5);

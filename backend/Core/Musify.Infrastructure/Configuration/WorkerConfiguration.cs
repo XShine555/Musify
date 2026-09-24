@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Musify.Application.Configuration;
 
 namespace Musify.Infrastructure.Configuration;
 
-public class WorkerConfiguration
+public class WorkerConfiguration : IConfigurationOptions
 {
-    public const string SectionName = "Workers";
+    public static string SectionName => "Workers";
 
     [Required]
     public WorkerRoutes Routes { get; set; } = new WorkerRoutes();
