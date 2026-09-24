@@ -23,7 +23,8 @@ const trackDto: components['schemas']['TrackApplicationResponse'] = {
 	updatedAt: '2026-01-03T00:00:00Z',
 	ownerUserId: '42',
 	tags: [],
-	isExplicit: true
+	isExplicit: true,
+	isPublished: true
 };
 
 describe('toTrack', () => {
@@ -88,7 +89,8 @@ describe('toAlbum', () => {
 		largeImageKeyName: null,
 		createdAt: '',
 		updatedAt: 'u',
-		coverTrackIds: ['t1']
+		coverTrackIds: ['t1'],
+		type: 'Album'
 	};
 	it('normalizes year and count', () => {
 		expect(toAlbum(dto)).toMatchObject({ releaseYear: 2020, trackCount: 5, updatedAt: 'u' });

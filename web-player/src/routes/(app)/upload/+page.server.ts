@@ -64,7 +64,9 @@ export const actions: Actions = {
 			]);
 			await Promise.all([
 				putPresigned(urls.audioUploadUrl, Buffer.from(audioBuffer), urls.audioContentType),
-				putPresigned(urls.pictureUploadUrl, Buffer.from(coverBuffer), urls.pictureContentType)
+				urls.pictureUploadUrl && urls.pictureContentType
+					? putPresigned(urls.pictureUploadUrl, Buffer.from(coverBuffer), urls.pictureContentType)
+					: Promise.resolve()
 			]);
 		} catch (err) {
 			return fail(502, {
