@@ -68,13 +68,17 @@ dotnet run --project backend/Hosts/Musify.Worker             # background
 npm --prefix web-player run dev                              # :5173
 ```
 
-When running the apps from the IDE, `Musify.Api` reads `Authentication:*`
-from user-secrets and `web-player` reads its own `web-player/.env`, neither
-looks at `deploy/.env`. Copy the four values `zitadel-init` wrote
-(`AUTH_CLIENT_ID`, `WEB_CLIENT_ID`, `WEB_CLIENT_SECRET`, `NATIVE_CLIENT_ID`)
-into `dotnet user-secrets set Authentication:ClientId <value> --project
-backend/Hosts/Musify.Api` and into `web-player/.env` once. They stay valid
-until Infrastructure's Zitadel volume is wiped.
+When running the apps from the IDE, neither the .NET hosts nor `web-player`
+look at `deploy/.env`. The hosts' `appsettings.Development.json` already
+point at Infrastructure's dev stack with Musify's own dev credentials (the
+defaults of its `MUSIFY_*` settings) and at the shared Zitadel. Only the
+OIDC client ids are per-machine: copy the values `zitadel-init` wrote once,
+`AUTH_CLIENT_ID` into both `Authentication:ClientId` and
+`Authentication:AudienceAddress` (`dotnet user-secrets set <key> <value>
+--project backend/Hosts/Musify.Api`), `WEB_CLIENT_ID` and
+`WEB_CLIENT_SECRET` into `web-player/.env`, and `NATIVE_CLIENT_ID` into
+`mobile/gradle.properties`. They stay valid until Infrastructure's Zitadel
+volume is wiped.
 
 ### Ports
 
