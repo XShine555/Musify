@@ -10,22 +10,24 @@ Heavy processing (audio transcoding, thumbnails, bucket transfers) happens **out
 
 ## Trigger
 
-When a track or playlist is created or updated, the handler publishes an event (e.g. `CreateTrackResourcesEvent`). A **consumer** (`CreateTrackConsumer`, `UpdateTrackPictureConsumer`, …) builds a **routing slip** with the sequence of activities and executes it.
+When a track, album or playlist is created, updated or deleted, the handler publishes an event (e.g. `CreateTrackResourcesEvent`, `UpdateAlbumPictureSourceEvent`, `DeleteAlbumEvent`). A **consumer** (`CreateTrackConsumer`, `UpdateTrackPictureConsumer`, `DeleteAlbumConsumer`, …) builds a **routing slip** with the sequence of activities and executes it. Every slip starts from `RoutingSlips.Create(correlationId)` and adds steps with `AddStep(...)`; `TrackFaults(subjectId, processKind)` makes a failed slip publish a failure event for its subject (`ProcessingSlipFaultConsumer`, one process kind per workflow: `TrackPicture`, `TrackAudio`, `PlayListPicture`, `AlbumPicture` and the three `*Creation` kinds).
 
 ## Routing slip builders
 
 - `CreateTrackRoutingSlipBuilder`: creating a track (consumes intents, moves files, kicks off processing).
 - `PictureWorkflowRoutingSlipBuilder`: image pipeline (download → resize → upload → update).
 - `AudioWorkflowRoutingSlipBuilder`: audio pipeline (download → transcode to `.m4a` → upload folder → update).
-- `DeleteTrackRoutingSlipBuilder`, `DeletePlayListRoutingSlipBuilder`, `PlayListPictureSourceRoutingSlipBuilder`.
+- `DeleteRoutingSlipBuilder`: marks a track, album or playlist as `Removing`, removes its files from the bucket and finally deletes the row.
+- `PictureSourceRoutingSlipBuilder`: album and playlist pictures (copy the uploaded file to its final key, consume the intent, publish the event that starts the picture workflow), for both creation and update.
 
 ## Activities (steps)
 
 Grouped by area:
 - **Files**: `DownloadFileFromBucketActivity`, `UploadFileToBucketActivity`, `TransferFilesToBucketActivity`, `CopyFileInBucketActivity`, `RemoveFileFromBucketActivity`.
 - **Audio**: `GenerateAudioWorkflowPathsActivity`, `TranscodeAudioActivity` (ffmpeg → `.m4a`), `UpdateTrackAudioActivity` (saves `AudioFolderName` and marks it `Completed`).
-- **Pictures**: `GeneratePictureWorkflowPathsActivity`, `ResizePictureActivity` (ImageSharp), `UpdateTrackPictureActivity`, `UpdatePlayListPictureActivity`.
-- **Tracks/Playlists**: `MarkTrackAsRemovingActivity`, `DeleteTrackFromDbActivity`, `PublishTrackProcessingEventsActivity`, and their playlist equivalents.
+- **Pictures**: `GeneratePictureWorkflowPathsActivity`, `ResizePictureActivity` (ImageSharp), `UpdateTrackPictureActivity`, `UpdatePlayListPictureActivity`, `UpdateAlbumPictureActivity` (a shared `UpdatePicturesActivity<T>` base; compensation restores the previous names).
+- **Life cycle**: `Mark{Track,PlayList,Album}LifeCycleActivity` and `Delete{Track,PlayList,Album}Activity` (generic over the entity; a missing row is skipped).
+- **Events**: `PublishTrackProcessingEventsActivity`, `PublishPlayListPictureProcessingEventActivity`, `PublishAlbumPictureProcessingEventActivity`.
 - **UploadIntents**: `ConsumeUploadIntentsActivity`.
 
 `RoutingSlipCleanUpConsumer` reacts to `Completed`/`Faulted` to clean up (e.g. deleting the temporary working directory).
@@ -36,11 +38,15 @@ Grouped by area:
 
 ## What the Worker needs configured
 
-The Worker registers: storage (S3), transcoder (ffmpeg), pictures, the DB, the MassTransit consumers, and the upload-intent jobs. Its `appsettings` needs the right sections: `Bucket` (= `webapi-storage`, same as the API), `PlayList`, `Track`, `MassTransit`, `AudioTranscoder`, `UploadIntent`, `Workers` (temp directory), `InfrastructureStorage`, `Database`.
+The Worker calls `AddApplication` (every Application handler is registered, so its container is validated on build), plus observability, the DB, storage (S3), the transcoder (ffmpeg), pictures, stream tickets, the MassTransit consumers and the Hangfire jobs. Its `appsettings.json` mirrors the API for the shared sections: `ApplicationStorage` (the same bucket as the API), `PlayList`, `Album`, `Track`, `Mix`, `UploadIntent`, `StreamGateway`, `StreamTicket` and `Playback` (the handlers need them to be constructed; the Worker never issues tickets, so the private key is never read), and adds `MassTransit`, `AudioTranscoder`, `Workers` (temp directory), `InfrastructureStorage`, `Database` and `OpenTelemetry`.
 
 ## Background jobs
 
-- `UploadIntentExpirationJob`: marks expired intents as such (freeing quota) every `ExpirationJobIntervalSeconds`.
-- `TemporalUploadsCleanUpJob`: cleans up old temporary uploads.
+Recurring **Hangfire** jobs (Postgres storage), registered by `RecurringJobsRegistrar` when the Worker starts:
 
-Both run on the Worker host (`AddUploadIntentJobs`). If they aren't registered anywhere, stale intents never get cleaned up on their own.
+- `DailyMixGenerationJob` (`daily-mix-generation`): regenerates the mixes every day.
+- `ListeningHistoryCleanupJob` (`listening-history-cleanup`): prunes old listens every day at 03:00.
+- `UploadIntentExpirationJob` (`upload-intent-expiration`): marks expired intents as such (freeing quota) every `ExpirationJobIntervalSeconds`.
+- `TempUploadsCleanupJob` (`temp-uploads-cleanup`): cleans up old temporary uploads under `TempRootPrefix` (`TempUploadsRetentionDays`) every `TempCleanupJobIntervalSeconds`.
+
+Hangfire cron has a one-minute resolution, so intervals in seconds are rounded up to whole minutes (`RecurringJobsRegistrar.EveryCron`). If the Worker isn't running, stale intents never get cleaned up on their own.

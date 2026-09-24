@@ -87,13 +87,14 @@ dotnet test backend/Musify.slnx
 | Project | Covers | Docker |
 |---|---|---|
 | `Musify.Domain.Tests` | Value object logic (`TrackAudio`/`TrackPictures`: `IsProcessed`, `IsFailed`, `IsInProgress`). Entities are mostly anemic, with no behavior of their own beyond that. | No |
-| `Musify.Application.Tests` | The ~45 handlers and services in `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes). | No |
-| `Musify.Infrastructure.Tests` | `Database`/migrations, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, `PlayListPresetSeeder`. | **Yes** |
+| `Musify.Application.Tests` | The handlers and services in `Musify.Application` (Albums, Tracks, PlayLists, Users, Mixes...). Its `TestDatabase` builds the model with `ModelConfiguration.Apply` from Infrastructure, so it can't drift from the real `Database`. | No |
+| `Musify.Infrastructure.Tests` | `Database`/migrations, `StorageService`, `StreamTicketService`, `AuditableEntityInterceptor`, `PictureService`, plus the MassTransit layer (lifecycle and picture-update activities, routing slip builders, `ProcessingSlipFaultConsumer`, the saga state machines on the MassTransit test harness) and `RecurringJobsRegistrar`. | **Yes** |
 | `Musify.Api.Tests` | Real HTTP endpoints (routing, auth, `ValidationFilter`, `ErrorOr`→HTTP mapping) via `WebApplicationFactory`, plus `ErrorOrHttpExtensions`/`CurrentUser`/FluentValidation validators in isolation. | **Yes** |
 | `Musify.StreamingGateway.Tests` | `TicketValidator` (RS256) and `TicketValidationMiddleware` (traversal, prefix limits, ticket extraction). | No |
 
 `Musify.Worker` has no test project: its `Program.cs` is pure DI/host wiring
-(Hangfire, MassTransit, jobs). The actual logic it runs lives in
+(Hangfire, MassTransit, jobs), and the container is validated on build, so a
+missing registration fails at startup. The actual logic it runs lives in
 `Musify.Infrastructure`, already covered there.
 
 ### Application.Tests: why in-memory SQLite instead of mocks

@@ -37,7 +37,7 @@ Access is authorized for **the track's folder prefix** via a short-lived *stream
 `TicketValidationMiddleware`, on every request to `/media/**`:
 1. Reads `?t=`, validates its signature/aud/iss/exp.
 2. Checks that the requested key **starts with** the ticket's `prefix`. If not → 403.
-3. Strips the `?t=` and passes the request on to YARP, which rewrites `/media/{key}` → `/buckets/webapi-storage/{key}` for the filer.
+3. Strips the `?t=` and passes the request on to YARP, which rewrites `/media/{key}` → `/buckets/{bucket}/{key}` for the filer (the bucket is set by the compose override `ReverseProxy__Routes__media__Transforms__0__PathPattern`; the default in `appsettings.json` is the placeholder `CHANGE_ME`, and `appsettings.Development.json` uses `webapi-storage`).
 
 - No ticket → **401**; outside the prefix → **403**; ok → **200** (and **206** for range requests, so seeking works).
 - Passes through `Range`/`Accept-Ranges` and exposes those headers via CORS.
@@ -50,6 +50,6 @@ Yes. Each ticket is scoped to **one** folder (one track). Playing a different on
 
 ## Open items / security notes
 
-- Today, the policy for who can request a ticket is "any authenticated user" (TODO: restrict it with `UserHasTrack`/visibility).
-- The prefix check is a literal `StartsWith`; it would be worth hardening it against `..` path traversal, even though browsers and ASP.NET normalize `..`.
+- Who can request a ticket is decided by `StartListeningCommand`: any authenticated user, or anonymous users when `Playback:AllowAnonymousListening` is on (the ticket then carries `maxBytes`, an anonymous preview limit). TODO: restrict it by track visibility.
+- The prefix check is a literal `StartsWith` on the key, and the gateway rejects any `.`/`..` segment with 400. For tickets with `maxBytes` it clamps the `Range` header to the preview size, replaces a missing or invalid range, and answers 416 to suffix ranges or ranges that start beyond the limit.
 - The ticket travels in the query string (`?t=`); the gateway strips it before forwarding, so it never reaches the filer's logs.
