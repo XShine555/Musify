@@ -10,7 +10,7 @@
 	import PlaylistForm from '$lib/components/ui/forms/PlaylistForm.svelte';
 	import { player } from '$lib/player/player.svelte';
 	import { queuePanel } from '$lib/state/panels.svelte';
-	import { liked } from '$lib/player/liked.svelte';
+	import { liked } from '$lib/state/liked.svelte';
 	import { createPlaylistModal } from '$lib/state/panels.svelte';
 	import { trackNavigation } from '$lib/state/history.svelte';
 	import { restoreScroll } from '$lib/state/scroll';

@@ -6,7 +6,7 @@
 	import { player } from '$lib/player/player.svelte';
 	import { playShuffled } from '$lib/player/actions';
 	import type { Track } from '$lib/types';
-	import { mergeRecentlyPlayed } from '$lib/data/recentlyPlayed';
+	import { mergeRecentlyPlayed } from '$lib/player/recentlyPlayed';
 	import { fetchPlaylistTracks } from '$lib/data/albums';
 	import { fmtTime, fmtDurationLong, plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';

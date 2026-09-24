@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { appNavLinks, isNavActive } from './navLinks';
 	import { playlistCover } from '$lib/utils/hrefs';
-	import { liked } from '$lib/player/liked.svelte';
+	import { liked } from '$lib/state/liked.svelte';
 	import { createPlaylistModal } from '$lib/state/panels.svelte';
 	import type { SessionUser } from '$lib/types';
 	import ListRow from '$lib/components/ui/media/ListRow.svelte';

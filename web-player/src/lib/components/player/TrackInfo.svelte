@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { player } from '$lib/player/player.svelte';
-	import { liked } from '$lib/player/liked.svelte';
+	import { liked } from '$lib/state/liked.svelte';
 	import Artwork from '$lib/components/ui/media/Artwork.svelte';
 	import ExplicitBadge from '$lib/components/ui/media/ExplicitBadge.svelte';
 	import ArtistLink from '$lib/components/ui/media/ArtistLink.svelte';

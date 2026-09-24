@@ -3,7 +3,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import { player } from '$lib/player/player.svelte';
 	import PlayAllButton from '$lib/components/music/PlayAllButton.svelte';
-	import { liked } from '$lib/player/liked.svelte';
+	import { liked } from '$lib/state/liked.svelte';
 	import { plural } from '$lib/utils/format';
 	import Page from '$lib/components/ui/layout/Page.svelte';
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
