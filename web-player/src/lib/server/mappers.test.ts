@@ -24,7 +24,8 @@ const trackDto: components['schemas']['TrackApplicationResponse'] = {
 	ownerUserId: '42',
 	tags: [],
 	isExplicit: true,
-	isPublished: true
+	isPublished: true,
+	coauthors: []
 };
 
 describe('toTrack', () => {

@@ -178,6 +178,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/coauthor-invitations/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept a pending coauthor invitation addressed to you */
+        post: operations["AcceptCoauthorInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/coauthor-invitations/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a pending coauthor invitation addressed to you */
+        post: operations["RejectCoauthorInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/config/playback": {
         parameters: {
             query?: never;
@@ -609,6 +643,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tracks/{id}/coauthors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Invite users to coauthor one of your tracks. Returns every invitation of the track with its status. A rejected invitation is reset to pending */
+        post: operations["InviteCoauthors"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tracks/{id}/coauthors/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a coauthor or pending invitation from a track. Allowed to the track owner and to the coauthor themself */
+        delete: operations["RemoveCoauthor"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tracks/upload-urls": {
         parameters: {
             query?: never;
@@ -635,6 +703,23 @@ export interface paths {
         };
         /** Get paginated users */
         get: operations["GetUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/coauthor-invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get your pending coauthor invitations with the track title and owner */
+        get: operations["GetCoauthorInvitations"];
         put?: never;
         post?: never;
         delete?: never;
@@ -843,6 +928,19 @@ export interface components {
             genre: components["schemas"]["Genre"];
             incompatibleWith: components["schemas"]["Genre"][];
         };
+        CoauthorInvitationResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            trackId: string;
+            trackTitle: string;
+            artist: null | string;
+            ownerUserId: string;
+            /** Format: date-time */
+            invitedAt: string;
+        };
+        /** @enum {unknown} */
+        CoauthorStatus: "Pending" | "Accepted" | "Rejected";
         CreateAlbumRequest: {
             title: string;
             description: null | string;
@@ -895,6 +993,9 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        InviteCoauthorsRequest: {
+            userIds: (number | string)[];
+        };
         ListeningStatsResponse: {
             /** Format: int32 */
             tracksThisWeek: number | string;
@@ -925,6 +1026,19 @@ export interface components {
         MixKind: "Discovery" | "Daily";
         PaginatedResponseOfAlbumApplicationResponse: {
             items: components["schemas"]["AlbumApplicationResponse"][];
+            /** Format: int32 */
+            pageNumber: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            pageCount: number | string;
+            /** Format: int32 */
+            totalItemCount: number | string;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
+        PaginatedResponseOfCoauthorInvitationResponse: {
+            items: components["schemas"]["CoauthorInvitationResponse"][];
             /** Format: int32 */
             pageNumber: number | string;
             /** Format: int32 */
@@ -1087,6 +1201,7 @@ export interface components {
             tags: components["schemas"]["Genre"][];
             isExplicit: boolean;
             isPublished: boolean;
+            coauthors: components["schemas"]["TrackCoauthorReference"][];
         };
         TrackAudioUpload: {
             /** Format: uuid */
@@ -1097,6 +1212,15 @@ export interface components {
             name: string;
             contentType: string;
             uploadUrl: string;
+        };
+        TrackCoauthorInviteReference: {
+            userId: string;
+            name: string;
+            status: components["schemas"]["CoauthorStatus"];
+        };
+        TrackCoauthorReference: {
+            id: string;
+            name: string;
         };
         TrackStatusCountsResponse: {
             /** Format: int32 */
@@ -1213,6 +1337,8 @@ export interface components {
             isExplicit: boolean;
             isPublished: boolean;
             albums: components["schemas"]["TrackAlbumReference"][];
+            coauthors: components["schemas"]["TrackCoauthorReference"][];
+            coauthorInvites: components["schemas"]["TrackCoauthorInviteReference"][];
         };
     };
     responses: never;
@@ -1791,6 +1917,102 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AcceptCoauthorInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RejectCoauthorInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2822,6 +3044,7 @@ export interface operations {
                 pageSize?: number | string;
                 status?: components["schemas"]["ProcessingStatus"][];
                 published?: boolean;
+                includeCoauthored?: boolean;
             };
             header?: never;
             path: {
@@ -2979,6 +3202,111 @@ export interface operations {
             };
         };
     };
+    InviteCoauthors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteCoauthorsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackCoauthorInviteReference"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RemoveCoauthor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     RequestTrackUploadUrls: {
         parameters: {
             query?: never;
@@ -3054,6 +3382,36 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PaginatedResponseOfUserSummaryResponse"];
                 };
+            };
+        };
+    };
+    GetCoauthorInvitations: {
+        parameters: {
+            query?: {
+                pageNumber?: number | string;
+                pageSize?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponseOfCoauthorInvitationResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
