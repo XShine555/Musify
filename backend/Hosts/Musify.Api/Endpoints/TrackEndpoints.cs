@@ -5,6 +5,7 @@ using Musify.Api.DataTransferObjects.Tracks;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
 using Musify.Api.Models;
+using Musify.Application.Coauthors;
 using Musify.Application.Contracts;
 using Musify.Application.Pictures;
 using Musify.Application.Shared;
@@ -121,6 +122,27 @@ namespace Musify.Api.Endpoints
                 .Produces(StatusCodes.Status401Unauthorized)
                 .Produces(StatusCodes.Status403Forbidden);
 
+            group.MapPost("/{id:guid}/coauthors", InviteCoauthors)
+                .WithName("InviteCoauthors")
+                .WithSummary("Invite users to coauthor one of your tracks. Returns every invitation of the track with its status. A rejected invitation is reset to pending")
+                .AddEndpointFilter<ValidationFilter<InviteCoauthorsRequest>>()
+                .RequireAuthorization()
+                .Produces<IReadOnlyList<TrackCoauthorInviteReference>>()
+                .ProducesValidationProblem()
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status409Conflict);
+
+            group.MapDelete("/{id:guid}/coauthors/{userId:long}", RemoveCoauthor)
+                .WithName("RemoveCoauthor")
+                .WithSummary("Remove a coauthor or pending invitation from a track. Allowed to the track owner and to the coauthor themself")
+                .RequireAuthorization()
+                .Produces(StatusCodes.Status204NoContent)
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status403Forbidden)
+                .Produces(StatusCodes.Status404NotFound);
+
             group.MapPost("/upload-urls", RequestTrackUploadUrls)
                 .WithName("RequestTrackUploadUrls")
                 .WithSummary("Request pre-signed URLs to upload the audio of one or many tracks and an optional picture shared by all of them")
@@ -198,11 +220,34 @@ namespace Musify.Api.Endpoints
             [AsParameters] PageQuery page,
             CancellationToken cancellationToken,
             ProcessingStatus[]? status = null,
-            bool? published = null)
+            bool? published = null,
+            bool? includeCoauthored = null)
         {
             var result = await mediator.Send(
-                new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize, status, currentUser.Id, published),
+                new GetTracksByUserIdQuery(userId, name, page.PageNumber, page.PageSize, status, currentUser.Id, published, includeCoauthored),
                 cancellationToken);
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> InviteCoauthors(
+            IMediator mediator,
+            CurrentUser currentUser,
+            Guid id,
+            InviteCoauthorsRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new InviteCoauthorsCommand(currentUser.RequiredId, id, request.UserIds), cancellationToken);
+            return result.ToHttpResult();
+        }
+
+        private static async Task<IResult> RemoveCoauthor(
+            IMediator mediator,
+            CurrentUser currentUser,
+            Guid id,
+            long userId,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new RemoveCoauthorCommand(currentUser.RequiredId, id, userId), cancellationToken);
             return result.ToHttpResult();
         }
 

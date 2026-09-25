@@ -17,5 +17,7 @@ namespace Musify.Application.Tracks.Responses
         IReadOnlyCollection<Genre> Tags,
         bool IsExplicit,
         bool IsPublished,
-        IReadOnlyList<TrackAlbumReference> Albums);
+        IReadOnlyList<TrackAlbumReference> Albums,
+        IReadOnlyList<TrackCoauthorReference> Coauthors,
+        IReadOnlyList<TrackCoauthorInviteReference> CoauthorInvites);
 }

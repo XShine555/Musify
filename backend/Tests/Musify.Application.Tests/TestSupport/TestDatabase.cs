@@ -64,6 +64,8 @@ namespace Musify.Application.Tests.TestSupport
 
         public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 
+        public DbSet<TrackCoauthor> TrackCoauthors => Set<TrackCoauthor>();
+
         public async Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken)
         {
             var transaction = await Database.BeginTransactionAsync(isolationLevel, cancellationToken);

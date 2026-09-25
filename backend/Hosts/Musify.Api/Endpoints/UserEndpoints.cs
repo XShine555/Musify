@@ -3,6 +3,8 @@ using Musify.Api.Authentication;
 using Musify.Api.Extensions;
 using Musify.Api.Filters;
 using Musify.Api.Models;
+using Musify.Application.Coauthors;
+using Musify.Application.Coauthors.Responses;
 using Musify.Application.Shared;
 using Musify.Application.Tracks;
 using Musify.Application.Tracks.Responses;
@@ -23,6 +25,14 @@ namespace Musify.Api.Endpoints
                 .WithName("GetUsers")
                 .WithSummary("Get paginated users")
                 .Produces<PaginatedResponse<UserSummaryResponse>>();
+
+            group.MapGet("/me/coauthor-invitations", GetCoauthorInvitations)
+                .AddEndpointFilter<ValidationFilter<PageQuery>>()
+                .WithName("GetCoauthorInvitations")
+                .WithSummary("Get your pending coauthor invitations with the track title and owner")
+                .RequireAuthorization()
+                .Produces<PaginatedResponse<CoauthorInvitationResponse>>()
+                .Produces(StatusCodes.Status401Unauthorized);
 
             group.MapGet("/{id:long}", GetUserById)
                 .WithName("GetUserById")
@@ -105,6 +115,16 @@ namespace Musify.Api.Endpoints
             CancellationToken cancellationToken)
         {
             var result = await mediator.Send(new GetUsersQuery(page.PageNumber, page.PageSize, usernameSearch, currentUser.Id), cancellationToken);
+            return Results.Ok(result);
+        }
+
+        private static async Task<IResult> GetCoauthorInvitations(
+            IMediator mediator,
+            CurrentUser currentUser,
+            [AsParameters] PageQuery page,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new GetCoauthorInvitationsQuery(currentUser.RequiredId, page.PageNumber, page.PageSize), cancellationToken);
             return Results.Ok(result);
         }
 

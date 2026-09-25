@@ -467,6 +467,37 @@ namespace Musify.Infrastructure.Persistence.Migrations
                     b.ToTable("Tracks");
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.TrackCoauthor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("InvitedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrackId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("TrackCoauthors");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.TrackLike", b =>
                 {
                     b.Property<Guid>("Id")
@@ -989,6 +1020,25 @@ namespace Musify.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Musify.Domain.Entities.TrackCoauthor", b =>
+                {
+                    b.HasOne("Musify.Domain.Entities.Track", "Track")
+                        .WithMany("Coauthors")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Musify.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Track");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Musify.Domain.Entities.TrackLike", b =>
                 {
                     b.HasOne("Musify.Domain.Entities.Track", "Track")
@@ -1067,6 +1117,8 @@ namespace Musify.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Musify.Domain.Entities.Track", b =>
                 {
                     b.Navigation("AlbumTracks");
+
+                    b.Navigation("Coauthors");
 
                     b.Navigation("ListeningHistories");
 

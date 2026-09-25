@@ -45,6 +45,7 @@ app.UseAuthorization();
 
 app
     .MapAlbumEndpoints()
+    .MapCoauthorEndpoints()
     .MapConfigEndpoints()
     .MapGenreEndpoints()
     .MapLikeEndpoints()

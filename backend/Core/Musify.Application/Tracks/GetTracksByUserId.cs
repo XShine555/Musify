@@ -15,7 +15,8 @@ namespace Musify.Application.Tracks
         int PageSize,
         IReadOnlyList<ProcessingStatus>? Statuses = null,
         long? ViewerId = null,
-        bool? IsPublished = null)
+        bool? IsPublished = null,
+        bool? IncludeCoauthored = null)
         : IQuery<ErrorOr<PaginatedResponse<UserTrackApplicationResponse>>>;
 
     public class GetTracksByUserIdQueryHandler(IDatabase database)
@@ -25,11 +26,19 @@ namespace Musify.Application.Tracks
         {
             var tracksQuery = database.Tracks
                 .AsNoTracking()
-                .Active()
-                .Where(track => track.OwnerUserId == request.UserId);
+                .Active();
 
-            if (request.ViewerId != request.UserId)
-                tracksQuery = tracksQuery.WherePublished();
+            var isOwnerView = request.ViewerId == request.UserId;
+            var includeCoauthored = request.IncludeCoauthored ?? !isOwnerView;
+
+            tracksQuery = includeCoauthored
+                ? tracksQuery.Where(track => track.OwnerUserId == request.UserId
+                    || track.Coauthors.Any(coauthor => coauthor.UserId == request.UserId && coauthor.Status == CoauthorStatus.Accepted))
+                : tracksQuery.Where(track => track.OwnerUserId == request.UserId);
+
+            tracksQuery = isOwnerView
+                ? tracksQuery.Where(track => track.OwnerUserId == request.UserId || track.IsPublished)
+                : tracksQuery.WherePublished();
 
             if (!string.IsNullOrWhiteSpace(request.Name))
             {
@@ -46,11 +55,18 @@ namespace Musify.Application.Tracks
             if (request.IsPublished is { } isPublished)
                 tracksQuery = tracksQuery.Where(track => track.IsPublished == isPublished);
 
-            return await tracksQuery
+            var page = await tracksQuery
                 .OrderByDescending(track => track.CreatedAt)
                 .ThenBy(track => track.Id)
-                .SelectUserResponse()
+                .SelectUserResponse(includeInvites: request.ViewerId != null)
                 .ToPaginatedAsync(new PageRequest(request.PageNumber, request.PageSize), cancellationToken);
+
+            // Invitations are private to the track owner.
+            var items = page.Items
+                .Select(track => track.OwnerUserId == request.ViewerId ? track : track with { CoauthorInvites = [] })
+                .ToList();
+
+            return page with { Items = items };
         }
     }
 }

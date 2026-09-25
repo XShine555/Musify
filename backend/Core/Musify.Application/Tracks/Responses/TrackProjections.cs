@@ -27,9 +27,15 @@ namespace Musify.Application.Tracks.Responses
                 track.OwnerUserId,
                 track.Tags.Select(tag => tag.Tag).ToList(),
                 track.IsExplicit,
-                track.IsPublished));
+                track.IsPublished,
+                track.Coauthors
+                    .Where(coauthor => coauthor.Status == CoauthorStatus.Accepted)
+                    .OrderBy(coauthor => coauthor.RespondedAt)
+                    .ThenBy(coauthor => coauthor.UserId)
+                    .Select(coauthor => new TrackCoauthorReference(coauthor.UserId, coauthor.User.Name))
+                    .ToList()));
 
-        public static IQueryable<UserTrackApplicationResponse> SelectUserResponse(this IQueryable<Track> query) =>
+        public static IQueryable<UserTrackApplicationResponse> SelectUserResponse(this IQueryable<Track> query, bool includeInvites = false) =>
             query.Select(track => new UserTrackApplicationResponse(
                 track.Id,
                 track.Title,
@@ -48,6 +54,19 @@ namespace Musify.Application.Tracks.Responses
                     .OrderBy(albumTrack => albumTrack.AddedAt)
                     .ThenBy(albumTrack => albumTrack.AlbumId)
                     .Select(albumTrack => new TrackAlbumReference(albumTrack.AlbumId, albumTrack.Album.Title))
-                    .ToList()));
+                    .ToList(),
+                track.Coauthors
+                    .Where(coauthor => coauthor.Status == CoauthorStatus.Accepted)
+                    .OrderBy(coauthor => coauthor.RespondedAt)
+                    .ThenBy(coauthor => coauthor.UserId)
+                    .Select(coauthor => new TrackCoauthorReference(coauthor.UserId, coauthor.User.Name))
+                    .ToList(),
+                includeInvites
+                    ? track.Coauthors
+                        .OrderBy(coauthor => coauthor.InvitedAt)
+                        .ThenBy(coauthor => coauthor.UserId)
+                        .Select(coauthor => new TrackCoauthorInviteReference(coauthor.UserId, coauthor.User.Name, coauthor.Status))
+                        .ToList()
+                    : new List<TrackCoauthorInviteReference>()));
     }
 }

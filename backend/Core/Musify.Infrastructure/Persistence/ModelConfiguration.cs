@@ -122,6 +122,25 @@ namespace Musify.Infrastructure.Persistence
                 .HasIndex(trackTag => new { trackTag.TrackId, trackTag.Tag })
                 .IsUnique();
 
+            modelBuilder.Entity<TrackCoauthor>()
+                .HasOne(coauthor => coauthor.Track)
+                .WithMany(track => track.Coauthors)
+                .HasForeignKey(coauthor => coauthor.TrackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrackCoauthor>()
+                .HasOne(coauthor => coauthor.User)
+                .WithMany()
+                .HasForeignKey(coauthor => coauthor.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrackCoauthor>()
+                .HasIndex(coauthor => new { coauthor.TrackId, coauthor.UserId })
+                .IsUnique();
+
+            modelBuilder.Entity<TrackCoauthor>()
+                .HasIndex(coauthor => new { coauthor.UserId, coauthor.Status });
+
             modelBuilder.Entity<UserFollow>()
                 .HasOne(follow => follow.Follower)
                 .WithMany()

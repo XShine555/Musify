@@ -15,12 +15,11 @@ namespace Musify.Application.Tracks
         {
             return await database.ListeningHistories
                 .AsNoTracking()
-                .Include(t => t.Track.Owner)
-                .Include(t => t.Track.Tags)
                 .Where(t => t.UserId == query.UserId && t.IsCounted && t.Track.LifeCycleStatus == LifeCycleStatus.Active && t.Track.IsPublished)
                 .OrderByDescending(t => t.ListenedAt)
                 .ThenBy(t => t.Id)
-                .Select(t => TrackApplicationResponse.FromEntity(t.Track, t.Track.ListeningHistories.Count(l => l.IsCounted)))
+                .Select(t => t.Track)
+                .SelectResponse()
                 .FirstOrDefaultAsync(cancellationToken);
         }
     }

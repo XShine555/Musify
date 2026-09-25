@@ -32,6 +32,8 @@ namespace Musify.Application.Contracts
 
         public DbSet<UserFollow> UserFollows { get; }
 
+        public DbSet<TrackCoauthor> TrackCoauthors { get; }
+
         public Task<IDatabaseTransaction> BeginTransactionAsync(System.Data.IsolationLevel isolationLevel, CancellationToken cancellationToken);
 
         public DbSet<TEntity> Set<TEntity>() where TEntity : class;
