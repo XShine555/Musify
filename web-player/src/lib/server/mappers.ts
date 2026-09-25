@@ -1,6 +1,8 @@
 import type { components } from '$lib/api/schema';
 import type {
 	Album,
+	CoauthorInvitation,
+	CoauthorInvite,
 	LibraryTrack,
 	TrackStatusCounts,
 	LikedTrack,
@@ -13,6 +15,8 @@ import type {
 
 type TrackDto = components['schemas']['TrackApplicationResponse'];
 type UserTrackDto = components['schemas']['UserTrackApplicationResponse'];
+type CoauthorInviteDto = components['schemas']['TrackCoauthorInviteReference'];
+type CoauthorInvitationDto = components['schemas']['CoauthorInvitationResponse'];
 type StatusCountsDto = components['schemas']['TrackStatusCountsResponse'];
 type AlbumDto = components['schemas']['AlbumApplicationResponse'];
 type PlaylistDto = components['schemas']['PlayListApplicationResponse'];
@@ -34,12 +38,28 @@ export function toTrack(dto: TrackDto): Track {
 		ownerUserId: dto.ownerUserId,
 		explicit: dto.isExplicit,
 		duration: Number(dto.duration) || 0,
-		listensCount: Number(dto.listensCount) || 0
+		listensCount: Number(dto.listensCount) || 0,
+		coauthors: dto.coauthors.map(({ id, name }) => ({ id, name }))
 	};
 }
 
 export function toDatedTrack(dto: TrackDto): Track & { date: string } {
 	return { ...toTrack(dto), date: dto.createdAt };
+}
+
+export function toCoauthorInvite({ userId, name, status }: CoauthorInviteDto): CoauthorInvite {
+	return { userId, name, status };
+}
+
+export function toCoauthorInvitation(dto: CoauthorInvitationDto): CoauthorInvitation {
+	return {
+		id: dto.id,
+		trackId: dto.trackId,
+		trackTitle: dto.trackTitle,
+		artist: dto.artist,
+		ownerUserId: dto.ownerUserId,
+		invitedAt: dto.invitedAt
+	};
 }
 
 export function toLibraryTrack(dto: UserTrackDto): LibraryTrack {
@@ -49,7 +69,8 @@ export function toLibraryTrack(dto: UserTrackDto): LibraryTrack {
 		genres: dto.tags,
 		albums: dto.albums,
 		albumTitle: dto.albums.length > 0 ? dto.albums.map((album) => album.title).join(', ') : null,
-		published: dto.isPublished
+		published: dto.isPublished,
+		coauthorInvites: dto.coauthorInvites.map(toCoauthorInvite)
 	};
 }
 
@@ -75,7 +96,8 @@ export function toMixTrack(item: MixItemDto): Track {
 		ownerUserId: null,
 		explicit: false,
 		duration: Number(item.durationSeconds) || 0,
-		listensCount: Number(item.listensCount) || 0
+		listensCount: Number(item.listensCount) || 0,
+		coauthors: []
 	};
 }
 

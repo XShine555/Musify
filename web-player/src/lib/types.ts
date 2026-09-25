@@ -7,6 +7,28 @@ export interface SessionUser {
 
 export type FollowList = 'followers' | 'following';
 
+export interface TrackCoauthor {
+	id: string;
+	name: string;
+}
+
+export type CoauthorStatus = 'Pending' | 'Accepted' | 'Rejected';
+
+export interface CoauthorInvite {
+	userId: string;
+	name: string;
+	status: CoauthorStatus;
+}
+
+export interface CoauthorInvitation {
+	id: string;
+	trackId: string;
+	trackTitle: string;
+	artist: string | null;
+	ownerUserId: string;
+	invitedAt: string;
+}
+
 export interface Track {
 	id: string;
 	title: string;
@@ -15,6 +37,7 @@ export interface Track {
 	explicit: boolean;
 	duration: number;
 	listensCount: number;
+	coauthors: TrackCoauthor[];
 }
 
 export interface GenreOption {
@@ -31,6 +54,7 @@ export interface LibraryTrack extends Track {
 	albumTitle: string | null;
 	albums: { id: string; title: string }[];
 	published: boolean;
+	coauthorInvites: CoauthorInvite[];
 }
 
 export interface TrackStatusCounts {

@@ -5,6 +5,8 @@ import {
 	toCount,
 	toDatedTrack,
 	toLikedTrack,
+	toCoauthorInvitation,
+	toLibraryTrack,
 	toListeningStats,
 	toMix,
 	toPage,
@@ -25,7 +27,7 @@ const trackDto: components['schemas']['TrackApplicationResponse'] = {
 	tags: [],
 	isExplicit: true,
 	isPublished: true,
-	coauthors: []
+	coauthors: [{ id: 'u2', name: 'Guest' }]
 };
 
 describe('toTrack', () => {
@@ -37,7 +39,8 @@ describe('toTrack', () => {
 			ownerUserId: '42',
 			explicit: true,
 			duration: 183.5,
-			listensCount: 12
+			listensCount: 12,
+			coauthors: [{ id: 'u2', name: 'Guest' }]
 		});
 	});
 	it('falls back to 0 for invalid numbers', () => {
@@ -71,7 +74,8 @@ describe('toMix', () => {
 				ownerUserId: null,
 				explicit: false,
 				duration: 60,
-				listensCount: 3
+				listensCount: 3,
+				coauthors: []
 			}
 		]);
 	});
@@ -166,5 +170,37 @@ describe('toListeningStats', () => {
 			secondsThisWeek: 0,
 			streakDays: 0
 		});
+	});
+});
+
+describe('toLibraryTrack', () => {
+	it('keeps the coauthor invites with their status', () => {
+		const track = toLibraryTrack({
+			...trackDto,
+			albums: [],
+			coauthorInvites: [
+				{ userId: 'u2', name: 'Guest', status: 'Accepted' },
+				{ userId: 'u3', name: 'Other', status: 'Pending' }
+			]
+		});
+		expect(track.coauthorInvites).toEqual([
+			{ userId: 'u2', name: 'Guest', status: 'Accepted' },
+			{ userId: 'u3', name: 'Other', status: 'Pending' }
+		]);
+		expect(track.coauthors).toEqual([{ id: 'u2', name: 'Guest' }]);
+	});
+});
+
+describe('toCoauthorInvitation', () => {
+	it('copies the invitation fields', () => {
+		const dto = {
+			id: 'i1',
+			trackId: 't1',
+			trackTitle: 'Song',
+			artist: null,
+			ownerUserId: '42',
+			invitedAt: '2026-01-02T00:00:00Z'
+		};
+		expect(toCoauthorInvitation(dto)).toEqual(dto);
 	});
 });
