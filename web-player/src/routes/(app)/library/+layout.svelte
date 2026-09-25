@@ -14,6 +14,11 @@
 			href: '/library/uploads',
 			label: 'Subidas',
 			description: 'Sube varias canciones a la vez y añádelas a tu biblioteca.'
+		},
+		{
+			href: '/library/invitations',
+			label: 'Invitaciones',
+			description: 'Responde a las invitaciones para figurar como coautor de una canción.'
 		}
 	];
 </script>

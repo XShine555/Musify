@@ -21,16 +21,29 @@
 
 	const activeHref = $derived(tabs.find((tab) => tab.active)?.href);
 
-	$effect(() => {
+	let nav = $state<HTMLElement>();
+
+	function measure() {
 		const link = activeHref ? links[activeHref] : undefined;
-		if (!link) return;
+		if (!link || link.offsetWidth === 0) return;
 		indicator = { x: link.offsetLeft, width: link.offsetWidth };
 		measured = true;
 		if (!animated) requestAnimationFrame(() => (animated = true));
+	}
+
+	$effect(measure);
+
+	$effect(() => {
+		if (!nav) return;
+		const observer = new ResizeObserver(() => measure());
+		observer.observe(nav);
+		for (const link of Object.values(links)) if (link) observer.observe(link);
+		return () => observer.disconnect();
 	});
 </script>
 
 <nav
+	bind:this={nav}
 	aria-label={label}
 	class="relative inline-flex max-w-full rounded-full bg-surface-2 p-1 {klass}"
 >

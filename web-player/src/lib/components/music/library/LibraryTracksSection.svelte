@@ -57,6 +57,8 @@
 		(track) => track.id
 	);
 
+	untrack(() => list.reset(tracks));
+
 	let search = $state('');
 	let selectedIds = $state<string[]>([]);
 	let pendingDelete = $state<LibraryTrack[]>([]);
