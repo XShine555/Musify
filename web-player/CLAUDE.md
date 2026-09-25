@@ -44,7 +44,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
 - `src/lib/server/` is server only code (see below).
 - `src/lib/components/shell/` holds the app shell: Sidebar, TopBar, TabsBar, MobileHeader, AccountMenu, and `navLinks.ts`.
 - `src/lib/components/player/` holds the player UI: PlayerBar, PlayerDock, Queue, TrackInfo, TransportControls.
-- `src/lib/components/music/` holds the components that connect the UI to app state (the player, album data): TrackList, PlayAllButton, TrackContextMenu, AlbumContextMenu, GenrePicker, TrackStatusBadge. The `library/` subfolder holds the manage-music sections (tracks, albums editor, upload queue).
+- `src/lib/components/music/` holds the components that connect the UI to app state (the player, album data): TrackList, PlayAllButton, TrackContextMenu, AlbumContextMenu, GenrePicker, TrackStatusBadge. The `library/` subfolder holds the manage-music sections (tracks, albums editor, upload queue, coauthors dialog, invitations inbox).
 - `src/lib/components/ui/` holds the design system, which is presentation only. ESLint forbids importing `$lib/player/*`, `$lib/data/*`, `$lib/server/*`, `components/music`, `components/shell` and `components/player` from it; it can use `$lib/state/*`, `$lib/utils/*`, `$lib/actions/*`, `$lib/theme/*` and `$lib/types`. It is split into five categories:
   - `primitives/` for generic controls with no music domain knowledge (Button, Input, Chip, Slider, and so on).
   - `overlay/` for anything that floats above the content (Modal, ContextMenu, GlassMenu, ConfirmDialog, and so on).
@@ -109,5 +109,6 @@ Server helpers:
 - `mappers.ts` (`toTrack`, `toAlbum`, `toPlaylist`, `toMix`, `toPage`, `toCount`, `toListeningStats`, ...) turn DTOs into the domain types. Every load and `/api` endpoint goes through them, so `Number()` conversions on DTOs never reach routes or the client.
 - `actions/` holds `authedAction(handler)` (returns 401 without a token, reads the form and hands `{ api, form, params, locals, url }` to the handler) plus the shared `follow` and `playlist` actions.
 - `forms/` holds `fields.ts` (`formString`, `formFile`) and the form parsers (`parseAlbumForm`, `parsePlaylistForm`); they validate with `LIMITS` from `$lib/validation`. `uploadOptionalCover` handles the optional cover upload.
+- `coauthors.ts` holds the coauthor helpers: invite, remove, accept or reject with per status error messages, the pending invitations list and count, and the user search behind `/api/users/search`.
 - `genres.ts` caches the genre list; `playbackConfig.ts` caches the anonymous listening setting.
 - Page sizes come from `$lib/config`; do not hardcode them.
