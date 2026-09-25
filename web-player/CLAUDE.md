@@ -49,7 +49,7 @@ npm run lint:tokens      # scripts/check-tokens.mjs, the design system guardrail
   - `primitives/` for generic controls with no music domain knowledge (Button, Input, Chip, Slider, and so on).
   - `overlay/` for anything that floats above the content (Modal, ContextMenu, GlassMenu, ConfirmDialog, and so on).
   - `media/` for stateless music display components that receive props (Artwork, MediaCard, ListRow, PlayButton, and so on).
-  - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone).
+  - `forms/` for composite entity forms (AlbumForm, PlaylistForm, CoverForm, ImageDropzone, TagInput).
   - `layout/` for page level scaffolding (Page, PageHeader, SectionHeading).
 - The root `+layout.svelte` only holds the globals (fonts, theme, `DialogHost`). Everything the user sees after signing in lives under `src/routes/(app)/`, including Home (`(app)/+page.svelte`); `(app)/+layout.server.ts` guards the group and loads the shell data, and `(app)/+error.svelte` renders inside the shell. Unknown URLs hit the catch-all `(app)/[...rest]/` (it throws a 404) so they also get the shell (unknown `/api/...` URLs hit `api/[...rest]/`, a JSON 404); the root `+error.svelte` only covers errors outside the group or in the group layout load. Auth routes live under `src/routes/auth/`: `+page.svelte` is the login screen, and `login/`, `logout/`, `callback/` are the OIDC endpoints. The public user profile route is `src/routes/(app)/user/[id]/`, and its followers/following lists share one route, `user/[id]/[list=followList]/` (matcher in `src/params/followList.ts`).
 
@@ -70,7 +70,7 @@ The design system lives in `src/routes/layout.css` (`@theme` tokens plus `@utili
 - **Spacing:** stick to the Tailwind scale in `.5` steps and avoid quarters like `.25`/`.75`, unless the semantic token calls for it (for example `mb-4.5` in `SectionHeading`).
 - **Colors:** always use `--mf-*`/`text-*`/`bg-*`/`border-*` from `theme.css`/`tokens.ts`. Never a literal hex or `rgba()` inside a `.svelte` file; those literals only belong in `theme.css`/`tokens.ts` as the source of truth.
 - **Inline `style="…"` and arbitrary `-[…]` values:** only the ones whitelisted in `scripts/check-tokens.mjs` (the stagger variable `--i`, tile hue, menu position, progress width, `text-[clamp(…)]`, `leading-[…]` on login's display type, `grid-cols-[auto_1fr]`, `max-h-[85dvh]`, `my-`/`py-[Ndvh]` for vertical centering, `transition-[filter]` on genre tiles, and `bg-[image:var(--mf-*)]`). Everything else should become a token.
-- Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `ChipGroup`, `SegmentedControl`, `Tabs`, `SearchInput`, `StatusBadge`, `SelectionBar`, `DataGrid`, `FileDropzone`, `CoverForm`.
+- Reach for these base components before creating a new one: `Artwork`, `Avatar`, `ListRow`, `MediaIdentity`, `TrackList`, `MediaCard`, `PageHeader`, `ContextMenu`, `ConfirmDialog`, `PlayButton`, `Slider`, `Logo`, `Chip`, `ChipGroup`, `SegmentedControl`, `Tabs`, `SearchInput`, `StatusBadge`, `SelectionBar`, `DataGrid`, `FileDropzone`, `TagInput`, `CoverForm`.
 - **Icon stroke:** one global rule (`svg.lucide { stroke-width: 1.5 }` in `layout.css`) sets the stroke for every icon. Never pass `strokeWidth` to an icon, since any CSS rule overrides the SVG attribute and it would do nothing. For a different stroke on one icon, use a Tailwind `stroke-*` utility.
 
 ## App shell
