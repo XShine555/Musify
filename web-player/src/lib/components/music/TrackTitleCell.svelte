@@ -21,6 +21,7 @@
 		title={track.title}
 		artist={track.artist}
 		ownerUserId={track.ownerUserId}
+		coauthors={track.coauthors}
 		explicit={track.explicit}
 		{active}
 	>

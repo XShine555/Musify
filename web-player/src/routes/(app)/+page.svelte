@@ -117,6 +117,7 @@
 							title={item.title}
 							subtitle={item.artist}
 							subtitleHref={item.ownerUserId}
+							coauthors={item.coauthors}
 							explicit={item.explicit}
 							trackId={item.id}
 							class="animate-enter"
@@ -182,6 +183,7 @@
 									title={track.title}
 									subtitle={track.artist}
 									subtitleHref={track.ownerUserId}
+									coauthors={track.coauthors}
 									explicit={track.explicit}
 								>
 									{#snippet leading()}

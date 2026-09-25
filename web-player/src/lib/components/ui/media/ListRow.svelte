@@ -13,6 +13,7 @@
 		title: string;
 		subtitle?: string | null;
 		subtitleHref?: string | null;
+		coauthors?: { id: string; name: string }[];
 		explicit?: boolean;
 		trackId?: string;
 		trackIds?: string[];
@@ -35,6 +36,7 @@
 		title,
 		subtitle,
 		subtitleHref,
+		coauthors,
 		explicit = false,
 		trackId,
 		trackIds,
@@ -60,6 +62,7 @@
 		{title}
 		artist={subtitle}
 		ownerUserId={subtitleHref}
+		{coauthors}
 		{trackId}
 		{trackIds}
 		{coverSrc}

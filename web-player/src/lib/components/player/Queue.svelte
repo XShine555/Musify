@@ -60,6 +60,7 @@
 					title={player.current.title}
 					artist={player.current.artist || '—'}
 					ownerUserId={player.current.ownerUserId}
+					coauthors={player.current.coauthors}
 					explicit={player.current.explicit}
 					active
 				/>
@@ -123,6 +124,7 @@
 						title={track.title}
 						subtitle={track.artist || '—'}
 						subtitleHref={track.ownerUserId}
+						coauthors={track.coauthors}
 						explicit={track.explicit}
 						trackId={track.id}
 						class="p-2"

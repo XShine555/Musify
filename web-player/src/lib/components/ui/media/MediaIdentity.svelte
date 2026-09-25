@@ -10,6 +10,7 @@
 		title: string;
 		artist?: string | null;
 		ownerUserId?: string | null;
+		coauthors?: { id: string; name: string }[];
 		coverSrc?: string | null;
 		size?: 'xs' | 'sm' | 'lg';
 		explicit?: boolean;
@@ -26,6 +27,7 @@
 		title,
 		artist,
 		ownerUserId,
+		coauthors,
 		coverSrc,
 		size = 'sm',
 		explicit = false,
@@ -60,6 +62,6 @@
 				>{title}</span
 			>
 		</div>
-		<ArtistLink name={artist} {ownerUserId} class="mt-0.5 text-xs text-fg-2" />
+		<ArtistLink name={artist} {ownerUserId} {coauthors} class="mt-0.5 text-xs text-fg-2" />
 	</div>
 </div>

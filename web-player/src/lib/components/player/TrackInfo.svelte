@@ -42,6 +42,7 @@
 		<ArtistLink
 			name={current?.artist || '—'}
 			ownerUserId={current?.ownerUserId}
+			coauthors={current?.coauthors}
 			class="mt-0.5 text-xs text-fg-2"
 		/>
 	</div>
