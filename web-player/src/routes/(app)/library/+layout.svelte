@@ -24,7 +24,7 @@
 	import PageHeader from '$lib/components/ui/layout/PageHeader.svelte';
 	import Tabs from '$lib/components/ui/primitives/Tabs.svelte';
 
-	let { children } = $props();
+	let { data, children } = $props();
 
 	const pathname = $derived(page.url.pathname.replace(/\/$/, ''));
 	const current = $derived(
@@ -35,7 +35,12 @@
 		) ?? SECTIONS[0]
 	);
 	const tabs = $derived(
-		SECTIONS.map(({ href, label }) => ({ href, label, active: href === current.href }))
+		SECTIONS.map(({ href, label }) => ({
+			href,
+			label,
+			active: href === current.href,
+			count: href === '/library/invitations' ? data.invitationCount : undefined
+		}))
 	);
 </script>
 

@@ -3,6 +3,7 @@
 		href: string;
 		label: string;
 		active: boolean;
+		count?: number;
 	}
 
 	interface Props {
@@ -51,6 +52,16 @@
 				: 'text-fg-2 hover:text-fg'}"
 		>
 			{tab.label}
+			{#if tab.count}
+				<span
+					class="ml-1.5 inline-grid min-w-5 place-items-center rounded-full px-1.5 text-xs tabular-nums {tab.active
+						? 'bg-ink/15 text-ink'
+						: 'bg-accent-tint text-accent-soft'}"
+					aria-label="{tab.count} pendientes"
+				>
+					{tab.count}
+				</span>
+			{/if}
 		</a>
 	{/each}
 </nav>
