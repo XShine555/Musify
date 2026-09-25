@@ -18,12 +18,14 @@
 			class: `${TEXT} tabular-nums`
 		},
 		{ id: 'publish', width: COL.publish },
+		{ id: 'coauthors', width: COL.action, mobile: COL.actionMobile },
 		{ id: 'delete', width: COL.action, mobile: COL.actionMobile }
 	];
 </script>
 
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
+	import Users from '@lucide/svelte/icons/users';
 	import type { LibraryTrack } from '$lib/types';
 	import { player } from '$lib/player/player.svelte';
 	import { genreLabels } from '$lib/data/genres';
@@ -41,6 +43,7 @@
 		selectedIds: string[];
 		onPlay: (index: number) => void;
 		onPublish: (track: LibraryTrack) => void;
+		onCoauthors: (track: LibraryTrack) => void;
 		onDelete: (track: LibraryTrack) => void;
 		class?: string;
 	}
@@ -50,6 +53,7 @@
 		selectedIds = $bindable(),
 		onPlay,
 		onPublish,
+		onCoauthors,
 		onDelete,
 		class: klass = ''
 	}: Props = $props();
@@ -106,6 +110,15 @@
 					{track.published ? 'Despublicar' : 'Publicar'}
 				</Button>
 			</span>
+		{:else if column.id === 'coauthors'}
+			<IconButton
+				label="Coautores"
+				size="xs"
+				pressed={track.coauthorInvites.length > 0}
+				onclick={() => onCoauthors(track)}
+			>
+				<Users class="size-icon-sm" />
+			</IconButton>
 		{:else}
 			<IconButton label="Borrar canción" size="xs" revealOnHover onclick={() => onDelete(track)}>
 				<X class="size-icon-sm" />

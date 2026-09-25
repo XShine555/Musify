@@ -5,7 +5,13 @@
 	let { data, form } = $props();
 
 	const errorMessage = $derived(
-		form && 'message' in form && form.action !== 'saveAlbum' ? form.message : undefined
+		form &&
+			'message' in form &&
+			form.action !== 'saveAlbum' &&
+			form.action !== 'inviteCoauthors' &&
+			form.action !== 'removeCoauthor'
+			? form.message
+			: undefined
 	);
 	const published = $derived(
 		form?.action === 'setPublished' ? (form as { skipped?: number; isPublished?: boolean }) : null

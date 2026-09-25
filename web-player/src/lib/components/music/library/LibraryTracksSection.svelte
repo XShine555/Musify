@@ -32,6 +32,7 @@
 	import SearchInput from '$lib/components/ui/primitives/SearchInput.svelte';
 	import ChipGroup from '$lib/components/ui/primitives/ChipGroup.svelte';
 	import ConfirmDialog from '$lib/components/ui/overlay/ConfirmDialog.svelte';
+	import CoauthorsDialog from '$lib/components/music/library/CoauthorsDialog.svelte';
 	import ManageTrackList from '$lib/components/music/library/ManageTrackList.svelte';
 
 	interface Props {
@@ -65,6 +66,8 @@
 	let publishValue = $state('true');
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
+	let coauthorTrackId = $state('');
+	let coauthorsOpen = $state(false);
 	let hiddenIds = $state<string[]>([]);
 	let overrides = $state<Record<string, boolean>>({});
 	let deleteError = $state('');
@@ -162,6 +165,7 @@
 		};
 	};
 
+	const coauthorTrack = $derived(items.find((track) => track.id === coauthorTrackId));
 	const hasFilters = $derived(query !== '' || filter !== 'all');
 	const counters = $derived(filterCounts(counts));
 	const filterOptions = $derived(
@@ -204,6 +208,11 @@
 	function requestToggle(track: LibraryTrack) {
 		if (track.published) pendingUnpublish = [track];
 		else publish([track]);
+	}
+
+	function openCoauthors(track: LibraryTrack) {
+		coauthorTrackId = track.id;
+		coauthorsOpen = true;
 	}
 
 	function unpublishSelected() {
@@ -274,6 +283,7 @@
 			bind:selectedIds
 			onPlay={togglePlay}
 			onPublish={requestToggle}
+			onCoauthors={openCoauthors}
 			onDelete={(track) => (pendingDelete = [track])}
 		/>
 		<InfiniteScroll
@@ -304,6 +314,14 @@
 			</Button>
 		{/snippet}
 	</EmptyState>
+{/if}
+
+{#if coauthorTrack}
+	<CoauthorsDialog
+		open={coauthorsOpen}
+		onClose={() => (coauthorsOpen = false)}
+		track={coauthorTrack}
+	/>
 {/if}
 
 <ConfirmDialog

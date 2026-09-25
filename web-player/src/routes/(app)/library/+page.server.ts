@@ -6,6 +6,7 @@ import { formIds, formString } from '$lib/server/forms/fields';
 import { tagged } from '$lib/server/actions/tagged';
 import { loadLibraryTracks, loadStatusCounts } from '$lib/server/libraryTracks';
 import { deleteTracks, setTracksPublished } from '$lib/server/tracks';
+import { inviteCoauthors, removeCoauthor } from '$lib/server/coauthors';
 import { parseTrackFilter } from '$lib/data/libraryTracks';
 
 export const load: PageServerLoad = async ({ locals, url, fetch }) => {
@@ -44,5 +45,18 @@ export const actions: Actions = {
 		const result = await setTracksPublished(api, trackIds, isPublished);
 		if (isActionFailure(result)) return result;
 		return { ...result, isPublished };
+	}),
+
+	inviteCoauthors: tagged('inviteCoauthors', async ({ api, form }) => {
+		const trackId = formString(form, 'trackId');
+		if (!trackId) return fail(400, { message: 'Falta la canción.' });
+		return inviteCoauthors(api, trackId, formIds(form, 'userIds'));
+	}),
+
+	removeCoauthor: tagged('removeCoauthor', async ({ api, form }) => {
+		const trackId = formString(form, 'trackId');
+		const userId = formString(form, 'userId');
+		if (!trackId || !userId) return fail(400, { message: 'Falta el coautor.' });
+		return removeCoauthor(api, trackId, userId);
 	})
 };
